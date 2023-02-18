@@ -6,6 +6,7 @@ jobs:
   build_push_image:
     permissions:
       packages: write
+      contents: read
     runs-on: ubuntu-latest
     env:
       AWS_REGION: us-east-1
