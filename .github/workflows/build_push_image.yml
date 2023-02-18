@@ -4,6 +4,8 @@ on:
       - "main"
 jobs:
   build_push_image:
+    permissions:
+      packages: write
     runs-on: ubuntu-latest
     env:
       AWS_REGION: us-east-1
@@ -20,14 +22,14 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Login to ECR Public
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
           # AWS_REGION needs to be defined in the parent scope
           registry: public.ecr.aws
@@ -45,7 +47,7 @@ jobs:
           echo "IMAGE_REPOSITORY_TAG=${{ env.REPOSITORY_NAME }}:build${{ github.sha }}" >> $GITHUB_ENV
       
       - name: Build image and push it to registries
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v4
         with:
           context: .
           push: true
