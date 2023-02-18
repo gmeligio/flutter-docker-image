@@ -24,7 +24,8 @@ By SDK:
 1. Get versions from https://github.com/flutter/flutter/blob/master/packages/flutter_tools/gradle/flutter.gradle
 1. Add renovate.json to update packages:
     - [ ] apt in Docker images
-1. Use non-root user in Docker images
+1. [x] Use non-root user in Docker images
+1. [ ] Publish to quay.io
 
 ## Versions
 

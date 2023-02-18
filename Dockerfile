@@ -17,18 +17,9 @@ FROM public.ecr.aws/ubuntu/ubuntu:22.04@sha256:234afeb5d15478d2f8066f3610211fa64
 
 SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
-# TODO: Remove root user
-# hadolint ignore=DL3002
+ENV LANG=C.UTF-8
+
 USER root
-
-ARG flutter_version
-
-ENV LANG=C.UTF-8 \
-    FLUTTER_ROOT="$HOME/sdks/flutter"
-ENV PATH="$PATH:$FLUTTER_ROOT/bin:$FLUTTER_ROOT/bin/cache/dart-sdk/bin"
-
-WORKDIR /opt
-
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
     # Flutter dependencies
@@ -50,9 +41,21 @@ RUN apt-get update \
     # sudo=1.9.9-1ubuntu2.2 \
     unzip=6.0-26ubuntu3.1 \
     # zip=3.0-12build2 \
-    && rm -rf /var/lib/apt/lists/* \
-    && git clone --depth 1 --branch "$flutter_version" https://github.com/flutter/flutter.git "$FLUTTER_ROOT" \
-    && chown -R root:root "$FLUTTER_ROOT" \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV HOME=/home/flutter
+
+RUN useradd -Ums /bin/bash flutter
+USER flutter:flutter
+WORKDIR "$HOME"
+
+ENV FLUTTER_ROOT="$HOME/sdks/flutter"
+ENV PATH="$PATH:$FLUTTER_ROOT/bin:$FLUTTER_ROOT/bin/cache/dart-sdk/bin"
+
+ARG flutter_version
+
+RUN git clone --depth 1 --branch "$flutter_version" https://github.com/flutter/flutter.git "$FLUTTER_ROOT" \
+    && chown -R flutter:flutter "$FLUTTER_ROOT" \
     && flutter --version \
     && dart --disable-analytics \
     && flutter config --no-analytics \
@@ -70,16 +73,16 @@ FROM flutter as android
 
 SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
-ARG android_build_tools_version
 
-ENV ANDROID_HOME=/opt/android-sdk-linux
-ENV ANDROID_SDK_ROOT="$ANDROID_HOME" \
-    PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator"
+ENV ANDROID_HOME="$HOME/sdks/android-sdk"
+# ENV PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$HOME/.local/bin"
+ENV PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$HOME/.local/bin"
 
+USER root
 # hadolint ignore=DL3003
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-    # for x86 emulators
+    # For Android x86 emulators
     # libxtst6=2:1.2.3-1build4 \
     # libnss3-dev=2:3.68.2-0ubuntu1.1 \
     # libnspr4=2:4.32-3build1 \
@@ -90,27 +93,35 @@ RUN apt-get update \
     # libgdk-pixbuf2.0-0=2.40.2-2build4 \
     # Android SDK dependencies
     openjdk-11-jdk=11.0.17+8-1ubuntu2~22.04 \
-    && rm -rf /var/lib/apt/lists/* \
-    && command_line_tools_url="$(curl -s https://developer.android.com/studio/ | grep -o 'https://dl.google.com/android/repository/commandlinetools-linux-[0-9]\{7\}_latest.zip')" \
+    && rm -rf /var/lib/apt/lists/*
+
+USER flutter:flutter
+WORKDIR "$HOME"
+
+ARG android_build_tools_version
+
+# hadolint ignore=DL3003
+RUN command_line_tools_url="$(curl -s https://developer.android.com/studio/ | grep -o 'https://dl.google.com/android/repository/commandlinetools-linux-[0-9]\{7\}_latest.zip')" \
     && curl -o android-sdk-tools.zip "$command_line_tools_url" \
     && mkdir -p "$ANDROID_HOME/cmdline-tools/" \
     && unzip -q android-sdk-tools.zip -d "$ANDROID_HOME/cmdline-tools/" \
     && mv "$ANDROID_HOME/cmdline-tools/cmdline-tools" "$ANDROID_HOME/cmdline-tools/latest" \
-    && chown -R root:root "$ANDROID_HOME" \
+    && chown -R flutter:flutter "$ANDROID_HOME" \
     && rm android-sdk-tools.zip \
-    && echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers \
     && (yes || true) | sdkmanager --licenses \
-    && curl -o /usr/bin/android-wait-for-emulator https://raw.githubusercontent.com/travis-ci/travis-cookbooks/master/community-cookbooks/android-sdk/files/default/android-wait-for-emulator \
-    && chmod +x /usr/bin/android-wait-for-emulator \
-    && touch /root/.android/repositories.cfg \
-    && sdkmanager platform-tools \
-    && mkdir -p /root/.android \
-    && touch /root/.android/repositories.cfg \
-    && if [ "$(uname -m)" = "x86_64" ] ; then sdkmanager emulator ; fi \
+    # && mkdir -p "$HOME/.local/bin" \
+    # && curl -o "$HOME/.local/bin/android-wait-for-emulator" https://raw.githubusercontent.com/travis-ci/travis-cookbooks/master/community-cookbooks/android-sdk/files/default/android-wait-for-emulator \
+    # && chmod +x "$HOME/.local/bin/android-wait-for-emulator" \
+    && touch "$HOME/.android/repositories.cfg" \
+    # && sdkmanager platform-tools \
+    && mkdir -p "$HOME/.android" \
+    # && touch "$HOME/.android/repositories.cfg" \
+    # && if [ "$(uname -m)" = "x86_64" ] ; then sdkmanager emulator ; fi \
     && sdkmanager --update \
     && platforms_version=$(sdkmanager --list | grep 'platforms;android' | awk '{print $1}' | grep -oP '\d+$' | sort -n | tail -1) \
     # && ndk_descriptor=$(sdkmanager --list | grep 'ndk' | awk '{print $1}' | grep -oP 'ndk;\d+\.\d+\.\d+$' | tail -1) \
     && (yes || true) | sdkmanager \
+    "platform-tools" \
     "build-tools;$android_build_tools_version" \
     "platforms;android-$platforms_version" \
     # "$ndk_descriptor" \
@@ -126,11 +137,12 @@ RUN apt-get update \
 
 FROM android as android-test
 
-SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
+USER flutter
+WORKDIR "$HOME"
 
-WORKDIR /root
+SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
 RUN flutter create test_app
 
-WORKDIR /root/test_app/android
+WORKDIR "$HOME/test_app/android"
 RUN ./gradlew assembleRelease
