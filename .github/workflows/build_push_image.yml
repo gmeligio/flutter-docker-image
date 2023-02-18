@@ -1,0 +1,50 @@
+on:
+  push:
+    branches:
+      - "main"
+jobs:
+  build_push_image:
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: us-east-1
+      REPOSITORY_NAME: flutter
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Login to ECR Public
+        uses: docker/login-action@v1
+        with:
+          # AWS_REGION needs to be defined in the parent scope
+          registry: public.ecr.aws
+          username: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          password: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Create ECR repository
+        uses: int128/create-ecr-repository-action@v1
+        with:
+          public: true
+          repository: ${{ env.REPOSITORY_NAME }}
+
+      - name: Build image and push it to registries
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/gmeligio/${{ env.REPOSITORY_NAME }}:build${{ github.sha }}
+            public.ecr.aws/gmeligio/${{ env.REPOSITORY_NAME }}:build${{ github.sha }}
