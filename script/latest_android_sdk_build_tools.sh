@@ -1,1 +1,1 @@
-build_tools_version=$(sdkmanager --list | grep 'build-tools' | awk '{print $3}' | tail -1)
+sdkmanager --list | grep 'build-tools' | awk '{print $1}' | grep -oP 'build-tools;\d+\.\d+\.\d+$' | tail -1

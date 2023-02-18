@@ -1,1 +1,1 @@
-sdkmanager --list | grep 'platforms;android' | awk '{print $1}' | grep -oE '[0-9]+' | sort -n | tail -1
+sdkmanager --list | grep 'platforms;android' | awk '{print $1}' | grep -oP '\d+$' | sort -n | tail -1
