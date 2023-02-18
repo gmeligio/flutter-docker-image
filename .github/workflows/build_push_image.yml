@@ -40,11 +40,15 @@ jobs:
           public: true
           repository: ${{ env.REPOSITORY_NAME }}
 
+      - name: Set env variable for image repository and tag
+        run: |
+          echo "IMAGE_REPOSITORY_TAG=${{ env.REPOSITORY_NAME }}:build${{ github.sha }}" >> $GITHUB_ENV
+      
       - name: Build image and push it to registries
         uses: docker/build-push-action@v2
         with:
           context: .
           push: true
           tags: |
-            ghcr.io/gmeligio/${{ env.REPOSITORY_NAME }}:build${{ github.sha }}
-            public.ecr.aws/gmeligio/${{ env.REPOSITORY_NAME }}:build${{ github.sha }}
+            ghcr.io/gmeligio/${{ env.IMAGE_REPOSITORY_TAG }}
+            public.ecr.aws/gmeligio/${{ env.IMAGE_REPOSITORY_TAG }}
