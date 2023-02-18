@@ -6,19 +6,17 @@ FROM ubuntu:22.04 as base
 
 SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
+# TODO: Remove root user
 # hadolint ignore=DL3002
 USER root
 
 ENV ANDROID_HOME=/opt/android-sdk-linux \
-    LANG=en_US.UTF-8 \
-    LC_ALL=en_US.UTF-8 \
-    LANGUAGE=en_US:en
+    LANG=C.UTF-8
 
 ENV ANDROID_SDK_ROOT=$ANDROID_HOME \
     PATH=${PATH}:${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/platform-tools:${ANDROID_HOME}/emulator
 
 WORKDIR /opt
-
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
@@ -26,7 +24,7 @@ RUN apt-get update \
     sudo=1.9.9-1ubuntu2.2 \
     zip=3.0-12build2 \
     unzip=6.0-26ubuntu3.1 \
-    git=1:2.34.1-1ubuntu1.6 \
+    git=1:2.34.1-1ubuntu1.8 \
     openssh-client=1:8.9p1-3ubuntu0.1 \
     curl=7.81.0-1ubuntu1.7 \
     bc=1.07.1-3build1 \
@@ -50,9 +48,6 @@ RUN apt-get update \
     libgtk-3-0=3.24.33-1ubuntu2 \
     libgdk-pixbuf2.0-0=2.40.2-2build4 \
     && rm -rf /var/lib/apt/lists/* \
-    && sh -c 'echo "en_US.UTF-8 UTF-8" > /etc/locale.gen' \
-    && locale-gen \
-    && update-locale LANG=en_US.UTF-8 \
     && command_line_tools_url="$(curl -s https://developer.android.com/studio/ | grep -o 'https://dl.google.com/android/repository/commandlinetools-linux-[0-9]\{7\}_latest.zip')" \
     && curl -o android-sdk-tools.zip "$command_line_tools_url" \
     && mkdir -p "${ANDROID_HOME}/cmdline-tools/" \
@@ -68,8 +63,6 @@ RUN apt-get update \
     && sdkmanager platform-tools \
     && mkdir -p /root/.android \
     && touch /root/.android/repositories.cfg \
-    && git config --global user.email "support@cirruslabs.org" \
-    && git config --global user.name "Cirrus CI" \
     && if [ "$(uname -m)" = "x86_64" ] ; then sdkmanager emulator ; fi
 
 FROM base as sdk
@@ -77,10 +70,10 @@ FROM base as sdk
 SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
 RUN sdkmanager --update \
-    && build_tools_version=$(sdkmanager --list | grep 'build-tools' | awk '{print $3}' | tail -1) \
-    && platforms_version=$(sdkmanager --list | grep 'platforms;android' | awk '{print $1}' | grep -oE '[0-9]+' | sort -n | tail -1) \
+    && build_tools_descriptor=$(sdkmanager --list | grep 'build-tools' | awk '{print $1}' | grep -oP 'build-tools;\d+\.\d+\.\d+$' | tail -1) \
+    && platforms_version=$(sdkmanager --list | grep 'platforms;android' | awk '{print $1}' | grep -oP '\d+$' | sort -n | tail -1) \
     && (yes || true) | sdkmanager \
-    "build-tools;$build_tools_version" \
+    "$build_tools_descriptor" \
     "platforms;android-$platforms_version"
 
 FROM sdk as ndk
@@ -88,8 +81,8 @@ FROM sdk as ndk
 SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
 RUN sdkmanager --update \
-    && ndk_version=$(sdkmanager --list | grep 'ndk' | awk '{print $1}' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | tail -1) \
-    && (yes || true) | sdkmanager "ndk;$ndk_version"
+    && ndk_descriptor=$(sdkmanager --list | grep 'ndk' | awk '{print $1}' | grep -oP 'ndk;\d+\.\d+\.\d+$' | tail -1) \
+    && (yes || true) | sdkmanager "$ndk_descriptor"
 
 FROM ndk as flutter
 
@@ -102,6 +95,7 @@ FROM ndk as flutter
 
 SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
+# TODO: Remove root user
 # hadolint ignore=DL3002
 USER root
 
