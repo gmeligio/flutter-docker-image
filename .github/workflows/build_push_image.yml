@@ -3,14 +3,14 @@ on:
     branches:
       - "main"
 jobs:
-  build_push_image:
+  build_push_android:
     permissions:
       packages: write
       contents: read
     runs-on: ubuntu-latest
     env:
       AWS_REGION: us-east-1
-      REPOSITORY_NAME: flutter
+      REPOSITORY_NAME: flutter-android
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -45,13 +45,17 @@ jobs:
 
       - name: Set env variable for image repository and tag
         run: |
-          echo "IMAGE_REPOSITORY_TAG=${{ env.REPOSITORY_NAME }}:build${{ github.sha }}" >> $GITHUB_ENV
+          echo "IMAGE_REPOSITORY_TAG=${{ env.REPOSITORY_NAME }}:${{ github.sha }}" >> $GITHUB_ENV
       
       - name: Build image and push it to registries
         uses: docker/build-push-action@v4
         with:
           context: .
           push: true
+          target: android
+          build-args: |
+            flutter_version=3.7.1
+            android_build_tools_version=30.0.3
           tags: |
             ghcr.io/gmeligio/${{ env.IMAGE_REPOSITORY_TAG }}
             public.ecr.aws/gmeligio/${{ env.IMAGE_REPOSITORY_TAG }}
