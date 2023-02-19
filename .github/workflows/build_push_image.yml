@@ -69,5 +69,6 @@ jobs:
             android_build_tools_version=30.0.3
           kaniko-args: |
             --use-new-run=true
+            --snapshotMode=redo
           target: android
           executor: gcr.io/kaniko-project/executor:latest
