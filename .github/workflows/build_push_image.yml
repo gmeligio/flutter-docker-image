@@ -67,5 +67,7 @@ jobs:
           build-args: |
             flutter_version=3.7.3
             android_build_tools_version=30.0.3
+          kaniko-args: |
+            --use-new-run=true
           target: android
           executor: gcr.io/kaniko-project/executor:latest
