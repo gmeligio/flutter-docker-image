@@ -81,9 +81,9 @@ LABEL org.opencontainers.image.source="https://github.com/gmeligio/flutter-docke
 
 SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
-ENV ANDROID_HOME="$HOME/sdks/android-sdk"
-# TODO: Get JAVA_HOME dinamically from a JDK binary
-ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+# TODO: Get JAVA_HOME dinamically from a JDK binary 
+ENV ANDROID_HOME="$HOME/sdks/android-sdk" \
+    JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
 ENV PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$HOME/.local/bin"
 
 USER root
