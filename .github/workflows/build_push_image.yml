@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       AWS_REGION: us-east-1
-      REPOSITORY_NAME: flutter-android
+      IMAGE_REPOSITORY_NAME: flutter-android
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -37,23 +37,23 @@ jobs:
           username: ${{ secrets.AWS_ACCESS_KEY_ID }}
           password: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-      - name: Create ECR repository
+      - name: Create ECR repository for final images
         uses: int128/create-ecr-repository-action@v1
         id: ecr
         with:
           public: true
-          repository: ${{ env.REPOSITORY_NAME }}
+          repository: ${{ env.IMAGE_REPOSITORY_NAME }}
 
-      - name: Create ECR repository
+      - name: Create ECR repository for layer cache
         uses: int128/create-ecr-repository-action@v1
         id: ecr-cache
         with:
           public: true
-          repository: ${{ env.REPOSITORY_NAME }}/cache
+          repository: ${{ env.IMAGE_REPOSITORY_NAME }}/cache
 
-      - name: Set env variable for image repository and tag
+      - name: Set environment variable for image repository and tag
         run: |
-          echo "IMAGE_TAG=${{ github.sha }}" >> $GITHUB_ENV
+          echo "IMAGE_REPOSITORY_TAG=${{ github.repository_owner }}/${{ env.IMAGE_REPOSITORY_NAME }}:${{ github.sha }}" >> $GITHUB_ENV
 
       - name: Build image and push it to registries
         uses: int128/kaniko-action@v1
@@ -62,8 +62,8 @@ jobs:
           cache: true
           cache-repository: ${{ steps.ecr-cache.outputs.repository-uri }}
           tags: |
-            ghcr.io/${{ github.repository }}:${{ env.IMAGE_TAG }}
-            ${{ steps.ecr.outputs.repository-uri }}:${{ env.IMAGE_TAG }}
+            ghcr.io/${{ env.IMAGE_REPOSITORY_TAG }}
+            public.ecr.aws/${{ env.IMAGE_REPOSITORY_TAG }}
           build-args: |
             flutter_version=3.7.1
             android_build_tools_version=30.0.3

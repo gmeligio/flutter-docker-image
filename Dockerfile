@@ -83,7 +83,9 @@ SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
 ENV ANDROID_HOME="$HOME/sdks/android-sdk"
 # ENV PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$HOME/.local/bin"
-ENV PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$HOME/.local/bin"
+# TODO: Get JAVA_HOME dinamically from a JDK binary
+ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+ENV PATH="$PATH:$JAVA_HOME/bin:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$HOME/.local/bin"
 
 USER root
 # hadolint ignore=DL3003
