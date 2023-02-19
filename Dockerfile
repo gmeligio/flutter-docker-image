@@ -154,4 +154,8 @@ SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 RUN flutter create test_app
 
 WORKDIR "$HOME/test_app/android"
-RUN ./gradlew assembleRelease
+RUN ./gradlew assembleRelease \
+    && ./gradlew bundleRelease
+
+WORKDIR "$HOME/test_app"
+RUN flutter build appbundle
