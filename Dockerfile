@@ -93,7 +93,11 @@ RUN apt-get update \
     # libgdk-pixbuf2.0-0=2.40.2-2build4 \
     # Android SDK dependencies
     openjdk-11-jdk=11.0.17+8-1ubuntu2~22.04 \
-    && rm -rf /var/lib/apt/lists/*
+    # To allow changing ownership in Gitla CI /builds
+    sudo=1.9.9-1ubuntu2.2 \
+    && rm -rf /var/lib/apt/lists/* \
+    # To allow changing ownership in Gitla CI /builds
+    echo "flutter ALL= NOPASSWD:/bin/chown -R flutter /builds" >>/etc/sudoers
 
 USER flutter:flutter
 WORKDIR "$HOME"
@@ -140,6 +144,10 @@ RUN mkdir -p "$ANDROID_HOME" \
     && ./gradlew --version \
     && cd ../.. \
     && rm -r build_app
+
+COPY docker-entrypoint.sh $HOME/.local/bin/docker-entrypoint.sh
+
+ENTRYPOINT [ "docker-entrypoint.sh" ]
 
 FROM android as android-test
 

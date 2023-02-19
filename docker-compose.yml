@@ -15,7 +15,6 @@ services:
         - flutter_version=3.7.1
         - android_build_tools_version=30.0.3
         # - gradle_version=7.5
-    working_dir: /home/flutter/test_app/android
   test:
     build:
       context: .
