@@ -71,6 +71,14 @@ RUN git clone --depth 1 --branch "$flutter_version" https://github.com/flutter/f
 
 FROM flutter as android
 
+LABEL org.opencontainers.image.source="https://github.com/gmeligio/flutter-docker-image" \
+    org.opencontainers.image.url="https://github.com/gmeligio/flutter-docker-image" \
+    org.opencontainers.image.documentation="https://github.com/gmeligio/flutter-docker-image" \
+    org.opencontainers.image.licenses="MIT" \
+    org.opencontainers.image.authors="Eligio Mariño" \
+    org.opencontainers.image.vendor="Eligio Mariño" \
+    org.opencontainers.image.title="Flutter Docker Image"
+
 SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
 ENV ANDROID_HOME="$HOME/sdks/android-sdk"
