@@ -73,7 +73,6 @@ FROM flutter as android
 
 SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
-
 ENV ANDROID_HOME="$HOME/sdks/android-sdk"
 # ENV PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$HOME/.local/bin"
 ENV PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$HOME/.local/bin"
@@ -97,7 +96,7 @@ RUN apt-get update \
     sudo=1.9.9-1ubuntu2.2 \
     && rm -rf /var/lib/apt/lists/* \
     # To allow changing ownership in GitLab CI /builds
-    echo "flutter ALL= NOPASSWD:/bin/chown -R flutter /builds" >>/etc/sudoers
+    && echo "flutter ALL= NOPASSWD:/bin/chown -R flutter /builds" >> /etc/sudoers.d/flutter
 
 USER flutter:flutter
 WORKDIR "$HOME"
