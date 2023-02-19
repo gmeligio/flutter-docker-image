@@ -27,7 +27,7 @@ RUN apt-get update \
     # build-essential=12.9ubuntu3 \
     curl=7.81.0-1ubuntu1.7 \
     git=1:2.34.1-1ubuntu1.8 \
-    # lcov=1.15-1 \
+    lcov=1.15-1 \
     # libglu1-mesa=9.0.2-1 \
     # libsqlite3-0=3.37.2-2ubuntu0.1 \
     # libstdc++6=12.1.0-2ubuntu1~22.04 \
@@ -111,6 +111,10 @@ USER flutter:flutter
 WORKDIR "$HOME"
 
 ARG android_build_tools_version
+# TODO: Use cleaner way than fixed variables for multiple platforms
+ARG platforms_version1
+ARG platforms_version2
+ARG platforms_version3
 
 # hadolint ignore=DL3003
 RUN mkdir -p "$ANDROID_HOME" \
@@ -137,13 +141,12 @@ RUN mkdir -p "$ANDROID_HOME" \
     # && touch "$HOME/.android/repositories.cfg" \
     # && if [ "$(uname -m)" = "x86_64" ] ; then sdkmanager emulator ; fi \
     && sdkmanager --update \
-    && platforms_version=$(sdkmanager --list | grep 'platforms;android' | awk '{print $1}' | grep -oP '\d+$' | sort -n | tail -1) \
-    # && ndk_descriptor=$(sdkmanager --list | grep 'ndk' | awk '{print $1}' | grep -oP 'ndk;\d+\.\d+\.\d+$' | tail -1) \
     && (yes || true) | sdkmanager \
     "platform-tools" \
     "build-tools;$android_build_tools_version" \
-    "platforms;android-$platforms_version" \
-    # "$ndk_descriptor" \
+    "platforms;android-$platforms_version1" \
+    "platforms;android-$platforms_version2" \
+    "platforms;android-$platforms_version3" \
     && flutter config --enable-android \
     && (yes || true) | flutter doctor --android-licenses \
     && flutter precache --android \
