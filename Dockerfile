@@ -96,7 +96,7 @@ RUN apt-get update \
     sudo=1.9.9-1ubuntu2.2 \
     && rm -rf /var/lib/apt/lists/* \
     # To allow changing ownership in GitLab CI /builds
-    && echo "flutter ALL= NOPASSWD:/bin/chown -R flutter /builds" >> /etc/sudoers.d/flutter
+    && echo "flutter ALL= NOPASSWD:/bin/chown -R flutter /builds, /bin/chown -R flutter /builds/*" >> /etc/sudoers.d/flutter
 
 USER flutter:flutter
 WORKDIR "$HOME"
