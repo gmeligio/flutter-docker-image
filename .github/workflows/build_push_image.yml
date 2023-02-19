@@ -44,28 +44,28 @@ jobs:
           public: true
           repository: ${{ env.REPOSITORY_NAME }}
 
+      - name: Create ECR repository
+        uses: int128/create-ecr-repository-action@v1
+        id: ecr-cache
+        with:
+          public: true
+          repository: ${{ env.REPOSITORY_NAME }}/cache
+
       - name: Set env variable for image repository and tag
         run: |
           echo "IMAGE_TAG=${{ github.sha }}" >> $GITHUB_ENV
-      
+
       - name: Build image and push it to registries
-        uses: docker/build-push-action@v4
+        uses: int128/kaniko-action@v1
         with:
-          context: .
           push: true
-          target: android
-          build-args: |
-            flutter_version=3.7.1
-            android_build_tools_version=30.0.3
+          cache: true
+          cache-repository: ${{ steps.ecr-cache.outputs.repository-uri }}
           tags: |
             ghcr.io/${{ github.repository }}:${{ env.IMAGE_TAG }}
             ${{ steps.ecr.outputs.repository-uri }}:${{ env.IMAGE_TAG }}
-
-      # - name: Build image and push it to registries
-      #   uses: int128/kaniko-action@v1
-      #   with:
-      #     push: true
-      #     tags: ${{ steps.metadata.outputs.tags }}
-      #     labels: ${{ steps.metadata.outputs.labels }}
-      #     cache: true
-      #     cache-repository: ${{ steps.ecr.outputs.registry }}/${{ github.repository }}/cache
+          build-args: |
+            flutter_version=3.7.1
+            android_build_tools_version=30.0.3
+          target: android
+          executor: gcr.io/kaniko-project/executor:latest
