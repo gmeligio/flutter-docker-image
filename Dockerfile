@@ -101,12 +101,19 @@ WORKDIR "$HOME"
 ARG android_build_tools_version
 
 # hadolint ignore=DL3003
-RUN command_line_tools_url="$(curl -s https://developer.android.com/studio/ | grep -o 'https://dl.google.com/android/repository/commandlinetools-linux-[0-9]\{7\}_latest.zip')" \
-    && curl -o android-sdk-tools.zip "$command_line_tools_url" \
-    && mkdir -p "$ANDROID_HOME/cmdline-tools/" \
-    && unzip -q android-sdk-tools.zip -d "$ANDROID_HOME/cmdline-tools/" \
-    && mv "$ANDROID_HOME/cmdline-tools/cmdline-tools" "$ANDROID_HOME/cmdline-tools/latest" \
+RUN mkdir -p "$ANDROID_HOME" \
     && chown -R flutter:flutter "$ANDROID_HOME" \
+    && command_line_tools_url="$(curl -s https://developer.android.com/studio/ | grep -o 'https://dl.google.com/android/repository/commandlinetools-linux-[0-9]\{7\}_latest.zip')" \
+    && curl -o android-cmdline-tools.zip "$command_line_tools_url" \
+    && mkdir -p "$ANDROID_HOME/cmdline-tools/" \
+    && unzip -q android-cmdline-tools.zip -d "$ANDROID_HOME/cmdline-tools/" \
+    && mv "$ANDROID_HOME/cmdline-tools/cmdline-tools" "$ANDROID_HOME/cmdline-tools/latest" \
+    && rm android-cmdline-tools.zip \
+    # Installing deprecated Android SDK Tools (revision: 26.1.1)
+    # Because Flutter always downloads it, even when it's not necessary, with log: "Install Android SDK Tools (revision: 26.1.1)"
+    && curl -o android-sdk-tools.zip https://dl.google.com/android/repository/sdk-tools-windows-4333796.zip \
+    && mkdir -p "$ANDROID_HOME/" \
+    && unzip -q android-sdk-tools.zip -d "$ANDROID_HOME/" \
     && rm android-sdk-tools.zip \
     && (yes || true) | sdkmanager --licenses \
     # && mkdir -p "$HOME/.local/bin" \
@@ -126,7 +133,6 @@ RUN command_line_tools_url="$(curl -s https://developer.android.com/studio/ | gr
     "platforms;android-$platforms_version" \
     # "$ndk_descriptor" \
     && flutter config --enable-android \
-    && flutter config --android-sdk "$ANDROID_HOME" \
     && (yes || true) | flutter doctor --android-licenses \
     && flutter precache --android \
     && flutter create build_app \
@@ -137,7 +143,7 @@ RUN command_line_tools_url="$(curl -s https://developer.android.com/studio/ | gr
 
 FROM android as android-test
 
-USER flutter
+USER flutter:flutter
 WORKDIR "$HOME"
 
 SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
