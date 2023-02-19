@@ -84,8 +84,7 @@ SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 ENV ANDROID_HOME="$HOME/sdks/android-sdk"
 # ENV PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$HOME/.local/bin"
 # TODO: Get JAVA_HOME dinamically from a JDK binary
-ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
-ENV PATH="$PATH:$JAVA_HOME/bin:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$HOME/.local/bin"
+ENV PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$HOME/.local/bin"
 
 USER root
 # hadolint ignore=DL3003
@@ -115,6 +114,8 @@ ARG android_build_tools_version
 
 # hadolint ignore=DL3003
 RUN mkdir -p "$ANDROID_HOME" \
+    && java_home="$(dirname "$(dirname "$(readlink -e /usr/bin/javac)")")" \
+    && echo "export JAVA_HOME=$java_home" >> "$HOME/.bashrc" \
     && chown -R flutter:flutter "$ANDROID_HOME" \
     && command_line_tools_url="$(curl -s https://developer.android.com/studio/ | grep -o 'https://dl.google.com/android/repository/commandlinetools-linux-[0-9]\{7\}_latest.zip')" \
     && curl -o android-cmdline-tools.zip "$command_line_tools_url" \
