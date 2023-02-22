@@ -65,7 +65,7 @@ jobs:
             ghcr.io/${{ env.IMAGE_REPOSITORY_TAG }}
             public.ecr.aws/${{ env.IMAGE_REPOSITORY_TAG }}
           build-args: |
-            flutter_version=3.7.3
+            flutter_version=3.7.4
             android_build_tools_version=30.0.3
             platforms_version1=28
             platforms_version2=31
