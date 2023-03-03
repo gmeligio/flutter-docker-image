@@ -111,10 +111,7 @@ USER flutter:flutter
 WORKDIR "$HOME"
 
 ARG android_build_tools_version
-# TODO: Use cleaner way than fixed variables for multiple platforms
-ARG platforms_version1
-ARG platforms_version2
-ARG platforms_version3
+ARG platforms_versions
 
 # hadolint ignore=DL3003
 RUN mkdir -p "$ANDROID_HOME" \
@@ -144,9 +141,7 @@ RUN mkdir -p "$ANDROID_HOME" \
     && (yes || true) | sdkmanager \
     "platform-tools" \
     "build-tools;$android_build_tools_version" \
-    "platforms;android-$platforms_version1" \
-    "platforms;android-$platforms_version2" \
-    "platforms;android-$platforms_version3" \
+    && for version in $platforms_versions; do (yes || true) | sdkmanager "platforms;android-$version"; done \
     && flutter config --enable-android \
     && (yes || true) | flutter doctor --android-licenses \
     && flutter precache --android \

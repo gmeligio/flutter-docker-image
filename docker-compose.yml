@@ -12,17 +12,14 @@ services:
       args:
         - flutter_version=3.7.4
         - android_build_tools_version=30.0.3
-        - platforms_version1=28
-        - platforms_version2=31
-        - platforms_version3=33
+        - platforms_versions="28 31 33"
+
   test:
     build:
       context: .
       target: android-test
       args:
-        - flutter_version=3.7.4
-        - android_build_tools_version=30.0.3
-        - platforms_version1=28
-        - platforms_version2=31
-        - platforms_version3=33
+        flutter_version: 3.7.4
+        android_build_tools_version: 30.0.3
+        platforms_versions: "28 31 33"
     working_dir: /home/flutter/test_app/android
