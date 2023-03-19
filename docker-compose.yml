@@ -13,7 +13,7 @@ services:
       args:
         flutter_version: $FLUTTER_VERSION
         android_build_tools_version: $ANDROID_BUILD_TOOLS_VERSION
-        platforms_versions: 28 31 32
+        platforms_versions: $PLATFORMS_VERSIONS
 
   test:
     build:
@@ -22,5 +22,5 @@ services:
       args:
         flutter_version: $FLUTTER_VERSION
         android_build_tools_version: $ANDROID_BUILD_TOOLS_VERSION
-        platforms_versions: 28 31 33
+        platforms_versions: $PLATFORMS_VERSIONS
     working_dir: /home/flutter/test_app/android

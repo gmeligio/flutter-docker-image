@@ -13,6 +13,7 @@ jobs:
       IMAGE_REPOSITORY_NAME: flutter-android
       FLUTTER_VERSION: 3.7.4
       ANDROID_BUILD_TOOLS_VERSION: 30.0.3
+      PLATFORMS_VERSIONS: 28 31 33
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -69,7 +70,7 @@ jobs:
           build-args: |
             flutter_version=${{ env.FLUTTER_VERSION }}
             android_build_tools_version=${{ env.ANDROID_BUILD_TOOLS_VERSION }}
-            platforms_versions=28 31 33
+            platforms_versions=${{ env.PLATFORMS_VERSIONS }}
           kaniko-args: |
             --use-new-run=true
             --snapshotMode=redo
