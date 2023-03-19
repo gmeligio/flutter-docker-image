@@ -5,6 +5,8 @@ services:
       target: flutter
       args:
         flutter_version: $FLUTTER_VERSION
+    environment:
+      ENABLE_ANALYTICS: $ENABLE_ANALYTICS
   
   android:
     build:
@@ -14,6 +16,8 @@ services:
         flutter_version: $FLUTTER_VERSION
         android_build_tools_version: $ANDROID_BUILD_TOOLS_VERSION
         platforms_versions: $PLATFORMS_VERSIONS
+    environment:
+      ENABLE_ANALYTICS: $ENABLE_ANALYTICS
 
   test:
     build:
@@ -23,4 +27,6 @@ services:
         flutter_version: $FLUTTER_VERSION
         android_build_tools_version: $ANDROID_BUILD_TOOLS_VERSION
         platforms_versions: $PLATFORMS_VERSIONS
+    environment:
+      ENABLE_ANALYTICS: $ENABLE_ANALYTICS
     working_dir: /home/flutter/test_app/android

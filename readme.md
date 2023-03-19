@@ -1,5 +1,10 @@
 # Docker image for Flutter
 
+## Features
+
+- [x] Analytics disabled by default
+- [x] Minimal image to run flutter for Android platform in CI
+
 ## Alpha stability
 
 This package is experimental and it's in active development

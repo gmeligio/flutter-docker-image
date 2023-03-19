@@ -69,6 +69,10 @@ RUN git clone --depth 1 --branch "$flutter_version" https://github.com/flutter/f
     && flutter config --no-enable-macos-desktop \
     && flutter doctor
 
+COPY ./docker-entrypoint.sh /docker-entrypoint.sh
+
+ENTRYPOINT [ "/docker-entrypoint.sh" ]
+
 FROM flutter as android
 
 LABEL org.opencontainers.image.source="https://github.com/gmeligio/flutter-docker-image" \
