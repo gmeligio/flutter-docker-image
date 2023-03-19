@@ -67,7 +67,7 @@ jobs:
           build-args: |
             flutter_version=3.7.4
             android_build_tools_version=30.0.3
-            platforms_versions="28 31 33"
+            platforms_versions=28 31 33
           kaniko-args: |
             --use-new-run=true
             --snapshotMode=redo
