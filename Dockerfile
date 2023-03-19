@@ -25,7 +25,7 @@ RUN apt-get update \
     # Flutter dependencies
     # bc=1.07.1-3build1 \
     # build-essential=12.9ubuntu3 \
-    curl=7.81.0-1ubuntu1.7 \
+    curl=7.81.0-1ubuntu1.8 \
     git=1:2.34.1-1ubuntu1.8 \
     lcov=1.15-1 \
     # libglu1-mesa=9.0.2-1 \
