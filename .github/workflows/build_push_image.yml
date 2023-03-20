@@ -62,7 +62,7 @@ jobs:
         id: versions
         uses: zoexx/github-action-json-file-properties@1.0.4
         with:
-          file_path: "package.json"
+          file_path: "version.json"
 
       - name: Read Flutter version
         run: |
