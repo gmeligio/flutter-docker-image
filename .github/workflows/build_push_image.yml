@@ -66,8 +66,8 @@ jobs:
 
       - name: Read Flutter version
         run: |
-          echo ${{steps.versions.outputs.flutter.version}}
-          echo ${{steps.versions.outputs.flutter.commit}}
+          echo "${{ steps.versions.outputs.flutter.version }}"
+          echo "${{ steps.versions.outputs.flutter.commit }}"
 
       - name: Build image and push it to registries
         uses: int128/kaniko-action@v1
