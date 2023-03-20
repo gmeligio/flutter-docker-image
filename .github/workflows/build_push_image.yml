@@ -60,14 +60,16 @@ jobs:
 
       - name: Load version.json
         id: versions
-        uses: zoexx/github-action-json-file-properties@release
+        uses: zoexx/github-action-json-file-properties@1.0.4
         with:
           file_path: "version.json"
 
       - name: Read Flutter version
         run: |
           echo "${{ steps.versions.outputs.flutter }}"
-          echo " ${{join(steps.versions.outputs.*, '\n')}}"
+          echo "${{ fromJson(steps.versions.outputs.flutter).version }}"
+          echo "${{ fromJson(steps.versions.outputs.flutter).commit }}"
+          echo " ${{ join(steps.versions.outputs.*, '\n') }}"
 
       - name: Build image and push it to registries
         uses: int128/kaniko-action@v1
