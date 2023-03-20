@@ -11,7 +11,6 @@ jobs:
     env:
       AWS_REGION: us-east-1
       IMAGE_REPOSITORY_NAME: flutter-android
-      FLUTTER_VERSION: 3.7.4
       ANDROID_BUILD_TOOLS_VERSION: 30.0.3
       PLATFORMS_VERSIONS: 28 31 33
     steps:
@@ -64,13 +63,6 @@ jobs:
         with:
           file_path: "version.json"
 
-      - name: Read Flutter version
-        run: |
-          echo "${{ steps.versions.outputs.flutter }}"
-          echo "${{ fromJson(steps.versions.outputs.flutter).version }}"
-          echo "${{ fromJson(steps.versions.outputs.flutter).commit }}"
-          echo " ${{ join(steps.versions.outputs.*, '\n') }}"
-
       - name: Build image and push it to registries
         uses: int128/kaniko-action@v1
         with:
@@ -81,7 +73,7 @@ jobs:
             ghcr.io/${{ env.IMAGE_REPOSITORY_TAG }}
             public.ecr.aws/${{ env.IMAGE_REPOSITORY_TAG }}
           build-args: |
-            flutter_version=${{ env.FLUTTER_VERSION }}
+            flutter_version=${{ fromJson(steps.versions.outputs.flutter).version }}
             android_build_tools_version=${{ env.ANDROID_BUILD_TOOLS_VERSION }}
             platforms_versions=${{ env.PLATFORMS_VERSIONS }}
           kaniko-args: |
