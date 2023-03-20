@@ -58,6 +58,17 @@ jobs:
         run: |
           echo "IMAGE_REPOSITORY_TAG=${{ github.repository_owner }}/${{ env.IMAGE_REPOSITORY_NAME }}:${{ github.sha }}" >> $GITHUB_ENV
 
+      - name: Load version.json
+        id: versions
+        uses: zoexx/github-action-json-file-properties@1.0.4
+        with:
+          file_path: "package.json"
+
+      - name: Read Flutter version
+        run: |
+          echo ${{steps.versions.flutter.version}}
+          echo ${{steps.versions.flutter.commit}}
+
       - name: Build image and push it to registries
         uses: int128/kaniko-action@v1
         with:

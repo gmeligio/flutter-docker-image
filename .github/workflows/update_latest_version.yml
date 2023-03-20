@@ -1,0 +1,15 @@
+# on:
+#   push:
+#     branches:
+#       - "main"
+# jobs:
+#   flutter:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout repository
+#         uses: actions/checkout@v3
+      
+#       - name: Get latest Flutter version
+#         uses: wei/curl@master
+#         with:
+#           args: -s -H "Authorization: bearer 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" -d '{"query": "query GetLatestTags { repository(owner: \"flutter\", name: \"flutter\") { tags: refs(refPrefix: \"refs/tags/\", first: 10, orderBy: {field: TAG_COMMIT_DATE, direction: DESC}) { edges { node { version: name target { oid } } } } } }"}' https://api.github.com/graphql | jq '[.data.repository.tags.edges[].node] | map(select(.version|test("^(\\d+\\.)+\\d+(?!-)$"))) | .[0] | {version, commit: .target.oid}'

@@ -1,0 +1,1 @@
+query GetLatestTags { repository(owner: "flutter", name: "flutter") { tags: refs(refPrefix: "refs/tags/", first: 10, orderBy: {field: TAG_COMMIT_DATE, direction: DESC}) { edges { node { version: name target { oid } } } } } }
