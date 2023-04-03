@@ -39,8 +39,8 @@ jobs:
             const latestTag = tags.find((tag) => tag.node.version.match(regex))
 
             const result = {
-              version: latestTag.version,
-              commit: latestTag.target.oid
+              version: latestTag.node.version,
+              commit: latestTag.node.target.oid
             }
 
             return result

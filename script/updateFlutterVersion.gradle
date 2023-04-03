@@ -1,0 +1,23 @@
+// Snippet to include at the end of android/app/build.gradle
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+
+tasks.register('updateFlutterVersion') {
+    doLast {
+        def jsonFile = new File("../../../version.json")
+        def jsonMap = new JsonSlurper().parseText(jsonFile.text)
+
+        def rawPlatformsVersions = [flutter.targetSdkVersion, flutter.compileSdkVersion]
+        def platformsVersions = rawPlatformsVersions.unique()
+
+        jsonMap.android = [:]
+        jsonMap.android.platforms = platformsVersions.collect { [version: it] }
+
+        println jsonMap
+
+        def jsonStr = JsonOutput.toJson(jsonMap)
+        def prettyStr = JsonOutput.prettyPrint(jsonStr)
+
+        jsonFile.write(prettyStr)
+    }
+}
