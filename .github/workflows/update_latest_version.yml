@@ -31,8 +31,10 @@ jobs:
             }`;
 
             const result = await github.graphql(query)
-            console.log(result)
-            console.log(result.repository.tags.edges[0])
-            console.log(result.repository.tags.edges[1])
+            const regex = /^(\\d+\\.)+\\d+(?!-)$/g
+            const tags = result.repository.tags.edges
+            const latestTag = tags.find((tag) => tag.node.version.match(regex))
+
+            console.log(latestTag)
 
 # TODO: https://github.com/flutter-actions/setup-flutter

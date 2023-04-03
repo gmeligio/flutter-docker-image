@@ -81,3 +81,5 @@ jobs:
             --snapshotMode=redo
           target: android
           executor: gcr.io/kaniko-project/executor:latest
+
+# TODO: https://github.com/snok/container-retention-policy
