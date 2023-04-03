@@ -31,7 +31,7 @@ jobs:
             }`;
 
             const result = await github.graphql(query)
-            const regex = /^(\\d+\\.)+\\d+(?!-)$/g
+            const regex = /^(\d+\.)+\d+(?!-)$/g
             const tags = result.repository.tags.edges
             const latestTag = tags.find((tag) => tag.node.version.match(regex))
 
