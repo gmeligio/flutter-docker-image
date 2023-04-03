@@ -10,7 +10,6 @@ jobs:
         uses: actions/checkout@v3
       - uses: actions/github-script@v6
         with:
-          github-token: ${{ secrets.GH_API_TOKEN }}
           script: |
             const query = `query GetLatestTags {
               repository(owner: "flutter", name: "flutter") {
@@ -33,5 +32,7 @@ jobs:
 
             const result = await github.graphql(query)
             console.log(result)
+            console.log(result.repository.tags.edges[0])
+            console.log(result.repository.tags.edges[1])
 
 # TODO: https://github.com/flutter-actions/setup-flutter
