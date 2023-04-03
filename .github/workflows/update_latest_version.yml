@@ -8,7 +8,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-      - uses: actions/github-script@v6
+      
+      - name: Get latest Flutter tag
+        id: query
+        uses: actions/github-script@v6
         with:
           script: |
             const query = `query GetLatestTags {
@@ -30,11 +33,20 @@ jobs:
               }
             }`;
 
-            const result = await github.graphql(query)
+            const rawResult = await github.graphql(query)
             const regex = /^(\d+\.)+\d+(?!-)$/g
-            const tags = result.repository.tags.edges
+            const tags = rawResult.repository.tags.edges
             const latestTag = tags.find((tag) => tag.node.version.match(regex))
 
-            console.log(latestTag)
+            const result = {
+              version: latestTag.version,
+              commit: latestTag.target.oid
+            }
+
+            return result
+      - name: Write latest Flutter tag to file
+        run: |
+          echo '${{ steps.query.outputs.result }}' > flutter_version.json
+          cat flutter_version.json
 
 # TODO: https://github.com/flutter-actions/setup-flutter
