@@ -5,8 +5,6 @@ FROM public.ecr.aws/ubuntu/ubuntu:22.04@sha256:234afeb5d15478d2f8066f3610211fa64
 # TODO: https://github.dev/cirruslabs/docker-images-android
 # TODO: https://github.dev/mingchen/docker-android-build-box/tree/master
 
-# TODO: Get latest version of flutter from GitHub GraphQL API https://docs.github.com/en/graphql/overview/explorer
-
 # TODO: https://github.dev/cirruslabs/docker-images-flutter
 # TODO: https://github.dev/instrumentisto/flutter-docker-image
 # TODO: https://github.dev/gmemstr/flutter-fastlane-android
