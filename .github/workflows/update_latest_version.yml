@@ -10,6 +10,7 @@ jobs:
         uses: actions/checkout@v3
       - uses: actions/github-script@v6
         with:
+          github-token: ${{ secrets.GH_API_TOKEN }}
           script: |
             const query = `query GetLatestTags {
               repository(owner: "flutter", name: "flutter") {
