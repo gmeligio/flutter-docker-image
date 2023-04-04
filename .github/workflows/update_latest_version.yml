@@ -62,7 +62,7 @@ jobs:
         run: |
           echo "FLUTTER_VERSION=${{ fromJson(steps.query.outputs.result).flutter.version }}" >> $GITHUB_ENV
 
-      - name: Get default Android platform versions in Flutter
+      - name: Setup Flutter
         uses: flutter-actions/setup-flutter@v2
         with:
           cache: true
@@ -70,12 +70,21 @@ jobs:
           version: ${{ env.FLUTTER_VERSION }}
        
       - name: Create test application
-        run: flutter create test_app
+        run: |
+          flutter create test_app
+          
+      - name: Get Android platform versions
+        run: |
+          cat script/updateAndroidPlatform >> test_app/android/app/build.gradle
+          cd test_app/android
+          ./gradlew --warning-mode all updateAndroidPlatform
+      
+      - name: Get Android platform versions
+        run: |
+          cat version.json
+          
+          
 
-      - name: Install dependencies
-        working-directory: test_app
-        run: flutter pub get
-        
       # - name: Create pull request if there are changes
       #   uses: peter-evans/create-pull-request@v4
 
