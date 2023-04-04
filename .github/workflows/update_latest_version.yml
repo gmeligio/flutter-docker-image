@@ -69,9 +69,12 @@ jobs:
           channel: stable
           version: ${{ env.FLUTTER_VERSION }}
        
-      - name: Flutter version
-        run: flutter --version
-        
+      - name: Create test application
+        run: flutter create test_app
+
+      - name: Install dependencies
+        working-directory: test_app
+        run: flutter pub get
         
       # - name: Create pull request if there are changes
       #   uses: peter-evans/create-pull-request@v4
