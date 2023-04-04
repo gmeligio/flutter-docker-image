@@ -1,7 +1,6 @@
 on:
-  push:
-    branches:
-      - main
+  schedule:
+    - cron:  '0 0 * * *'
 jobs:
   flutter:
     permissions:
@@ -54,7 +53,7 @@ jobs:
               }
             }
 
-            fs.writeFileSync(resultPath, JSON.stringify(result, null, 2));
+            fs.writeFileSync(resultPath, JSON.stringify(result, null, 4));
 
             return result
       
@@ -69,6 +68,7 @@ jobs:
           channel: stable
           version: ${{ env.FLUTTER_VERSION }}
        
+      # TODO: Create test app in specific folder with step id, to allow parallel execution
       - name: Create test application
         run: |
           flutter create test_app
