@@ -59,9 +59,13 @@ jobs:
         with:
           file_path: "version.json"
 
+      - name: Set environment variable for Flutter version
+        run: |
+          echo "FLUTTER_VERSION=${{ fromJson(steps.versions.outputs.flutter).version }}" >> $GITHUB_ENV
+
       - name: Set environment variable for image repository and tag
         run: |
-          echo "IMAGE_REPOSITORY_TAG=${{ github.repository_owner }}/${{ env.IMAGE_REPOSITORY_NAME }}:${{ steps.ecr-cache.outputs.repository-uri }}-${{ github.sha }}" >> $GITHUB_ENV
+          echo "IMAGE_REPOSITORY_TAG=${{ github.repository_owner }}/${{ env.IMAGE_REPOSITORY_NAME }}:${{ env.FLUTTER_VERSION }}-${{ github.sha }}" >> $GITHUB_ENV
 
       - name: Build image and push it to registries
         uses: int128/kaniko-action@v1
@@ -72,7 +76,7 @@ jobs:
           tags: |
             public.ecr.aws/${{ env.IMAGE_REPOSITORY_TAG }}
           build-args: |
-            flutter_version=${{ fromJson(steps.versions.outputs.flutter).version }}
+            flutter_version=${{ env.FLUTTER_VERSION }}
             android_build_tools_version=${{ env.ANDROID_BUILD_TOOLS_VERSION }}
             platforms_versions=${{ env.PLATFORMS_VERSIONS }}
           kaniko-args: |
