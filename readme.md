@@ -3,7 +3,7 @@
 
 ## Available images
 
-gmeligio/flutter-android:3.7.7 from https://gallery.ecr.aws/gmeligio/flutter-android
+https://gallery.ecr.aws/gmeligio/flutter-android
 
 ## Features
 
