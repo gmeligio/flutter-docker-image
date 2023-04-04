@@ -86,4 +86,7 @@ jobs:
           executor: gcr.io/kaniko-project/executor:latest
 
 # TODO: https://github.com/snok/container-retention-policy
-# ghcr.io/${{ env.IMAGE_REPOSITORY_TAG }}
+# TODO: Push a build image before the final image
+# TODO: Run basic tests with build image
+# TODO: Push final image only if tests pass
+# TODO: ghcr.io/${{ env.IMAGE_REPOSITORY_TAG }}

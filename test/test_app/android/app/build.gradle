@@ -73,27 +73,3 @@ flutter {
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }
-
-// Snippet to include at the end of android/app/build.gradle
-import groovy.json.JsonSlurper
-import groovy.json.JsonOutput
-
-tasks.register('updateAndroidPlatform') {
-    doLast {
-        def jsonFile = new File("../../../version.json")
-        def jsonMap = new JsonSlurper().parseText(jsonFile.text)
-
-        def rawPlatformVersions = [flutter.targetSdkVersion, flutter.compileSdkVersion]
-        def platformVersions = rawPlatformVersions.unique()
-
-        jsonMap.android = [:]
-        jsonMap.android.platforms = platformVersions.collect { [version: it] }
-
-        println jsonMap
-
-        def jsonStr = JsonOutput.toJson(jsonMap)
-        def prettyStr = JsonOutput.prettyPrint(jsonStr)
-
-        jsonFile.write(prettyStr)
-    }
-}
