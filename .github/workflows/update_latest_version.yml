@@ -73,6 +73,7 @@ jobs:
         run: |
           flutter create test_app
           
+      # TODO: Cache gradle https://github.com/gradle/gradle-build-action
       - name: Update default Android platform versions in Flutter
         run: |
           cat script/updateAndroidPlatform.gradle >> test_app/android/app/build.gradle
