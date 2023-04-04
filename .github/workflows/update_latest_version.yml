@@ -38,15 +38,24 @@ jobs:
             const tags = rawResult.repository.tags.edges
             const latestTag = tags.find((tag) => tag.node.version.match(regex))
 
+            const fs = require('fs');
+            const data = fs.readFileSync('version.json', 'utf8');
+            const json = JSON.parse(data);
+
             const result = {
-              version: latestTag.node.version,
-              commit: latestTag.node.target.oid
+              ...json,
+              flutter: {
+                version: latestTag.node.version,
+                commit: latestTag.node.target.oid
+              }
             }
 
             return result
+      
       - name: Write latest Flutter tag to file
         run: |
+          echo '${{ steps.query.outputs.result }}' 
           echo '${{ steps.query.outputs.result }}' > flutter_version.json
-          cat flutter_version.json
 
 # TODO: https://github.com/flutter-actions/setup-flutter
+
