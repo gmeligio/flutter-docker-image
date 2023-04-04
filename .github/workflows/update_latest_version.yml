@@ -60,11 +60,12 @@ jobs:
       
       - name: Set environment variable for Flutter version
         run: |
-          echo "FLUTTER_VERSION=${{ steps.query.outputs.result.flutter.version }}" >> $GITHUB_ENV
+          echo "FLUTTER_VERSION=${{ fromJson(steps.query.outputs.result).flutter.version }}" >> $GITHUB_ENV
 
       - name: Get default Android platform versions in Flutter
         uses: flutter-actions/setup-flutter@v2
         with:
+          cache: true
           channel: stable
           version: ${{ env.FLUTTER_VERSION }}
        
