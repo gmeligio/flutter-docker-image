@@ -39,7 +39,8 @@ jobs:
             const latestTag = tags.find((tag) => tag.node.version.match(regex))
 
             const fs = require('fs');
-            const data = fs.readFileSync('version.json', 'utf8');
+            const resultPath = 'version.json';
+            const data = fs.readFileSync(resultPath, 'utf8');
             const json = JSON.parse(data);
 
             const result = {
@@ -50,12 +51,12 @@ jobs:
               }
             }
 
+            fs.writeFileSync(resultPath, JSON.stringify(result, null, 2));
+
             return result
       
-      - name: Write latest Flutter tag to file
-        run: |
-          echo '${{ steps.query.outputs.result }}' 
-          echo '${{ steps.query.outputs.result }}' > flutter_version.json
+      - name: Create pull request if there are changes
+        uses: peter-evans/create-pull-request@v4
 
 # TODO: https://github.com/flutter-actions/setup-flutter
 
