@@ -78,6 +78,10 @@ jobs:
           cat script/updateAndroidPlatform.gradle >> test_app/android/app/build.gradle
           cd test_app/android
           ./gradlew --warning-mode all updateAndroidPlatform
+      
+      - name: Clean test application
+        run: |
+          rm -rf test_app
 
       - name: Create pull request if there are changes
         uses: peter-evans/create-pull-request@v4
