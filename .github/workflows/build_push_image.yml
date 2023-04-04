@@ -53,15 +53,15 @@ jobs:
           public: true
           repository: ${{ env.IMAGE_REPOSITORY_NAME }}/cache
 
-      - name: Set environment variable for image repository and tag
-        run: |
-          echo "IMAGE_REPOSITORY_TAG=${{ github.repository_owner }}/${{ env.IMAGE_REPOSITORY_NAME }}:${{ github.sha }}" >> $GITHUB_ENV
-
       - name: Load version.json
         id: versions
         uses: zoexx/github-action-json-file-properties@1.0.4
         with:
           file_path: "version.json"
+
+      - name: Set environment variable for image repository and tag
+        run: |
+          echo "IMAGE_REPOSITORY_TAG=${{ github.repository_owner }}/${{ env.IMAGE_REPOSITORY_NAME }}:${{ steps.ecr-cache.outputs.repository-uri }}-${{ github.sha }}" >> $GITHUB_ENV
 
       - name: Build image and push it to registries
         uses: int128/kaniko-action@v1
@@ -70,7 +70,6 @@ jobs:
           cache: true
           cache-repository: ${{ steps.ecr-cache.outputs.repository-uri }}
           tags: |
-            ghcr.io/${{ env.IMAGE_REPOSITORY_TAG }}
             public.ecr.aws/${{ env.IMAGE_REPOSITORY_TAG }}
           build-args: |
             flutter_version=${{ fromJson(steps.versions.outputs.flutter).version }}
@@ -83,3 +82,4 @@ jobs:
           executor: gcr.io/kaniko-project/executor:latest
 
 # TODO: https://github.com/snok/container-retention-policy
+# ghcr.io/${{ env.IMAGE_REPOSITORY_TAG }}
