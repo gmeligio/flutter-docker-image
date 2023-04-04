@@ -75,7 +75,7 @@ jobs:
           
       - name: Get Android platform versions
         run: |
-          cat script\updateAndroidPlatform.gradle >> test_app/android/app/build.gradle
+          cat script/updateAndroidPlatform.gradle >> test_app/android/app/build.gradle
           cd test_app/android
           ./gradlew --warning-mode all updateAndroidPlatform
       
