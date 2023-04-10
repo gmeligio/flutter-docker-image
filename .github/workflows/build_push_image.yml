@@ -24,6 +24,12 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+      
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v2
         with:
@@ -74,14 +80,15 @@ jobs:
           cache: true
           cache-repository: ${{ steps.ecr-cache.outputs.repository-uri }}
           tags: |
+            ${{ env.IMAGE_REPOSITORY_TAG }}
             public.ecr.aws/${{ env.IMAGE_REPOSITORY_TAG }}
           build-args: |
             flutter_version=${{ env.FLUTTER_VERSION }}
             android_build_tools_version=${{ env.ANDROID_BUILD_TOOLS_VERSION }}
             android_platform_versions=${{ env.ANDROID_PLATFORM_VERSIONS }}
           kaniko-args: |
+            --skip-unused-stages=true
             --use-new-run=true
-            --snapshotMode=redo
           target: android
           executor: gcr.io/kaniko-project/executor:latest
 

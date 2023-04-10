@@ -1,5 +1,5 @@
 <!-- Update badges with links to Docker images -->
-# Docker images for Flutter
+# Docker images for Flutter Continuous Integration (CI)
 
 ## Available images
 
@@ -9,11 +9,12 @@ https://gallery.ecr.aws/gmeligio/flutter-android
 
 - [x] Analytics disabled by default
 - [x] Rootless user in Docker images
-- [x] Minimal image to run Flutter for Android platform in CI
-- [ ] Minimal image to run Flutter for iOS platform in CI
-- [ ] Minimal image to run Flutter for Linux platform in CI
-- [ ] Minimal image to run Flutter for Windows platform in CI
-- [ ] Minimal image to run Flutter for web platform in CI
+- [ ] Minimal image to run Flutter in Continuous Integration (CI):
+    - [x] Android
+    - [ ] iOS
+    - [ ] Linux
+    - [ ] Windows
+    - [ ] Flutter
 
 ## Alpha stability
 
