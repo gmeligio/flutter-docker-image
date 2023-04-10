@@ -3,6 +3,9 @@
 
 ## Available images
 
+https://hub.docker.com/r/gmeligio/flutter-android
+https://github.com/gmeligio/flutter-docker-image/pkgs/container/flutter-android
+https://quay.io/repository/gmeligio/flutter-android
 https://gallery.ecr.aws/gmeligio/flutter-android
 
 ## Features
@@ -37,5 +40,3 @@ docker build --target android --build-arg flutter_version=3.7.4 android_build_to
     - By SDK: Android SDK,Adroid NDK
 1. Add renovate.json to update packages:
     - [ ] apt in Docker images
-1. [ ] Publish to quay.io
-1. [ ] Publish to Docker Hub

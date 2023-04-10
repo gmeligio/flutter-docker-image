@@ -36,6 +36,13 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Login to Quay.io
+        uses: docker/login-action@v2
+        with:
+          registry: quay.io
+          username: ${{ secrets.QUAY_USERNAME }}
+          password: ${{ secrets.QUAY_ROBOT_TOKEN }}
 
       - name: Login to ECR Public
         uses: docker/login-action@v2
@@ -81,6 +88,8 @@ jobs:
           cache-repository: ${{ steps.ecr-cache.outputs.repository-uri }}
           tags: |
             ${{ env.IMAGE_REPOSITORY_TAG }}
+            ghcr.io/${{ env.IMAGE_REPOSITORY_TAG }}
+            quay.io/${{ env.IMAGE_REPOSITORY_TAG }}
             public.ecr.aws/${{ env.IMAGE_REPOSITORY_TAG }}
           build-args: |
             flutter_version=${{ env.FLUTTER_VERSION }}
@@ -95,5 +104,4 @@ jobs:
 # TODO: https://github.com/snok/container-retention-policy
 # TODO: Push a build image before the final image
 # TODO: Run basic tests with build image
-# TODO: Push final image only if tests pass
-# TODO: ghcr.io/${{ env.IMAGE_REPOSITORY_TAG }}
+# TODO: Push final image only if tests pass https://redhat-cop.github.io/ci/publishing-images.html
