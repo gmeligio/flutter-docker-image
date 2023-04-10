@@ -78,17 +78,19 @@ jobs:
 
       - name: Set environment variable for image repository and tag
         run: |
-          echo "IMAGE_REPOSITORY_TAG=${{ github.repository_owner }}/${{ env.IMAGE_REPOSITORY_NAME }}:${{ env.FLUTTER_VERSION }}-${{ github.sha }}" >> $GITHUB_ENV
+          echo "IMAGE_REPOSITORY_PATH=${{ github.repository_owner }}/${{ env.IMAGE_REPOSITORY_NAME }}" >> $GITHUB_ENV
 
       - name: Load image metadata
         uses: docker/metadata-action@v4
         id: metadata
         with:
           images: |
-            ${{ env.IMAGE_REPOSITORY_TAG }}
-            ghcr.io/${{ env.IMAGE_REPOSITORY_TAG }}
-            quay.io/${{ env.IMAGE_REPOSITORY_TAG }}
-            public.ecr.aws/${{ env.IMAGE_REPOSITORY_TAG }}
+            ${{ env.IMAGE_REPOSITORY_PATH }}
+            ghcr.io/${{ env.IMAGE_REPOSITORY_PATH }}
+            quay.io/${{ env.IMAGE_REPOSITORY_PATH }}
+            public.ecr.aws/${{ env.IMAGE_REPOSITORY_PATH }}
+          tags: |
+            type=raw,value=${{ env.FLUTTER_VERSION }}-${{ github.sha }}
       
       - name: Build image and push it to registries
         uses: int128/kaniko-action@v1
