@@ -3,10 +3,10 @@
 
 ## Available images
 
-https://hub.docker.com/r/gmeligio/flutter-android
-https://github.com/gmeligio/flutter-docker-image/pkgs/container/flutter-android
-https://quay.io/repository/gmeligio/flutter-android
-https://gallery.ecr.aws/gmeligio/flutter-android
+- https://hub.docker.com/r/gmeligio/flutter-android
+- https://github.com/gmeligio/flutter-docker-image/pkgs/container/flutter-android
+- https://quay.io/repository/gmeligio/flutter-android
+- https://gallery.ecr.aws/gmeligio/flutter-android
 
 ## Features
 

@@ -93,7 +93,7 @@ RUN apt-get update \
     # Android SDK dependencies
     openjdk-11-jdk=11.0.18+10-0ubuntu1~22.04 \
     # To allow changing ownership in GitLab CI /builds
-    sudo=1.9.9-1ubuntu2.3 \
+    sudo=1.9.9-1ubuntu2.4 \
     && rm -rf /var/lib/apt/lists/* \
     # To allow changing ownership in GitLab CI /builds
     && echo "flutter ALL= NOPASSWD:/bin/chown -R flutter /builds, /bin/chown -R flutter /builds/*" >> /etc/sudoers.d/flutter
