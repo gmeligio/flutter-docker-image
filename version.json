@@ -1,7 +1,7 @@
 {
     "flutter": {
-        "version": "3.7.11",
-        "commit": "f72efea43c3013323d1b95cff571f3c1caa37583"
+        "version": "3.7.12",
+        "commit": "4d9e56e694b656610ab87fcf2efbcd226e0ed8cf"
     },
     "android": {
         "platforms": [
