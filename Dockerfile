@@ -1,5 +1,5 @@
 # TODO: Use debian-slim as base image
-FROM public.ecr.aws/ubuntu/ubuntu:22.04@sha256:234afeb5d15478d2f8066f3610211fa641c0cd9b551e4ecc64ca93a05c1df5cf as flutter
+FROM public.ecr.aws/ubuntu/ubuntu:22.04@sha256:5fb5e64ee0d78fed9d65da71ed83dd61a8be37ffe01448c6d56cd61a98734302 as flutter
 
 # TODO: https://github.dev/circleci/circleci-images
 # TODO: https://github.dev/cirruslabs/docker-images-android
