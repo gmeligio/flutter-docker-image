@@ -14,6 +14,9 @@ SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
 ENV LANG=C.UTF-8
 
+# renovate: datasource=repology depName=alpine_3_12/gcc versioning=loose
+ARG GIT_VERSION="1:2.34.1-1ubuntu1.8"
+
 USER root
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
@@ -21,7 +24,7 @@ RUN apt-get update \
     # bc=1.07.1-3build1 \
     # build-essential=12.9ubuntu3 \
     curl=7.81.0-1ubuntu1.10 \
-    git=1:2.34.1-1ubuntu1.8 \
+    git="${GIT_VERSION}" \
     lcov=1.15-1 \
     # libglu1-mesa=9.0.2-1 \
     # libsqlite3-0=3.37.2-2ubuntu0.1 \
