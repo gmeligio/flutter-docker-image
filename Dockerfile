@@ -14,7 +14,7 @@ SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
 ENV LANG=C.UTF-8
 
-# renovate: datasource=repology depName=alpine_3_12/gcc versioning=loose
+# renovate: datasource=repology depName=ubuntu_22_04/git versioning=loose
 ARG GIT_VERSION="1:2.34.1-1ubuntu1.8"
 
 USER root
