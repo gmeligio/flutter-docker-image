@@ -14,7 +14,7 @@
     {
       "enabled": false,
       "matchDatasources": ["docker"],
-      "matchUpdateTypes": ["major"]
+      "matchUpdateTypes": ["major", "minor"]
     }
   ]
 }
