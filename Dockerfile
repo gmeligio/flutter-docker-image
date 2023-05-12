@@ -17,7 +17,7 @@ ENV LANG=C.UTF-8
 # renovate: datasource=repology depName=ubuntu_22_04/curl versioning=loose
 ARG CURL_VERSION="7.81.0-1ubuntu1.10"
 # renovate: datasource=repology depName=ubuntu_22_04/git versioning=loose
-ARG GIT_VERSION="2.34.1-1ubuntu1.9"
+ARG GIT_VERSION="1:2.34.1-1ubuntu1.9"
 # renovate: datasource=repology depName=ubuntu_22_04/lcov versioning=loose
 ARG LCOV_VERSION="1.15-1"
 # renovate: datasource=repology depName=ubuntu_22_04/ca-certificates versioning=loose
