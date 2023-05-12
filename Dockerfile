@@ -88,6 +88,11 @@ ENV ANDROID_HOME="$HOME/sdks/android-sdk" \
     JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
 ENV PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$HOME/.local/bin"
 
+# renovate: datasource=repology depName=ubuntu_22_04/openjdk-11-jdk versioning=loose
+ARG OPENJDK_11_JDK_VERSION="11.0.18+10-0ubuntu1~22.04"
+# renovate: datasource=repology depName=ubuntu_22_04/sudo versioning=loose
+ARG SUDO_VERSION="1.9.9-1ubuntu2.4"
+
 USER root
 # hadolint ignore=DL3003
 RUN apt-get update \
@@ -102,9 +107,9 @@ RUN apt-get update \
     # libgtk-3-0=3.24.33-1ubuntu2 \
     # libgdk-pixbuf2.0-0=2.40.2-2build4 \
     # Android SDK dependencies
-    openjdk-11-jdk=11.0.18+10-0ubuntu1~22.04 \
+    openjdk-11-jdk="${OPENJDK_11_JDK_VERSION}" \
     # To allow changing ownership in GitLab CI /builds
-    sudo=1.9.9-1ubuntu2.4 \
+    sudo="${SUDO_VERSION}" \
     && rm -rf /var/lib/apt/lists/* \
     # To allow changing ownership in GitLab CI /builds
     && echo "flutter ALL= NOPASSWD:/bin/chown -R flutter /builds, /bin/chown -R flutter /builds/*" >> /etc/sudoers.d/flutter
