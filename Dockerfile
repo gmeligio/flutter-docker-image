@@ -15,15 +15,15 @@ SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 ENV LANG=C.UTF-8
 
 # renovate: datasource=repology depName=ubuntu_22_04/curl versioning=loose
-ARG CURL_VERSION="7.81.0"
+ARG CURL_VERSION="7.81.0-1ubuntu1.10"
 # renovate: datasource=repology depName=ubuntu_22_04/git versioning=loose
-ARG GIT_VERSION="2.34.1"
+ARG GIT_VERSION="2.34.1-1ubuntu1.8"
 # renovate: datasource=repology depName=ubuntu_22_04/lcov versioning=loose
-ARG LCOV_VERSION="1.15"
+ARG LCOV_VERSION="1.15-1"
 # renovate: datasource=repology depName=ubuntu_22_04/ca-certificates versioning=loose
-ARG CA_CERTIFICATES_VERSION="20211016"
+ARG CA_CERTIFICATES_VERSION="20211016ubuntu0.22.04.1"
 # renovate: datasource=repology depName=ubuntu_22_04/unzip versioning=loose
-ARG UNZIP_VERSION="6.0"
+ARG UNZIP_VERSION="6.0-26ubuntu3.1"
 
 USER root
 RUN apt-get update \
