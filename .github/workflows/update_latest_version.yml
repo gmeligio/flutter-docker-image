@@ -85,4 +85,4 @@ jobs:
           rm -rf test_app
 
       - name: Create pull request if there are changes
-        uses: peter-evans/create-pull-request@v4
+        uses: peter-evans/create-pull-request@v5
