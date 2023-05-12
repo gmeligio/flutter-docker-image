@@ -15,7 +15,15 @@ SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 ENV LANG=C.UTF-8
 
 # renovate: datasource=repology depName=ubuntu_22_04/git versioning=loose
-ARG GIT_VERSION="1:2.34.1-1ubuntu1.8"
+ARG CURL_VERSION="7.81.0"
+# renovate: datasource=repology depName=ubuntu_22_04/curl versioning=loose
+ARG GIT_VERSION="2.34.1"
+# renovate: datasource=repology depName=ubuntu_22_04/lcov versioning=loose
+ARG LCOV_VERSION="1.15"
+# renovate: datasource=repology depName=ubuntu_22_04/ca-certificates versioning=loose
+ARG CA_CERTIFICATES_VERSION="20211016"
+# renovate: datasource=repology depName=ubuntu_22_04/unzip versioning=loose
+ARG UNZIP_VERSION="6.0"
 
 USER root
 RUN apt-get update \
@@ -23,9 +31,9 @@ RUN apt-get update \
     # Flutter dependencies
     # bc=1.07.1-3build1 \
     # build-essential=12.9ubuntu3 \
-    curl=7.81.0-1ubuntu1.10 \
-    git="${GIT_VERSION}" \
-    lcov=1.15-1 \
+    curl="$CURL_VERSION" \
+    git="$GIT_VERSION" \
+    lcov="$LCOV_VERSION" \
     # libglu1-mesa=9.0.2-1 \
     # libsqlite3-0=3.37.2-2ubuntu0.1 \
     # libstdc++6=12.1.0-2ubuntu1~22.04 \
@@ -35,9 +43,9 @@ RUN apt-get update \
     # ruby-bundler=2.3.5-2 \
     # ruby-full=1:3.0~exp1 \
     # software-properties-common=0.99.22.5 \
-    ca-certificates=20211016ubuntu0.22.04.1 \
+    ca-certificates="$CA_CERTIFICATES_VERSION" \
     # sudo=1.9.9-1ubuntu2.2 \
-    unzip=6.0-26ubuntu3.1 \
+    unzip="$UNZIP_VERSION" \
     # zip=3.0-12build2 \
     && rm -rf /var/lib/apt/lists/*
 
