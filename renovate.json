@@ -9,5 +9,12 @@
       ],
       "versioningTemplate": "{{#if versioning}}{{{versioning}}}{{else}}semver{{/if}}"
     }
+  ],
+  "packageRules": [
+    {
+      "enabled": false,
+      "matchDatasources": ["docker"],
+      "matchUpdateTypes": ["major"]
+    }
   ]
 }
