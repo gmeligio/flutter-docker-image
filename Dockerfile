@@ -76,6 +76,7 @@ RUN git clone --depth 1 --branch "$flutter_version" https://github.com/flutter/f
     && flutter doctor
 
 COPY ./docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
 
 ENTRYPOINT [ "/docker-entrypoint.sh" ]
 
