@@ -29,14 +29,14 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
-      
+
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v2
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      
+
       - name: Login to Quay.io
         uses: docker/login-action@v2
         with:
@@ -70,7 +70,7 @@ jobs:
         id: versions
         uses: zoexx/github-action-json-file-properties@1.0.4
         with:
-          file_path: "version.json"
+          file_path: 'version.json'
 
       - name: Set environment variable for Flutter version
         run: |
@@ -79,6 +79,9 @@ jobs:
       - name: Set environment variable for image repository and tag
         run: |
           echo "IMAGE_REPOSITORY_PATH=${{ github.repository_owner }}/${{ env.IMAGE_REPOSITORY_NAME }}" >> $GITHUB_ENV
+
+      - name: Set environment variable for git commit short SHA
+        run: echo "GITHUB_SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-8)" >> $GITHUB_ENV
 
       - name: Load image metadata
         uses: docker/metadata-action@v4
@@ -90,8 +93,8 @@ jobs:
             quay.io/${{ env.IMAGE_REPOSITORY_PATH }}
             public.ecr.aws/${{ env.IMAGE_REPOSITORY_PATH }}
           tags: |
-            type=raw,value=${{ env.FLUTTER_VERSION }}-${{ github.sha }}
-      
+            type=raw,value=${{ env.FLUTTER_VERSION }}-${{ env.GITHUB_SHORT_SHA }}
+
       - name: Build image and push it to registries
         uses: int128/kaniko-action@v1
         with:
@@ -109,7 +112,6 @@ jobs:
             --use-new-run=true
           target: android
           executor: gcr.io/kaniko-project/executor:latest
-
 # TODO: https://github.com/snok/container-retention-policy
 # TODO: Push a build image before the final image
 # TODO: Run basic tests with build image
