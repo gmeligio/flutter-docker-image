@@ -110,6 +110,7 @@ jobs:
           kaniko-args: |
             --skip-unused-stages=true
             --use-new-run=true
+            --snapshotMode=redo
           target: android
           executor: gcr.io/kaniko-project/executor:latest
 # TODO: https://github.com/snok/container-retention-policy
