@@ -89,7 +89,7 @@ ENV ANDROID_HOME="$HOME/sdks/android-sdk" \
     JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
 ENV PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$HOME/.local/bin"
 
-# renovate: datasource=repology depName=ubuntu_22_04/openjdk-11-jdk versioning=loose
+# renovate: datasource=repology depName=ubuntu_22_04/openjdk-11-jre-headless versioning=loose
 ARG OPENJDK_11_JRE_HEADLESS_VERSION="11.0.19+7~us1-0ubuntu1~22.04.1"
 # renovate: datasource=repology depName=ubuntu_22_04/sudo versioning=loose
 ARG SUDO_VERSION="1.9.9-1ubuntu2.4"
