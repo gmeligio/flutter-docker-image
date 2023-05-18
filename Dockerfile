@@ -116,49 +116,49 @@ RUN apt-get update \
     # To allow changing ownership in GitLab CI /builds
     && echo "flutter ALL= NOPASSWD:/bin/chown -R flutter /builds, /bin/chown -R flutter /builds/*" >> /etc/sudoers.d/flutter
 
-# USER flutter:flutter
-# WORKDIR "$HOME"
+USER flutter:flutter
+WORKDIR "$HOME"
 
-# ARG android_build_tools_version
-# ARG android_platform_versions
+ARG android_build_tools_version
+ARG android_platform_versions
 
-# # hadolint ignore=DL3003
-# RUN mkdir -p "$ANDROID_HOME" \
-#     && chown -R flutter:flutter "$ANDROID_HOME" \
-#     && command_line_tools_url="$(curl -s https://developer.android.com/studio/ | grep -o 'https://dl.google.com/android/repository/commandlinetools-linux-[0-9]\{7\}_latest.zip')" \
-#     && curl -o android-cmdline-tools.zip "$command_line_tools_url" \
-#     && mkdir -p "$ANDROID_HOME/cmdline-tools/" \
-#     && unzip -q android-cmdline-tools.zip -d "$ANDROID_HOME/cmdline-tools/" \
-#     && mv "$ANDROID_HOME/cmdline-tools/cmdline-tools" "$ANDROID_HOME/cmdline-tools/latest" \
-#     && rm android-cmdline-tools.zip \
-#     # Installing deprecated Android SDK Tools (revision: 26.1.1)
-#     # Because Flutter always downloads it, even when it's not necessary, with log: "Install Android SDK Tools (revision: 26.1.1)"
-#     && curl -o android-sdk-tools.zip https://dl.google.com/android/repository/sdk-tools-windows-4333796.zip \
-#     && mkdir -p "$ANDROID_HOME/" \
-#     && unzip -q android-sdk-tools.zip -d "$ANDROID_HOME/" \
-#     && rm android-sdk-tools.zip \
-#     && (yes || true) | sdkmanager --licenses \
-#     # && mkdir -p "$HOME/.local/bin" \
-#     # && curl -o "$HOME/.local/bin/android-wait-for-emulator" https://raw.githubusercontent.com/travis-ci/travis-cookbooks/master/community-cookbooks/android-sdk/files/default/android-wait-for-emulator \
-#     # && chmod +x "$HOME/.local/bin/android-wait-for-emulator" \
-#     && touch "$HOME/.android/repositories.cfg" \
-#     # && sdkmanager platform-tools \
-#     && mkdir -p "$HOME/.android" \
-#     # && touch "$HOME/.android/repositories.cfg" \
-#     # && if [ "$(uname -m)" = "x86_64" ] ; then sdkmanager emulator ; fi \
-#     && sdkmanager --update \
-#     && (yes || true) | sdkmanager \
-#     "platform-tools" \
-#     "build-tools;$android_build_tools_version" \
-#     && for version in $android_platform_versions; do (yes || true) | sdkmanager "platforms;android-$version"; done \
-#     && flutter config --enable-android \
-#     && (yes || true) | flutter doctor --android-licenses \
-#     && flutter precache --android \
-#     && flutter create build_app \
-#     && cd build_app/android \
-#     && ./gradlew --version \
-#     && cd ../.. \
-#     && rm -r build_app
+# hadolint ignore=DL3003
+RUN mkdir -p "$ANDROID_HOME" \
+    && chown -R flutter:flutter "$ANDROID_HOME" \
+    && command_line_tools_url="$(curl -s https://developer.android.com/studio/ | grep -o 'https://dl.google.com/android/repository/commandlinetools-linux-[0-9]\{7\}_latest.zip')" \
+    && curl -o android-cmdline-tools.zip "$command_line_tools_url" \
+    && mkdir -p "$ANDROID_HOME/cmdline-tools/" \
+    && unzip -q android-cmdline-tools.zip -d "$ANDROID_HOME/cmdline-tools/" \
+    && mv "$ANDROID_HOME/cmdline-tools/cmdline-tools" "$ANDROID_HOME/cmdline-tools/latest" \
+    && rm android-cmdline-tools.zip \
+    # Installing deprecated Android SDK Tools (revision: 26.1.1)
+    # Because Flutter always downloads it, even when it's not necessary, with log: "Install Android SDK Tools (revision: 26.1.1)"
+    && curl -o android-sdk-tools.zip https://dl.google.com/android/repository/sdk-tools-windows-4333796.zip \
+    && mkdir -p "$ANDROID_HOME/" \
+    && unzip -q android-sdk-tools.zip -d "$ANDROID_HOME/" \
+    && rm android-sdk-tools.zip \
+    && (yes || true) | sdkmanager --licenses \
+    # && mkdir -p "$HOME/.local/bin" \
+    # && curl -o "$HOME/.local/bin/android-wait-for-emulator" https://raw.githubusercontent.com/travis-ci/travis-cookbooks/master/community-cookbooks/android-sdk/files/default/android-wait-for-emulator \
+    # && chmod +x "$HOME/.local/bin/android-wait-for-emulator" \
+    && touch "$HOME/.android/repositories.cfg" \
+    # && sdkmanager platform-tools \
+    && mkdir -p "$HOME/.android" \
+    # && touch "$HOME/.android/repositories.cfg" \
+    # && if [ "$(uname -m)" = "x86_64" ] ; then sdkmanager emulator ; fi \
+    && sdkmanager --update \
+    && (yes || true) | sdkmanager \
+    "platform-tools" \
+    "build-tools;$android_build_tools_version" \
+    && for version in $android_platform_versions; do (yes || true) | sdkmanager "platforms;android-$version"; done \
+    && flutter config --enable-android \
+    && (yes || true) | flutter doctor --android-licenses \
+    && flutter precache --android \
+    && flutter create build_app \
+    && cd build_app/android \
+    && ./gradlew --version \
+    && cd ../.. \
+    && rm -r build_app
 
 FROM android as android-test
 
