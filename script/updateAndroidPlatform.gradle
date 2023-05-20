@@ -4,14 +4,13 @@ import groovy.json.JsonOutput
 
 tasks.register('updateAndroidPlatform') {
     doLast {
-        def jsonFile = new File("../../version.json")
+        def jsonFile = new File('../../version.json')
         def jsonMap = new JsonSlurper().parseText(jsonFile.text)
 
         def rawPlatformVersions = [flutter.targetSdkVersion, flutter.compileSdkVersion]
         def platformVersions = rawPlatformVersions.unique()
 
-        jsonMap.android = [:]
-        jsonMap.android.platforms = platformVersions.collect { [version: it] }
+        jsonMap.android = [platforms: platformVersions.collect { [version: it] }, gradle: [version: gradle.gradleVersion]]
 
         println jsonMap
 

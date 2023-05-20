@@ -8,6 +8,9 @@
             {
                 "version": 33
             }
-        ]
+        ],
+        "gradle": {
+            "version": "7.5"
+        }
     }
 }

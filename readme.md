@@ -38,5 +38,3 @@ docker build --target android --build-arg flutter_version=3.7.4 android_build_to
     - By platform: Linux, Windows
     - By tool: Fastlane
     - By SDK: Android SDK,Adroid NDK
-1. Add renovate.json to update packages:
-    - [ ] apt in Docker images
