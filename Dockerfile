@@ -1,5 +1,4 @@
-# TODO: Use debian-slim as base image
-FROM public.ecr.aws/ubuntu/ubuntu:22.04@sha256:5fb5e64ee0d78fed9d65da71ed83dd61a8be37ffe01448c6d56cd61a98734302 as flutter
+FROM public.ecr.aws/debian/debian:11-slim@sha256:b19b5ac83ecdd926ba1e0bf6eb3182c0ab6437c29d14fb6fb7b9ee0080ddbd39 as flutter
 
 # TODO: https://github.dev/circleci/circleci-images
 # TODO: https://github.dev/cirruslabs/docker-images-android
@@ -14,16 +13,16 @@ SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
 ENV LANG=C.UTF-8
 
-# renovate: datasource=repology depName=ubuntu_22_04/curl versioning=loose
-ARG CURL_VERSION="7.81.0-1ubuntu1.10"
-# renovate: datasource=repology depName=ubuntu_22_04/git versioning=loose
-ARG GIT_VERSION="1:2.34.1-1ubuntu1.9"
-# renovate: datasource=repology depName=ubuntu_22_04/lcov versioning=loose
-ARG LCOV_VERSION="1.15-1"
-# renovate: datasource=repology depName=ubuntu_22_04/ca-certificates versioning=loose
-ARG CA_CERTIFICATES_VERSION="20211016ubuntu0.22.04.1"
-# renovate: datasource=repology depName=ubuntu_22_04/unzip versioning=loose
-ARG UNZIP_VERSION="6.0-26ubuntu3.1"
+# renovate: datasource=repology depName=debian_11/curl versioning=loose
+ARG CURL_VERSION="7.74.0-1.3+deb11u7"
+# renovate: datasource=repology depName=debian_11/git versioning=loose
+ARG GIT_VERSION="1:2.30.2-1+deb11u2"
+# renovate: datasource=repology depName=debian_11/lcov versioning=loose
+ARG LCOV_VERSION="1.14-2"
+# renovate: datasource=repology depName=debian_11/ca-certificates versioning=loose
+ARG CA_CERTIFICATES_VERSION="20210119"
+# renovate: datasource=repology depName=debian_11/unzip versioning=loose
+ARG UNZIP_VERSION="6.0-26+deb11u1"
 
 USER root
 RUN apt-get update \
@@ -44,7 +43,6 @@ RUN apt-get update \
     # ruby-full=1:3.0~exp1 \
     # software-properties-common=0.99.22.5 \
     ca-certificates="$CA_CERTIFICATES_VERSION" \
-    # sudo=1.9.9-1ubuntu2.2 \
     unzip="$UNZIP_VERSION" \
     # zip=3.0-12build2 \
     && rm -rf /var/lib/apt/lists/*
@@ -85,14 +83,16 @@ FROM flutter as android
 SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
 # TODO: Get JAVA_HOME dinamically from a JDK binary 
+# TODO: Use `dirname $(dirname $(readlink -f $(which javac)))` after the following issue is fixed
+# TODO: https://github.com/moby/moby/issues/29110
 ENV ANDROID_HOME="$HOME/sdks/android-sdk" \
     JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
 ENV PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$HOME/.local/bin"
 
-# renovate: datasource=repology depName=ubuntu_22_04/openjdk-11-jdk-headless versioning=loose
-ARG OPENJDK_11_JDK_HEADLESS_VERSION="11.0.19+7~us1-0ubuntu1~22.04.1"
-# renovate: datasource=repology depName=ubuntu_22_04/sudo versioning=loose
-ARG SUDO_VERSION="1.9.9-1ubuntu2.4"
+# renovate: datasource=repology depName=debian_11/openjdk-11-jdk-headless versioning=loose
+ARG OPENJDK_11_JDK_HEADLESS_VERSION="11.0.18+10-1~deb11u1"
+# renovate: datasource=repology depName=debian_11/sudo versioning=loose
+ARG SUDO_VERSION="1.9.5p2-3+deb11u1"
 
 USER root
 # hadolint ignore=DL3003
@@ -108,7 +108,7 @@ RUN apt-get update \
     # libgtk-3-0=3.24.33-1ubuntu2 \
     # libgdk-pixbuf2.0-0=2.40.2-2build4 \
     # Android SDK dependencies
-    ## JDK needs to be used instead of JRE because it provides the jlink tool used by Android
+    ## JDK needs to be used instead of JRE because it provides the jlink tool used by the Android build
     openjdk-11-jdk-headless="$OPENJDK_11_JDK_HEADLESS_VERSION" \
     # To allow changing ownership in GitLab CI /builds
     sudo="$SUDO_VERSION" \
