@@ -2,7 +2,7 @@
 import groovy.json.JsonSlurper
 import groovy.json.JsonOutput
 
-tasks.register('updateAndroidPlatform') {
+tasks.register('updateAndroidVersions') {
     doLast {
         def jsonFile = new File('../../version.json')
         def jsonMap = new JsonSlurper().parseText(jsonFile.text)
