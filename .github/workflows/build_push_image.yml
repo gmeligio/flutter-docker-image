@@ -106,8 +106,14 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           load: true
+          cache-from: ghcr.io/${{ env.IMAGE_REPOSITORY_PATH }}:cache
+          cache-to: ghcr.io/${{ env.IMAGE_REPOSITORY_PATH }}:cache
           tags: ${{ steps.metadata.outputs.tags }}
           labels: ${{ steps.metadata.outputs.labels }}
+          build-args: |
+            flutter_version=${{ env.FLUTTER_VERSION }}
+            android_build_tools_version=${{ env.ANDROID_BUILD_TOOLS_VERSION }}
+            android_platform_versions=${{ env.ANDROID_PLATFORM_VERSIONS }}
 
       - name: Test image structure
         uses: plexsystems/container-structure-test-action@v0.1.0
