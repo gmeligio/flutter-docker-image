@@ -113,6 +113,7 @@ jobs:
           cache-to: ghcr.io/${{ env.IMAGE_REPOSITORY_PATH }}:cache
           tags: ${{ steps.metadata.outputs.tags }}
           labels: ${{ steps.metadata.outputs.labels }}
+          target: android
           build-args: |
             flutter_version=${{ env.FLUTTER_VERSION }}
             android_build_tools_version=${{ env.ANDROID_BUILD_TOOLS_VERSION }}
