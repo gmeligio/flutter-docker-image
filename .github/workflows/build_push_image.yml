@@ -109,8 +109,11 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           push: true
-          cache-from: ${{ steps.ecr-cache.outputs.repository-uri }}:cache
-          cache-to: ${{ steps.ecr-cache.outputs.repository-uri }}:cache
+          # TODO: Use ECR for cache after this issue is solved https://github.com/aws/containers-roadmap/issues/876
+          # cache-from: ${{ steps.ecr-cache.outputs.repository-uri }}:cache
+          # cache-to: ${{ steps.ecr-cache.outputs.repository-uri }}:cache
+          cache-from: ghcr.io/${{ env.IMAGE_REPOSITORY_PATH }}:cache
+          cache-to: ghcr.io/${{ env.IMAGE_REPOSITORY_PATH }}:cache
           tags: ${{ steps.metadata.outputs.tags }}
           labels: ${{ steps.metadata.outputs.labels }}
           target: android
