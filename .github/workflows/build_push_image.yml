@@ -102,6 +102,19 @@ jobs:
           tags: |
             type=raw,value=${{ env.FLUTTER_VERSION }}-${{ env.GITHUB_SHORT_SHA }}
 
+      - name: Build image and push to local Docker daemon
+        uses: docker/build-push-action@v4
+        with:
+          load: true
+          tags: ${{ steps.metadata.outputs.tags }}
+          labels: ${{ steps.metadata.outputs.labels }}
+
+      - name: Test image structure
+        uses: plexsystems/container-structure-test-action@v0.1.0
+        with:
+          image: ${{ fromJSON(steps.metadata.outputs.json).tags[0] }}
+          config: test/android_sdk_structure.yml
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
@@ -122,7 +135,10 @@ jobs:
             android_build_tools_version=${{ env.ANDROID_BUILD_TOOLS_VERSION }}
             android_platform_versions=${{ env.ANDROID_PLATFORM_VERSIONS }}
 
-      # TODO: Use kaniko for building and pushing after pushing to Docker daemon is solved, to be able to test Docker image
+      # TODO: Use kaniko for building and pushing after slowness is solved 
+      # TODO: https://github.com/GoogleContainerTools/kaniko/issues/970
+      # TODO: https://github.com/GoogleContainerTools/kaniko/issues/875
+      # TODO: Use kaniko for building and pushing after pushing to Docker daemon is solved, to be able to test Docker image, with the following issues
       # TODO: https://github.com/GoogleContainerTools/kaniko/issues/1331
       # TODO: https://github.com/GoogleContainerTools/kaniko/issues/885
       # - name: Build image and push it to registries
