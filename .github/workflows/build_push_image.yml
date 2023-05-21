@@ -102,6 +102,9 @@ jobs:
           tags: |
             type=raw,value=${{ env.FLUTTER_VERSION }}-${{ env.GITHUB_SHORT_SHA }}
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
       - name: Build image and push it to registries
         uses: docker/build-push-action@v4
         with:
