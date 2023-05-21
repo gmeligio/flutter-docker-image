@@ -120,7 +120,7 @@ jobs:
             android_platform_versions=${{ env.ANDROID_PLATFORM_VERSIONS }}
 
       - name: Test image structure
-        uses: plexsystems/container-structure-test-action@v0.1.0
+        uses: plexsystems/container-structure-test-action@v0.3.0
         with:
           image: ${{ fromJSON(steps.metadata.outputs.json).tags[0] }}
           config: test/android_sdk_structure.yml
