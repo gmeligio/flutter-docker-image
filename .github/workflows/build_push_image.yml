@@ -65,19 +65,19 @@ jobs:
         with:
           public: true
           repository: ${{ env.IMAGE_REPOSITORY_NAME }}/cache
-          
+
       - name: Extract Flutter version from version.json
         uses: sergeysova/jq-action@v2
         id: flutter_version
         with:
           cmd: 'jq -r ".flutter.version" version.json'
-      
+
       - name: Extract platform versions from version.json
         uses: sergeysova/jq-action@v2
         id: platform_versions
         with:
           cmd: 'jq -r ".android.platforms[].version" version.json | xargs'
-      
+
       - name: Set environment variables from versions in the Flutter repository
         run: |
           echo "FLUTTER_VERSION=${{ steps.flutter_version.outputs.value }}" >> $GITHUB_ENV
@@ -102,6 +102,9 @@ jobs:
           tags: |
             type=raw,value=${{ env.FLUTTER_VERSION }}-${{ env.GITHUB_SHORT_SHA }}
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
       - name: Build image and push to local Docker daemon
         uses: docker/build-push-action@v4
         with:
@@ -121,9 +124,6 @@ jobs:
           image: ${{ fromJSON(steps.metadata.outputs.json).tags[0] }}
           config: test/android_sdk_structure.yml
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
       - name: Build image and push it to registries
         uses: docker/build-push-action@v4
         with:
@@ -141,7 +141,7 @@ jobs:
             android_build_tools_version=${{ env.ANDROID_BUILD_TOOLS_VERSION }}
             android_platform_versions=${{ env.ANDROID_PLATFORM_VERSIONS }}
 
-      # TODO: Use kaniko for building and pushing after slowness is solved 
+      # TODO: Use kaniko for building and pushing after slowness is solved
       # TODO: https://github.com/GoogleContainerTools/kaniko/issues/970
       # TODO: https://github.com/GoogleContainerTools/kaniko/issues/875
       # TODO: Use kaniko for building and pushing after pushing to Docker daemon is solved, to be able to test Docker image, with the following issues
