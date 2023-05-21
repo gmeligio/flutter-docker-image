@@ -12,7 +12,7 @@ jobs:
       AWS_REGION: us-east-1
       IMAGE_REPOSITORY_NAME: flutter-android
       ANDROID_BUILD_TOOLS_VERSION: 30.0.3
-      ANDROID_PLATFORM_VERSIONS: 28 31 33
+      # ANDROID_PLATFORM_VERSIONS: 28 31 33
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -65,26 +65,23 @@ jobs:
         with:
           public: true
           repository: ${{ env.IMAGE_REPOSITORY_NAME }}/cache
-
-      - name: Load version.json
-        id: versions
-        uses: zoexx/github-action-json-file-properties@1.0.4
+          
+      - name: Extract Flutter version from version.json
+        uses: sergeysova/jq-action@v2
+        id: flutter_version
         with:
-          file_path: 'version.json'
-
-      - name: Set environment variables from versions in the Flutter repository
-        run: |
-          echo "FLUTTER_VERSION=${{ fromJson(steps.versions.outputs.flutter).version }}" >> $GITHUB_ENV
-
+          cmd: 'jq -r ".flutter.version" version.json'
+      
       - name: Extract platform versions from version.json
         uses: sergeysova/jq-action@v2
         id: platform_versions
         with:
           cmd: 'jq -r ".android.platforms[].version" version.json'
       
-      - name: Show platform versions
+      - name: Set environment variables from versions in the Flutter repository
         run: |
-          echo "${{ steps.platform_versions.outputs.value }}"
+          echo "FLUTTER_VERSION=${{ steps.flutter_version.outputs.value }}" >> $GITHUB_ENV
+          echo "ANDROID_PLATFORM_VERSIONS=${{ steps.platform_versions.outputs.value }}" >> $GITHUB_ENV
 
       - name: Set environment variable for image repository and tag
         run: |
