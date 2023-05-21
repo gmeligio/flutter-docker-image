@@ -103,23 +103,41 @@ jobs:
             type=raw,value=${{ env.FLUTTER_VERSION }}-${{ env.GITHUB_SHORT_SHA }}
 
       - name: Build image and push it to registries
-        uses: int128/kaniko-action@v1
+        uses: docker/build-push-action@v4
         with:
           push: true
-          cache: true
-          cache-repository: ${{ steps.ecr-cache.outputs.repository-uri }}
+          cache-from: ${{ steps.ecr-cache.outputs.repository-uri }}:cache
+          cache-to: ${{ steps.ecr-cache.outputs.repository-uri }}:cache
           tags: ${{ steps.metadata.outputs.tags }}
           labels: ${{ steps.metadata.outputs.labels }}
+          target: android
           build-args: |
             flutter_version=${{ env.FLUTTER_VERSION }}
             android_build_tools_version=${{ env.ANDROID_BUILD_TOOLS_VERSION }}
             android_platform_versions=${{ env.ANDROID_PLATFORM_VERSIONS }}
-          kaniko-args: |
-            --skip-unused-stages=true
-            --use-new-run=true
-            --snapshotMode=redo
-          target: android
-          executor: gcr.io/kaniko-project/executor:latest
+
+      # TODO: Use kaniko for building and pushing after pushing to Docker daemon is solved, to be able to test Docker image
+      # TODO: https://github.com/GoogleContainerTools/kaniko/issues/1331
+      # TODO: https://github.com/GoogleContainerTools/kaniko/issues/885
+      # - name: Build image and push it to registries
+      #   uses: int128/kaniko-action@v1
+      #   with:
+      #     push: true
+      #     cache: true
+      #     cache-repository: ${{ steps.ecr-cache.outputs.repository-uri }}
+      #     tags: ${{ steps.metadata.outputs.tags }}
+      #     labels: ${{ steps.metadata.outputs.labels }}
+      #     build-args: |
+      #       flutter_version=${{ env.FLUTTER_VERSION }}
+      #       android_build_tools_version=${{ env.ANDROID_BUILD_TOOLS_VERSION }}
+      #       android_platform_versions=${{ env.ANDROID_PLATFORM_VERSIONS }}
+      #     kaniko-args: |
+      #       --skip-unused-stages=true
+      #       --use-new-run=true
+      #       --snapshotMode=redo
+      #     target: android
+      #     executor: gcr.io/kaniko-project/executor:latest
+
 # TODO: https://github.com/snok/container-retention-policy
 # TODO: Push a build image before the final image
 # TODO: Run basic tests with build image
