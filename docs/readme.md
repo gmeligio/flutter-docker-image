@@ -1,21 +1,18 @@
 <!--- This markdown file was auto-generated from "readme.mdx" -->
 
-![Docker Pulls](https://img.shields.io/docker/pulls/gmeligio/flutter-android?label=flutter-android%20pulls) ![Docker Image Version (latest by date)](https://img.shields.io/docker/v/gmeligio/flutter-android?label=flutter-android%20version) ![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/gmeligio/flutter-android?label=flutter-android%20size)
+[![Docker Image Version (latest by date)](https://img.shields.io/docker/v/gmeligio/flutter-android?label=flutter-android%20version)](https://hub.docker.com/r/gmeligio/flutter-android/tags) [![Docker Pulls](https://img.shields.io/docker/pulls/gmeligio/flutter-android?label=flutter-android%20pulls)](https://hub.docker.com/r/gmeligio/flutter-android/tags) [![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/gmeligio/flutter-android?label=flutter-android%20size)](https://hub.docker.com/r/gmeligio/flutter-android/tags)
 
 # Flutter Docker Image
 
 Docker images for Flutter Continuous Integration (CI)
 
-## 
+## Latest images
 
 flutter-android
 
 * Flutter: 3.10.1
 * Android SDK Platforms: 33
 * Gradle: 7.5
-
-## Available images
-
 * https://hub.docker.com/r/gmeligio/flutter-android
 * https://github.com/gmeligio/flutter-docker-image/pkgs/container/flutter-android
 * https://quay.io/repository/gmeligio/flutter-android

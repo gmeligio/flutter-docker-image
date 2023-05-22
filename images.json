@@ -1,0 +1,13 @@
+{
+  "images": [
+    {
+      "flutter-android": [
+        {
+          "registry": "Docker Hub",
+          "url": "https://hub.docker.com/r/abc/abc",
+          "dockerUrl": "docker://abc/abc"
+        }
+      ]
+    }
+  ]
+}
