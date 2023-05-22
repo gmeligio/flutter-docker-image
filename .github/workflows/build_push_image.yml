@@ -2,6 +2,12 @@ on:
   push:
     branches:
       - main
+    paths:
+      - Dockerfile
+      - test/**
+      - version.json
+      - .github/workflows/build_push_image.yml
+
 jobs:
   build_push_android:
     permissions:
