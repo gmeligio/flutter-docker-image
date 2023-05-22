@@ -2,7 +2,6 @@
 import groovy.json.JsonSlurper
 import groovy.json.JsonOutput
 
-@CompileDynamic
 tasks.register('updateAndroidVersions') {
     doLast {
         def jsonFile = new File('../../version.json')
