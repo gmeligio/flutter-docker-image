@@ -84,5 +84,14 @@ jobs:
         run: |
           rm -rf test_app
 
+      - name: Setup NodeJS
+        uses: actions/setup-node@v3
+      
+      - name: Update documentation
+        working-directory: docs
+        run: |
+          npm install
+          npm run build
+
       - name: Create pull request if there are changes
         uses: peter-evans/create-pull-request@v5

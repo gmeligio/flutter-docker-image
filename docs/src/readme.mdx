@@ -1,3 +1,5 @@
+import * as version from '../../version.json'
+
 ![Docker Pulls](https://img.shields.io/docker/pulls/gmeligio/flutter-android?label=flutter-android%20pulls)
 ![Docker Image Version (latest by date)](https://img.shields.io/docker/v/gmeligio/flutter-android?label=flutter-android%20version)
 ![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/gmeligio/flutter-android?label=flutter-android%20size)
@@ -6,7 +8,12 @@
 
 Docker images for Flutter Continuous Integration (CI)
 
-## Available images
+## Latest images
+
+flutter-android
+- Flutter: {version.flutter.version}
+- Android SDK Platforms: {version.android.platforms.map(p => p.version).join(', ')}
+- Gradle: {version.android.gradle.version}
 
 - https://hub.docker.com/r/gmeligio/flutter-android
 - https://github.com/gmeligio/flutter-docker-image/pkgs/container/flutter-android

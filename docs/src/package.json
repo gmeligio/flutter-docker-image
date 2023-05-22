@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "NODE_ENV=local npx mdx-to-md readme.mdx ../readme.md",
+    "build": "NODE_ENV=local mdx-to-md readme.mdx ../readme.md",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",

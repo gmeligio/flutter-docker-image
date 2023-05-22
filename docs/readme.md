@@ -1,6 +1,18 @@
 <!--- This markdown file was auto-generated from "readme.mdx" -->
 
-# Docker images for Flutter Continuous Integration (CI)
+![Docker Pulls](https://img.shields.io/docker/pulls/gmeligio/flutter-android?label=flutter-android%20pulls) ![Docker Image Version (latest by date)](https://img.shields.io/docker/v/gmeligio/flutter-android?label=flutter-android%20version) ![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/gmeligio/flutter-android?label=flutter-android%20size)
+
+# Flutter Docker Image
+
+Docker images for Flutter Continuous Integration (CI)
+
+## 
+
+flutter-android
+
+* Flutter: 3.10.1
+* Android SDK Platforms: 33
+* Gradle: 7.5
 
 ## Available images
 
