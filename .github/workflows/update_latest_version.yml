@@ -88,7 +88,7 @@ jobs:
         uses: actions/setup-node@v3
       
       - name: Update documentation
-        working-directory: docs
+        working-directory: docs/src
         run: |
           npm install
           npm run build
