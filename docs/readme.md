@@ -24,10 +24,13 @@ On the terminal:
 ```bash
 # From Docker Hub
 docker run --rm -it gmeligio/flutter-android:3.10.1-8db2f603 bash
+
 # From GitHub Container Registry
 docker run --rm -it ghcr.io/gmeligio/flutter-android:3.10.1-8db2f603 bash
+
 # From Quay.io
 docker run --rm -it quay.io/gmeligio/flutter-android:3.10.1-8db2f603 bash
+
 # From AWS ECR
 docker run --rm -it public.ecr.aws/gmeligio/flutter-android:3.10.1-8db2f603 bash
 

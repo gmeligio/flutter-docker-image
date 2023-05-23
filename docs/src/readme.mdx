@@ -24,10 +24,13 @@ On the terminal:
 ```bash
 # From Docker Hub
 docker run --rm -it gmeligio/flutter-android:3.10.1-8db2f603 bash
+
 # From GitHub Container Registry
 docker run --rm -it ghcr.io/gmeligio/flutter-android:3.10.1-8db2f603 bash
+
 # From Quay.io
 docker run --rm -it quay.io/gmeligio/flutter-android:3.10.1-8db2f603 bash
+
 # From AWS ECR
 docker run --rm -it public.ecr.aws/gmeligio/flutter-android:3.10.1-8db2f603 bash
 ```
@@ -46,7 +49,7 @@ jobs:
         run: flutter build apk
 ```
 
-On a workflow in GitLab CI:
+On a `.gitlab-ci.yml` in GitLab CI:
 ```yaml
 build:
   image: ghcr.io/gmeligio/flutter-android:3.10.1-8db2f603
@@ -120,4 +123,4 @@ docker build --target android --build-arg flutter_version=3.7.4 android_build_to
 
 ## License
 
-[MIT License](LICENSE)
+[MIT License](../LICENSE)
