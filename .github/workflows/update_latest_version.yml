@@ -86,11 +86,13 @@ jobs:
 
       - name: Setup NodeJS
         uses: actions/setup-node@v3
+        with:
+          cache: 'npm'
       
       - name: Update documentation
         working-directory: docs/src
         run: |
-          npm install
+          npm ci --prefer-offline
           npm run build
 
       - name: Create pull request if there are changes
