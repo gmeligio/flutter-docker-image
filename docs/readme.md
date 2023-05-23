@@ -52,7 +52,7 @@ jobs:
 
 ```
 
-On a workflow in GitLab CI:
+On a `.gitlab-ci.yml` in GitLab CI:
 
 ```yaml
 build:
@@ -133,4 +133,4 @@ docker build --target android --build-arg flutter_version=3.7.4 android_build_to
 
 ## License
 
-[MIT License](LICENSE)
+[MIT License](../LICENSE)
