@@ -76,9 +76,9 @@ jobs:
           
       # TODO: Cache gradle https://github.com/gradle/gradle-build-action
       - name: Update default Android platform versions in Flutter
+        working-directory: test_app/android
         run: |
-          cat script/updateAndroidVersions.gradle >> test_app/android/app/build.gradle
-          cd test_app/android
+          cat ../script/updateAndroidVersions.gradle >> app/build.gradle
           ./gradlew --warning-mode all updateAndroidVersions
       
       - name: Clean test application
