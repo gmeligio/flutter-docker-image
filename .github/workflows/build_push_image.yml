@@ -148,6 +148,15 @@ jobs:
             android_build_tools_version=${{ env.ANDROID_BUILD_TOOLS_VERSION }}
             android_platform_versions=${{ env.ANDROID_PLATFORM_VERSIONS }}
 
+      - name: Update Docker Hub description
+        uses: peter-evans/dockerhub-description@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+          repository: ${{ env.IMAGE_REPOSITORY_PATH }}
+          short-description: ${{ github.event.repository.description }}
+          readme-filepath: docs/readme.md
+      
       # TODO: Use kaniko for building and pushing after slowness is solved
       # TODO: https://github.com/GoogleContainerTools/kaniko/issues/970
       # TODO: https://github.com/GoogleContainerTools/kaniko/issues/875
