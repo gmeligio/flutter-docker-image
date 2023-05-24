@@ -64,7 +64,7 @@ build:
 
 ## Versions
 
-There is no `latest` Docker tag on purpose. You need to specify the version of the image you want to use. Here are the versions of the tools used in the latest published images.
+There is no `latest` Docker tag on purpose. You need to specify the version of the image you want to use.
 
 The tag is composed of the Flutter version used and the first eight characters of this repository's commit SHA used to build the image. For example:
 
@@ -74,7 +74,7 @@ The tag is composed of the Flutter version used and the first eight characters o
 
 ### flutter-android
 
-Tools
+Versions used in latest image:
 
 * Flutter: 3.10.1
 * Android SDK Platforms: 33
