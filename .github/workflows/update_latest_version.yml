@@ -1,6 +1,7 @@
 on:
   schedule:
     - cron:  '0 0 * * *'
+  workflow_dispatch:
 jobs:
   flutter:
     permissions:
@@ -88,6 +89,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           cache: 'npm'
+          cache-dependency-path: docs/src/package-lock.json
       
       - name: Update documentation
         working-directory: docs/src
