@@ -17,7 +17,7 @@ Features:
    * \[ \] Windows  
    * \[ \] Flutter
 
-## Usage
+## Getting started
 
 On the terminal:
 
