@@ -1,4 +1,7 @@
 import * as version from '../../version.json'
+export const flutterVersion = version.flutter.version
+export const repositoryPath = 'gmeligio/flutter-android'
+export const imageUri = `${repositoryPath}:${flutterVersion}`
 
 [![flutter-android version](https://img.shields.io/docker/v/gmeligio/flutter-android?label=flutter-android%20version)](https://hub.docker.com/r/gmeligio/flutter-android/tags)
 [![flutter-android pulls](https://img.shields.io/docker/pulls/gmeligio/flutter-android?label=flutter-android%20pulls)](https://hub.docker.com/r/gmeligio/flutter-android/tags)
@@ -23,63 +26,63 @@ Features:
 ## Running containers
 
 On the terminal:
-```bash
-# From Docker Hub
-docker run --rm -it gmeligio/flutter-android:3.10.1-8db2f603 bash
+<pre><code>
+\# From Docker Hub
+docker run --rm -it {imageUri} bash
 
-# From GitHub Container Registry
-docker run --rm -it ghcr.io/gmeligio/flutter-android:3.10.1-8db2f603 bash
+\# From GitHub Container Registry
+docker run --rm -it ghcr.io/{imageUri} bash
 
-# From Quay.io
-docker run --rm -it quay.io/gmeligio/flutter-android:3.10.1-8db2f603 bash
+\# From Quay.io
+docker run --rm -it quay.io/{imageUri} bash
 
-# From AWS ECR
-docker run --rm -it public.ecr.aws/gmeligio/flutter-android:3.10.1-8db2f603 bash
-```
+\# From AWS ECR
+docker run --rm -it public.ecr.aws/{imageUri} bash
+</code></pre>
 
 On a workflow in GitHub Actions:
-```yaml
+<pre><code>
 jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/gmeligio/flutter-android:3.10.1-8db2f603
+      image: ghcr.io/{imageUri}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Build
         run: flutter build apk
-```
+</code></pre>
 
 On a `.gitlab-ci.yml` in GitLab CI:
-```yaml
+<pre><code>
 build:
-  image: ghcr.io/gmeligio/flutter-android:3.10.1-8db2f603
+  image: ghcr.io/{imageUri}
   script:
     - flutter build apk
-```
+</code></pre>
 
 ## Versions
 
 There is no `latest` Docker tag on purpose. You need to specify the version of the image you want to use.
 
-The tag is composed of the Flutter version used and the first eight characters of this repository's commit SHA used to build the image. For example:
-- tag: gmeligio/flutter-android:3.10.1-8db2f603
-- Flutter version: 3.10.1
+The tag is composed of the Flutter version used to build the image. For example:
+- tag: {imageUri}
+- Flutter version: {flutterVersion}
 - commit SHA: 8db2f603
 
 ### flutter-android
 
 Versions used in latest image:
-- Flutter: {version.flutter.version}
+- Flutter: {flutterVersion}
 - Android SDK Platforms: {version.android.platforms.map(p => p.version).join(', ')}
 - Gradle: {version.android.gradle.version}
 
 Registries:
-- https://hub.docker.com/r/gmeligio/flutter-android
+- https://hub.docker.com/r/{repositoryPath}
 - https://github.com/gmeligio/flutter-docker-image/pkgs/container/flutter-android
-- https://quay.io/repository/gmeligio/flutter-android
-- https://gallery.ecr.aws/gmeligio/flutter-android
+- https://quay.io/repository/{repositoryPath}
+- https://gallery.ecr.aws/{repositoryPath}
 
 ## Alpha stability
 
@@ -90,7 +93,7 @@ The images are experimental and are in active development. They are being used f
 ### Running the container
 
 The Dockerfile expects a few parameters:
-- `flutter_version <string>`: The version of Flutter to use when building. Example: 3.10.1
+- `flutter_version <string>`: The version of Flutter to use when building. Example: {flutterVersion}
 - `android_build_tools_version <string>`: The version of the Android SDK Build Tools to install. Example: 30.0.3
 - `android_platform_versions <list>`: The versions of the Android SDK Platforms to install, separated by spaces. Example: 28 31 33
   

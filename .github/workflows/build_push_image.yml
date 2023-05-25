@@ -87,9 +87,6 @@ jobs:
         run: |
           echo "IMAGE_REPOSITORY_PATH=${{ github.repository_owner }}/${{ env.IMAGE_REPOSITORY_NAME }}" >> $GITHUB_ENV
 
-      - name: Set environment variable for git commit short SHA
-        run: echo "GITHUB_SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-8)" >> $GITHUB_ENV
-
       - name: Load image metadata
         uses: docker/metadata-action@v4
         id: metadata
@@ -100,7 +97,7 @@ jobs:
             quay.io/${{ env.IMAGE_REPOSITORY_PATH }}
             public.ecr.aws/${{ env.IMAGE_REPOSITORY_PATH }}
           tags: |
-            type=raw,value=${{ env.FLUTTER_VERSION }}-${{ env.GITHUB_SHORT_SHA }}
+            type=raw,value=${{ env.FLUTTER_VERSION }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
