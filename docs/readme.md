@@ -6,6 +6,8 @@
 
 Docker images for Flutter Continuous Integration (CI). The images includes the minimum tools to run Flutter and build apps. The versions of the tools installed are based on the official [Flutter](https://github.com/flutter/flutter) repository. The final goal is that Flutter doesn't need to download anything like tools or SDKs when running the container.
 
+[Source repository in GitHub](https://github.com/gmeligio/flutter-docker-image).
+
 Features:
 
 * \[x\] Analytics disabled by default, opt-in suggested in the Docker entrypoint.
@@ -76,7 +78,7 @@ The tag is composed of the Flutter version used and the first eight characters o
 
 Versions used in latest image:
 
-* Flutter: 3.10.1
+* Flutter: 3.10.2
 * Android SDK Platforms: 33
 * Gradle: 7.5
 
@@ -123,13 +125,13 @@ docker build --target android --build-arg flutter_version=3.7.4 android_build_to
 
 ## Inspiration and related projects
 
-* https://github.dev/circleci/circleci-images
-* https://github.dev/cirruslabs/docker-images-android
-* https://github.dev/cirruslabs/docker-images-flutter
-* https://github.dev/instrumentisto/flutter-docker-image
-* https://github.dev/mingchen/docker-android-build-box
-* https://github.dev/gmemstr/flutter-fastlane-android
-* https://github.dev/fischerscode/DockerFlutter
+* https://github.com/circleci/circleci-images
+* https://github.com/cirruslabs/docker-images-android
+* https://github.com/cirruslabs/docker-images-flutter
+* https://github.com/instrumentisto/flutter-docker-image
+* https://github.com/mingchen/docker-android-build-box
+* https://github.com/gmemstr/flutter-fastlane-android
+* https://github.com/fischerscode/DockerFlutter
 
 ## License
 
