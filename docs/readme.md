@@ -67,9 +67,8 @@ There is no `latest` Docker tag on purpose. You need to specify the version of t
 
 The tag is composed of the Flutter version used to build the image. For example:
 
-* tag: gmeligio/flutter-android:3.10.2
+* Docker image: gmeligio/flutter-android:3.10.2
 * Flutter version: 3.10.2
-* commit SHA: 8db2f603
 
 ### flutter-android
 
