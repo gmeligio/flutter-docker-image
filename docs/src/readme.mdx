@@ -97,10 +97,10 @@ The Dockerfile expects a few parameters:
 - `android_build_tools_version <string>`: The version of the Android SDK Build Tools to install. Example: 30.0.3
 - `android_platform_versions <list>`: The versions of the Android SDK Platforms to install, separated by spaces. Example: 28 31 33
   
-```bash
-# Android
-docker build --target android --build-arg flutter_version=3.7.4 android_build_tools_version=30.0.3 --build-arg android_platform_versions="28 31 33" -t android-test .
-```
+<pre><code className="language-bash">
+{`# Android
+docker build --target android --build-arg flutter_version=3.7.4 android_build_tools_version=30.0.3 --build-arg android_platform_versions="28 31 33" -t android-test .`}
+</code></pre>
 
 ### Dockerfile stages
 
