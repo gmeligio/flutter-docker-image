@@ -1,12 +1,12 @@
 <!--- This markdown file was auto-generated from "readme.mdx" -->
 
-[![Docker Image Version (latest by date)](https://img.shields.io/docker/v/gmeligio/flutter-android?label=flutter-android%20version)](https://hub.docker.com/r/gmeligio/flutter-android/tags) [![Docker Pulls](https://img.shields.io/docker/pulls/gmeligio/flutter-android?label=flutter-android%20pulls)](https://hub.docker.com/r/gmeligio/flutter-android/tags) [![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/gmeligio/flutter-android?label=flutter-android%20size)](https://hub.docker.com/r/gmeligio/flutter-android/tags)
+[![flutter-android version](https://img.shields.io/docker/v/gmeligio/flutter-android?label=flutter-android%20version)](https://hub.docker.com/r/gmeligio/flutter-android/tags) [![flutter-android pulls](https://img.shields.io/docker/pulls/gmeligio/flutter-android?label=flutter-android%20pulls)](https://hub.docker.com/r/gmeligio/flutter-android/tags) [![flutter-android size](https://img.shields.io/docker/image-size/gmeligio/flutter-android?label=flutter-android%20size)](https://hub.docker.com/r/gmeligio/flutter-android/tags)
 
 # Flutter Docker Image
 
-Docker images for Flutter Continuous Integration (CI). The images includes the minimum tools to run Flutter and build apps. The versions of the tools installed are based on the official [Flutter](https://github.com/flutter/flutter) repository. The final goal is that Flutter doesn't need to download anything like tools or SDKs when running the container.
+Docker images for Flutter Continuous Integration (CI). The source is available [on GitHub](https://github.com/gmeligio/flutter-docker-image)
 
-[Source repository in GitHub](https://github.com/gmeligio/flutter-docker-image).
+The images includes the minimum tools to run Flutter and build apps. The versions of the tools installed are based on the official [Flutter](https://github.com/flutter/flutter) repository. The final goal is that Flutter doesn't need to download anything like tools or SDKs when running the container.
 
 Features:
 
@@ -17,25 +17,24 @@ Features:
    * \[ \] iOS  
    * \[ \] Linux  
    * \[ \] Windows  
-   * \[ \] Flutter
+   * \[ \] Web
 
-## Getting started
+## Running containers
 
 On the terminal:
 
 ```bash
 # From Docker Hub
-docker run --rm -it gmeligio/flutter-android:3.10.1-8db2f603 bash
+docker run --rm -it gmeligio/flutter-android:3.10.2 bash
 
 # From GitHub Container Registry
-docker run --rm -it ghcr.io/gmeligio/flutter-android:3.10.1-8db2f603 bash
+docker run --rm -it ghcr.io/gmeligio/flutter-android:3.10.2 bash
 
 # From Quay.io
-docker run --rm -it quay.io/gmeligio/flutter-android:3.10.1-8db2f603 bash
+docker run --rm -it quay.io/gmeligio/flutter-android:3.10.2 bash
 
 # From AWS ECR
-docker run --rm -it public.ecr.aws/gmeligio/flutter-android:3.10.1-8db2f603 bash
-
+docker run --rm -it public.ecr.aws/gmeligio/flutter-android:3.10.2 bash
 ```
 
 On a workflow in GitHub Actions:
@@ -45,33 +44,31 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/gmeligio/flutter-android:3.10.1-8db2f603
+      image: ghcr.io/gmeligio/flutter-android:3.10.2
     steps:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Build
         run: flutter build apk
-
 ```
 
 On a `.gitlab-ci.yml` in GitLab CI:
 
 ```yaml
 build:
-  image: ghcr.io/gmeligio/flutter-android:3.10.1-8db2f603
+  image: ghcr.io/gmeligio/flutter-android:3.10.2
   script:
     - flutter build apk
-
 ```
 
 ## Versions
 
 There is no `latest` Docker tag on purpose. You need to specify the version of the image you want to use.
 
-The tag is composed of the Flutter version used and the first eight characters of this repository's commit SHA used to build the image. For example:
+The tag is composed of the Flutter version used to build the image. For example:
 
-* tag: gmeligio/flutter-android:3.10.1-8db2f603
-* Flutter version: 3.10.1
+* tag: gmeligio/flutter-android:3.10.2
+* Flutter version: 3.10.2
 * commit SHA: 8db2f603
 
 ### flutter-android
@@ -99,7 +96,7 @@ The images are experimental and are in active development. They are being used f
 
 The Dockerfile expects a few parameters:
 
-* `flutter_version <string>`: The version of Flutter to use when building. Example: 3.10.1
+* `flutter_version <string>`: The version of Flutter to use when building. Example: 3.10.2
 * `android_build_tools_version <string>`: The version of the Android SDK Build Tools to install. Example: 30.0.3
 * `android_platform_versions <list>`: The versions of the Android SDK Platforms to install, separated by spaces. Example: 28 31 33
 
@@ -111,17 +108,18 @@ docker build --target android --build-arg flutter_version=3.7.4 android_build_to
 
 ### Dockerfile stages
 
+The base image is `debian/debian:11-slim` and from there multiple stages are created:
+
 1. `flutter` stage hast only the dependencies required to install flutter and common tools used by flutter internal commands, like `git`.
 2. `android` stage has the dependencies required to install the Android SDK and to develop Flutter apps for Android.
 3. `android-test` stage is for testing purposes. It creates a Flutter app and checks that the can be build for Android.
 
 ## TODO
 
-1. Different images for different use cases of Flutter.  
-   * By platform: Linux, Windows  
-   * By tool: Fastlane  
-   * By SDK: Android SDK,Adroid NDK
-2. Android emulator
+1. Fastlane
+2. Android:  
+   * Android emulator  
+   * Android NDK
 
 ## Inspiration and related projects
 
