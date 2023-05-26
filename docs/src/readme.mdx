@@ -9,7 +9,7 @@ export const imageUri = `${repositoryPath}:${flutterVersion}`
 
 # Flutter Docker Image
 
-Docker images for Flutter Continuous Integration (CI). The source is available [on GitHub](https://github.com/gmeligio/flutter-docker-image)
+Docker images for Flutter Continuous Integration (CI). The source is available [on GitHub](https://github.com/gmeligio/flutter-docker-image).
 
 The images includes the minimum tools to run Flutter and build apps. The versions of the tools installed are based on the official [Flutter](https://github.com/flutter/flutter) repository. The final goal is that Flutter doesn't need to download anything like tools or SDKs when running the container.
 
@@ -44,7 +44,7 @@ On a workflow in GitHub Actions:
 <pre><code className="language-yaml">
 {`jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     container:
       image: ghcr.io/${imageUri}
     steps:
@@ -64,7 +64,7 @@ On a `.gitlab-ci.yml` in GitLab CI:
 
 ## Versions
 
-There is no `latest` Docker tag on purpose. You need to specify the version of the image you want to use.
+There is no `latest` Docker tag on purpose. You need to specify the version of the image you want to use. The reason for that is that `latest` is a dynamic tag that can be confusing when reading the image URI because doesn't necessarily point to the latest image built and can cause unexpected behavior when rerunning a past CI job that runs with an overwritten latest tags. There are multiple articles explaining more about this reasoning like [What's Wrong With The Docker :latest Tag?](https://vsupalov.com/docker-latest-tag/) and [The misunderstood Docker tag: latest](https://medium.com/@mccode/the-misunderstood-docker-tag-latest-af3babfd6375).
 
 The tag is composed of the Flutter version used to build the image. For example:
 - Docker image: {imageUri}
