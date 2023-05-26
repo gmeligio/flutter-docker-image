@@ -26,40 +26,40 @@ Features:
 ## Running containers
 
 On the terminal:
-<pre><code>
-\# From Docker Hub
-docker run --rm -it {imageUri} bash
+<pre><code className="language-bash">
+{`# From Docker Hub
+docker run --rm -it ${imageUri} bash
 
-\# From GitHub Container Registry
-docker run --rm -it ghcr.io/{imageUri} bash
+# From GitHub Container Registry
+docker run --rm -it ghcr.io/${imageUri} bash
 
-\# From Quay.io
-docker run --rm -it quay.io/{imageUri} bash
+# From Quay.io
+docker run --rm -it quay.io/${imageUri} bash
 
-\# From AWS ECR
-docker run --rm -it public.ecr.aws/{imageUri} bash
+# From AWS ECR
+docker run --rm -it public.ecr.aws/${imageUri} bash`}
 </code></pre>
 
 On a workflow in GitHub Actions:
-<pre><code>
-jobs:
+<pre><code className="language-yaml">
+{`jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/{imageUri}
+      image: ghcr.io/${imageUri}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Build
-        run: flutter build apk
+        run: flutter build apk`}
 </code></pre>
 
 On a `.gitlab-ci.yml` in GitLab CI:
-<pre><code>
-build:
-  image: ghcr.io/{imageUri}
+<pre><code className="language-yaml">
+{`build:
+  image: ghcr.io/${imageUri}
   script:
-    - flutter build apk
+    - flutter build apk`}
 </code></pre>
 
 ## Versions
