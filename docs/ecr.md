@@ -112,12 +112,11 @@ The base image is `debian/debian:11-slim` and from there multiple stages are cre
 
 ## TODO
 
-1. Fastlane
-2. Android:  
+1. Android:  
    * Android emulator  
    * Android NDK
 
-## Related projects
+## Other Docker projects for mobile development
 
 * https://github.com/softartdev/docker-android-fastlane
 
