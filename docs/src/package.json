@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "cross-env NODE_ENV=production mdx-to-md readme.mdx ../readme.md",
+    "readme": "cross-env NODE_ENV=production mdx-to-md readme.mdx ../readme.md",
+    "ecr": "cross-env NODE_ENV=production mdx-to-md ecr.mdx ../ecr.md",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",

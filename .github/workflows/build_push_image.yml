@@ -69,7 +69,7 @@ jobs:
         run: |
           aws ecr-public put-repository-catalog-data \
             --repository-name ${{ env.IMAGE_REPOSITORY_NAME }} \
-            --catalog-data "description"="${{ github.event.repository.description }}",usageText="See About section",aboutText="$(jq -nRs 'input' docs/readme.md | sed 's/\\n/\n/g')"
+            --catalog-data "description"="${{ github.event.repository.description }}",usageText="See About section",aboutText="$(jq -nRs 'input' docs/ecr.md | sed 's/\\n/\n/g')"
 
       - name: Create ECR repository for layer cache
         uses: int128/create-ecr-repository-action@v1
