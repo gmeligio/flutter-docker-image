@@ -1,16 +1,5 @@
 FROM public.ecr.aws/debian/debian:11-slim@sha256:b19b5ac83ecdd926ba1e0bf6eb3182c0ab6437c29d14fb6fb7b9ee0080ddbd39 as flutter
 
-# Good
-# TODO: https://github.dev/mingchen/docker-android-build-box/tree/master
-# TODO: https://github.dev/gmemstr/flutter-fastlane-android
-
-# Analyzed
-# TODO: https://github.dev/circleci/circleci-images
-# TODO: https://github.dev/cirruslabs/docker-images-android
-# TODO: https://github.dev/cirruslabs/docker-images-flutter
-# TODO: https://github.dev/instrumentisto/flutter-docker-image
-# TODO: https://github.dev/fischerscode/DockerFlutter
-
 SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
 ENV LANG=C.UTF-8
