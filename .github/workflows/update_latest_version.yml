@@ -17,7 +17,7 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-              const script = require('./scripts/updateFlutterVersion.js')
+              const script = require('./script/updateFlutterVersion.js')
               await script({github, core, fetch})
 
       - name: Setup Flutter
