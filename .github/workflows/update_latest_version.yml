@@ -1,6 +1,6 @@
 on:
   schedule:
-    - cron:  '0 0 * * *'
+    - cron: '0 0 * * *'
   workflow_dispatch:
 jobs:
   flutter:
@@ -11,7 +11,7 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-      
+
       - name: Update latest Flutter version
         id: query
         uses: actions/github-script@v6
@@ -54,13 +54,11 @@ jobs:
               }
             }
 
+            // Update result file, i.e. version.json
             fs.writeFileSync(resultPath, JSON.stringify(result, null, 4));
 
-            return result
-      
-      - name: Set environment variable for Flutter version
-        run: |
-          echo "FLUTTER_VERSION=${{ fromJson(steps.query.outputs.result).flutter.version }}" >> $GITHUB_ENV
+            // Export FLUTTER_VERSION to other steps
+            core.exportVariable('FLUTTER_VERSION', result.flutter.version)
 
       - name: Setup Flutter
         uses: flutter-actions/setup-flutter@v2
@@ -68,19 +66,19 @@ jobs:
           cache: true
           channel: stable
           version: ${{ env.FLUTTER_VERSION }}
-       
+
       # TODO: Create test app in specific folder with step id, to allow parallel execution
       - name: Create test application
         run: |
           flutter create test_app
-          
+
       # TODO: Cache gradle https://github.com/gradle/gradle-build-action
       - name: Update default Android platform versions in Flutter
         working-directory: test_app/android
         run: |
           cat ../../script/updateAndroidVersions.gradle >> app/build.gradle
           ./gradlew --warning-mode all updateAndroidVersions
-      
+
       - name: Clean test application
         run: |
           rm -rf test_app
@@ -90,7 +88,7 @@ jobs:
         with:
           cache: 'npm'
           cache-dependency-path: docs/src/package-lock.json
-      
+
       - name: Update documentation
         working-directory: docs/src
         run: |
