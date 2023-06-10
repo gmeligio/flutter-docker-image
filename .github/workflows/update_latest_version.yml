@@ -17,6 +17,20 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
+            async function tarballExists(version, channel) {
+              const fileUrl =  `https://storage.googleapis.com/flutter_infra_release/releases/${channel}/linux/flutter_linux_${version}-${channel}.tar.xz`;
+
+              try {
+                const response = await fetch(fileUrl, { method: 'HEAD' });
+
+                return response.ok;
+              } catch (error) {
+                console.error(`An error occurred while requesting the file URL: ${fileUrl}`, error);
+                
+                return false;
+              }
+            }
+
             const query = `query GetLatestTags {
               repository(owner: "flutter", name: "flutter") {
                 tags: refs(
@@ -37,34 +51,52 @@ jobs:
             }`;
 
             const rawResult = await github.graphql(query)
-            const regex = /^(\d+\.)+\d+(?!-)$/g
+            const stableTagPattern = /^\d+\.\d+\.\d+$/g
             const tags = rawResult.repository.tags.edges
-            const latestTag = tags.find((tag) => tag.node.version.match(regex))
+            const latestTag = tags.find((tag) => tag.node.version.match(stableTagPattern))
 
             const fs = require('fs');
             const resultPath = 'version.json';
             const data = fs.readFileSync(resultPath, 'utf8');
             const json = JSON.parse(data);
 
+            const version = latestTag.node.version;
+
+            // Sometimes Flutter publishes stable versions to the beta channel because of it's release process.
+            // https://github.com/flutter/flutter/wiki/Flutter-build-release-channels
+
+            let channel;
+            if(await tarballExists(version, 'stable');) {
+              channel = 'stable';
+            } else if(await tarballExists(version, 'beta')){
+              channel = 'beta';
+            } else{
+              core.setFailed(`Flutter version ${version} doesn't exist in stable or beta channels.`);
+
+              return false;
+            }
+
+            // Export FLUTTER_VERSION for the next steps
+            core.exportVariable('FLUTTER_VERSION', version)
+            core.exportVariable('FLUTTER_CHANNEL', channel)
+            
+            // Update result file, i.e. version.json
             const result = {
               ...json,
               flutter: {
-                version: latestTag.node.version,
-                commit: latestTag.node.target.oid
+                channel,
+                commit: latestTag.node.target.oid,
+                version
               }
-            }
+            };
 
-            // Update result file, i.e. version.json
             fs.writeFileSync(resultPath, JSON.stringify(result, null, 4));
-
-            // Export FLUTTER_VERSION to other steps
-            core.exportVariable('FLUTTER_VERSION', result.flutter.version)
 
       - name: Setup Flutter
         uses: flutter-actions/setup-flutter@v2
         with:
           cache: true
-          channel: stable
+          channel: ${{ env.FLUTTER_CHANNEL }}
           version: ${{ env.FLUTTER_VERSION }}
 
       # TODO: Create test app in specific folder with step id, to allow parallel execution
