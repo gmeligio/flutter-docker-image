@@ -66,7 +66,7 @@ jobs:
             // https://github.com/flutter/flutter/wiki/Flutter-build-release-channels
 
             let channel;
-            if(await tarballExists(version, 'stable');) {
+            if (await tarballExists(version, 'stable')) {
               channel = 'stable';
             } else if(await tarballExists(version, 'beta')){
               channel = 'beta';
