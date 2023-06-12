@@ -112,6 +112,7 @@ WORKDIR "$HOME"
 
 ARG android_build_tools_version
 ARG android_platform_versions
+# ARG android_ndk_version
 
 # hadolint ignore=DL3003
 RUN mkdir -p "$ANDROID_HOME" \
@@ -141,6 +142,7 @@ RUN mkdir -p "$ANDROID_HOME" \
     && (yes || true) | sdkmanager \
     "platform-tools" \
     "build-tools;$android_build_tools_version" \
+    # "ndk;$android_ndk_version" \
     && for version in $android_platform_versions; do (yes || true) | sdkmanager "platforms;android-$version"; done \
     && flutter config --enable-android \
     && (yes || true) | flutter doctor --android-licenses \

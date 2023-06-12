@@ -122,13 +122,13 @@ The base image is `debian/debian:11-slim` and from there multiple stages are cre
 
 ## Acknowledgments
 
-* https://github.dev/mingchen/docker-android-build-box/tree/master
-* https://github.dev/gmemstr/flutter-fastlane-android
-* https://github.dev/circleci/circleci-images
-* https://github.dev/cirruslabs/docker-images-android
-* https://github.dev/cirruslabs/docker-images-flutter
-* https://github.dev/instrumentisto/flutter-docker-image
-* https://github.dev/fischerscode/DockerFlutter
+* https://github.com/mingchen/docker-android-build-box
+* https://github.com/gmemstr/flutter-fastlane-android
+* https://github.com/circleci/circleci-images
+* https://github.com/cirruslabs/docker-images-android
+* https://github.com/cirruslabs/docker-images-flutter
+* https://github.com/instrumentisto/flutter-docker-image
+* https://github.com/fischerscode/DockerFlutter
 
 ## License
 
