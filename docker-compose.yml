@@ -8,6 +8,17 @@ services:
     environment:
       ENABLE_ANALYTICS: $ENABLE_ANALYTICS
   
+  fastlane:
+    build:
+      context: .
+      target: fastlane
+      args:
+        flutter_version: $FLUTTER_VERSION
+        android_build_tools_version: $ANDROID_BUILD_TOOLS_VERSION
+        android_platform_versions: $ANDROID_PLATFORM_VERSIONS
+    environment:
+      ENABLE_ANALYTICS: $ENABLE_ANALYTICS
+  
   android:
     build:
       context: .

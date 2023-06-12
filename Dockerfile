@@ -44,7 +44,8 @@ RUN useradd -Ums /bin/bash flutter
 USER flutter:flutter
 WORKDIR "$HOME"
 
-ENV FLUTTER_ROOT="$HOME/sdks/flutter"
+ENV SDK_ROOT="$HOME/sdks"
+ENV FLUTTER_ROOT="$SDK_ROOT/flutter"
 ENV PATH="$PATH:$FLUTTER_ROOT/bin:$FLUTTER_ROOT/bin/cache/dart-sdk/bin"
 
 ARG flutter_version
@@ -69,14 +70,48 @@ RUN chmod +x "$HOME/docker-entrypoint.sh"
 
 ENTRYPOINT [ "/home/flutter/docker-entrypoint.sh" ]
 
-FROM flutter as android
+FROM flutter as fastlane
+
+SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
+
+# renovate: datasource=repology depName=debian_11/ruby-dev versioning=loose
+ARG RUBY_VERSION="1:2.7+2"
+# renovate: datasource=repology depName=debian_11/build-essential versioning=loose
+ENV BUILD_ESSENTIAL_VERSION="12.9"
+
+USER root
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \ 
+    # Fastlane dependencies
+    ruby-full="$RUBY_VERSION" \
+    build-essential="$BUILD_ESSENTIAL_VERSION" \
+    && rm -rf /var/lib/apt/lists/*
+
+USER flutter:flutter
+
+# renovate: datasource=rubygems depName=fastlane versioning=ruby
+ENV FASTLANE_VERSION="2.213.0"
+
+ENV FASTLANE_ROOT="$SDK_ROOT/fastlane"
+ENV PATH="$PATH:$FASTLANE_ROOT/bin"
+ENV GEM_HOME="$FASTLANE_ROOT"
+ENV GEM_PATH="$GEM_PATH:$GEM_HOME"
+
+RUN mkdir -p "$FASTLANE_ROOT"
+
+WORKDIR "$FASTLANE_ROOT"
+RUN gem install -v "$FASTLANE_VERSION" --no-document fastlane
+
+WORKDIR "$HOME"
+
+FROM fastlane as android
 
 SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
 # TODO: Get JAVA_HOME dinamically from a JDK binary 
 # TODO: Use `dirname $(dirname $(readlink -f $(which javac)))` after the following issue is fixed
 # TODO: https://github.com/moby/moby/issues/29110
-ENV ANDROID_HOME="$HOME/sdks/android-sdk" \
+ENV ANDROID_HOME="$SDK_ROOT/android-sdk" \
     JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
 ENV PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$HOME/.local/bin"
 
