@@ -1,6 +1,6 @@
 <!--- This markdown file was auto-generated from "readme.mdx" -->
 
-[![channel](https://img.shields.io/static/v1?label=channel&message=beta&color=blueviolet)](https://docs.flutter.dev/release/archive?tab=linux)[![android version](https://img.shields.io/docker/v/gmeligio/flutter-android?label=android%20version)](https://hub.docker.com/r/gmeligio/flutter-android/tags) [![android pulls](https://img.shields.io/docker/pulls/gmeligio/flutter-android?label=android%20pulls)](https://hub.docker.com/r/gmeligio/flutter-android/tags) [![android size](https://img.shields.io/docker/image-size/gmeligio/flutter-android?label=android%20size)](https://hub.docker.com/r/gmeligio/flutter-android/tags)
+[![channel](https://img.shields.io/static/v1?label=channel&message=beta&color=blueviolet)](https://docs.flutter.dev/release/archive?tab=linux)[![flutter-android version](https://img.shields.io/docker/v/gmeligio/flutter-android?label=flutter-android%20version)](https://hub.docker.com/r/gmeligio/flutter-android/tags) [![flutter-android pulls](https://img.shields.io/docker/pulls/gmeligio/flutter-android?label=flutter-android%20pulls)](https://hub.docker.com/r/gmeligio/flutter-android/tags) [![flutter-android size](https://img.shields.io/docker/image-size/gmeligio/flutter-android?label=flutter-android%20size)](https://hub.docker.com/r/gmeligio/flutter-android/tags)
 
 # Flutter Docker Image
 
