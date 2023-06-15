@@ -85,7 +85,11 @@ jobs:
 
       - name: Set environment variable for image repository and tag
         run: |
-          echo "IMAGE_REPOSITORY_PATH=${{ github.repository_owner }}/${{ env.IMAGE_REPOSITORY_NAME }}" >> $GITHUB_ENV
+          IMAGE_REPOSITORY_PATH="${{ github.repository_owner }}/${{ env.IMAGE_REPOSITORY_NAME }}"
+          echo "IMAGE_REPOSITORY_PATH=$IMAGE_REPOSITORY_PATH" >> $GITHUB_ENV
+
+          CACHE_REPOSITORY_PATH="ghcr.io/$IMAGE_REPOSITORY_PATH"
+          echo "CACHE_REPOSITORY_PATH=$CACHE_REPOSITORY_PATH" >> $GITHUB_ENV
 
       - name: Load image metadata
         uses: docker/metadata-action@v4
@@ -106,8 +110,8 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           load: true
-          cache-from: ghcr.io/${{ env.IMAGE_REPOSITORY_PATH }}:cache
-          cache-to: ghcr.io/${{ env.IMAGE_REPOSITORY_PATH }}:cache
+          cache-from: ${{ env.CACHE_REPOSITORY_PATH }}:cache
+          cache-to: ${{ env.CACHE_REPOSITORY_PATH }}:cache
           tags: ${{ steps.metadata.outputs.tags }}
           labels: ${{ steps.metadata.outputs.labels }}
           target: android
@@ -122,6 +126,20 @@ jobs:
           image: ${{ fromJSON(steps.metadata.outputs.json).tags[0] }}
           config: test/android_sdk_structure.yml
 
+      # - name: Test Android build
+      #   uses: docker/build-push-action@v4
+      #   with:
+      #     load: true
+      #     cache-from: ${{ env.CACHE_REPOSITORY_PATH }}:cache-test
+      #     cache-to: ${{ env.CACHE_REPOSITORY_PATH }}:cache-test
+      #     tags: ${{ steps.metadata.outputs.tags }}
+      #     labels: ${{ steps.metadata.outputs.labels }}
+      #     target: android
+      #     build-args: |
+      #       flutter_version=${{ env.FLUTTER_VERSION }}
+      #       android_build_tools_version=${{ env.ANDROID_BUILD_TOOLS_VERSION }}
+      #       android_platform_versions=${{ env.ANDROID_PLATFORM_VERSIONS }}
+
       - name: Build image and push it to registries
         uses: docker/build-push-action@v4
         with:
@@ -129,8 +147,8 @@ jobs:
           # TODO: Use ECR for cache after this issue is solved https://github.com/aws/containers-roadmap/issues/876
           # cache-from: ${{ steps.ecr-cache.outputs.repository-uri }}:cache
           # cache-to: ${{ steps.ecr-cache.outputs.repository-uri }}:cache
-          cache-from: ghcr.io/${{ env.IMAGE_REPOSITORY_PATH }}:cache
-          cache-to: ghcr.io/${{ env.IMAGE_REPOSITORY_PATH }}:cache
+          cache-from: ${{ env.CACHE_REPOSITORY_PATH }}:cache
+          cache-to: ${{ env.CACHE_REPOSITORY_PATH }}:cache
           tags: ${{ steps.metadata.outputs.tags }}
           labels: ${{ steps.metadata.outputs.labels }}
           target: android
