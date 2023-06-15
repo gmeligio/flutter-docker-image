@@ -41,7 +41,7 @@ module.exports = async ({ github, core, fetch }) => {
   const latestTag = tags.find((tag) => tag.node.version.match(stableTagPattern))
 
   const fs = require('fs')
-  const resultPath = 'version.json'
+  const resultPath = 'config/version.json'
   const data = fs.readFileSync(resultPath, 'utf8')
   const json = JSON.parse(data)
 

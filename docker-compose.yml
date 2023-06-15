@@ -30,7 +30,7 @@ services:
     environment:
       ENABLE_ANALYTICS: $ENABLE_ANALYTICS
 
-  test:
+  android-test:
     build:
       context: .
       target: android-test

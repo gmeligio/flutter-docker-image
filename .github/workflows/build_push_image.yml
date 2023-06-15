@@ -5,7 +5,7 @@ on:
     paths:
       - Dockerfile
       - test/**
-      - version.json
+      - config/version.json
       - .github/workflows/build_push_image.yml
 
 jobs:
@@ -80,8 +80,8 @@ jobs:
 
       - name: Set environment variables from from version.json
         run: |
-          echo "FLUTTER_VERSION=$(jq -r '.flutter.version' version.json)" >> $GITHUB_ENV
-          echo "ANDROID_PLATFORM_VERSIONS=$(jq -r '.android.platforms[].version' version.json)" >> $GITHUB_ENV
+          echo "FLUTTER_VERSION=$(jq -r '.flutter.version' config/version.json)" >> $GITHUB_ENV
+          echo "ANDROID_PLATFORM_VERSIONS=$(jq -r '.android.platforms[].version' config/version.json)" >> $GITHUB_ENV
 
       - name: Set environment variable for image repository and tag
         run: |

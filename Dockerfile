@@ -65,7 +65,7 @@ RUN git clone --depth 1 --branch "$flutter_version" https://github.com/flutter/f
     && flutter config --no-enable-macos-desktop \
     && flutter doctor
 
-COPY --chown=flutter:flutter ./docker-entrypoint.sh "$HOME/docker-entrypoint.sh"
+COPY --chown=flutter:flutter ./script/docker-entrypoint.sh "$HOME/docker-entrypoint.sh"
 RUN chmod +x "$HOME/docker-entrypoint.sh"
 
 ENTRYPOINT [ "/home/flutter/docker-entrypoint.sh" ]
