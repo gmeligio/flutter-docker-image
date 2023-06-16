@@ -188,7 +188,7 @@ RUN mkdir -p "$ANDROID_HOME" \
     && cd ../.. \
     && rm -r build_app
 
-FROM android as android-test
+FROM android as bundle-test
 
 USER flutter:flutter
 WORKDIR "$HOME"

@@ -30,10 +30,10 @@ services:
     environment:
       ENABLE_ANALYTICS: $ENABLE_ANALYTICS
 
-  android-test:
+  bundle-test:
     build:
       context: .
-      target: android-test
+      target: bundle-test
       args:
         flutter_version: $FLUTTER_VERSION
         android_build_tools_version: $ANDROID_BUILD_TOOLS_VERSION

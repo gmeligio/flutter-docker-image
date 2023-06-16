@@ -126,15 +126,15 @@ jobs:
           image: ${{ fromJSON(steps.metadata.outputs.json).tags[0] }}
           config: test/android_sdk_structure.yml
 
-      # - name: Test Android build
+      # - name: Test Android bundle
       #   uses: docker/build-push-action@v4
       #   with:
       #     load: true
-      #     cache-from: ${{ env.CACHE_REPOSITORY_PATH }}:cache-test
-      #     cache-to: ${{ env.CACHE_REPOSITORY_PATH }}:cache-test
+      #     cache-from: ${{ env.CACHE_REPOSITORY_PATH }}:cache-bundle
+      #     cache-to: ${{ env.CACHE_REPOSITORY_PATH }}:cache-bundle
       #     tags: ${{ steps.metadata.outputs.tags }}
       #     labels: ${{ steps.metadata.outputs.labels }}
-      #     target: android
+      #     target: bundle-test
       #     build-args: |
       #       flutter_version=${{ env.FLUTTER_VERSION }}
       #       android_build_tools_version=${{ env.ANDROID_BUILD_TOOLS_VERSION }}
