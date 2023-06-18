@@ -187,19 +187,3 @@ RUN mkdir -p "$ANDROID_HOME" \
     && ./gradlew --version \
     && cd ../.. \
     && rm -r build_app
-
-FROM android as bundle-test
-
-USER flutter:flutter
-WORKDIR "$HOME"
-
-SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
-
-RUN flutter create test_app
-
-WORKDIR "$HOME/test_app/android"
-RUN ./gradlew assembleRelease \
-    && ./gradlew bundleRelease
-
-WORKDIR "$HOME/test_app"
-RUN flutter build appbundle
