@@ -33,9 +33,9 @@ RUN apt-get update \
     # ruby-bundler=2.3.5-2 \
     # ruby-full=1:3.0~exp1 \
     # software-properties-common=0.99.22.5 \
+    # zip=3.0-12build2 \
     ca-certificates="$CA_CERTIFICATES_VERSION" \
     unzip="$UNZIP_VERSION" \
-    # zip=3.0-12build2 \
     && rm -rf /var/lib/apt/lists/*
 
 ENV HOME=/home/flutter

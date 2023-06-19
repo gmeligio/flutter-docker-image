@@ -45,3 +45,7 @@ fileContentTests:
     path: '/home/flutter/sdks/android-sdk/cmdline-tools/latest/source.properties'
     expectedContents:
       - 'Pkg.Revision=9.0\nPkg.Path=cmdline-tools;9.0\nPkg.Desc=Android SDK Command-line Tools'
+  - name: 'Dart and Flutter analytics are disabled'
+    path: '/home/flutter/.dart-tool/dart-flutter-telemetry.config'
+    expectedContents:
+      - 'reporting=0'
