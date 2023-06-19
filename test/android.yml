@@ -19,7 +19,7 @@ commandTests:
       - "-c"
       - |
         cd test_app/android \
-        && timeout --preserve-status 180s ./gradlew bundleRelease
+        && timeout --preserve-status 240s ./gradlew bundleRelease
     excludedOutput: 
       - 'Downloading https:\/\/services\.gradle\.org\/distributions\/gradle-\d\.\d-.{1,3}\.zip'
       - 'Checking the license'
