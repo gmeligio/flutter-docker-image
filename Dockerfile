@@ -97,6 +97,11 @@ ENV PATH="$PATH:$FASTLANE_ROOT/bin"
 ENV GEM_HOME="$FASTLANE_ROOT"
 ENV GEM_PATH="$GEM_PATH:$GEM_HOME"
 
+# Fastlane configuration
+ENV FASTLANE_OPT_OUT_USAGE="YES"
+ENV FASTLANE_SKIP_UPDATE_CHECK="YES"
+ENV FASTLANE_HIDE_CHANGELOG="YES"
+
 RUN mkdir -p "$FASTLANE_ROOT"
 
 WORKDIR "$FASTLANE_ROOT"
@@ -121,7 +126,6 @@ ARG OPENJDK_11_JDK_HEADLESS_VERSION="11.0.18+10-1~deb11u1"
 ARG SUDO_VERSION="1.9.5p2-3+deb11u1"
 
 USER root
-# hadolint ignore=DL3003
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
     # For Android x86 emulators
@@ -149,7 +153,6 @@ ARG android_build_tools_version
 ARG android_platform_versions
 # ARG android_ndk_version
 
-# hadolint ignore=DL3003
 RUN mkdir -p "$ANDROID_HOME" \
     && chown -R flutter:flutter "$ANDROID_HOME" \
     && command_line_tools_url="$(curl -s https://developer.android.com/studio/ | grep -o 'https://dl.google.com/android/repository/commandlinetools-linux-[0-9]\{7\}_latest.zip')" \
@@ -182,8 +185,10 @@ RUN mkdir -p "$ANDROID_HOME" \
     && flutter config --enable-android \
     && (yes || true) | flutter doctor --android-licenses \
     && flutter precache --android \
-    && flutter create build_app \
-    && cd build_app/android \
-    && ./gradlew --version \
-    && cd ../.. \
-    && rm -r build_app
+    && flutter create build_app
+
+WORKDIR "$HOME/build_app/android"
+RUN ./gradlew --version
+
+WORKDIR "$HOME"
+RUN rm -r build_app

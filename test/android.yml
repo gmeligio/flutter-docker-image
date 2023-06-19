@@ -1,32 +1,47 @@
 schemaVersion: 2.0.0
 commandTests:
-  - name: "Android SDK build tools is version 30.0.3"
-    command: "ls"
-    args: ["/home/flutter/sdks/android-sdk/build-tools"]
-    expectedOutput: ["30.0.3"]
-  - name: "Android SDK build tools directory only has one directory"
-    command: "bash"
+  - name: 'Android SDK build tools is version 30.0.3'
+    command: 'ls'
+    args:
+      - '/home/flutter/sdks/android-sdk/build-tools'
+    expectedOutput:
+      - '30.0.3'
+  - name: 'Android SDK build tools directory only has one directory'
+    command: 'bash'
     args:
       - -c
       - |
         ls /home/flutter/sdks/android-sdk/build-tools \
         | wc -l
-  - name: "Gradle, licenses and platforms are already downloaded"
-    setup: [["flutter", "create", "test_app"]]
-    teardown: [["rm", "-r", "test_app"]]
-    command: "bash"
+  - name: 'Gradle, licenses and platforms are already downloaded'
+    setup:
+      - - 'flutter'
+        - 'create'
+        - 'test_app'
+    teardown:
+      - - 'rm'
+        - '-r'
+        - 'test_app'
+    command: 'bash'
     args:
-      - "-c"
+      - '-c'
       - |
         cd test_app/android \
         && timeout --preserve-status 240s ./gradlew bundleRelease
-    excludedOutput: 
-      - 'Downloading https:\/\/services\.gradle\.org\/distributions\/gradle-\d\.\d-.{1,3}\.zip'
-      - 'Checking the license'
-      - 'Installing Android SDK Platform'
+    excludedOutput:
+      - 'Checking'
+      - 'Installing'
       - 'Downloading'
+  - name: 'Fastlane usage is opted-out'
+    command: 'fastlane'
+    args:
+      - 'action'
+      - 'debug'
+    excludedOutput:
+      - "Sending anonymous analytics information"
 
 fileContentTests:
-- name: 'Android SDK Command-line Tools is version 9.0'
-  path: '/home/flutter/sdks/android-sdk/cmdline-tools/latest/source.properties'
-  expectedContents: ['Pkg.Revision=9.0\nPkg.Path=cmdline-tools;9.0\nPkg.Desc=Android SDK Command-line Tools']
+  - name: 'Android SDK Command-line Tools is version 9.0'
+    path: '/home/flutter/sdks/android-sdk/cmdline-tools/latest/source.properties'
+    expectedContents:
+      - 'Pkg.Revision=9.0\nPkg.Path=cmdline-tools;9.0\nPkg.Desc=Android SDK Command-line Tools'
