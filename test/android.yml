@@ -1,51 +1,80 @@
 schemaVersion: 2.0.0
 commandTests:
-  - name: 'Android SDK build tools is version 30.0.3'
-    command: 'ls'
+  - name: Android SDK build tools is version 30.0.3
+    command: ls
     args:
-      - '/home/flutter/sdks/android-sdk/build-tools'
+      - /home/flutter/sdks/android-sdk/build-tools
     expectedOutput:
-      - '30.0.3'
+      - 30.0.3
   - name: 'Android SDK build tools directory only has one directory'
-    command: 'bash'
+    command: bash
     args:
       - -c
       - |
         ls /home/flutter/sdks/android-sdk/build-tools \
         | wc -l
-  - name: 'Gradle, licenses and platforms are already downloaded'
+  - name: Gradle, licenses and platforms are already downloaded
     setup:
-      - - 'flutter'
-        - 'create'
-        - 'test_app'
+      - - flutter
+        - create
+        - test_app
     teardown:
-      - - 'rm'
-        - '-r'
-        - 'test_app'
-    command: 'bash'
+      - - rm
+        - -r
+        - test_app
+    command: bash
     args:
-      - '-c'
+      - -c
       - |
         cd test_app/android \
         && timeout --preserve-status 240s ./gradlew bundleRelease
     excludedOutput:
-      - 'Checking'
-      - 'Installing'
-      - 'Downloading'
-  - name: 'Fastlane usage is opted-out'
-    command: 'fastlane'
+      - Checking
+      - Installing
+      - Downloading
+  - name: Fastlane can run lanes
+    setup:
+      - - flutter
+        - create
+        - test_app
+      - - mkdir
+        - -p
+        - /home/flutter/test_app/android/fastlane
+      - - touch
+        - /home/flutter/test_app/android/fastlane/Appfile
+      - - sh
+        - -c
+        - "echo 'lane :hello do\n puts \"Hello\"\nend' > /home/flutter/test_app/android/fastlane/Fastfile"
+      - - touch
+        - /home/flutter/test_app/android/fastlane/Pluginfile
+    teardown:
+      - - rm
+        - -r
+        - test_app
+    command: bash
     args:
-      - 'action'
-      - 'debug'
+      - -c
+      - |
+        cd test_app/android \
+        && timeout --preserve-status 240s fastlane hello
     excludedOutput:
-      - "Sending anonymous analytics information"
+      - Checking
+      - Installing
+      - Downloading
+  - name: Fastlane usage is opted-out
+    command: fastlane
+    args:
+      - action
+      - debug
+    excludedOutput:
+      - Sending anonymous analytics information
 
 fileContentTests:
   - name: 'Android SDK Command-line Tools is version 9.0'
     path: '/home/flutter/sdks/android-sdk/cmdline-tools/latest/source.properties'
     expectedContents:
-      - 'Pkg.Revision=9.0\nPkg.Path=cmdline-tools;9.0\nPkg.Desc=Android SDK Command-line Tools'
-  - name: 'Dart and Flutter analytics are disabled'
-    path: '/home/flutter/.dart-tool/dart-flutter-telemetry.config'
+      - Pkg.Revision=9.0\nPkg.Path=cmdline-tools;9.0\nPkg.Desc=Android SDK Command-line Tools
+  - name: Dart and Flutter analytics are disabled
+    path: /home/flutter/.dart-tool/dart-flutter-telemetry.config
     expectedContents:
-      - 'reporting=0'
+      - reporting=0

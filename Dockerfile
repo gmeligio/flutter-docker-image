@@ -89,25 +89,22 @@ RUN apt-get update \
 
 USER flutter:flutter
 
-# renovate: datasource=rubygems depName=fastlane versioning=ruby
-ENV FASTLANE_VERSION="2.213.0"
-
-ENV FASTLANE_ROOT="$SDK_ROOT/fastlane"
-ENV PATH="$PATH:$FASTLANE_ROOT/bin"
-ENV GEM_HOME="$FASTLANE_ROOT"
-ENV GEM_PATH="$GEM_PATH:$GEM_HOME"
+# TODO: Automate the path obtained when installing with `gem --user-install` 
+# TODO: https://guides.rubygems.org/faqs/#i-installed-gems-with---user-install-and-their-commands-are-not-available
+# TODO: if which ruby >/dev/null && which gem >/dev/null; then
+#     PATH="$(ruby -r rubygems -e 'puts Gem.user_dir')/bin:$PATH"
+# fi
+ENV PATH="$PATH:/home/flutter/.local/share/gem/ruby/2.7.0/bin"
 
 # Fastlane configuration
 ENV FASTLANE_OPT_OUT_USAGE="YES"
 ENV FASTLANE_SKIP_UPDATE_CHECK="YES"
 ENV FASTLANE_HIDE_CHANGELOG="YES"
 
-RUN mkdir -p "$FASTLANE_ROOT"
+# renovate: datasource=rubygems depName=fastlane versioning=ruby
+ENV FASTLANE_VERSION="2.213.0"
 
-WORKDIR "$FASTLANE_ROOT"
-RUN gem install -v "$FASTLANE_VERSION" --no-document fastlane
-
-WORKDIR "$HOME"
+RUN gem install --user-install -v "$FASTLANE_VERSION" --no-document fastlane
 
 FROM fastlane as android
 
