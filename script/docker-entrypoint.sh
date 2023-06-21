@@ -1,10 +1,10 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 analytic_tools_str="Dart, Flutter and Fastlane"
 
 if [ "$ENABLE_ANALYTICS" = "true" ]; then
     echo "Received 'ENABLE_ANALYTICS=true'.\nEnabling analytics for $analytic_tools_str."
-    
+
     dart --enable-analytics
     flutter config --analytics
     unset FASTLANE_OPT_OUT_USAGE

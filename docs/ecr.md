@@ -10,7 +10,7 @@ Features:
 
 * \[x\] Analytics disabled by default, opt-in suggested in the Docker entrypoint.
 * \[x\] Rootless user, default user is flutter:flutter
-* \[x\] Fastlane
+* \[x\] Cached Fastlane gem
 * \[ \] Minimal image to run Flutter in Continuous Integration (CI):  
    * \[x\] Android  
    * \[ \] iOS  
@@ -60,6 +60,17 @@ build:
     - flutter build apk
 ```
 
+Fastlane (see guide https://docs.fastlane.tools):
+
+```bash
+# Ruby bundler is available in the container.
+# The fastlane gem is cached but not installed
+
+# Use --prefer-local to download gems only if they are not cached
+bundle install --prefer-local
+bundle exec fastlane
+```
+
 ## Versions
 
 There is no `latest` Docker tag on purpose. You need to specify the version of the image you want to use. The reason for that is that `latest` is a dynamic tag that can be confusing when reading the image URI because doesn't necessarily point to the latest image built and can cause unexpected behavior when rerunning a past CI job that runs with an overwritten latest tags. There are multiple articles explaining more about this reasoning like [What's Wrong With The Docker :latest Tag?](https://vsupalov.com/docker-latest-tag/) and [The misunderstood Docker tag: latest](https://medium.com/@mccode/the-misunderstood-docker-tag-latest-af3babfd6375).
@@ -71,11 +82,12 @@ The tag is composed of the Flutter version used to build the image. For example:
 
 ### flutter-android
 
-Versions used in latest image:
+Versions used in latest image gmeligio/flutter-android:3.10.5:
 
 * Flutter: 3.10.5
 * Android SDK Platforms: 33
 * Gradle: 7.5
+* Fastlane: 2.213.0
 
 Registries:
 
