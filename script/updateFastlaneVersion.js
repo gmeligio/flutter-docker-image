@@ -25,6 +25,7 @@ module.exports = async ({ core, fetch }) => {
   }
 
   // Update result file, i.e. version.json
+  const fs = require('fs')
   const resultPath = 'config/version.json'
   const data = fs.readFileSync(resultPath, 'utf8')
   const json = JSON.parse(data)
