@@ -13,5 +13,8 @@
         "gradle": {
             "version": "7.5"
         }
+    },
+    "fastlane": {
+        "version": "2.213.0"
     }
 }
