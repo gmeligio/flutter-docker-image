@@ -14,8 +14,7 @@ services:
       target: fastlane
       args:
         flutter_version: $FLUTTER_VERSION
-        android_build_tools_version: $ANDROID_BUILD_TOOLS_VERSION
-        android_platform_versions: $ANDROID_PLATFORM_VERSIONS
+        fastlane_version: $FASTLANE_VERSION
     environment:
       ENABLE_ANALYTICS: $ENABLE_ANALYTICS
   
@@ -25,6 +24,7 @@ services:
       target: android
       args:
         flutter_version: $FLUTTER_VERSION
+        fastlane_version: $FASTLANE_VERSION
         android_build_tools_version: $ANDROID_BUILD_TOOLS_VERSION
         android_platform_versions: $ANDROID_PLATFORM_VERSIONS
     environment:

@@ -81,6 +81,7 @@ jobs:
       - name: Set environment variables from from version.json
         run: |
           echo "FLUTTER_VERSION=$(jq -r '.flutter.version' config/version.json)" >> $GITHUB_ENV
+          echo "FASTLANE_VERSION=$(jq -r '.fastlane.version' config/version.json)" >> $GITHUB_ENV
           echo "ANDROID_PLATFORM_VERSIONS=$(jq -r '.android.platforms[].version' config/version.json)" >> $GITHUB_ENV
 
       - name: Set environment variable for image repository and tag
@@ -117,6 +118,7 @@ jobs:
           target: android
           build-args: |
             flutter_version=${{ env.FLUTTER_VERSION }}
+            fastlane_version=${{ env.FASTLANE_VERSION }}
             android_build_tools_version=${{ env.ANDROID_BUILD_TOOLS_VERSION }}
             android_platform_versions=${{ env.ANDROID_PLATFORM_VERSIONS }}
 
@@ -125,20 +127,6 @@ jobs:
         with:
           image: ${{ fromJSON(steps.metadata.outputs.json).tags[0] }}
           config: test/android.yml
-
-      # - name: Test Android bundle
-      #   uses: docker/build-push-action@v4
-      #   with:
-      #     load: true
-      #     cache-from: ${{ env.CACHE_REPOSITORY_PATH }}:cache-bundle
-      #     cache-to: ${{ env.CACHE_REPOSITORY_PATH }}:cache-bundle
-      #     tags: ${{ steps.metadata.outputs.tags }}
-      #     labels: ${{ steps.metadata.outputs.labels }}
-      #     target: bundle-test
-      #     build-args: |
-      #       flutter_version=${{ env.FLUTTER_VERSION }}
-      #       android_build_tools_version=${{ env.ANDROID_BUILD_TOOLS_VERSION }}
-      #       android_platform_versions=${{ env.ANDROID_PLATFORM_VERSIONS }}
 
       - name: Build image and push it to registries
         uses: docker/build-push-action@v4
@@ -154,6 +142,7 @@ jobs:
           target: android
           build-args: |
             flutter_version=${{ env.FLUTTER_VERSION }}
+            fastlane_version=${{ env.FASTLANE_VERSION }}
             android_build_tools_version=${{ env.ANDROID_BUILD_TOOLS_VERSION }}
             android_platform_versions=${{ env.ANDROID_PLATFORM_VERSIONS }}
 

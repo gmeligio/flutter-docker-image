@@ -87,7 +87,6 @@ Versions used in latest image gmeligio/flutter-android:3.10.5:
 * Flutter: 3.10.5
 * Android SDK Platforms: 33
 * Gradle: 7.5
-* Fastlane: 2.213.0
 
 Registries:
 
@@ -112,7 +111,7 @@ The Dockerfile expects a few parameters:
 
 ```bash
 # Android
-docker build --target android --build-arg flutter_version=3.7.4 android_build_tools_version=30.0.3 --build-arg android_platform_versions="28 31 33" -t android-test .
+docker build --target android --build-arg flutter_version=3.7.4 fastlane_version=2.213.0 android_build_tools_version=30.0.3 --build-arg android_platform_versions="28 31 33" -t android-test .
 ```
 
 ### Dockerfile stages

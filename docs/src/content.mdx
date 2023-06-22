@@ -1,5 +1,7 @@
 import * as version from '../../config/version.json'
 export const flutterVersion = version.flutter.version
+export const fastlaneVersion = version.fastlane.version
+export const gradleVersion = version.android.gradle.version
 export const repositoryPath = 'gmeligio/flutter-android'
 export const imageUri = `${repositoryPath}:${flutterVersion}`
 
@@ -82,8 +84,8 @@ The tag is composed of the Flutter version used to build the image. For example:
 Versions used in latest image {imageUri}:
 - Flutter: {flutterVersion}
 - Android SDK Platforms: {version.android.platforms.map(p => p.version).join(', ')}
-- Gradle: {version.android.gradle.version}
-- Fastlane: 2.213.0
+- Gradle: {gradleVersion}
+- Fastlane: {fastlaneVersion}
 
 Registries:
 - https://hub.docker.com/r/{repositoryPath}
@@ -106,7 +108,7 @@ The Dockerfile expects a few parameters:
   
 <pre><code className="language-bash">
 {`# Android
-docker build --target android --build-arg flutter_version=3.7.4 android_build_tools_version=30.0.3 --build-arg android_platform_versions="28 31 33" -t android-test .`}
+docker build --target android --build-arg flutter_version=3.7.4 fastlane_version=2.213.0 android_build_tools_version=30.0.3 --build-arg android_platform_versions="28 31 33" -t android-test .`}
 </code></pre>
 
 ### Dockerfile stages

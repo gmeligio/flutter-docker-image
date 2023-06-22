@@ -110,11 +110,10 @@ RUN mkdir -p "$FASTLANE_ROOT"
 
 WORKDIR "$FASTLANE_ROOT"
 
-# renovate: datasource=rubygems depName=fastlane versioning=ruby
-ENV FASTLANE_VERSION="2.213.0"
+ARG fastlane_version
 
 RUN bundle init \
-    && bundle add --version "$FASTLANE_VERSION" fastlane
+    && bundle add --version "$fastlane_version" fastlane
 
 FROM fastlane as android
 
