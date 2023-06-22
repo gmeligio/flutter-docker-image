@@ -6,7 +6,7 @@ module.exports = async ({ core, fetch }) => {
   try {
     const response = await fetch(versionFileUrl)
 
-    data = await response.json()
+    const data = await response.json()
     
     version = data.version
   } catch (error) {
