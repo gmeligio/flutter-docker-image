@@ -16,7 +16,9 @@ module.exports = async ({ core, fetch }) => {
     return false
   }
 
-  if (version == undefined) {
+  console.log(`Fastlane version: ${version}`)
+
+  if (version === undefined) {
     core.setFailed(`Fastlane version URL ${versionFileUrl} doesn't exist`)
 
     return false
