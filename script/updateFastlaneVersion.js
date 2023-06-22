@@ -6,7 +6,9 @@ module.exports = async ({ core, fetch }) => {
   try {
     const response = await fetch(versionFileUrl)
 
-    version = response.json().version
+    data = await response.json()
+    
+    version = data.version
   } catch (error) {
     console.error(
       `An error occurred while requesting the file URL: ${versionFileUrl}`,
@@ -15,8 +17,6 @@ module.exports = async ({ core, fetch }) => {
 
     return false
   }
-
-  console.log(`Fastlane version: ${version}`)
 
   if (version === undefined) {
     core.setFailed(`Fastlane version URL ${versionFileUrl} doesn't exist`)
