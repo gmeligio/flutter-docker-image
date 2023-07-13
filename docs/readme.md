@@ -26,16 +26,16 @@ On the terminal:
 
 ```bash
 # From Docker Hub
-docker run --rm -it gmeligio/flutter-android:3.10.5 bash
+docker run --rm -it gmeligio/flutter-android:3.10.6 bash
 
 # From GitHub Container Registry
-docker run --rm -it ghcr.io/gmeligio/flutter-android:3.10.5 bash
+docker run --rm -it ghcr.io/gmeligio/flutter-android:3.10.6 bash
 
 # From Quay.io
-docker run --rm -it quay.io/gmeligio/flutter-android:3.10.5 bash
+docker run --rm -it quay.io/gmeligio/flutter-android:3.10.6 bash
 
 # From AWS ECR
-docker run --rm -it public.ecr.aws/gmeligio/flutter-android:3.10.5 bash
+docker run --rm -it public.ecr.aws/gmeligio/flutter-android:3.10.6 bash
 ```
 
 On a workflow in GitHub Actions:
@@ -45,7 +45,7 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/gmeligio/flutter-android:3.10.5
+      image: ghcr.io/gmeligio/flutter-android:3.10.6
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -57,7 +57,7 @@ On a `.gitlab-ci.yml` in GitLab CI:
 
 ```yaml
 build:
-  image: ghcr.io/gmeligio/flutter-android:3.10.5
+  image: ghcr.io/gmeligio/flutter-android:3.10.6
   script:
     - flutter build apk
 ```
@@ -79,14 +79,14 @@ There is no `latest` Docker tag on purpose. You need to specify the version of t
 
 The tag is composed of the Flutter version used to build the image. For example:
 
-* Docker image: gmeligio/flutter-android:3.10.5
-* Flutter version: 3.10.5
+* Docker image: gmeligio/flutter-android:3.10.6
+* Flutter version: 3.10.6
 
 ### flutter-android
 
-Versions used in latest image gmeligio/flutter-android:3.10.5:
+Versions used in latest image gmeligio/flutter-android:3.10.6:
 
-* Flutter: 3.10.5
+* Flutter: 3.10.6
 * Android SDK Platforms: 33
 * Gradle: 7.5
 * Fastlane: 2.213.0
@@ -108,7 +108,7 @@ The images are experimental and are in active development. They are being used f
 
 The Dockerfile expects a few parameters:
 
-* `flutter_version <string>`: The version of Flutter to use when building. Example: 3.10.5
+* `flutter_version <string>`: The version of Flutter to use when building. Example: 3.10.6
 * `android_build_tools_version <string>`: The version of the Android SDK Build Tools to install. Example: 30.0.3
 * `android_platform_versions <list>`: The versions of the Android SDK Platforms to install, separated by spaces. Example: 28 31 33
 
