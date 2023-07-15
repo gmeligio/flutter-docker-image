@@ -89,7 +89,7 @@ Versions used in latest image gmeligio/flutter-android:3.10.6:
 * Flutter: 3.10.6
 * Android SDK Platforms: 33
 * Gradle: 7.5
-* Fastlane: 2.213.0
+* Fastlane: 2.214.0
 
 Registries:
 
