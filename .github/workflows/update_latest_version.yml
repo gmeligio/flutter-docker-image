@@ -59,8 +59,7 @@ jobs:
         working-directory: docs/src
         run: |
           npm ci --prefer-offline
-          npm run readme
-          npm run ecr
+          npm run build
 
       - name: Create pull request if there are changes
         uses: peter-evans/create-pull-request@v5

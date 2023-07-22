@@ -11,7 +11,7 @@ The images includes the minimum tools to run Flutter and build apps. The version
 Features:
 
 * \[x\] Analytics disabled by default, opt-in suggested in the Docker entrypoint.
-* \[x\] Rootless user, default user is flutter:flutter
+* \[x\] Rootless user `flutter:flutter`, with permissions to run on GitLab CI.
 * \[x\] Cached Fastlane gem
 * \[ \] Minimal image to run Flutter in Continuous Integration (CI):  
    * \[x\] Android  
@@ -33,9 +33,6 @@ docker run --rm -it ghcr.io/gmeligio/flutter-android:3.10.5 bash
 
 # From Quay.io
 docker run --rm -it quay.io/gmeligio/flutter-android:3.10.5 bash
-
-# From AWS ECR
-docker run --rm -it public.ecr.aws/gmeligio/flutter-android:3.10.5 bash
 ```
 
 On a workflow in GitHub Actions:
@@ -96,7 +93,6 @@ Registries:
 * https://hub.docker.com/r/gmeligio/flutter-android
 * https://github.com/gmeligio/flutter-docker-image/pkgs/container/flutter-android
 * https://quay.io/repository/gmeligio/flutter-android
-* https://gallery.ecr.aws/gmeligio/flutter-android
 
 ## Alpha stability
 
@@ -130,6 +126,12 @@ The base image is `debian/debian:11-slim` and from there multiple stages are cre
 1. Android:  
    * Android emulator  
    * Android NDK
+
+## FAQ
+
+### Why not push to AWS ECR Public registry?
+
+The storage of the images starts to cost after 50 GB and increases with every pushed image because the AWS Free Tier covers up to 50 GB of total storage for free in ECR Public.
 
 ## Other Docker projects for mobile development
 

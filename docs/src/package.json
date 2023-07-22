@@ -4,9 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "npm run readme && npm run ecr",
+    "build": "npm run readme",
     "readme": "cross-env NODE_ENV=production mdx-to-md readme.mdx ../readme.md",
-    "ecr": "cross-env NODE_ENV=production mdx-to-md ecr.mdx ../ecr.md",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",

@@ -15,20 +15,11 @@ jobs:
       contents: read
     runs-on: ubuntu-latest
     env:
-      AWS_REGION: us-east-1
       IMAGE_REPOSITORY_NAME: flutter-android
       ANDROID_BUILD_TOOLS_VERSION: 30.0.3
-      # ANDROID_PLATFORM_VERSIONS: 28 31 33
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
 
       - name: Login to Docker Hub
         uses: docker/login-action@v2
@@ -49,34 +40,6 @@ jobs:
           registry: quay.io
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_ROBOT_TOKEN }}
-
-      - name: Login to ECR Public
-        uses: docker/login-action@v2
-        with:
-          # AWS_REGION needs to be defined in the parent scope
-          registry: public.ecr.aws
-          username: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          password: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
-      - name: Create ECR repository for final images
-        uses: int128/create-ecr-repository-action@v1
-        id: ecr
-        with:
-          public: true
-          repository: ${{ env.IMAGE_REPOSITORY_NAME }}
-
-      - name: Update description of ECR repository for final images
-        run: |
-          aws ecr-public put-repository-catalog-data \
-            --repository-name ${{ env.IMAGE_REPOSITORY_NAME }} \
-            --catalog-data "description"="${{ github.event.repository.description }}",usageText="See About section",aboutText="$(jq -nRs 'input' docs/ecr.md | sed 's/\\n/\n/g')"
-
-      - name: Create ECR repository for layer cache
-        uses: int128/create-ecr-repository-action@v1
-        id: ecr-cache
-        with:
-          public: true
-          repository: ${{ env.IMAGE_REPOSITORY_NAME }}/cache
 
       - name: Set environment variables from from version.json
         run: |
@@ -100,7 +63,6 @@ jobs:
             ${{ env.IMAGE_REPOSITORY_PATH }}
             ghcr.io/${{ env.IMAGE_REPOSITORY_PATH }}
             quay.io/${{ env.IMAGE_REPOSITORY_PATH }}
-            public.ecr.aws/${{ env.IMAGE_REPOSITORY_PATH }}
           tags: |
             type=raw,value=${{ env.FLUTTER_VERSION }}
 
@@ -132,9 +94,6 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           push: true
-          # TODO: Use ECR for cache after this issue is solved https://github.com/aws/containers-roadmap/issues/876
-          # cache-from: ${{ steps.ecr-cache.outputs.repository-uri }}:cache
-          # cache-to: ${{ steps.ecr-cache.outputs.repository-uri }}:cache
           cache-from: ${{ env.CACHE_REPOSITORY_PATH }}:cache
           cache-to: ${{ env.CACHE_REPOSITORY_PATH }}:cache
           tags: ${{ steps.metadata.outputs.tags }}
