@@ -11,9 +11,7 @@
     },
     {
       "fileMatch": ["^config/flutter_version\\.json$"],
-      "matchStringsStrategy": "recursive",
       "matchStrings": [
-        "\"flutter\":\\s*\\{[^}]*}",
         "\"version\": \"(?<currentValue>.*?)\""
       ],
       "datasourceTemplate": "flutter-version",
