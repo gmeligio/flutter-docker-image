@@ -10,7 +10,7 @@
       "versioningTemplate": "{{#if versioning}}{{{versioning}}}{{else}}semver{{/if}}"
     },
     {
-      "fileMatch": ["^flutter_version\\.json$"],
+      "fileMatch": ["^config/flutter_version\\.json$"],
       "matchStringsStrategy": "recursive",
       "matchStrings": [
         "\"flutter\":\\s*\\{[^}]*}",
