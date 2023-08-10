@@ -18,6 +18,9 @@ module.exports = async ({ core}) => {
 
   fs.writeFileSync(resultPath, JSON.stringify(result, null, 4))
 
+  const version = fluterVersionJson.flutter.version
+  const channel = fluterVersionJson.flutter.channel
+
   // Export FLUTTER_VERSION and FLUTTER_CHANNEL for the next workflow steps
   core.exportVariable('FLUTTER_VERSION', version)
   core.exportVariable('FLUTTER_CHANNEL', channel)
