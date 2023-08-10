@@ -3,7 +3,7 @@ on:
     branches:
       - main
     paths:
-      - config/version.json
+      - config/flutter_version.json
       - .github/workflows/update_flutter_dependencies.yml
   workflow_dispatch:
 jobs:
