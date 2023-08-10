@@ -20,7 +20,7 @@ module.exports = async ({ github, core, fetch }) => {
           repository(owner: "flutter", name: "flutter") {
             tags: refs(
               refPrefix: "refs/tags/"
-              first: 20
+              first: 60
               orderBy: { field: TAG_COMMIT_DATE, direction: DESC }
             ) {
               edges {
