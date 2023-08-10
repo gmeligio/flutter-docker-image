@@ -1,7 +1,10 @@
 on:
-  schedule:
-    - cron: '0 0 * * *'
-  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - config/version.json
+      - .github/workflows/update_flutter_dependencies.yml
 jobs:
   flutter:
     permissions:
@@ -12,12 +15,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Update latest Flutter version
+      - name: Copy Flutter version into version manifest
         uses: actions/github-script@v6
         with:
           script: |
-              const script = require('./script/updateFlutterVersion.js')
-              await script({github, core, fetch})
+              const script = require('./script/copyFlutterVersion.js')
+              await script({core})
       
       - name: Update latest Fastlane version
         uses: actions/github-script@v6

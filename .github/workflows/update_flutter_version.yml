@@ -1,0 +1,23 @@
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+jobs:
+  flutter:
+    permissions:
+      contents: write
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Update latest Flutter version
+        uses: actions/github-script@v6
+        with:
+          script: |
+              const script = require('./script/updateFlutterVersion.js')
+              await script({github, core, fetch})
+
+      - name: Create pull request if there are changes
+        uses: peter-evans/create-pull-request@v5

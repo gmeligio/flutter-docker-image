@@ -41,15 +41,13 @@ module.exports = async ({ github, core, fetch }) => {
   const latestTag = tags.find((tag) => tag.node.version.match(stableTagPattern))
 
   const fs = require('fs')
-  const resultPath = 'config/version.json'
+  const resultPath = 'config/flutter_version.json'
   const data = fs.readFileSync(resultPath, 'utf8')
   const json = JSON.parse(data)
 
   const version = latestTag.node.version
 
-  // TODO: Split Android versions trigger on flutter version change
-
-  // Sometimes Flutter publishes stable versions to the beta channel because of it's release process.
+  // Find version channel because sometimes Flutter publishes stable versions, according to semver, to the beta channel because of it's release process.
   // https://github.com/flutter/flutter/wiki/Flutter-build-release-channels
 
   let channel
@@ -64,10 +62,6 @@ module.exports = async ({ github, core, fetch }) => {
 
     return false
   }
-
-  // Export FLUTTER_VERSION for the next steps
-  core.exportVariable('FLUTTER_VERSION', version)
-  core.exportVariable('FLUTTER_CHANNEL', channel)
 
   // Update result file, i.e. version.json
   const result = {
