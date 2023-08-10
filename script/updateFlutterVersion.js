@@ -47,6 +47,8 @@ module.exports = async ({ github, core, fetch }) => {
 
   const version = latestTag.node.version
 
+  // TODO: Split Android versions trigger on flutter version change
+
   // Sometimes Flutter publishes stable versions to the beta channel because of it's release process.
   // https://github.com/flutter/flutter/wiki/Flutter-build-release-channels
 
