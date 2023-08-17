@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
 jobs:
   flutter:
-    if: github.event.pull_request.merged == true
+    if: github.event.pull_request.merged == true || github.event.push || github.event.workflow_dispatch
     permissions:
       contents: write
       pull-requests: write
