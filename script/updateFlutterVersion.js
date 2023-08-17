@@ -74,4 +74,6 @@ module.exports = async ({ github, core, fetch }) => {
   }
 
   fs.writeFileSync(resultPath, JSON.stringify(result, null, 4))
+
+  core.exportVariable('FLUTTER_VERSION', version)
 }
