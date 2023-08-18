@@ -16,11 +16,11 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-              const script = require('./script/updateFlutterVersion.js')
-              await script({github, core, fetch})
+            const script = require('./script/updateFlutterVersion.js')
+            await script({github, core, fetch})
 
       - name: Create pull request if there are changes
         uses: peter-evans/create-pull-request@v5
         with:
+          branch: update-flutter-version/${{ env.FLUTTER_VERSION }}
           title: 'chore: update flutter version to ${{ env.FLUTTER_VERSION }}'
-

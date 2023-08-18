@@ -6,6 +6,7 @@ on:
       - config/flutter_version.json
       - .github/workflows/update_flutter_dependencies.yml
   workflow_dispatch:
+
 jobs:
   flutter:
     if: github.event.workflow_dispatch || github.event.pull_request.merged == true
@@ -21,15 +22,15 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-              const script = require('./script/copyFlutterVersion.js')
-              await script({core})
-      
+            const script = require('./script/copyFlutterVersion.js')
+            await script({core})
+
       - name: Update latest Fastlane version
         uses: actions/github-script@v6
         with:
           script: |
-              const script = require('./script/updateFastlaneVersion.js')
-              await script({core, fetch})
+            const script = require('./script/updateFastlaneVersion.js')
+            await script({core, fetch})
 
       - name: Setup Flutter
         uses: flutter-actions/setup-flutter@v2
@@ -69,4 +70,5 @@ jobs:
       - name: Create pull request if there are changes
         uses: peter-evans/create-pull-request@v5
         with:
+          branch: update-flutter-dependencies/${{ env.FLUTTER_VERSION }}
           title: 'chore: update dependencies versions in manifest with flutter ${{ env.FLUTTER_VERSION }}'
