@@ -5,6 +5,7 @@ on:
 jobs:
   flutter:
     permissions:
+      id-token: write # Enable OIDC token because Gitsign creates keys based on the GitHub runner OIDC credentials
       contents: write
       pull-requests: write
     runs-on: ubuntu-latest
@@ -19,8 +20,16 @@ jobs:
             const script = require('./script/updateFlutterVersion.js')
             await script({github, core, fetch})
 
+      - name: Setup Gitsign to sign git commits
+        uses: chainguard-dev/actions/setup-gitsign
+      
+      - name: Create commit message variable
+        run: |
+          echo "COMMIT_MESSAGE='chore: update dependencies versions in manifest with flutter ${{ env.FLUTTER_VERSION }}'" >> $GITHUB_ENV
+      
       - name: Create pull request if there are changes
         uses: peter-evans/create-pull-request@v5
         with:
+          commit-message: ${{ env.COMMIT_MESSAGE }}
           branch: update-flutter-version/${{ env.FLUTTER_VERSION }}
-          title: 'chore: update flutter version to ${{ env.FLUTTER_VERSION }}'
+          title: ${{ env.COMMIT_MESSAGE }}
