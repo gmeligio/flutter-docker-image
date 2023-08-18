@@ -11,6 +11,7 @@ jobs:
   flutter:
     if: github.event.workflow_dispatch || github.event.pull_request.merged == true
     permissions:
+      id-token: write # Enable OIDC token because Gitsign creates keys based on the GitHub runner OIDC credentials
       contents: write
       pull-requests: write
     runs-on: ubuntu-latest
@@ -67,8 +68,16 @@ jobs:
           npm ci --prefer-offline
           npm run build
 
+      - name: Setup Gitsign to sign git commits
+        uses: chainguard-dev/actions/setup-gitsign
+
+      - name: Create commit message variable
+        run: |
+          echo "COMMIT_MESSAGE='chore: update dependencies versions in manifest with flutter ${{ env.FLUTTER_VERSION }}'" >> $GITHUB_ENV
+      
       - name: Create pull request if there are changes
         uses: peter-evans/create-pull-request@v5
         with:
+          commit-message: ${{ env.COMMIT_MESSAGE }}
           branch: update-flutter-dependencies/${{ env.FLUTTER_VERSION }}
-          title: 'chore: update dependencies versions in manifest with flutter ${{ env.FLUTTER_VERSION }}'
+          title: ${{ env.COMMIT_MESSAGE }}
