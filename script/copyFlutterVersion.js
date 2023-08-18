@@ -12,8 +12,8 @@ module.exports = async ({ core}) => {
   const resultPath = 'config/version.json'
 
   const result = {
-    ...fluterVersionJson,
     ...versionJson,
+    ...fluterVersionJson,
   }
 
   fs.writeFileSync(resultPath, JSON.stringify(result, null, 4))
