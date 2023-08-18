@@ -127,7 +127,7 @@ ENV ANDROID_HOME="$SDK_ROOT/android-sdk" \
 ENV PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$HOME/.local/bin"
 
 # renovate: datasource=repology depName=debian_11/openjdk-11-jdk-headless versioning=loose
-ARG OPENJDK_11_JDK_HEADLESS_VERSION="11.0.18+10-1~deb11u1"
+ARG OPENJDK_11_JDK_HEADLESS_VERSION="11.0.20+8-1~deb11u1"
 # renovate: datasource=repology depName=debian_11/sudo versioning=loose
 ARG SUDO_VERSION="1.9.5p2-3+deb11u1"
 
