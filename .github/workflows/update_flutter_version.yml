@@ -21,7 +21,7 @@ jobs:
             await script({github, core, fetch})
 
       - name: Setup Gitsign to sign git commits
-        uses: chainguard-dev/actions/setup-gitsign
+        uses: chainguard-dev/actions/setup-gitsign@main
       
       - name: Create commit message variable
         run: |
