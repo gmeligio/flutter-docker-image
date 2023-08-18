@@ -4,15 +4,11 @@ on:
       - closed
     paths:
       - config/flutter_version.json
-  push:
-    branches:
-      - main
-    paths:
       - .github/workflows/update_flutter_dependencies.yml
   workflow_dispatch:
 jobs:
   flutter:
-    if: github.event.pull_request.merged == true || github.event.push || github.event.workflow_dispatch
+    if: github.event.workflow_dispatch || github.event.pull_request.merged == true
     permissions:
       contents: write
       pull-requests: write
