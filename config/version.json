@@ -12,6 +12,12 @@
         ],
         "gradle": {
             "version": "7.5"
+        },
+        "buildTools": {
+            "version": "30.0.3"
+        },
+        "cmdlineTools": {
+            "version": "11.0"
         }
     },
     "fastlane": {

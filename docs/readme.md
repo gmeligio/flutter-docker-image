@@ -10,15 +10,39 @@ The images includes the minimum tools to run Flutter and build apps. The version
 
 Features:
 
+* \[x\] Installed Flutter SDK 3.13.0
 * \[x\] Analytics disabled by default, opt-in suggested in the Docker entrypoint.
 * \[x\] Rootless user `flutter:flutter`, with permissions to run on GitLab CI.
-* \[x\] Cached Fastlane gem
-* \[ \] Minimal image to run Flutter in Continuous Integration (CI):  
+* \[x\] Cached Fastlane gem 2.214.0
+* \[ \] Minimal image with predownloaded SDKs and tools ready to run `flutter` commands:  
    * \[x\] Android  
    * \[ \] iOS  
    * \[ \] Linux  
    * \[ \] Windows  
    * \[ \] Web
+
+## Alpha stability
+
+The images are experimental and are in active development. They are being used for small projects but there is no confirmation of production usage yet.
+
+## flutter-android image
+
+Predownloaded SDKs and tools:
+
+* Licenses accepted
+* Android SDK Platforms: 33
+* Gradle: 7.5
+
+Registries:
+
+* https://hub.docker.com/r/gmeligio/flutter-android
+* https://github.com/gmeligio/flutter-docker-image/pkgs/container/flutter-android
+* https://quay.io/repository/gmeligio/flutter-android
+
+TODO:
+
+* \[ \] Android emulator
+* \[ \] Android NDK
 
 ## Running containers
 
@@ -79,25 +103,6 @@ The tag is composed of the Flutter version used to build the image. For example:
 * Docker image: gmeligio/flutter-android:3.13.0
 * Flutter version: 3.13.0
 
-### flutter-android
-
-Versions used in latest image gmeligio/flutter-android:3.13.0:
-
-* Flutter: 3.13.0
-* Android SDK Platforms: 33
-* Gradle: 7.5
-* Fastlane: 2.214.0
-
-Registries:
-
-* https://hub.docker.com/r/gmeligio/flutter-android
-* https://github.com/gmeligio/flutter-docker-image/pkgs/container/flutter-android
-* https://quay.io/repository/gmeligio/flutter-android
-
-## Alpha stability
-
-The images are experimental and are in active development. They are being used for small projects but there is no confirmation of production usage yet.
-
 ## Developing locally
 
 ### Running the container
@@ -110,7 +115,7 @@ The Dockerfile expects a few parameters:
 
 ```bash
 # Android
-docker build --target android --build-arg flutter_version=3.7.4 fastlane_version=2.213.0 android_build_tools_version=30.0.3 --build-arg android_platform_versions="28 31 33" -t android-test .
+docker build --target android --build-arg flutter_version=3.13.0 fastlane_version=2.214.0 android_build_tools_version=30.0.3 --build-arg android_platform_versions="33" -t android-test .
 ```
 
 ### Dockerfile stages
@@ -120,12 +125,6 @@ The base image is `debian/debian:11-slim` and from there multiple stages are cre
 1. `flutter` stage hast only the dependencies required to install flutter and common tools used by flutter internal commands, like `git`.
 2. `android` stage has the dependencies required to install the Android SDK and to develop Flutter apps for Android.
 3. `android-test` stage is for testing purposes. It creates a Flutter app and checks that the can be build for Android.
-
-## TODO
-
-1. Android:  
-   * Android emulator  
-   * Android NDK
 
 ## FAQ
 

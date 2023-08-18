@@ -2,8 +2,10 @@ import * as version from '../../config/version.json'
 export const flutterVersion = version.flutter.version
 export const fastlaneVersion = version.fastlane.version
 export const gradleVersion = version.android.gradle.version
+export const buildToolsVersion = version.android.buildTools.version
 export const repositoryPath = 'gmeligio/flutter-android'
 export const imageUri = `${repositoryPath}:${flutterVersion}`
+export const androidPlatformVersions = version.android.platforms.map(p => p.version).join(', ')
 
 # Flutter Docker Image
 
@@ -12,15 +14,39 @@ Docker images for Flutter Continuous Integration (CI). The source is available [
 The images includes the minimum tools to run Flutter and build apps. The versions of the tools installed are based on the official [Flutter](https://github.com/flutter/flutter) repository. The final goal is that Flutter doesn't need to download anything like tools or SDKs when running the container.
 
 Features:
+- [x] Installed Flutter SDK {flutterVersion}
 - [x] Analytics disabled by default, opt-in suggested in the Docker entrypoint.
 - [x] Rootless user `flutter:flutter`, with permissions to run on GitLab CI.
-- [x] Cached Fastlane gem
-- [ ] Minimal image to run Flutter in Continuous Integration (CI):
+- [x] Cached Fastlane gem {fastlaneVersion}
+- [ ] Minimal image with predownloaded SDKs and tools ready to run `flutter` commands:
     - [x] Android
     - [ ] iOS
     - [ ] Linux
     - [ ] Windows
     - [ ] Web
+
+## Alpha stability
+
+The images are experimental and are in active development. They are being used for small projects but there is no confirmation of production usage yet.
+
+## flutter-android image
+    
+Predownloaded SDKs and tools:
+
+- Licenses accepted
+- Android SDK Platforms: {androidPlatformVersions}
+- Gradle: {gradleVersion}
+
+Registries:
+
+- https://hub.docker.com/r/{repositoryPath}
+- https://github.com/gmeligio/flutter-docker-image/pkgs/container/flutter-android
+- https://quay.io/repository/{repositoryPath}
+
+TODO:
+
+- [ ] Android emulator
+- [ ] Android NDK
 
 ## Running containers
 
@@ -76,35 +102,18 @@ The tag is composed of the Flutter version used to build the image. For example:
 - Docker image: {imageUri}
 - Flutter version: {flutterVersion}
 
-### flutter-android
-
-Versions used in latest image {imageUri}:
-- Flutter: {flutterVersion}
-- Android SDK Platforms: {version.android.platforms.map(p => p.version).join(', ')}
-- Gradle: {gradleVersion}
-- Fastlane: {fastlaneVersion}
-
-Registries:
-- https://hub.docker.com/r/{repositoryPath}
-- https://github.com/gmeligio/flutter-docker-image/pkgs/container/flutter-android
-- https://quay.io/repository/{repositoryPath}
-
-## Alpha stability
-
-The images are experimental and are in active development. They are being used for small projects but there is no confirmation of production usage yet.
-
 ## Developing locally
 
 ### Running the container
 
 The Dockerfile expects a few parameters:
 - `flutter_version <string>`: The version of Flutter to use when building. Example: {flutterVersion}
-- `android_build_tools_version <string>`: The version of the Android SDK Build Tools to install. Example: 30.0.3
+- `android_build_tools_version <string>`: The version of the Android SDK Build Tools to install. Example: {buildToolsVersion}
 - `android_platform_versions <list>`: The versions of the Android SDK Platforms to install, separated by spaces. Example: 28 31 33
   
 <pre><code className="language-bash">
 {`# Android
-docker build --target android --build-arg flutter_version=3.7.4 fastlane_version=2.213.0 android_build_tools_version=30.0.3 --build-arg android_platform_versions="28 31 33" -t android-test .`}
+docker build --target android --build-arg flutter_version=${flutterVersion} fastlane_version=${fastlaneVersion} android_build_tools_version=${buildToolsVersion} --build-arg android_platform_versions="${androidPlatformVersions}" -t android-test .`}
 </code></pre>
 
 ### Dockerfile stages
@@ -113,12 +122,6 @@ The base image is `debian/debian:11-slim` and from there multiple stages are cre
 1. `flutter` stage hast only the dependencies required to install flutter and common tools used by flutter internal commands, like `git`.
 1. `android` stage has the dependencies required to install the Android SDK and to develop Flutter apps for Android.
 1. `android-test` stage is for testing purposes. It creates a Flutter app and checks that the can be build for Android.
-
-## TODO
-
-1. Android:
-    - Android emulator
-    - Android NDK
 
 ## FAQ
 
