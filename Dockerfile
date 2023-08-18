@@ -21,8 +21,10 @@ RUN apt-get update \
     # Flutter dependencies
     # bc=1.07.1-3build1 \
     # build-essential=12.9ubuntu3 \
+    # For downloading Dart SDK
     curl="$CURL_VERSION" \
     git="$GIT_VERSION" \
+    # For generating coverage reports
     lcov="$LCOV_VERSION" \
     # libglu1-mesa=9.0.2-1 \
     # libsqlite3-0=3.37.2-2ubuntu0.1 \
@@ -38,6 +40,7 @@ RUN apt-get update \
     unzip="$UNZIP_VERSION" \
     && rm -rf /var/lib/apt/lists/*
 
+# After finishing with root user, set the HOME folder for the non-root user
 ENV HOME=/home/flutter
 
 RUN useradd -Ums /bin/bash flutter
@@ -50,7 +53,11 @@ ENV PATH="$PATH:$FLUTTER_ROOT/bin:$FLUTTER_ROOT/bin/cache/dart-sdk/bin"
 
 ARG flutter_version
 
-RUN git clone --depth 1 --branch "$flutter_version" https://github.com/flutter/flutter.git "$FLUTTER_ROOT" \
+RUN git clone \
+    --depth 1 \
+    --branch "$flutter_version" \
+    https://github.com/flutter/flutter.git \
+    "$FLUTTER_ROOT" \
     && chown -R flutter:flutter "$FLUTTER_ROOT" \
     && flutter --version \
     && dart --disable-analytics \
@@ -123,11 +130,11 @@ SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 # TODO: Use `dirname $(dirname $(readlink -f $(which javac)))` after the following issue is fixed
 # TODO: https://github.com/moby/moby/issues/29110
 ENV ANDROID_HOME="$SDK_ROOT/android-sdk" \
-    JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+    JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 ENV PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$HOME/.local/bin"
 
-# renovate: datasource=repology depName=debian_11/openjdk-11-jdk-headless versioning=loose
-ARG OPENJDK_11_JDK_HEADLESS_VERSION="11.0.20+8-1~deb11u1"
+# renovate: datasource=repology depName=debian_11/openjdk-17-jdk-headless versioning=loose
+ARG OPENJDK_17_JDK_HEADLESS_VERSION="17.0.7+7-1~deb11u1"
 # renovate: datasource=repology depName=debian_11/sudo versioning=loose
 ARG SUDO_VERSION="1.9.5p2-3+deb11u1"
 
@@ -145,7 +152,7 @@ RUN apt-get update \
     # libgdk-pixbuf2.0-0=2.40.2-2build4 \
     # Android SDK dependencies
     ## JDK needs to be used instead of JRE because it provides the jlink tool used by the Android build
-    openjdk-11-jdk-headless="$OPENJDK_11_JDK_HEADLESS_VERSION" \
+    openjdk-17-jdk-headless="$OPENJDK_17_JDK_HEADLESS_VERSION" \
     # To allow changing ownership in GitLab CI /builds
     sudo="$SUDO_VERSION" \
     && rm -rf /var/lib/apt/lists/* \
@@ -161,7 +168,7 @@ ARG android_platform_versions
 
 RUN mkdir -p "$ANDROID_HOME" \
     && chown -R flutter:flutter "$ANDROID_HOME" \
-    && command_line_tools_url="$(curl -s https://developer.android.com/studio/ | grep -o 'https://dl.google.com/android/repository/commandlinetools-linux-[0-9]\{7\}_latest.zip')" \
+    && command_line_tools_url="$(curl -s https://developer.android.com/studio/ | grep -o 'https://dl.google.com/android/repository/commandlinetools-linux-[0-9]\+_latest.zip')" \
     && curl -o android-cmdline-tools.zip "$command_line_tools_url" \
     && mkdir -p "$ANDROID_HOME/cmdline-tools/" \
     && unzip -q android-cmdline-tools.zip -d "$ANDROID_HOME/cmdline-tools/" \
