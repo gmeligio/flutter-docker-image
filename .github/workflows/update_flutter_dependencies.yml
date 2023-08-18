@@ -1,15 +1,21 @@
 on:
-  pull_request:
-    types:
-      - closed
+  push:
+    branches:
+      - main
     paths:
       - config/flutter_version.json
       - .github/workflows/update_flutter_dependencies.yml
   workflow_dispatch:
+  # pull_request:
+  #   types:
+  #     - closed
+  #   paths:
+  #     - config/flutter_version.json
+  #     - .github/workflows/update_flutter_dependencies.yml
 
 jobs:
   flutter:
-    if: github.event.workflow_dispatch || github.event.pull_request.merged == true
+    # if: github.event.workflow_dispatch || github.event.pull_request.merged == true
     permissions:
       id-token: write # Enable OIDC token because Gitsign creates keys based on the GitHub runner OIDC credentials
       contents: write
