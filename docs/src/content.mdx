@@ -1,11 +1,12 @@
-import * as version from '../../config/version.json'
-export const flutterVersion = version.flutter.version
-export const fastlaneVersion = version.fastlane.version
-export const gradleVersion = version.android.gradle.version
-export const buildToolsVersion = version.android.buildTools.version
+import * as versionJson from '../../config/version.json'
+export const flutterVersion = versionJson.flutter.version
+export const fastlaneVersion = versionJson.fastlane.version
+export const androidJson = versionJson.android
+export const gradleVersion = androidJson.gradle.version
+export const buildToolsVersion = androidJson.buildTools.version
 export const repositoryPath = 'gmeligio/flutter-android'
 export const imageUri = `${repositoryPath}:${flutterVersion}`
-export const androidPlatformVersions = version.android.platforms.map(p => p.version).join(', ')
+export const androidPlatformVersions = androidJson.platforms.map(p => p.version).join(', ')
 
 # Flutter Docker Image
 

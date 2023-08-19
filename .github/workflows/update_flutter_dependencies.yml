@@ -56,11 +56,8 @@ jobs:
         run: |
           rm -rf test_app
 
-      - name: Setup NodeJS
-        uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # v3
-        with:
-          cache: 'npm'
-          cache-dependency-path: docs/src/package-lock.json
+      - name: Setup Volta for NodeJS
+        uses: volta-cli/action@d253558a6e356722728a10e9a469190de21a83ef # v4.0.1
 
       - name: Update documentation
         working-directory: docs/src
