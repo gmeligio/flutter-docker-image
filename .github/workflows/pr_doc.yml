@@ -1,0 +1,26 @@
+on:
+  pull_request:
+    paths:
+      - doc/**
+      - .github/workflows/pr_doc.yml
+  workflow_dispatch:
+
+jobs:
+  doc:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3
+      
+      - name: Setup NodeJS
+        uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # v3
+        with:
+          cache: 'npm'
+          cache-dependency-path: docs/src/package-lock.json
+          node-version-file: docs/src/package.json
+
+      - name: Update documentation
+        working-directory: docs/src
+        run: |
+          npm ci --prefer-offline
+          npm run build
