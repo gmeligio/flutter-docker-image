@@ -1,11 +1,19 @@
-module.exports = async ({ github, core, fetch }) => {
-  async function tarballExists(version, channel) {
-    const fileUrl = `https://storage.googleapis.com/flutter_infra_release/releases/${channel}/linux/flutter_linux_${version}-${channel}.tar.xz`
-
+module.exports = async ({ core, fetch }) => {
+  const linuxReleasesUrl = 'https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json'
+  const stableReleasePattern = /^\d+\.\d+\.\d+$/g
+  const resultPath = 'config/flutter_version.json'
+  
+  /**
+   * Downloads the flutter releases from URL
+   * 
+   * @param {*} fileUrl 
+   * @returns object|boolean
+   */
+  async function downloadReleases(fileUrl) {
     try {
-      const response = await fetch(fileUrl, { method: 'HEAD' })
+      const response = await fetch(fileUrl)
 
-      return response.ok
+      return response.json()
     } catch (error) {
       console.error(
         `An error occurred while requesting the file URL: ${fileUrl}`,
@@ -15,65 +23,37 @@ module.exports = async ({ github, core, fetch }) => {
       return false
     }
   }
-
-  const query = `query GetLatestTags {
-          repository(owner: "flutter", name: "flutter") {
-            tags: refs(
-              refPrefix: "refs/tags/"
-              first: 60
-              orderBy: { field: TAG_COMMIT_DATE, direction: DESC }
-            ) {
-              edges {
-                node {
-                  version: name
-                  target {
-                    oid
-                  }
-                }
-              }
-            }
-          }
-        }`
-
-  const rawResult = await github.graphql(query)
-  const stableTagPattern = /^\d+\.\d+\.\d+$/g
-  const tags = rawResult.repository.tags.edges
-  const latestTag = tags.find((tag) => tag.node.version.match(stableTagPattern))
-
-  const fs = require('fs')
-  const resultPath = 'config/flutter_version.json'
-  const data = fs.readFileSync(resultPath, 'utf8')
-  const json = JSON.parse(data)
-
-  const version = latestTag.node.version
-
-  // Find version channel because sometimes Flutter publishes stable versions, according to semver, to the beta channel because of it's release process.
-  // https://github.com/flutter/flutter/wiki/Flutter-build-release-channels
-
-  let channel
-  if (await tarballExists(version, 'stable')) {
-    channel = 'stable'
-  } else if (await tarballExists(version, 'beta')) {
-    channel = 'beta'
-  } else {
+  
+  const linuxReleasesResponse = await downloadReleases(linuxReleasesUrl)
+  
+  if (response === false) {
     core.setFailed(
-      `Flutter version ${version} doesn't exist in stable or beta channels.`
+      `Could not download Flutter version manifest from ${fileUrl}.`
     )
 
     return false
   }
 
+  const {releases} = linuxReleasesResponse
+  const latestRelease = releases.find((r) => r.version.match(stableReleasePattern))
+
+  const fs = require('fs')
+  const data = fs.readFileSync(resultPath, 'utf8')
+  const oldJson = JSON.parse(data)
+
+  const {version, channel, hash: commit} = latestRelease
+
   // Update result file, i.e. version.json
-  const result = {
-    ...json,
+  const newJson = {
+    ...oldJson,
     flutter: {
       channel,
-      commit: latestTag.node.target.oid,
+      commit,
       version,
     },
   }
 
-  fs.writeFileSync(resultPath, JSON.stringify(result, null, 4))
-
+  // Write outputs
+  fs.writeFileSync(resultPath, JSON.stringify(newJson, null, 4))
   core.exportVariable('FLUTTER_VERSION', version)
 }
