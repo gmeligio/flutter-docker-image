@@ -1,8 +1,8 @@
 on:
   pull_request:
     paths:
-      - doc/**
       - .github/workflows/pr_doc.yml
+      - doc/**
   workflow_dispatch:
 
 jobs:
