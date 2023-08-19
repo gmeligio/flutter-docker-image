@@ -26,7 +26,7 @@ module.exports = async ({ core, fetch }) => {
   
   const linuxReleasesResponse = await downloadReleases(linuxReleasesUrl)
   
-  if (response === false) {
+  if (linuxReleasesResponse === false) {
     core.setFailed(
       `Could not download Flutter version manifest from ${fileUrl}.`
     )
