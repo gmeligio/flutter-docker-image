@@ -8,14 +8,6 @@ on:
       - config/version.json
       - .github/workflows/build_push_image.yml
   workflow_dispatch:
-    # pull_request:
-    #   types:
-    #     - closed
-    #   paths:
-    #     - Dockerfile
-    #     - test/**
-    #     - config/version.json
-    #     - .github/workflows/build_push_image.yml
 
 jobs:
   build_push_android:

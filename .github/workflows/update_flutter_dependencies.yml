@@ -6,12 +6,6 @@ on:
       - config/flutter_version.json
       - .github/workflows/update_flutter_dependencies.yml
   workflow_dispatch:
-  # pull_request:
-  #   types:
-  #     - closed
-  #   paths:
-  #     - config/flutter_version.json
-  #     - .github/workflows/update_flutter_dependencies.yml
 
 jobs:
   flutter:
