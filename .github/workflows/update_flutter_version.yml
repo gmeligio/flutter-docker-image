@@ -20,6 +20,12 @@ jobs:
             const script = require('./script/updateFlutterVersion.js')
             await script({core, fetch})
 
+      - name: Setup Cue for JSON validation
+        uses: cue-lang/setup-cue@v1.0.0
+    
+      - name: Validate version.json
+        run: cue vet config/flutter_version.cue config/flutter_version.json
+
       - name: Setup Gitsign to sign git commits
         uses: chainguard-dev/actions/setup-gitsign@18e5df81d0b217b89d34c477955f18f5745ebbdd # main
       

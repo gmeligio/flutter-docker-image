@@ -1,7 +1,7 @@
 on:
   pull_request:
     paths:
-      - .github/workflows/pr_integration.yml
+      - .github/workflows/pr_flutter_app.yml
       - script/updateAndroidVersions.gradle
       - version.json
   workflow_dispatch:
@@ -17,7 +17,7 @@ jobs:
         run: |
           echo "FLUTTER_VERSION=$(jq -r '.flutter.version' config/version.json)" >> $GITHUB_ENV
           echo "FLUTTER_CHANNEL=$(jq -r '.flutter.channel' config/version.json)" >> $GITHUB_ENV
-          
+
       - name: Setup Flutter
         uses: flutter-actions/setup-flutter@f59ff7bdbb3127f71345907452e04be356c370f5 # v2
         with:
@@ -34,3 +34,9 @@ jobs:
         run: |
           cat ../../script/updateAndroidVersions.gradle >> app/build.gradle
           ./gradlew --warning-mode all updateAndroidVersions
+
+      - name: Setup Cue for JSON validation
+        uses: cue-lang/setup-cue@v1.0.0
+
+      - name: Validate version.json
+        run: cue vet config/version.cue config/version.json
