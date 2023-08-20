@@ -1,0 +1,36 @@
+on:
+  pull_request:
+    paths:
+      - .github/workflows/pr_integration.yml
+      - script/updateAndroidVersions.gradle
+      - version.json
+  workflow_dispatch:
+
+jobs:
+  doc:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3
+
+      - name: Set environment variables from version.json
+        run: |
+          echo "FLUTTER_VERSION=$(jq -r '.flutter.version' config/version.json)" >> $GITHUB_ENV
+          echo "FLUTTER_CHANNEL=$(jq -r '.flutter.channel' config/version.json)" >> $GITHUB_ENV
+          
+      - name: Setup Flutter
+        uses: flutter-actions/setup-flutter@f59ff7bdbb3127f71345907452e04be356c370f5 # v2
+        with:
+          cache: true
+          channel: ${{ env.FLUTTER_CHANNEL }}
+          version: ${{ env.FLUTTER_VERSION }}
+
+      - name: Create test application
+        run: |
+          flutter create test_app
+
+      - name: Update default Android platform versions in Flutter
+        working-directory: test_app/android
+        run: |
+          cat ../../script/updateAndroidVersions.gradle >> app/build.gradle
+          ./gradlew --warning-mode all updateAndroidVersions

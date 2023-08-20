@@ -3,10 +3,10 @@ on:
     branches:
       - main
     paths:
+      - .github/workflows/build_push_image.yml
       - Dockerfile
       - test/**
       - config/version.json
-      - .github/workflows/build_push_image.yml
   workflow_dispatch:
 
 jobs:
@@ -42,7 +42,7 @@ jobs:
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_ROBOT_TOKEN }}
 
-      - name: Set environment variables from from version.json
+      - name: Set environment variables from version.json
         run: |
           echo "FLUTTER_VERSION=$(jq -r '.flutter.version' config/version.json)" >> $GITHUB_ENV
           echo "FASTLANE_VERSION=$(jq -r '.fastlane.version' config/version.json)" >> $GITHUB_ENV
