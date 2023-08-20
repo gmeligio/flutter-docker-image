@@ -1,7 +1,7 @@
 on:
   pull_request:
     paths:
-      - .github/workflows/pr_integration.yml
+      - .github/workflows/pr_flutter_app.yml
       - script/updateAndroidVersions.gradle
       - version.json
   workflow_dispatch:
