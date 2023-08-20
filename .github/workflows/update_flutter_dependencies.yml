@@ -55,6 +55,12 @@ jobs:
         run: |
           rm -rf test_app
 
+      - name: Setup Cue for JSON validation
+        uses: cue-lang/setup-cue@v1.0.0
+
+      - name: Validate version.json
+        run: cue vet config/version.cue config/version.json
+
       - name: Setup NodeJS
         uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # v3
         with:
@@ -74,7 +80,7 @@ jobs:
       - name: Create commit message variable
         run: |
           echo "COMMIT_MESSAGE='chore: update dependencies versions in manifest with flutter ${{ env.FLUTTER_VERSION }}'" >> $GITHUB_ENV
-      
+
       - name: Create pull request if there are changes
         uses: peter-evans/create-pull-request@153407881ec5c347639a548ade7d8ad1d6740e38 # v5
         with:
