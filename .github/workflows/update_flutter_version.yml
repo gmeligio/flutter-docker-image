@@ -31,7 +31,7 @@ jobs:
       
       - name: Create commit message variable
         run: |
-          echo "COMMIT_MESSAGE='chore: update dependencies versions in manifest with flutter ${{ env.FLUTTER_VERSION }}'" >> $GITHUB_ENV
+          echo "COMMIT_MESSAGE=chore: update dependencies versions in manifest with flutter ${{ env.FLUTTER_VERSION }}" >> $GITHUB_ENV
       
       - name: Create pull request if there are changes
         uses: peter-evans/create-pull-request@153407881ec5c347639a548ade7d8ad1d6740e38 # v5
