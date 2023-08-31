@@ -75,7 +75,7 @@ jobs:
           npm run build
 
       - name: Setup Gitsign to sign git commits
-        uses: chainguard-dev/actions/setup-gitsign@18e5df81d0b217b89d34c477955f18f5745ebbdd # main
+        uses: chainguard-dev/actions/setup-gitsign@c9b5c5ec02ff1c69ef8fbcefa95aedc739191f68 # main
 
       - name: Create commit message variable
         run: |
