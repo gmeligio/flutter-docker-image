@@ -1,19 +1,19 @@
-FROM public.ecr.aws/debian/debian:11-slim@sha256:b19b5ac83ecdd926ba1e0bf6eb3182c0ab6437c29d14fb6fb7b9ee0080ddbd39 as flutter
+FROM public.ecr.aws/debian/debian:12-slim@sha256:194d7d3e1c8647ec5e07dfb24cf0dae6270469794304a3ca23a9e38c63195409 as flutter
 
 SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
 ENV LANG=C.UTF-8
 
-# renovate: datasource=repology depName=debian_11/curl versioning=loose
-ARG CURL_VERSION="7.74.0-1.3+deb11u7"
-# renovate: datasource=repology depName=debian_11/git versioning=loose
-ARG GIT_VERSION="1:2.30.2-1+deb11u2"
-# renovate: datasource=repology depName=debian_11/lcov versioning=loose
-ARG LCOV_VERSION="1.14-2"
-# renovate: datasource=repology depName=debian_11/ca-certificates versioning=loose
-ARG CA_CERTIFICATES_VERSION="20210119"
-# renovate: datasource=repology depName=debian_11/unzip versioning=loose
-ARG UNZIP_VERSION="6.0-26+deb11u1"
+# renovate: datasource=repology depName=debian_12/curl versioning=loose
+ARG CURL_VERSION="7.88.1-10+deb12u1"
+# renovate: datasource=repology depName=debian_12/git versioning=loose
+ARG GIT_VERSION="1:2.39.2-1.1"
+# renovate: datasource=repology depName=debian_12/lcov versioning=loose
+ARG LCOV_VERSION="1.16-1"
+# renovate: datasource=repology depName=debian_12/ca-certificates versioning=loose
+ARG CA_CERTIFICATES_VERSION="20230311"
+# renovate: datasource=repology depName=debian_12/unzip versioning=loose
+ARG UNZIP_VERSION="6.0-28"
 
 USER root
 RUN apt-get update \
@@ -81,9 +81,9 @@ FROM flutter as fastlane
 
 SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
-# renovate: datasource=repology depName=debian_11/ruby-dev versioning=loose
-ARG RUBY_VERSION="1:2.7+2"
-# renovate: datasource=repology depName=debian_11/build-essential versioning=loose
+# renovate: datasource=repology depName=debian_12/ruby-dev versioning=loose
+ARG RUBY_VERSION="1:3.1"
+# renovate: datasource=repology depName=debian_12/build-essential versioning=loose
 ENV BUILD_ESSENTIAL_VERSION="12.9"
 
 USER root
@@ -133,10 +133,10 @@ ENV ANDROID_HOME="$SDK_ROOT/android-sdk" \
     JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 ENV PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$HOME/.local/bin"
 
-# renovate: datasource=repology depName=debian_11/openjdk-17-jdk-headless versioning=loose
-ARG OPENJDK_17_JDK_HEADLESS_VERSION="17.0.7+7-1~deb11u1"
-# renovate: datasource=repology depName=debian_11/sudo versioning=loose
-ARG SUDO_VERSION="1.9.5p2-3+deb11u1"
+# renovate: datasource=repology depName=debian_12/openjdk-17-jdk-headless versioning=loose
+ARG OPENJDK_17_JDK_HEADLESS_VERSION="17.0.8+7-1~deb12u1"
+# renovate: datasource=repology depName=debian_12/sudo versioning=loose
+ARG SUDO_VERSION="1.9.13p3-1+deb12u1"
 
 USER root
 RUN apt-get update \

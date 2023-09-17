@@ -9,12 +9,5 @@
       ],
       "versioningTemplate": "{{#if versioning}}{{{versioning}}}{{else}}semver{{/if}}"
     }
-  ],
-  "packageRules": [
-    {
-      "matchDatasources": ["repology"],
-      "matchPackageNames": ["ubuntu_22_04/ca-certificates"],
-      "allowedVersions": "20211016ubuntu0.22.04.1"
-    }
   ]
 }
