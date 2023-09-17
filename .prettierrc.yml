@@ -6,3 +6,6 @@ overrides:
   - files: '*.json'
     options:
       tabWidth: 4
+  - files: 'renovate.json'
+    options:
+      tabWidth: 2
