@@ -33,7 +33,7 @@ jobs:
             await script({core, fetch})
 
       - name: Setup Flutter
-        uses: flutter-actions/setup-flutter@f59ff7bdbb3127f71345907452e04be356c370f5 # v2
+        uses: flutter-actions/setup-flutter@74fc21b209e70873f3caff52c4caf25d862f2a39 # v2.2
         with:
           cache: true
           channel: ${{ env.FLUTTER_CHANNEL }}
