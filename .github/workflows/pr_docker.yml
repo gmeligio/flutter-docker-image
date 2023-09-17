@@ -11,7 +11,7 @@ jobs:
     permissions:
       packages: write
       contents: read
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     env:
       IMAGE_REPOSITORY_NAME: flutter-android
       ANDROID_BUILD_TOOLS_VERSION: 30.0.3
