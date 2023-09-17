@@ -1,6 +1,14 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:base"],
+  "packageRules": [
+    {
+      "matchManagers": ["github-actions"],
+      "matchPackageNames": ["chainguard-dev/actions"],
+      "automerge": true,
+      "pinDigests": true
+    }
+  ],
   "regexManagers": [
     {
       "fileMatch": ["^Dockerfile$"],
