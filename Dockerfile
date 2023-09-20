@@ -1,4 +1,4 @@
-FROM public.ecr.aws/debian/debian:12-slim@sha256:194d7d3e1c8647ec5e07dfb24cf0dae6270469794304a3ca23a9e38c63195409 as flutter
+FROM public.ecr.aws/debian/debian:12-slim@sha256:02833154ab5e863711ca015288b9dc3cb4f52c94ba100e0b2f444ade31ff2f48 as flutter
 
 SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
