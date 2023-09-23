@@ -4,7 +4,13 @@
   "packageRules": [
     {
       "matchManagers": ["github-actions"],
-      "matchPackageNames": ["chainguard-dev/actions"],
+      "matchPackageNames": [
+        "actions/checkout",
+        "actions/github-script",
+        "actions/setup-node",
+        "chainguard-dev/actions",
+        "cue-lang/setup-cue"
+      ],
       "automerge": true,
       "pinDigests": true
     }
