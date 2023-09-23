@@ -21,7 +21,7 @@ jobs:
             await script({core, fetch})
 
       - name: Setup Cue for JSON validation
-        uses: cue-lang/setup-cue@v1.0.0
+        uses: cue-lang/setup-cue@1713281ae501e533ff06108005dffeab9e2e5203 # v1.0.0
     
       - name: Validate version.json
         run: cue vet config/flutter_version.cue config/flutter_version.json
