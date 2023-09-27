@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:base", "group:allNonMajor", "group:recommended", "group:monorepos"],
+  "extends": ["config:base", "group:allNonMajor", "group:recommended", "group:monorepos", "schedule:earlyMondays"],
   "packageRules": [
     {
       "matchManagers": ["github-actions"],
