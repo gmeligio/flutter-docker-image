@@ -123,8 +123,8 @@ docker build --target android --build-arg flutter_version=3.13.6 fastlane_versio
 The base image is `debian/debian:12-slim` and from there multiple stages are created:
 
 1. `flutter` stage hast only the dependencies required to install flutter and common tools used by flutter internal commands, like `git`.
-2. `android` stage has the dependencies required to install the Android SDK and to develop Flutter apps for Android.
-3. `android-test` stage is for testing purposes. It creates a Flutter app and checks that the can be build for Android.
+2. `fastlane` stage has the dependencies required to install fastlane but doesn't install fastlane.
+3. `android` stage has the dependencies required to install the Android SDK and to develop Flutter apps for Android.
 
 ## FAQ
 

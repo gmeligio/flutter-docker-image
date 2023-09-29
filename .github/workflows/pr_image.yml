@@ -1,14 +1,14 @@
 on:
   pull_request:
     paths:
-      - .github/workflows/pr_docker.yml
+      - .github/workflows/pr_image.yml
       - Dockerfile
       - script/docker-entrypoint.sh
       - config/version.json
   workflow_dispatch:
 
 jobs:
-  build_android:
+  test_image:
     permissions:
       packages: write
       contents: read

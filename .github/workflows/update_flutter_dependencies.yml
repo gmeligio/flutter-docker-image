@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  flutter:
+  update_version:
     permissions:
       id-token: write # Enable OIDC token because Gitsign creates keys based on the GitHub runner OIDC credentials
       contents: write

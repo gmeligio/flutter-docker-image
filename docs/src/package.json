@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "npm run readme",
-    "readme": "cross-env NODE_ENV=production mdx-to-md readme.mdx ../readme.md",
+    "readme": "cross-env NODE_ENV=production mdx-to-md readme.mdx ../../readme.md",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",

@@ -3,7 +3,7 @@ on:
     - cron: '0 0 * * *'
   workflow_dispatch:
 jobs:
-  flutter:
+  update_flutter_version:
     permissions:
       id-token: write # Enable OIDC token because Gitsign creates keys based on the GitHub runner OIDC credentials
       contents: write
