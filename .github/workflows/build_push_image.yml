@@ -114,7 +114,7 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
           repository: ${{ env.IMAGE_REPOSITORY_PATH }}
           short-description: ${{ github.event.repository.description }}
-          readme-filepath: docs/readme.md
+          readme-filepath: readme.md
 
       # TODO: Use kaniko for building and pushing after slowness is solved
       # TODO: https://github.com/GoogleContainerTools/kaniko/issues/970
