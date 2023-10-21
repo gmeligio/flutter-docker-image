@@ -87,3 +87,4 @@ jobs:
           commit-message: ${{ env.COMMIT_MESSAGE }}
           branch: update-flutter-dependencies/${{ env.FLUTTER_VERSION }}
           title: ${{ env.COMMIT_MESSAGE }}
+          token: ${{ secrets.GH_APP_TOKEN}}
