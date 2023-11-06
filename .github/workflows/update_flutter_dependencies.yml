@@ -62,7 +62,7 @@ jobs:
         run: cue vet config/version.cue config/version.json
 
       - name: Setup NodeJS
-        uses: actions/setup-node@1a4442cacd436585916779262731d5b162bc6ec7 # v3
+        uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65 # v4
         with:
           cache: 'npm'
           cache-dependency-path: docs/src/package-lock.json
