@@ -1,4 +1,4 @@
-FROM debian:12-slim@sha256:b55e2651b71408015f8068dd74e1d04404a8fa607dd2cfe284b4824c11f4d9bd as flutter
+FROM debian:12-slim@sha256:6cc67f78e0e8295b4fbe055eba0356648f149daf15db9179aa51fcfa9cc131cd as flutter
 
 SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
@@ -134,7 +134,7 @@ ENV ANDROID_HOME="$SDK_ROOT/android-sdk" \
 ENV PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$HOME/.local/bin"
 
 # renovate: datasource=repology depName=debian_12/openjdk-17-jdk-headless versioning=loose
-ARG OPENJDK_17_JDK_HEADLESS_VERSION="17.0.8+7-1~deb12u1"
+ARG OPENJDK_17_JDK_HEADLESS_VERSION="17.0.9+9-1~deb12u1"
 # renovate: datasource=repology depName=debian_12/sudo versioning=loose
 ARG SUDO_VERSION="1.9.13p3-1+deb12u1"
 
