@@ -1,0 +1,1 @@
+renovate-config-validator --strict
