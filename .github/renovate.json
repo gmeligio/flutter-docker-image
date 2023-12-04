@@ -5,7 +5,7 @@
     "group:allNonMajor",
     "group:recommended",
     "group:monorepos",
-    "schedule:earlyMondays"
+    "schedule:monthly"
   ],
   "packageRules": [
     {
