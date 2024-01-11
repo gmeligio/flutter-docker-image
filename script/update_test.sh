@@ -18,7 +18,7 @@ fi
 
 # Update the YAML file using yq
 # Replace 'path.to.version' with the actual path to the version field in the YAML file
-yq -i ".fileContentTests[0].name = \"Android SDK Command-line Tools is version $android_cmdline_tools_version\" | .fileContentTests[0].expectedContents = \"$android_cmdline_tools_test_expected_content\"" "$test_file_path"
+yq -i ".fileContentTests[0].name = \"Android SDK Command-line Tools is version $android_cmdline_tools_version\" | .fileContentTests[0].expectedContents[0] = \"$android_cmdline_tools_test_expected_content\"" "$test_file_path"
 
 # Verify the update
 echo "Updated $test_file_path with android_cmdline_tools_version: $android_cmdline_tools_version"
