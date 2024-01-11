@@ -27,7 +27,7 @@ jobs:
           cue vet config/version.cue config/version.json
           cue vet config/flutter_version.cue config/flutter_version.json
 
-      - name: Set foobar to cool
+      - name: Generate test files
         uses: mikefarah/yq@master
         with:
           cmd: ./script/update_test.sh
