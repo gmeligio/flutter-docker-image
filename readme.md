@@ -115,7 +115,7 @@ The Dockerfile expects a few parameters:
 
 ```bash
 # Android
-docker build --target android --build-arg flutter_version=3.16.6 fastlane_version=2.219.0 android_build_tools_version=30.0.3 --build-arg android_platform_versions="33" -t android-test .
+docker build --target android --build-arg flutter_version=3.16.6 --build-arg fastlane_version=2.219.0 --build-arg android_build_tools_version=30.0.3 --build-arg android_platform_versions="33" -t android-test .
 ```
 
 ### Dockerfile stages
