@@ -10,8 +10,6 @@ if [ "$ENABLE_ANALYTICS" = "true" ]; then
     unset FASTLANE_OPT_OUT_USAGE
 
     # export COCOAPODS_DISABLE_STATS=1
-else
-    echo -e "Analytics are opt-in and disabled by default in $analytic_tools_str.\nTo enable analytics, pass the environment variable 'ENABLE_ANALYTICS=true' when starting the container."
 fi
 
 exec "$@"

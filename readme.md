@@ -10,11 +10,11 @@ The images includes the minimum tools to run Flutter and build apps. The version
 
 Features:
 
-* \[x\] Installed Flutter SDK 3.16.9
-* \[x\] Analytics disabled by default, opt-in suggested in the Docker entrypoint.
-* \[x\] Rootless user `flutter:flutter`, with permissions to run on GitLab CI.
-* \[x\] Cached Fastlane gem 2.219.0
-* \[ \] Minimal image with predownloaded SDKs and tools ready to run `flutter` commands:  
+1. \[x\] Installed Flutter SDK 3.16.9
+2. \[x\] Analytics disabled by default, opt-in if `ENABLE_ANALYTICS` environment variable is passed when running the container.
+3. \[x\] Rootless user `flutter:flutter`, with permissions to run on GitLab CI.
+4. \[x\] Cached Fastlane gem 2.219.0
+5. \[ \] Minimal image with predownloaded SDKs and tools ready to run `flutter` commands:  
    * \[x\] Android  
    * \[ \] iOS  
    * \[ \] Linux  
@@ -35,9 +35,9 @@ Predownloaded SDKs and tools:
 
 Registries:
 
-* https://hub.docker.com/r/gmeligio/flutter-android
-* https://github.com/gmeligio/flutter-docker-image/pkgs/container/flutter-android
-* https://quay.io/repository/gmeligio/flutter-android
+* [Docker Hub](https://hub.docker.com/r/%7BrepositoryPath%7D)
+* [Github Container Registry](https://github.com/gmeligio/flutter-docker-image/pkgs/container/flutter-android)
+* [Quay](https://quay.io/repository/%7BrepositoryPath%7D)
 
 TODO:
 
@@ -83,11 +83,12 @@ build:
     - flutter build apk
 ```
 
-Fastlane (see guide https://docs.fastlane.tools):
+Fastlane:
 
 ```bash
 # Ruby bundler is available in the container.
 # The fastlane gem is cached but not installed
+# For more information, see https://docs.fastlane.tools
 
 # Use --prefer-local to download gems only if they are not cached
 bundle install --prefer-local
@@ -134,17 +135,17 @@ The storage of the images starts to cost after 50 GB and increases with every pu
 
 ## Other Docker projects for mobile development
 
-* https://github.com/softartdev/docker-android-fastlane
+* [docker-android-fastlane](https://github.com/softartdev/docker-android-fastlane)
 
 ## Acknowledgments
 
-* https://github.com/mingchen/docker-android-build-box
-* https://github.com/gmemstr/flutter-fastlane-android
-* https://github.com/circleci/circleci-images
-* https://github.com/cirruslabs/docker-images-android
-* https://github.com/cirruslabs/docker-images-flutter
-* https://github.com/instrumentisto/flutter-docker-image
-* https://github.com/fischerscode/DockerFlutter
+* [docker-android-build-box](https://github.com/mingchen/docker-android-build-box)
+* [flutter-fastlane-android](https://github.com/gmemstr/flutter-fastlane-android)
+* [circleci-images](https://github.com/circleci/circleci-images)
+* [docker-images-android](https://github.com/cirruslabs/docker-images-android)
+* [docker-images-flutter](https://github.com/cirruslabs/docker-images-flutter)
+* [flutter-docker-image](https://github.com/instrumentisto/flutter-docker-image)
+* [DockerFlutter](https://github.com/fischerscode/DockerFlutter)
 
 ## License
 
