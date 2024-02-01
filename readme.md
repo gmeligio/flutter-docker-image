@@ -35,9 +35,9 @@ Predownloaded SDKs and tools:
 
 Registries:
 
-* [Docker Hub](https://hub.docker.com/r/%7BrepositoryPath%7D)
+* [Docker Hub](https://hub.docker.com/r/gmeligio/flutter-android)
 * [Github Container Registry](https://github.com/gmeligio/flutter-docker-image/pkgs/container/flutter-android)
-* [Quay](https://quay.io/repository/%7BrepositoryPath%7D)
+* [Quay](https://quay.io/repository/gmeligio/flutter-android)
 
 TODO:
 

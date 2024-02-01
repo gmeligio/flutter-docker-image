@@ -7,6 +7,8 @@ export const buildToolsVersion = androidJson.buildTools.version
 export const repositoryPath = 'gmeligio/flutter-android'
 export const imageUri = `${repositoryPath}:${flutterVersion}`
 export const androidPlatformVersions = androidJson.platforms.map(p => p.version).join(', ')
+export const dockerHubUrl = `https://hub.docker.com/r/${repositoryPath}`
+export const quayUrl = `https://quay.io/repository/${repositoryPath}`
 
 # Flutter Docker Image
 
@@ -41,9 +43,9 @@ Predownloaded SDKs and tools:
 
 Registries:
 
-- [Docker Hub](https://hub.docker.com/r/{repositoryPath})
+- <a href={dockerHubUrl}>Docker Hub</a>
 - [Github Container Registry](https://github.com/gmeligio/flutter-docker-image/pkgs/container/flutter-android)
-- [Quay](https://quay.io/repository/{repositoryPath})
+- <a href={quayUrl}>Quay</a>
 
 TODO:
 
