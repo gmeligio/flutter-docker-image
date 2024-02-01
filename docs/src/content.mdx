@@ -7,6 +7,8 @@ export const buildToolsVersion = androidJson.buildTools.version
 export const repositoryPath = 'gmeligio/flutter-android'
 export const imageUri = `${repositoryPath}:${flutterVersion}`
 export const androidPlatformVersions = androidJson.platforms.map(p => p.version).join(', ')
+export const dockerHubUrl = `https://hub.docker.com/r/${repositoryPath}`
+export const quayUrl = `https://quay.io/repository/${repositoryPath}`
 
 # Flutter Docker Image
 
@@ -15,16 +17,17 @@ Docker images for Flutter Continuous Integration (CI). The source is available [
 The images includes the minimum tools to run Flutter and build apps. The versions of the tools installed are based on the official [Flutter](https://github.com/flutter/flutter) repository. The final goal is that Flutter doesn't need to download anything like tools or SDKs when running the container.
 
 Features:
-- [x] Installed Flutter SDK {flutterVersion}
-- [x] Analytics disabled by default, opt-in suggested in the Docker entrypoint.
-- [x] Rootless user `flutter:flutter`, with permissions to run on GitLab CI.
-- [x] Cached Fastlane gem {fastlaneVersion}
-- [ ] Minimal image with predownloaded SDKs and tools ready to run `flutter` commands:
-    - [x] Android
-    - [ ] iOS
-    - [ ] Linux
-    - [ ] Windows
-    - [ ] Web
+1. [x] Installed Flutter SDK {flutterVersion}
+1. [x] Analytics disabled by default, opt-in if `ENABLE_ANALYTICS` environment variable is passed when running the container.
+1. [x] Rootless user `flutter:flutter`, with permissions to run on GitLab CI.
+1. [x] Cached Fastlane gem {fastlaneVersion}
+1. [ ] Minimal image with predownloaded SDKs and tools ready to run `flutter` commands:
+  
+   - [x] Android
+   - [ ] iOS
+   - [ ] Linux
+   - [ ] Windows
+   - [ ] Web
 
 ## Alpha stability
 
@@ -40,9 +43,9 @@ Predownloaded SDKs and tools:
 
 Registries:
 
-- https://hub.docker.com/r/{repositoryPath}
-- https://github.com/gmeligio/flutter-docker-image/pkgs/container/flutter-android
-- https://quay.io/repository/{repositoryPath}
+- <a href={dockerHubUrl}>Docker Hub</a>
+- [Github Container Registry](https://github.com/gmeligio/flutter-docker-image/pkgs/container/flutter-android)
+- <a href={quayUrl}>Quay</a>
 
 TODO:
 
@@ -85,10 +88,11 @@ On a `.gitlab-ci.yml` in GitLab CI:
     - flutter build apk`}
 </code></pre>
 
-Fastlane (see guide https://docs.fastlane.tools):
+Fastlane:
 <pre><code className="language-bash">
 {`# Ruby bundler is available in the container.
 # The fastlane gem is cached but not installed
+# For more information, see https://docs.fastlane.tools
 
 # Use --prefer-local to download gems only if they are not cached
 bundle install --prefer-local
@@ -132,18 +136,19 @@ The storage of the images starts to cost after 50 GB and increases with every pu
 
 ## Other Docker projects for mobile development
 
-- https://github.com/softartdev/docker-android-fastlane
+- [docker-android-fastlane](https://github.com/softartdev/docker-android-fastlane)
 
 ## Acknowledgments
 
-- https://github.com/mingchen/docker-android-build-box
-- https://github.com/gmemstr/flutter-fastlane-android
-- https://github.com/circleci/circleci-images
-- https://github.com/cirruslabs/docker-images-android
-- https://github.com/cirruslabs/docker-images-flutter
-- https://github.com/instrumentisto/flutter-docker-image
-- https://github.com/fischerscode/DockerFlutter
+- [docker-android-build-box](https://github.com/mingchen/docker-android-build-box)
+- [flutter-fastlane-android](https://github.com/gmemstr/flutter-fastlane-android)
+- [circleci-images](https://github.com/circleci/circleci-images)
+- [docker-images-android](https://github.com/cirruslabs/docker-images-android)
+- [docker-images-flutter](https://github.com/cirruslabs/docker-images-flutter)
+- [flutter-docker-image](https://github.com/instrumentisto/flutter-docker-image)
+- [DockerFlutter](https://github.com/fischerscode/DockerFlutter)
 
 ## License
 
 [MIT License](../LICENSE)
+
