@@ -5,8 +5,9 @@ on:
     paths:
       - .github/workflows/build_push_image.yml
       - Dockerfile
-      - test/**
       - config/version.json
+      - script/docker-entrypoint.sh
+      - test/**
   workflow_dispatch:
 
 jobs:
