@@ -6,18 +6,11 @@ on:
   workflow_dispatch:
 
 jobs:
-  test_config:
+  validate_version:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout repository
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
-      
-      - name: Setup NodeJS
-        uses: actions/setup-node@b39b52d1213e96004bfcb1c61a8a6fa8ab84f3e8 # v4
-        with:
-          cache: 'npm'
-          cache-dependency-path: docs/src/package-lock.json
-          node-version-file: docs/src/package.json
 
       - name: Setup Cue for JSON validation
         uses: cue-lang/setup-cue@1713281ae501e533ff06108005dffeab9e2e5203 # v1.0.0
@@ -26,6 +19,11 @@ jobs:
         run: |
           cue vet config/version.cue config/version.json
           cue vet config/flutter_version.cue config/flutter_version.json
+  validate_generated_config:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
 
       - name: Generate test files
         uses: mikefarah/yq@master
