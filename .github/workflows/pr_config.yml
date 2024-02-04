@@ -32,4 +32,5 @@ jobs:
 
       - name: Check if there are any changes in the git working tree
         run: |
-          git diff --exit-code
+          git add -A  
+          git diff --exit-code HEAD
