@@ -24,3 +24,8 @@ jobs:
         run: |
           npm ci --prefer-offline
           npm run build
+
+      - name: Check if there are any changes in the git working tree
+        run: |
+          git add -A  
+          git diff --exit-code HEAD
