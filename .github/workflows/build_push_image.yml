@@ -46,7 +46,9 @@ jobs:
           password: ${{ secrets.QUAY_ROBOT_TOKEN }}
 
       - name: Read environment variables from version.json
-        run: ./script/read_environment_from_version
+        env:
+          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+        run: ./script/set_environment_variables.sh
 
       - name: Set environment variable for image repository and tag
         run: |

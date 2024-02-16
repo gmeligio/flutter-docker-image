@@ -30,6 +30,8 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Read environment variables from version.json
+        env:
+          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
         run: ./script/set_environment_variables.sh
 
       - name: Load image metadata
