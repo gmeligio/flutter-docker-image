@@ -5,6 +5,7 @@ on:
       - Dockerfile
       - config/version.json
       - script/docker-entrypoint.sh
+      - script/set_environment_variables.sh
   workflow_dispatch:
 
 jobs:
@@ -28,19 +29,8 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set environment variables from version.json
-        run: |
-          echo "FLUTTER_VERSION=$(jq -r '.flutter.version' ${{ env.VERSION_MANIFEST }})" >> $GITHUB_ENV
-          echo "FASTLANE_VERSION=$(jq -r '.fastlane.version' ${{ env.VERSION_MANIFEST }})" >> $GITHUB_ENV
-          echo "ANDROID_PLATFORM_VERSIONS=$(jq -r '.android.platforms[].version' config/version.json)" >> $GITHUB_ENV
-
-      - name: Set environment variable for image repository and tag
-        run: |
-          IMAGE_REPOSITORY_PATH="${{ github.repository_owner }}/${{ env.IMAGE_REPOSITORY_NAME }}"
-          echo "IMAGE_REPOSITORY_PATH=$IMAGE_REPOSITORY_PATH" >> $GITHUB_ENV
-
-          CACHE_REPOSITORY_PATH="ghcr.io/$IMAGE_REPOSITORY_PATH"
-          echo "CACHE_REPOSITORY_PATH=$CACHE_REPOSITORY_PATH" >> $GITHUB_ENV
+      - name: Read environment variables from version.json
+        run: ./script/set_environment_variables.sh
 
       - name: Load image metadata
         uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5
