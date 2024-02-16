@@ -1,25 +1,27 @@
 import "strings"
 import "list"
 
-#Version2: {
+#MinorVersion: {
 	version!: =~ "^\\d+.\\d+$"
 }
 
-#Version3: {
+#PatchVersion: {
 	version!: =~ "^\\d+.\\d+.\\d+$"
 }
+
+#MinorOrPatchVersion: #MinorVersion | #PatchVersion
 
 flutter: {
 	channel!: "stable" | "beta"
 	commit!:  strings.MaxRunes(40)
-	#Version3
+	#PatchVersion
 }
 
 android: {
 	platforms!: [ { version!: int } ] & list.MinItems(1)
-	gradle!: #Version2
-	buildTools!: #Version3
-	cmdlineTools!: #Version2
+	gradle!: #MinorOrPatchVersion
+	buildTools!: #PatchVersion
+	cmdlineTools!: #MinorVersion
 }
 
-fastlane!: #Version3
+fastlane!: #PatchVersion
