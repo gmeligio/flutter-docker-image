@@ -8,7 +8,7 @@ CACHE_REPOSITORY_PATH="ghcr.io/$IMAGE_REPOSITORY_PATH"
 
     echo "FASTLANE_VERSION=$(jq -r '.fastlane.version' "$VERSION_MANIFEST")"
 
-    echo "ANDROID_PLATFORM_VERSIONS=$(jq -r '.android.platforms[].version' "$VERSION_MANIFEST")"
+    echo "ANDROID_PLATFORM_VERSIONS=$(jq -r '.android.platforms[].version' "$VERSION_MANIFEST" | tr '\n' ' ' | sed 's/ $//')"
 
     echo "IMAGE_REPOSITORY_PATH=$IMAGE_REPOSITORY_PATH"
 

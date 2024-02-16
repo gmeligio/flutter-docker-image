@@ -1,17 +1,20 @@
 {
     "flutter": {
         "channel": "stable",
-        "commit": "41456452f29d64e8deb623a3c927524bcf9f111b",
-        "version": "3.16.9"
+        "commit": "bae5e49bc2a867403c43b2aae2de8f8c33b037e4",
+        "version": "3.19.0"
     },
     "android": {
         "platforms": [
             {
                 "version": 33
+            },
+            {
+                "version": 34
             }
         ],
         "gradle": {
-            "version": "7.5"
+            "version": "7.6.3"
         },
         "buildTools": {
             "version": "30.0.3"
