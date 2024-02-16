@@ -7,6 +7,7 @@ on:
       - Dockerfile
       - config/version.json
       - script/docker-entrypoint.sh
+      - script/set_environment_variables.sh
       - test/**
   workflow_dispatch:
 
@@ -44,11 +45,10 @@ jobs:
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_ROBOT_TOKEN }}
 
-      - name: Set environment variables from version.json
-        run: |
-          echo "FLUTTER_VERSION=$(jq -r '.flutter.version' ${{ env.VERSION_MANIFEST }})" >> $GITHUB_ENV
-          echo "FASTLANE_VERSION=$(jq -r '.fastlane.version' ${{ env.VERSION_MANIFEST }})" >> $GITHUB_ENV
-          echo "ANDROID_PLATFORM_VERSIONS=$(jq -r '.android.platforms[].version' config/version.json)" >> $GITHUB_ENV
+      - name: Read environment variables from version.json
+        env:
+          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+        run: ./script/set_environment_variables.sh
 
       - name: Set environment variable for image repository and tag
         run: |
@@ -122,7 +122,6 @@ jobs:
       # TODO: https://github.com/GoogleContainerTools/kaniko/issues/875
       # TODO: Use kaniko for building and pushing after pushing to Docker daemon is solved, to be able to test Docker image, with the following issues
       # TODO: https://github.com/GoogleContainerTools/kaniko/issues/1331
-      # TODO: https://github.com/GoogleContainerTools/kaniko/issues/885
       # - name: Build image and push it to registries
       #   uses: int128/kaniko-action@v1
       #   with:
