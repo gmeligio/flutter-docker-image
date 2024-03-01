@@ -27,7 +27,7 @@ jobs:
         run: cue vet config/flutter_version.cue config/flutter_version.json
 
       - name: Setup Gitsign to sign git commits
-        uses: chainguard-dev/actions/setup-gitsign@a1514a48753402a60f45f7d11408fe6a8fc6496e # main
+        uses: chainguard-dev/actions/setup-gitsign@2d71fc001c58336f83d2c343b94080558170d833 # main
       
       - name: Create commit message variable
         run: |
