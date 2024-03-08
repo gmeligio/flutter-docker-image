@@ -1,6 +1,6 @@
 on:
   schedule:
-    - cron: '0 0 * * *'
+    - cron: '0 0 * * MON-FRI'
   workflow_dispatch:
 jobs:
   update_flutter_version:
