@@ -21,6 +21,6 @@
         }
     },
     "fastlane": {
-        "version": "2.220.0"
+        "version": "2.221.1"
     }
 }
