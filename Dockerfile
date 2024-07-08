@@ -1,11 +1,11 @@
-FROM debian:12-slim@sha256:ccb33c3ac5b02588fc1d9e4fc09b952e433d0c54d8618d0ee1afadf1f3cf2455 as flutter
+FROM debian:12-slim@sha256:f528891ab1aa484bf7233dbcc84f3c806c3e427571d75510a9d74bb5ec535b33 as flutter
 
 SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
 ENV LANG=C.UTF-8
 
 # renovate: datasource=repology depName=debian_12/curl versioning=loose
-ARG CURL_VERSION="7.88.1-10+deb12u5"
+ARG CURL_VERSION="7.88.1-10+deb12u6"
 # renovate: datasource=repology depName=debian_12/git versioning=loose
 ARG GIT_VERSION="1:2.39.2-1.1"
 # renovate: datasource=repology depName=debian_12/lcov versioning=loose
