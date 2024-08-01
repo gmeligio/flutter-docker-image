@@ -21,20 +21,19 @@ jobs:
             await script({core, fetch})
 
       - name: Setup Cue for JSON validation
-        uses: cue-lang/setup-cue@1713281ae501e533ff06108005dffeab9e2e5203 # v1.0.0
+        uses: cue-lang/setup-cue@1713281ae501e533ff06108005dffeab9e2e5203 # v1
 
       - name: Validate version.json
         run: cue vet config/flutter_version.cue config/flutter_version.json
 
       - name: Setup Gitsign to sign git commits
         uses: chainguard-dev/actions/setup-gitsign@9d943fc9889a0c0795e3c2bd4b949a9b610ac02e # main
-      
       - name: Create commit message variable
         run: |
           echo "COMMIT_MESSAGE=chore: update flutter version in flutter_version.json to ${{ env.FLUTTER_VERSION }}" >> $GITHUB_ENV
 
       - name: Create pull request if there are changes
-        uses: peter-evans/create-pull-request@153407881ec5c347639a548ade7d8ad1d6740e38 # v5
+        uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c # v6
         with:
           commit-message: ${{ env.COMMIT_MESSAGE }}
           branch: update-flutter-version/${{ env.FLUTTER_VERSION }}

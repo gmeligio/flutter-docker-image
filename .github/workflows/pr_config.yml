@@ -13,7 +13,7 @@ jobs:
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
 
       - name: Setup Cue for JSON validation
-        uses: cue-lang/setup-cue@1713281ae501e533ff06108005dffeab9e2e5203 # v1.0.0
+        uses: cue-lang/setup-cue@1713281ae501e533ff06108005dffeab9e2e5203 # v1
 
       - name: Validate version.json and flutter_version.json
         run: |
@@ -32,5 +32,5 @@ jobs:
 
       - name: Check if there are any changes in the git working tree
         run: |
-          git add -A  
+          git add -A
           git diff --exit-code HEAD
