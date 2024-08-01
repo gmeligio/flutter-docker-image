@@ -13,7 +13,7 @@ Features:
 1. \[x\] Installed Flutter SDK 3.22.3
 2. \[x\] Analytics disabled by default, opt-in if `ENABLE_ANALYTICS` environment variable is passed when running the container.
 3. \[x\] Rootless user `flutter:flutter`, with permissions to run on GitLab CI.
-4. \[x\] Cached Fastlane gem 2.221.1
+4. \[x\] Cached Fastlane gem 2.222.0
 5. \[ \] Minimal image with predownloaded SDKs and tools ready to run `flutter` commands:  
    * \[x\] Android  
    * \[ \] iOS  
@@ -116,7 +116,7 @@ The Dockerfile expects a few parameters:
 
 ```bash
 # Android
-docker build --target android --build-arg flutter_version=3.22.3 --build-arg fastlane_version=2.221.1 --build-arg android_build_tools_version=30.0.3 --build-arg android_platform_versions="34" -t android-test .
+docker build --target android --build-arg flutter_version=3.22.3 --build-arg fastlane_version=2.222.0 --build-arg android_build_tools_version=30.0.3 --build-arg android_platform_versions="34" -t android-test .
 ```
 
 ### Dockerfile stages
