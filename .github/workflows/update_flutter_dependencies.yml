@@ -56,7 +56,7 @@ jobs:
           rm -rf test_app
 
       - name: Setup Cue for JSON validation
-        uses: cue-lang/setup-cue@1713281ae501e533ff06108005dffeab9e2e5203 # v1
+        uses: cue-lang/setup-cue@a93fa358375740cd8b0078f76355512b9208acb1 # v1.0.1
 
       - name: Validate version.json
         run: cue vet config/version.cue config/version.json
