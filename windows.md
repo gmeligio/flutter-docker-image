@@ -22,6 +22,8 @@
 reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" /t REG_DWORD /f /v "AllowDevelopmentWithoutDevLicense" /d "1"
 ```
 
+1. Docker version must be pinned in Github workflow to avoid breaking changes: with escaping `\"` syntax inside RUN directive, etc.
+
 1. Support toosl:
 
     - <https://pub.dev/packages/msix>

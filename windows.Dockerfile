@@ -1,29 +1,82 @@
 # escape=`
 
-FROM mcr.microsoft.com/windows/nanoserver:ltsc2022 as flutter
+FROM mcr.microsoft.com/powershell:lts-nanoserver-ltsc2022 as flutter
 
 # USER flutter:flutter
 # WORKDIR "$HOME"
 
+SHELL [ "pwsh", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';" ]
+
+ARG GIT_VERSION=2.46.0
+ARG GIT_INSTALLATION_PATH="C:\Program Files\Git"
+
+# Install Git
+RUN $installer = \"MinGit-${env:GIT_VERSION}-busybox-64-bit.zip\"; `
+    # RUN $installer = \"Git-${env:GIT_VERSION}-64-bit.exe\";`
+    # $url = \"https://github.com/git-for-windows/git/releases/download/v${env:GIT_VERSION}.windows.1/${installer}\"; `
+    $url = \"https://github.com/git-for-windows/git/releases/download/v${env:GIT_VERSION}.windows.1/${installer}\"; `
+    # Write-Host "$url"; `
+    Invoke-WebRequest -Uri "$url" -OutFile "$installer"; `
+    # Start-Process -Wait -NoNewWindow "$installer" -ArgumentList '/SP- /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /NORESTART /NOCANCEL /CLOSEAPPLICATIONS /RESTARTAPPLICATIONS /SAVEINF=git.inf';
+    Expand-Archive -Path "$installer" -DestinationPath "$env:GIT_INSTALLATION_PATH"; `
+    Remove-Item -Path "$installer";
+
+# In order to set system PATH, ContainerAdministrator must be used
 USER ContainerAdministrator
+RUN [Environment]::SetEnvironmentVariable('Path', \"${env:GIT_INSTALLATION_PATH}\cmd;${env:GIT_INSTALLATION_PATH}\usr\bin;${env:Path};\", 'Machine');
+USER ContainerUser
 
-SHELL [ "cmd", "/v", "/s", "/c" ]
+# MinGit has a circular reference in its global configuration, which causes git to crash
+# See https://github.com/git-for-windows/git/issues/2387#issuecomment-679367609
+RUN $env:GIT_CONFIG_NOSYSTEM=1; git config --system --unset-all include.path
 
-# Set variables first because ENV is not supported on Windows
-RUN setx /m PS_MAJOR_VERSION "7" `
-    && setx /m PS_VERSION "7.4.5" `
-    && setx /m PS_INSTALLER "PowerShell-%PS_VERSION%-win-x64.zip" `
-    && setx /m PS_INSTALL_PATH "%ProgramFiles%\PowerShell\%PS_MAJOR_VERSION%"
 
-RUN curl -L -o "%PS_INSTALLER%" "https://github.com/PowerShell/PowerShell/releases/download/v%PS_VERSION%/%PS_INSTALLER%" `
-    && mkdir "%PS_INSTALL_PATH%" `
-    && tar -xf "%PS_INSTALLER%" -C "%PS_INSTALL_PATH%" `
-    && del "%PS_INSTALLER%"
+# $installerPath = Join-Path -Path $env:ProgramFiles -ChildPath "Git"; `
+# Download the Git installer
+# Write-Output $gitInstaller; `
+# Write-Output $gitUrl; `
+# Invoke-WebRequest -Uri $gitUrl -OutFile $gitInstaller;
+# # Decompress
+# Expand-Archive -Path $gitInstaller -DestinationPath $installerPath; `
+# # Clean up the installer file
+# Remove-Item -Path $installerPath; `
+# # Verify installation
+# git --version
 
-# RUN curl -SL --output dotnet.zip https://dotnetcli.blob.core.windows.net/dotnet/Sdk/%DOTNET_SDK_VERSION%/dotnet-sdk-%DOTNET_SDK_VERSION%-win-arm.zip `
-#     && mkdir "%ProgramFiles%\dotnet" `
-#     && tar -zxf dotnet.zip -C "%ProgramFiles%\dotnet" `
-#     && del dotnet.zip
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# USER ContainerAdministrator
+
+# SHELL [ "cmd", "/v", "/s", "/c" ]
+
+# # Set variables first because ENV is not supported on Windows
+# RUN setx /m PS_MAJOR_VERSION "7" `
+#     && setx /m PS_INSTALL_PATH "%ProgramFiles%\PowerShell\%PS_MAJOR_VERSION%" `
+#     && setx /m PS_VERSION "7.4.5" `
+#     && setx /m PS_INSTALLER "PowerShell-%PS_VERSION%-win-x64.zip"
+
+# RUN setx /m PATH "%PS_INSTALL_PATH%;%PATH%"
+
+# RUN curl -L -o "%PS_INSTALLER%" "https://github.com/PowerShell/PowerShell/releases/download/v%PS_VERSION%/%PS_INSTALLER%" `
+#     && mkdir "%PS_INSTALL_PATH%" `
+#     && tar -xf "%PS_INSTALLER%" -C "%PS_INSTALL_PATH%" `
+#     && del "%PS_INSTALLER%"
+
 
 # ENV SDK_ROOT="$HOME/sdks"
 # ENV FLUTTER_ROOT="$SDK_ROOT/flutter"
