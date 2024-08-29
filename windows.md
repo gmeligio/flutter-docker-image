@@ -27,3 +27,7 @@ reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUn
 1. Support toosl:
 
     - <https://pub.dev/packages/msix>
+
+## References
+
+environment variables: <https://blog.sixeyed.com/windows-weekly-dockerfile-14-environment-variables/<
