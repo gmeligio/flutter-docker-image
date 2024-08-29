@@ -32,5 +32,5 @@ services:
   windows:
     build:
       dockerfile: ./windows.Dockerfile
-      # args:
-      #   flutter_version: $FLUTTER_VERSION
+      args:
+        flutter_version: $FLUTTER_VERSION
