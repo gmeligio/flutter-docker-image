@@ -1,5 +1,3 @@
-$commandArgs = $args
-
 $analytic_tools_str = "Dart, Flutter and Fastlane"
 
 if ($env:ENABLE_ANALYTICS -eq "true") {
@@ -16,7 +14,7 @@ if ($env:ENABLE_ANALYTICS -eq "true") {
 }
 
 if ($args.length -gt 0) {
-    Invoke-Expression "$commandArgs"
+    Invoke-Expression "$args"
 }
 else {
     pwsh
