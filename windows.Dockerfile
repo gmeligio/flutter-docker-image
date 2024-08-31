@@ -12,6 +12,8 @@ ARG git_installation_path="C:\Program Files\Git"
 ENV USERPROFILE="C:\Users\ContainerUser"
 ENV SDK_ROOT="${USERPROFILE}\sdks"
 ENV FLUTTER_ROOT="${SDK_ROOT}\flutter"
+# Set FLUTTER_GIT_URL to fix warning: "Upstream repository unknown source is not a standard remote. Set environment variable "FLUTTER_GIT_URL" to unknown source to dismiss this error."
+ENV FLUTTER_GIT_URL="unknown source"
 
 # USER flutter:flutter
 # WORKDIR "$HOME"
@@ -68,6 +70,6 @@ RUN git clone `
 
 ## && chown -R flutter:flutter "$FLUTTER_ROOT" `
 
-# COPY ./script/docker-windows-entrypoint.ps1 "docker-entrypoint.ps1"
+COPY ./script/docker_windows_entrypoint.ps1 "docker_entrypoint.ps1"
 
-# ENTRYPOINT [ "C:\Users\ContainerUser\docker-entrypoint.ps1" ]
+ENTRYPOINT "C:\Users\ContainerUser\docker_entrypoint.ps1"
