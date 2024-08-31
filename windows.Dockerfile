@@ -1,6 +1,6 @@
 # escape=`
 
-FROM mcr.microsoft.com/powershell:lts-nanoserver-ltsc2022 as flutter
+FROM mcr.microsoft.com/powershell:lts-7.2-nanoserver-ltsc2022@sha256:816b28df3ce39a36d6c6f696a4fd6f7823e09defb2af865f31501e868cb0e082 as flutter
 
 
 SHELL [ "pwsh", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';" ]
