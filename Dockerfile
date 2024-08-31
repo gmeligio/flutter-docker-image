@@ -60,6 +60,7 @@ RUN git clone \
     "$FLUTTER_ROOT" \
     && chown -R flutter:flutter "$FLUTTER_ROOT" \
     && flutter --version \
+    && flutter config --no-cli-animations \
     && dart --disable-analytics \
     && flutter config --no-analytics \
     && flutter config --no-enable-android \
@@ -72,7 +73,7 @@ RUN git clone \
     && flutter config --no-enable-macos-desktop \
     && flutter doctor
 
-COPY --chown=flutter:flutter ./script/docker-entrypoint.sh "$HOME/docker-entrypoint.sh"
+COPY --chown=flutter:flutter ./script/docker-linux-entrypoint.sh "$HOME/docker-entrypoint.sh"
 RUN chmod +x "$HOME/docker-entrypoint.sh"
 
 ENTRYPOINT [ "/home/flutter/docker-entrypoint.sh" ]

@@ -4,9 +4,35 @@
 
 & $Env:ProgramFiles\Docker\Docker\DockerCli.exe -SwitchDaemon
 
-## Steps to reproduce in Docker
+
+## TODO
 
 1. Check requirements in <https://docs.flutter.dev/get-started/install/windows/desktop>
+1. Add an snapshot of flutter config to determine if new feature flags should be enabled or disabled.
+1. Add docs explaining to use `$VerbosePreference = 'Continue';` in the SHELL to debug unexpected pwsh problems.
+
+## Contribute flutter upstream
+
+1. Remove `WHERE` in bin\internal\shared.bat and use instead:
+
+```batch
+pwsh.exe -Command "exit" >nul 2>&1 && (
+        SET powershell_executable=pwsh.exe
+    ) || powershell.exe -Command "exit" >nul 2>&1 && (
+        SET powershell_executable=PowerShell.exe
+    ) || (
+        ECHO Error: PowerShell executable not found.                        1>&2
+        ECHO        Either pwsh.exe or PowerShell.exe must be in your PATH. 1>&2
+        EXIT 1
+    )
+```
+
+1. Find if the executable should be pwsh or powershell and put it in a service to remove the hardcoded "powershell" in multiple places, like in:
+
+- dev\devicelab\lib\framework\running_processes.dart
+- packages\flutter_tools\lib\src\windows\windows_version_validator.dart
+
+## Steps to reproduce in Docker
 
 1. Install the Flutter requirements: [Powershell](https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell-on-windows?view=powershell-7.4#installing-the-zip-package)
 
@@ -30,4 +56,4 @@ reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUn
 
 ## References
 
-environment variables: <https://blog.sixeyed.com/windows-weekly-dockerfile-14-environment-variables/<
+- How environment variables work on Windows containers?: <https://blog.sixeyed.com/windows-weekly-dockerfile-14-environment-variables/<
