@@ -85,6 +85,7 @@ jobs:
           organization: ${{ secrets.DOCKER_HUB_USERNAME }}
           sarif-file: output.sarif.json
           to-env: prod
+          debug: true
           verbose-debug: true
 
       - name: Upload scan results to the GitHub Security tab
