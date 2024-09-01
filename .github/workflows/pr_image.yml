@@ -80,6 +80,7 @@ jobs:
           image: ""
           # github-token is needed to be able to write the comment
           github-token: ${{ github.token }}
+          organization: ${{ secrets.DOCKER_HUB_USERNAME }}
           sarif-file: output.sarif.json
           to-latest: true
 
