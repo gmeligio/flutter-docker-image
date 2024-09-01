@@ -24,6 +24,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
 
+      - name: Login to Docker Hub
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+ 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3
         with:
@@ -66,7 +72,7 @@ jobs:
             android_platform_versions=${{ env.ANDROID_PLATFORM_VERSIONS }}
 
       # TODO: Parallelize testing and vulnerability scanning
-      - name: Run Docker Scout vulnerability scanner
+      - name: Scan with Docker Scout
         id: docker-scout
         uses: docker/scout-action@e71a6e518e912cc9094cb8c89e29bb0dcef01668 # v1
         with:
@@ -77,7 +83,7 @@ jobs:
           sarif-file: output.sarif.json
           to-latest: true
 
-      - name: Upload Scan results to GitHub Security tab
+      - name: Upload scan results to the GitHub Security tab
         uses: github/codeql-action/upload-sarif@4dd16135b69a43b6c8efb853346f8437d92d3c93 # v3
         with:
           sarif_file: output.sarif.json
