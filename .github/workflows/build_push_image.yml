@@ -90,7 +90,7 @@ jobs:
         with:
           command: environment
           # Use the Docker Hub image that is the first tag in the metadata
-          image: ${{ steps.metadata.outputs.tags[0] }}
+          image: registry://${{ fromJson(steps.metadata.outputs.json).tags[0] }}
           environment: prod
           organization: ${{ secrets.DOCKER_HUB_USERNAME }}
 
