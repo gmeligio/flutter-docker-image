@@ -77,7 +77,7 @@ jobs:
         uses: docker/scout-action@e71a6e518e912cc9094cb8c89e29bb0dcef01668 # v1
         with:
           command: compare,cves,recommendations
-          image: ${{ steps.metadata.outputs.tags }}
+          image: ""
           # github-token is needed to be able to write the comment
           github-token: ${{ github.token }}
           sarif-file: output.sarif.json
