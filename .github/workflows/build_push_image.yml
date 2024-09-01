@@ -55,9 +55,6 @@ jobs:
           IMAGE_REPOSITORY_PATH="${{ github.repository_owner }}/${{ env.IMAGE_REPOSITORY_NAME }}"
           echo "IMAGE_REPOSITORY_PATH=$IMAGE_REPOSITORY_PATH" >> $GITHUB_ENV
 
-          CACHE_REPOSITORY_PATH="ghcr.io/$IMAGE_REPOSITORY_PATH"
-          echo "CACHE_REPOSITORY_PATH=$CACHE_REPOSITORY_PATH" >> $GITHUB_ENV
-
       - name: Load image metadata
         uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5
         id: metadata
@@ -76,8 +73,8 @@ jobs:
         uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25 # v5
         with:
           load: true
-          cache-from: ${{ env.CACHE_REPOSITORY_PATH }}:cache
-          cache-to: ${{ env.CACHE_REPOSITORY_PATH }}:cache
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           tags: ${{ steps.metadata.outputs.tags }}
           labels: ${{ steps.metadata.outputs.labels }}
           target: android
@@ -97,8 +94,8 @@ jobs:
         uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25 # v5
         with:
           push: true
-          cache-from: ${{ env.CACHE_REPOSITORY_PATH }}:cache
-          cache-to: ${{ env.CACHE_REPOSITORY_PATH }}:cache
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           tags: ${{ steps.metadata.outputs.tags }}
           labels: ${{ steps.metadata.outputs.labels }}
           target: android
