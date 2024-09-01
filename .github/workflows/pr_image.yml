@@ -73,23 +73,23 @@ jobs:
             android_build_tools_version=${{ env.ANDROID_BUILD_TOOLS_VERSION }}
             android_platform_versions=${{ env.ANDROID_PLATFORM_VERSIONS }}
 
-      # # TODO: Parallelize testing and vulnerability scanning
-      # - name: Scan with Docker Scout
-      #   id: docker-scout
-      #   uses: docker/scout-action@e71a6e518e912cc9094cb8c89e29bb0dcef01668 # v1
-      #   with:
-      #     command: compare,cves,recommendations
-      #     image: ""
-      #     # github-token is needed to be able to write the comment
-      #     github-token: ${{ github.token }}
-      #     organization: ${{ secrets.DOCKER_HUB_USERNAME }}
-      #     sarif-file: output.sarif.json
-      #     to: registry://${{ env.IMAGE_REPOSITORY_PATH }}:${{ env.FLUTTER_VERSION }}
+      # TODO: Parallelize testing and vulnerability scanning
+      - name: Scan with Docker Scout
+        id: docker-scout
+        uses: docker/scout-action@e71a6e518e912cc9094cb8c89e29bb0dcef01668 # v1
+        with:
+          command: compare,cves,recommendations
+          image: ""
+          # github-token is needed to be able to write the comment
+          github-token: ${{ github.token }}
+          organization: ${{ secrets.DOCKER_HUB_USERNAME }}
+          sarif-file: output.sarif.json
+          to-env: prod
 
-      # - name: Upload scan results to the GitHub Security tab
-      #   uses: github/codeql-action/upload-sarif@4dd16135b69a43b6c8efb853346f8437d92d3c93 # v3
-      #   with:
-      #     sarif_file: output.sarif.json
+      - name: Upload scan results to the GitHub Security tab
+        uses: github/codeql-action/upload-sarif@4dd16135b69a43b6c8efb853346f8437d92d3c93 # v3
+        with:
+          sarif_file: output.sarif.json
 
       - name: Test image
         uses: plexsystems/container-structure-test-action@c0a028aa96e8e82ae35be556040340cbb3e280ca # v0.3.0
