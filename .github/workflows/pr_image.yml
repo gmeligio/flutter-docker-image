@@ -79,7 +79,7 @@ jobs:
         uses: docker/scout-action@e71a6e518e912cc9094cb8c89e29bb0dcef01668 # v1
         with:
           command: compare
-          image: local://${{ env.IMAGE_REPOSITORY_PATH }}:${{ env.FLUTTER_VERSION }}
+          image: local://${{ steps.metadata.outputs.tags[0] }}
           # github-token is needed to be able to write the comment
           github-token: ${{ github.token }}
           organization: ${{ secrets.DOCKER_HUB_USERNAME }}
