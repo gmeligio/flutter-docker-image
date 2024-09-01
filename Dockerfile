@@ -98,7 +98,7 @@ USER flutter:flutter
 
 ENV RUBY_ROOT="$SDK_ROOT/ruby"
 ENV GEM_HOME="$RUBY_ROOT"
-ENV GEM_PATH="$GEM_PATH:$GEM_HOME"
+ENV GEM_PATH="$GEM_HOME"
 ENV PATH="$PATH:$GEM_HOME/bin"
 
 # Fastlane configuration
