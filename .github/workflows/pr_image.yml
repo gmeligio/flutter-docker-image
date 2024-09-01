@@ -13,6 +13,8 @@ jobs:
     permissions:
       packages: write
       contents: read
+      # pull-requests write permission is needed for the docker/scout-action to write a comment
+      pull-requests: write
     runs-on: ubuntu-22.04
     env:
       IMAGE_REPOSITORY_NAME: flutter-android
@@ -27,7 +29,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ github.token }}
 
       - name: Read environment variables from version.json
         env:
@@ -54,14 +56,31 @@ jobs:
           load: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          tags: ${{ steps.metadata.outputs.tags }}
           labels: ${{ steps.metadata.outputs.labels }}
+          tags: ${{ steps.metadata.outputs.tags }}
           target: android
           build-args: |
             flutter_version=${{ env.FLUTTER_VERSION }}
             fastlane_version=${{ env.FASTLANE_VERSION }}
             android_build_tools_version=${{ env.ANDROID_BUILD_TOOLS_VERSION }}
             android_platform_versions=${{ env.ANDROID_PLATFORM_VERSIONS }}
+
+      # TODO: Parallelize testing and vulnerability scanning
+      - name: Run Docker Scout vulnerability scanner
+        id: docker-scout
+        uses: docker/scout-action@e71a6e518e912cc9094cb8c89e29bb0dcef01668 # v1
+        with:
+          command: compare,cves,recommendations
+          image: ${{ steps.metadata.outputs.tags }}
+          # github-token is needed to be able to write the comment
+          github-token: ${{ github.token }}
+          sarif-file: output.sarif.json
+          to-latest: true
+
+      - name: Upload Scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@4dd16135b69a43b6c8efb853346f8437d92d3c93 # v3
+        with:
+          sarif_file: output.sarif.json
 
       - name: Test image
         uses: plexsystems/container-structure-test-action@c0a028aa96e8e82ae35be556040340cbb3e280ca # v0.3.0
