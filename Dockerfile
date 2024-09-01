@@ -1,11 +1,11 @@
-FROM debian:12-slim@sha256:f528891ab1aa484bf7233dbcc84f3c806c3e427571d75510a9d74bb5ec535b33 as flutter
+FROM debian:12-slim@sha256:2ccc7e39b0a6f504d252f807da1fc4b5bcd838e83e4dec3e2f57b2a4a64e7214 AS flutter
 
 SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
 ENV LANG=C.UTF-8
 
 # renovate: datasource=repology depName=debian_12/curl versioning=loose
-ARG CURL_VERSION="7.88.1-10+deb12u6"
+ARG CURL_VERSION="7.88.1-10+deb12u7"
 # renovate: datasource=repology depName=debian_12/git versioning=loose
 ARG GIT_VERSION="1:2.39.2-1.1"
 # renovate: datasource=repology depName=debian_12/lcov versioning=loose
@@ -77,7 +77,7 @@ RUN chmod +x "$HOME/docker-entrypoint.sh"
 
 ENTRYPOINT [ "/home/flutter/docker-entrypoint.sh" ]
 
-FROM flutter as fastlane
+FROM flutter AS fastlane
 
 SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
@@ -98,7 +98,7 @@ USER flutter:flutter
 
 ENV RUBY_ROOT="$SDK_ROOT/ruby"
 ENV GEM_HOME="$RUBY_ROOT"
-ENV GEM_PATH="$GEM_PATH:$GEM_HOME"
+ENV GEM_PATH="$GEM_HOME"
 ENV PATH="$PATH:$GEM_HOME/bin"
 
 # Fastlane configuration
@@ -122,7 +122,7 @@ ARG fastlane_version
 RUN bundle init \
     && bundle add --version "$fastlane_version" fastlane
 
-FROM fastlane as android
+FROM fastlane AS android
 
 SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
