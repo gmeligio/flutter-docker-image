@@ -15,6 +15,8 @@ jobs:
       contents: read
       # pull-requests write permission is needed for the docker/scout-action to write a comment
       pull-requests: write
+      # security-events write permission is needed for github/codeql-action/upload-sarif to upload SARIF results
+      security-events: write 
     runs-on: ubuntu-22.04
     env:
       IMAGE_REPOSITORY_NAME: flutter-android
@@ -82,7 +84,7 @@ jobs:
           github-token: ${{ github.token }}
           organization: ${{ secrets.DOCKER_HUB_USERNAME }}
           sarif-file: output.sarif.json
-          to-latest: true
+          to: registry://${{ env.IMAGE_REPOSITORY_PATH }}:${{ env.FLUTTER_VERSION }}
 
       - name: Upload scan results to the GitHub Security tab
         uses: github/codeql-action/upload-sarif@4dd16135b69a43b6c8efb853346f8437d92d3c93 # v3

@@ -84,6 +84,15 @@ jobs:
             android_build_tools_version=${{ env.ANDROID_BUILD_TOOLS_VERSION }}
             android_platform_versions=${{ env.ANDROID_PLATFORM_VERSIONS }}
 
+      - name: Docker Scout
+        id: docker-scout-environment
+        uses: docker/scout-action@v1
+        with:
+          command: environment
+          image: ${{ steps.metadata.outputs.tags }}
+          environment: prod
+          organization: ${{ secrets.DOCKER_HUB_USERNAME }}
+
       - name: Test image
         uses: plexsystems/container-structure-test-action@c0a028aa96e8e82ae35be556040340cbb3e280ca # v0.3.0
         with:
