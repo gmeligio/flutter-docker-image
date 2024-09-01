@@ -84,12 +84,12 @@ jobs:
             android_build_tools_version=${{ env.ANDROID_BUILD_TOOLS_VERSION }}
             android_platform_versions=${{ env.ANDROID_PLATFORM_VERSIONS }}
 
-      - name: Docker Scout
+      - name: Record image in Docker Scout environment
         id: docker-scout-environment
         uses: docker/scout-action@v1
         with:
           command: environment
-          image: ${{ steps.metadata.outputs.tags }}
+          image: registry://${{ env.IMAGE_REPOSITORY_PATH }}:${{ env.FLUTTER_VERSION }}
           environment: prod
           organization: ${{ secrets.DOCKER_HUB_USERNAME }}
 
