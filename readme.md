@@ -134,6 +134,10 @@ The base image is `debian/debian:12-slim` and from there multiple stages are cre
 
 The storage of the images starts to cost after 50 GB and increases with every pushed image because the AWS Free Tier covers up to 50 GB of total storage for free in ECR Public.
 
+## Contributing
+
+See [Contributing](docs/contributing.md)
+
 ## Other Docker projects for mobile development
 
 * [docker-android-fastlane](https://github.com/softartdev/docker-android-fastlane)
