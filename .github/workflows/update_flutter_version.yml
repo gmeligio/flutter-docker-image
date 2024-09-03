@@ -5,13 +5,20 @@ on:
 jobs:
   update_flutter_version:
     permissions:
-      id-token: write # Enable OIDC token because Gitsign creates keys based on the GitHub runner OIDC credentials
+      # Enable OIDC token because Gitsign creates keys based on the GitHub runner OIDC credentials
+      # id-token: write
       contents: write
       pull-requests: write
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout repository
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+
+      - uses: actions/create-github-app-token@31c86eb3b33c9b601a1f60f98dcbfd1d70f379b4 # v1
+        id: generate-token
+        with:
+          app-id: ${{ secrets.VERIFIED_COMMIT_ID }}
+          private-key: ${{ secrets.VERIFIED_COMMIT_KEY }}
 
       - name: Update latest Flutter version
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7
@@ -26,16 +33,18 @@ jobs:
       - name: Validate version.json
         run: cue vet config/flutter_version.cue config/flutter_version.json
 
-      - name: Setup Gitsign to sign git commits
-        uses: chainguard-dev/actions/setup-gitsign@9ba949ac63357c725a9438f3e05a1e33d313498e # main
+      # - name: Setup Gitsign to sign git commits
+      #   uses: chainguard-dev/actions/setup-gitsign@9ba949ac63357c725a9438f3e05a1e33d313498e # main
+      
       - name: Create commit message variable
         run: |
           echo "COMMIT_MESSAGE=chore: update flutter version in flutter_version.json to ${{ env.FLUTTER_VERSION }}" >> $GITHUB_ENV
 
       - name: Create pull request if there are changes
-        uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c # v6
+        uses: peter-evans/create-pull-request@4320041ed380b20e97d388d56a7fb4f9b8c20e79 # v7
         with:
           commit-message: ${{ env.COMMIT_MESSAGE }}
           branch: update-flutter-version/${{ env.FLUTTER_VERSION }}
+          sign-commits: true
           title: ${{ env.COMMIT_MESSAGE }}
-          token: ${{ secrets.GH_APP_TOKEN}}
+          token: ${{ steps.generate-token.outputs.token }}
