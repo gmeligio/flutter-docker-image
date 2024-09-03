@@ -15,6 +15,16 @@
 1. Check [Windows installation requirements for Flutter](https://docs.flutter.dev/get-started/install/windows/desktop)
 1. Add docs explaining to use `$VerbosePreference = 'Continue';` in the SHELL to debug unexpected pwsh problems.
 
+## Open issue in windows Docker images repo
+
+1. Some images can be pulled while others give error:
+
+    ```text
+    Error response from daemon: Get "https://mcr.microsoft.com/v2/": read tcp [2a0c:5a84:e100:e501::a97c]:58039->[2603:1061:f:101::10]:443: wsarecv: An existing connection was forcibly closed by the remote host.
+    ```
+
+Debug with `curl -A github165 -v https://mcr.microsoft.com/v2/powershell/manifests/lts-nanoserver-ltsc2022`
+
 ## Contribute flutter upstream
 
 1. Remove `WHERE` in bin\internal\shared.bat and use instead:
