@@ -8,7 +8,9 @@ if ($env:ENABLE_ANALYTICS -eq "true") {
 
     if (Test-Path env:FASTLANE_OPT_OUT_USAGE) {
         Remove-Item env:FASTLANE_OPT_OUT_USAGE
-    } 
+    }
+
+    # $env:POWERSHELL_TELEMETRY_OPTOUT=1
 
     # $env:COCOAPODS_DISABLE_STATS = 1
 }
