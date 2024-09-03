@@ -10,13 +10,20 @@ on:
 jobs:
   update_version:
     permissions:
-      id-token: write # Enable OIDC token because Gitsign creates keys based on the GitHub runner OIDC credentials
+      # Enable OIDC token because Gitsign creates keys based on the GitHub runner OIDC credentials
+      # id-token: write
       contents: write
       pull-requests: write
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout repository
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+
+      - uses: actions/create-github-app-token@31c86eb3b33c9b601a1f60f98dcbfd1d70f379b4 # v1
+        id: generate-token
+        with:
+          app-id: ${{ secrets.VERIFIED_COMMIT_ID }}
+          private-key: ${{ secrets.VERIFIED_COMMIT_KEY }}
 
       - name: Copy Flutter version into version manifest
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7
@@ -74,8 +81,8 @@ jobs:
           npm ci --prefer-offline
           npm run build
 
-      - name: Setup Gitsign to sign git commits
-        uses: chainguard-dev/actions/setup-gitsign@9ba949ac63357c725a9438f3e05a1e33d313498e # main
+      # - name: Setup Gitsign to sign git commits
+      #   uses: chainguard-dev/actions/setup-gitsign@9ba949ac63357c725a9438f3e05a1e33d313498e # main
 
       - name: Create commit message variable
         run: |
@@ -86,5 +93,6 @@ jobs:
         with:
           commit-message: ${{ env.COMMIT_MESSAGE }}
           branch: update-flutter-dependencies/${{ env.FLUTTER_VERSION }}
+          sign-commits: true
           title: ${{ env.COMMIT_MESSAGE }}
-          token: ${{ secrets.GH_APP_TOKEN}}
+          token: ${{ steps.generate-token.outputs.token }}
