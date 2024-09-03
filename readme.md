@@ -43,6 +43,7 @@ TODO:
 
 * \[ \] Android emulator
 * \[ \] Android NDK
+* \[ \] Replace flutter-actions/setup-flutter and bootstrap with the latest published docker image
 
 ## Running containers
 
