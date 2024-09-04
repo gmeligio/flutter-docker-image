@@ -86,7 +86,7 @@ jobs:
 
       - name: Record image in Docker Scout environment
         id: docker-scout-environment
-        uses: docker/scout-action@v1
+        uses: docker/scout-action@e71a6e518e912cc9094cb8c89e29bb0dcef01668 #v1
         with:
           command: environment
           # Use the Docker Hub image that is the first tag in the metadata
