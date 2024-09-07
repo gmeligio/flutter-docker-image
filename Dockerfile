@@ -77,6 +77,10 @@ RUN chmod +x "$HOME/docker-entrypoint.sh"
 
 ENTRYPOINT [ "/home/flutter/docker-entrypoint.sh" ]
 
+#-----------------------------------------------
+#-----------------------------------------------
+#-----------------------------------------------
+
 FROM flutter AS fastlane
 
 SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
@@ -121,6 +125,10 @@ ARG fastlane_version
 
 RUN bundle init \
     && bundle add --version "$fastlane_version" fastlane
+
+#-----------------------------------------------
+#-----------------------------------------------
+#-----------------------------------------------
 
 FROM fastlane AS android
 
