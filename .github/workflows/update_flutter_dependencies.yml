@@ -18,6 +18,8 @@ jobs:
       # Enable OIDC token because Gitsign creates keys based on the GitHub runner OIDC credentials
       # id-token: write
       contents: write
+      # Allow to read packages to pull image from GitHub Container Registry
+      packages: read
       pull-requests: write
     runs-on: ubuntu-22.04
     container:
