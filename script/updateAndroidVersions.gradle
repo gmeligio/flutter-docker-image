@@ -30,6 +30,6 @@ tasks.register('updateAndroidVersions') {
         final jsonStr = JsonOutput.toJson(resultJsonMap)
         final prettyStr = JsonOutput.prettyPrint(jsonStr)
 
-        jsonFile.write(prettyStr)
+        jsonFile.write("${prettyStr}\n")
     }
 }

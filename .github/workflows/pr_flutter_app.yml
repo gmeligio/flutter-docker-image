@@ -27,7 +27,7 @@ jobs:
           {
             echo "content<<EOF" 
             cat ./config/version.json
-            printf "\nEOF\n"
+            echo "EOF"
           } >> $GITHUB_OUTPUT
 
       - name: Set environment variables from version.json

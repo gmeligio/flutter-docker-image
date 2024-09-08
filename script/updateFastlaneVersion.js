@@ -37,5 +37,7 @@ module.exports = async ({ core, fetch }) => {
     },
   }
 
-  fs.writeFileSync(resultPath, JSON.stringify(result, null, 4))
+  resultJson = JSON.stringify(result, null, 4)
+
+  fs.writeFileSync(resultPath, `${resultJson}\n`)
 }

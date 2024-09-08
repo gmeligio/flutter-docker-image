@@ -54,6 +54,7 @@ module.exports = async ({ core, fetch }) => {
   }
 
   // Write outputs
-  fs.writeFileSync(resultPath, JSON.stringify(newJson, null, 4))
+  resultJson = JSON.stringify(newJson, null, 4)
+  fs.writeFileSync(resultPath, `${resultJson}\n`)
   core.exportVariable('FLUTTER_VERSION', version)
 }
