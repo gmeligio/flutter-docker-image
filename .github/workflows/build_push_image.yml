@@ -14,8 +14,8 @@ on:
 jobs:
   build_push_android:
     permissions:
+      # Allow to write packages to push the container image to the Github Container Registry
       packages: write
-      contents: read
     runs-on: ubuntu-22.04
     env:
       IMAGE_REPOSITORY_NAME: flutter-android
@@ -24,6 +24,13 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+
+      - name: Generate authentication token with GitHub App
+        uses: actions/create-github-app-token@31c86eb3b33c9b601a1f60f98dcbfd1d70f379b4 # v1
+        id: generate-token
+        with:
+          app-id: ${{ secrets.VERIFIED_COMMIT_ID }}
+          private-key: ${{ secrets.VERIFIED_COMMIT_KEY }}
 
       - name: Login to Docker Hub
         uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3
@@ -84,16 +91,6 @@ jobs:
             android_build_tools_version=${{ env.ANDROID_BUILD_TOOLS_VERSION }}
             android_platform_versions=${{ env.ANDROID_PLATFORM_VERSIONS }}
 
-      - name: Record image in Docker Scout environment
-        id: docker-scout-environment
-        uses: docker/scout-action@e71a6e518e912cc9094cb8c89e29bb0dcef01668 #v1
-        with:
-          command: environment
-          # Use the Docker Hub image that is the first tag in the metadata
-          image: registry://${{ fromJson(steps.metadata.outputs.json).tags[0] }}
-          environment: prod
-          organization: ${{ secrets.DOCKER_HUB_USERNAME }}
-
       - name: Test image
         uses: plexsystems/container-structure-test-action@c0a028aa96e8e82ae35be556040340cbb3e280ca # v0.3.0
         with:
@@ -123,6 +120,21 @@ jobs:
           repository: ${{ env.IMAGE_REPOSITORY_PATH }}
           short-description: ${{ github.event.repository.description }}
           readme-filepath: readme.md
+
+      - name: Record image in Docker Scout environment
+        id: docker-scout-environment
+        uses: docker/scout-action@e71a6e518e912cc9094cb8c89e29bb0dcef01668 #v1
+        with:
+          command: environment
+          # Use the Docker Hub image that is the first tag in the metadata
+          image: registry://${{ fromJson(steps.metadata.outputs.json).tags[0] }}
+          environment: prod
+          organization: ${{ secrets.DOCKER_HUB_USERNAME }}
+      
+      - name: Update bootstrap image tag in environment variable
+        run: gh variable set FLUTTER_VERSION --body "${{ env.FLUTTER_VERSION }}"
+        env:
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
 
       # TODO: Use kaniko for building and pushing after slowness is solved
       # TODO: https://github.com/GoogleContainerTools/kaniko/issues/970

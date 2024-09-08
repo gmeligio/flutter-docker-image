@@ -1,12 +1,13 @@
 module.exports = async ({ core, fetch }) => {
-  const linuxReleasesUrl = 'https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json'
+  const linuxReleasesUrl =
+    'https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json'
   const stableReleasePattern = /^\d+\.\d+\.\d+$/g
   const resultPath = 'config/flutter_version.json'
-  
+
   /**
    * Downloads the flutter releases from URL
-   * 
-   * @param {*} fileUrl 
+   *
+   * @param {*} fileUrl
    * @returns object|boolean
    */
   async function downloadReleases(fileUrl) {
@@ -23,9 +24,9 @@ module.exports = async ({ core, fetch }) => {
       return false
     }
   }
-  
+
   const linuxReleasesResponse = await downloadReleases(linuxReleasesUrl)
-  
+
   if (linuxReleasesResponse === false) {
     core.setFailed(
       `Could not download Flutter version manifest from ${fileUrl}.`
@@ -34,14 +35,16 @@ module.exports = async ({ core, fetch }) => {
     return false
   }
 
-  const {releases} = linuxReleasesResponse
-  const latestRelease = releases.find((r) => r.version.match(stableReleasePattern))
+  const { releases } = linuxReleasesResponse
+  const latestRelease = releases.find((r) =>
+    r.version.match(stableReleasePattern)
+  )
 
   const fs = require('fs')
   const data = fs.readFileSync(resultPath, 'utf8')
   const oldJson = JSON.parse(data)
 
-  const {version, channel, hash: commit} = latestRelease
+  const { version, channel, hash: commit } = latestRelease
 
   // Update result file, i.e. version.json
   const newJson = {
