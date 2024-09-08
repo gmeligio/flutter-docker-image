@@ -68,15 +68,17 @@ RUN git clone \
     && chown -R flutter:flutter "$FLUTTER_ROOT" \
     && flutter --version \
     && dart --disable-analytics \
-    && flutter config --no-analytics \
-    && flutter config --no-enable-android \
-    && flutter config --no-enable-web \
-    && flutter config --no-enable-linux-desktop \
-    && flutter config --no-enable-windows-desktop \
-    && flutter config --no-enable-fuchsia \
-    && flutter config --no-enable-custom-devices \
-    && flutter config --no-enable-ios \
-    && flutter config --no-enable-macos-desktop \
+    && flutter config \
+    --no-cli-animations \
+    --no-analytics \
+    --no-enable-android \
+    --no-enable-web \
+    --no-enable-linux-desktop \
+    --no-enable-windows-desktop \
+    --no-enable-fuchsia \
+    --no-enable-custom-devices \
+    --no-enable-ios \
+    --no-enable-macos-desktop \
     && flutter doctor
 
 COPY --chown=flutter:flutter ./script/docker-entrypoint.sh "$HOME/docker-entrypoint.sh"

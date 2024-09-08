@@ -8,7 +8,15 @@ on:
 
 jobs:
   test_gradle:
+    permissions:
+      # Allow to read packages to pull the container image from GitHub Container Registry
+      packages: read
     runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/${{ github.repository_owner }}/flutter-android:${{ vars.FLUTTER_VERSION }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ github.token }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
@@ -19,11 +27,10 @@ jobs:
           echo "FLUTTER_CHANNEL=$(jq -r '.flutter.channel' config/version.json)" >> $GITHUB_ENV
 
       - name: Setup Flutter
-        uses: flutter-actions/setup-flutter@6c57a0cee985bcea2f7dedad0d432eabd3072866 # v3.6
-        with:
-          cache: true
-          channel: ${{ env.FLUTTER_CHANNEL }}
-          version: ${{ env.FLUTTER_VERSION }}
+        run: |
+          cd $FLUTTER_ROOT
+          git fetch origin ${{ env.FLUTTER_VERSION }}:${{ env.FLUTTER_VERSION }}
+          git switch ${{ env.FLUTTER_VERSION }}
 
       - name: Create test application
         run: |
