@@ -27,6 +27,7 @@ jobs:
           {
             echo "content<<EOF" 
             cat ./config/version.json
+            echo
             echo "EOF"
           } >> $GITHUB_OUTPUT
 
