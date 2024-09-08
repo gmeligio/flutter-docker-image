@@ -7,7 +7,7 @@ module.exports = async ({ core, fetch }) => {
     const response = await fetch(versionFileUrl)
 
     const data = await response.json()
-    
+
     version = data.version
   } catch (error) {
     console.error(

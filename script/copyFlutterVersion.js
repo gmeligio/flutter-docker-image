@@ -1,10 +1,10 @@
-module.exports = async ({ core}) => {
+module.exports = async ({ core }) => {
   const fs = require('fs')
-  
+
   const flutterVersionPath = 'config/flutter_version.json'
   const flutterVersionData = fs.readFileSync(flutterVersionPath, 'utf8')
   const fluterVersionJson = JSON.parse(flutterVersionData)
-  
+
   const versionPath = 'config/version.json'
   const versionData = fs.readFileSync(versionPath, 'utf8')
   let versionJson = JSON.parse(versionData)

@@ -25,6 +25,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
 
+      - name: Generate authentication token with GitHub App
+        uses: actions/create-github-app-token@31c86eb3b33c9b601a1f60f98dcbfd1d70f379b4 # v1
+        id: generate-token
+        with:
+          app-id: ${{ secrets.VERIFIED_COMMIT_ID }}
+          private-key: ${{ secrets.VERIFIED_COMMIT_KEY }}
+
       - name: Login to Docker Hub
         uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3
         with:
@@ -123,6 +130,11 @@ jobs:
           repository: ${{ env.IMAGE_REPOSITORY_PATH }}
           short-description: ${{ github.event.repository.description }}
           readme-filepath: readme.md
+      
+      - name: Update bootstrap image tag in environment variable
+        run: gh variable set FLUTTER_VERSION --body "${{ env.FLUTTER_VERSION }}"
+        env:
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
 
       # TODO: Use kaniko for building and pushing after slowness is solved
       # TODO: https://github.com/GoogleContainerTools/kaniko/issues/970
