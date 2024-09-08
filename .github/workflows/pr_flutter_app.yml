@@ -24,9 +24,11 @@ jobs:
       - name: Read version.json
         id: version-json
         run: |
-          echo "content<<EOF" >> $GITHUB_OUTPUT
-          cat ./config/version.json >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          {
+            echo "content<<EOF" 
+            cat ./config/version.json
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
 
       - name: Set environment variables from version.json
         run: |
