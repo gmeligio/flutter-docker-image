@@ -10,7 +10,7 @@ The images includes the minimum tools to run Flutter and build apps. The version
 
 Features:
 
-1. \[x\] Installed Flutter SDK 3.24.1
+1. \[x\] Installed Flutter SDK 3.24.2
 2. \[x\] Analytics disabled by default, opt-in if `ENABLE_ANALYTICS` environment variable is passed when running the container.
 3. \[x\] Rootless user `flutter:flutter`, with permissions to run on GitLab CI.
 4. \[x\] Cached Fastlane gem 2.222.0
@@ -31,7 +31,7 @@ Predownloaded SDKs and tools:
 
 * Licenses accepted
 * Android SDK Platforms: 34
-* Gradle: 7.6.3
+* Gradle: 8.3
 
 Registries:
 
@@ -51,13 +51,13 @@ On the terminal:
 
 ```bash
 # From Docker Hub
-docker run --rm -it gmeligio/flutter-android:3.24.1 bash
+docker run --rm -it gmeligio/flutter-android:3.24.2 bash
 
 # From GitHub Container Registry
-docker run --rm -it ghcr.io/gmeligio/flutter-android:3.24.1 bash
+docker run --rm -it ghcr.io/gmeligio/flutter-android:3.24.2 bash
 
 # From Quay.io
-docker run --rm -it quay.io/gmeligio/flutter-android:3.24.1 bash
+docker run --rm -it quay.io/gmeligio/flutter-android:3.24.2 bash
 ```
 
 On a workflow in GitHub Actions:
@@ -67,7 +67,7 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/gmeligio/flutter-android:3.24.1
+      image: ghcr.io/gmeligio/flutter-android:3.24.2
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -79,7 +79,7 @@ On a `.gitlab-ci.yml` in GitLab CI:
 
 ```yaml
 build:
-  image: ghcr.io/gmeligio/flutter-android:3.24.1
+  image: ghcr.io/gmeligio/flutter-android:3.24.2
   script:
     - flutter build apk
 ```
@@ -102,8 +102,8 @@ There is no `latest` Docker tag on purpose. You need to specify the version of t
 
 The tag is composed of the Flutter version used to build the image. For example:
 
-* Docker image: gmeligio/flutter-android:3.24.1
-* Flutter version: 3.24.1
+* Docker image: gmeligio/flutter-android:3.24.2
+* Flutter version: 3.24.2
 
 ## Developing locally
 
@@ -111,13 +111,13 @@ The tag is composed of the Flutter version used to build the image. For example:
 
 The Dockerfile expects a few parameters:
 
-* `flutter_version <string>`: The version of Flutter to use when building. Example: 3.24.1
+* `flutter_version <string>`: The version of Flutter to use when building. Example: 3.24.2
 * `android_build_tools_version <string>`: The version of the Android SDK Build Tools to install. Example: 30.0.3
 * `android_platform_versions <list>`: The versions of the Android SDK Platforms to install, separated by spaces. Example: 28 31 33
 
 ```bash
 # Android
-docker build --target android --build-arg flutter_version=3.24.1 --build-arg fastlane_version=2.222.0 --build-arg android_build_tools_version=30.0.3 --build-arg android_platform_versions="34" -t android-test .
+docker build --target android --build-arg flutter_version=3.24.2 --build-arg fastlane_version=2.222.0 --build-arg android_build_tools_version=30.0.3 --build-arg android_platform_versions="34" -t android-test .
 ```
 
 ### Dockerfile stages
