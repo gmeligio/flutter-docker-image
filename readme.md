@@ -112,12 +112,12 @@ The tag is composed of the Flutter version used to build the image. For example:
 The Dockerfile expects a few parameters:
 
 * `flutter_version <string>`: The version of Flutter to use when building. Example: 3.24.2
-* `android_build_tools_version <string>`: The version of the Android SDK Build Tools to install. Example: 30.0.3
+* `android_build_tools_version <string>`: The version of the Android SDK Build Tools to install. Example: 33.0.1
 * `android_platform_versions <list>`: The versions of the Android SDK Platforms to install, separated by spaces. Example: 28 31 33
 
 ```bash
 # Android
-docker build --target android --build-arg flutter_version=3.24.2 --build-arg fastlane_version=2.222.0 --build-arg android_build_tools_version=30.0.3 --build-arg android_platform_versions="34" -t android-test .
+docker build --target android --build-arg flutter_version=3.24.2 --build-arg fastlane_version=2.222.0 --build-arg android_build_tools_version=33.0.1 --build-arg android_platform_versions="34" -t android-test .
 ```
 
 ### Dockerfile stages
