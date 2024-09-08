@@ -95,15 +95,15 @@ jobs:
       # - name: Setup Gitsign to sign git commits
       #   uses: chainguard-dev/actions/setup-gitsign@9ba949ac63357c725a9438f3e05a1e33d313498e # main
 
-      # - name: Create commit message variable
-      #   run: |
-      #     echo "COMMIT_MESSAGE=chore: update flutter dependencies in version.json for ${{ env.FLUTTER_VERSION }}" >> $GITHUB_ENV
+      - name: Create commit message variable
+        run: |
+          echo "COMMIT_MESSAGE=chore: update flutter dependencies in version.json for ${{ env.FLUTTER_VERSION }}" >> $GITHUB_ENV
 
-      # - name: Create pull request if there are changes
-      #   uses: peter-evans/create-pull-request@4320041ed380b20e97d388d56a7fb4f9b8c20e79 # v7
-      #   with:
-      #     commit-message: ${{ env.COMMIT_MESSAGE }}
-      #     branch: update-flutter-dependencies/${{ env.FLUTTER_VERSION }}
-      #     sign-commits: true
-      #     title: ${{ env.COMMIT_MESSAGE }}
-      #     token: ${{ steps.generate-token.outputs.token }}
+      - name: Create pull request if there are changes
+        uses: peter-evans/create-pull-request@4320041ed380b20e97d388d56a7fb4f9b8c20e79 # v7
+        with:
+          commit-message: ${{ env.COMMIT_MESSAGE }}
+          branch: update-flutter-dependencies/${{ env.FLUTTER_VERSION }}
+          sign-commits: true
+          title: ${{ env.COMMIT_MESSAGE }}
+          token: ${{ steps.generate-token.outputs.token }}

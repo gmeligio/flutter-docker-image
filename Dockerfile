@@ -43,7 +43,14 @@ RUN apt-get update \
 # After finishing with root user, set the HOME folder for the non-root user
 ENV HOME=/home/flutter
 
-RUN useradd -Ums /bin/bash flutter
+# The Github runner clones the repository with uid 1001 and gid 1001. This uid 1001 needs to be the set to the container user to give ownership to the repository folder.
+# See https://github.com/actions/checkout/issues/766
+RUN groupadd --gid 1001 flutter \
+    && useradd --create-home \
+    --shell /bin/bash \
+    --uid 1001 \
+    --gid flutter \
+    flutter
 USER flutter:flutter
 WORKDIR "$HOME"
 
