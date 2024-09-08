@@ -3,6 +3,7 @@ on:
     paths:
       - .github/workflows/pr_docs.yml
       - docs/**
+      - config/version.json
   workflow_dispatch:
 
 jobs:

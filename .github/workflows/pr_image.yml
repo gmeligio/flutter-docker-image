@@ -20,7 +20,6 @@ jobs:
     runs-on: ubuntu-22.04
     env:
       IMAGE_REPOSITORY_NAME: flutter-android
-      ANDROID_BUILD_TOOLS_VERSION: 30.0.3
       VERSION_MANIFEST: config/version.json
     steps:
       - name: Checkout repository
@@ -73,29 +72,30 @@ jobs:
             android_build_tools_version=${{ env.ANDROID_BUILD_TOOLS_VERSION }}
             android_platform_versions=${{ env.ANDROID_PLATFORM_VERSIONS }}
 
-      # TODO: Parallelize testing and vulnerability scanning
-      - name: Scan with Docker Scout
-        id: docker-scout
-        uses: docker/scout-action@e71a6e518e912cc9094cb8c89e29bb0dcef01668 # v1
-        with:
-          command: compare
-          # Use the Docker Hub image that is the first tag in the metadata
-          image: local://${{ fromJson(steps.metadata.outputs.json).tags[0] }}
-          # github-token is needed to be able to write the comment
-          github-token: ${{ github.token }}
-          organization: ${{ secrets.DOCKER_HUB_USERNAME }}
-          # sarif-file: output.sarif.json
-          to-env: prod
-          debug: true
-          verbose-debug: true
-
-      # - name: Upload scan results to the GitHub Security tab
-      #   uses: github/codeql-action/upload-sarif@4dd16135b69a43b6c8efb853346f8437d92d3c93 # v3
-      #   with:
-      #     sarif_file: output.sarif.json
-
       - name: Test image
         uses: plexsystems/container-structure-test-action@c0a028aa96e8e82ae35be556040340cbb3e280ca # v0.3.0
         with:
           image: ${{ fromJSON(steps.metadata.outputs.json).tags[0] }}
           config: test/android.yml
+
+      # TODO: Parallelize testing and vulnerability scanning
+      - name: Scan with Docker Scout
+        id: docker-scout
+        uses: docker/scout-action@e71a6e518e912cc9094cb8c89e29bb0dcef01668 # v1
+        with:
+          command: compare, recommendations
+          # Use the Docker Hub image that is the first tag in the metadata
+          image: local://${{ fromJson(steps.metadata.outputs.json).tags[0] }}
+          # github-token is needed to be able to write the PR comment
+          github-token: ${{ github.token }}
+          organization: ${{ secrets.DOCKER_HUB_USERNAME }}
+          # sarif-file: output.sarif.json
+          to-env: prod
+          # Enable debug logging when needed
+          # debug: true
+          # verbose-debug: true
+
+      # - name: Upload scan results to the GitHub Security tab
+      #   uses: github/codeql-action/upload-sarif@4dd16135b69a43b6c8efb853346f8437d92d3c93 # v3
+      #   with:
+      #     sarif_file: output.sarif.json
