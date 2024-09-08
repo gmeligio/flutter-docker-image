@@ -1,18 +1,5 @@
 schemaVersion: 2.0.0
 commandTests:
-  - name: Android SDK build tools is version 30.0.3
-    command: ls
-    args:
-      - /home/flutter/sdks/android-sdk/build-tools
-    expectedOutput:
-      - 30.0.3
-  - name: 'Android SDK build tools directory only has one directory'
-    command: bash
-    args:
-      - -c
-      - |
-        ls /home/flutter/sdks/android-sdk/build-tools \
-        | wc -l
   - name: Gradle, licenses and platforms are already downloaded
     setup:
       - - flutter
@@ -32,6 +19,19 @@ commandTests:
       - Checking
       - Installing
       - Downloading
+  - name: Android SDK build tools is pinned
+    command: ls
+    args:
+      - /home/flutter/sdks/android-sdk/build-tools
+    expectedOutput:
+      - 33.0.1
+  - name: Android SDK build tools directory only has one directory
+    command: bash
+    args:
+      - -c
+      - |
+        ls /home/flutter/sdks/android-sdk/build-tools \
+        | wc -l
   - name: Fastlane can run lanes
     setup:
       - - flutter
@@ -69,7 +69,7 @@ commandTests:
     excludedOutput:
       - Sending anonymous analytics information
 fileContentTests:
-  - name: 'Android SDK Command-line Tools is version 12.0'
+  - name: Android SDK Command-line Tools is version 12.0
     path: /home/flutter/sdks/android-sdk/cmdline-tools/latest/source.properties
     expectedContents:
       - "Pkg.Revision=12.0\nPkg.Path=cmdline-tools;12.0\nPkg.Desc=Android SDK Command-line Tools"
