@@ -6,11 +6,6 @@ on:
       - .github/workflows/update_flutter_dependencies.yml
       - config/flutter_version.json
   workflow_dispatch:
-  # TODO: Remove pull_request. Only used for testing container.image
-  pull_request:
-    paths:
-      - .github/workflows/update_flutter_dependencies.yml
-      - config/flutter_version.json
 
 jobs:
   update_version:
