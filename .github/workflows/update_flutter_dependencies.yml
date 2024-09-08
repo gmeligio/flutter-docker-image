@@ -12,6 +12,7 @@ jobs:
     permissions:
       # Enable OIDC token because Gitsign creates keys based on the GitHub runner OIDC credentials
       # id-token: write
+      # Allow to write contents to push commits
       contents: write
       # Allow to read packages to pull the container image from GitHub Container Registry
       packages: read

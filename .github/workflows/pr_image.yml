@@ -11,11 +11,11 @@ on:
 jobs:
   test_image:
     permissions:
+      # Allow to write packages for the docker/scout-action to write a comment
       packages: write
-      contents: read
-      # pull-requests write permission is needed for the docker/scout-action to write a comment
+      # Allow to write pull requests for the docker/scout-action to write a comment
       pull-requests: write
-      # security-events write permission is needed for github/codeql-action/upload-sarif to upload SARIF results
+      # Allow to write security events for github/codeql-action/upload-sarif to upload SARIF results
       security-events: write 
     runs-on: ubuntu-22.04
     env:

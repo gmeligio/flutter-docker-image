@@ -14,8 +14,8 @@ on:
 jobs:
   build_push_android:
     permissions:
+      # Allow to write packages to push the container image to the Github Container Registry
       packages: write
-      contents: read
     runs-on: ubuntu-22.04
     env:
       IMAGE_REPOSITORY_NAME: flutter-android

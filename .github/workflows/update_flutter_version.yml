@@ -7,7 +7,9 @@ jobs:
     permissions:
       # Enable OIDC token because Gitsign creates keys based on the GitHub runner OIDC credentials
       # id-token: write
+      # Allow to write contents to push commits
       contents: write
+      # Allow to write pull requests to push commits and write comments
       pull-requests: write
     runs-on: ubuntu-22.04
     steps:
