@@ -43,7 +43,14 @@ RUN apt-get update \
 # After finishing with root user, set the HOME folder for the non-root user
 ENV HOME=/home/flutter
 
-RUN useradd -Ums /bin/bash flutter
+# The Github runner clones the repository with uid 1001 and gid 1001. This uid 1001 needs to be the set to the container user to give ownership to the repository folder.
+# See https://github.com/actions/checkout/issues/766
+RUN groupadd --gid 1001 flutter \
+    && useradd --create-home \
+    --shell /bin/bash \
+    --uid 1001 \
+    --gid flutter \
+    flutter
 USER flutter:flutter
 WORKDIR "$HOME"
 
@@ -61,21 +68,27 @@ RUN git clone \
     && chown -R flutter:flutter "$FLUTTER_ROOT" \
     && flutter --version \
     && dart --disable-analytics \
-    && flutter config --no-analytics \
-    && flutter config --no-enable-android \
-    && flutter config --no-enable-web \
-    && flutter config --no-enable-linux-desktop \
-    && flutter config --no-enable-windows-desktop \
-    && flutter config --no-enable-fuchsia \
-    && flutter config --no-enable-custom-devices \
-    && flutter config --no-enable-ios \
-    && flutter config --no-enable-macos-desktop \
+    && flutter config \
+    --no-cli-animations \
+    --no-analytics \
+    --no-enable-android \
+    --no-enable-web \
+    --no-enable-linux-desktop \
+    --no-enable-windows-desktop \
+    --no-enable-fuchsia \
+    --no-enable-custom-devices \
+    --no-enable-ios \
+    --no-enable-macos-desktop \
     && flutter doctor
 
 COPY --chown=flutter:flutter ./script/docker-entrypoint.sh "$HOME/docker-entrypoint.sh"
 RUN chmod +x "$HOME/docker-entrypoint.sh"
 
 ENTRYPOINT [ "/home/flutter/docker-entrypoint.sh" ]
+
+#-----------------------------------------------
+#-----------------------------------------------
+#-----------------------------------------------
 
 FROM flutter AS fastlane
 
@@ -121,6 +134,10 @@ ARG fastlane_version
 
 RUN bundle init \
     && bundle add --version "$fastlane_version" fastlane
+
+#-----------------------------------------------
+#-----------------------------------------------
+#-----------------------------------------------
 
 FROM fastlane AS android
 

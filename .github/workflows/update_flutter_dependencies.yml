@@ -13,19 +13,27 @@ jobs:
       # Enable OIDC token because Gitsign creates keys based on the GitHub runner OIDC credentials
       # id-token: write
       contents: write
+      # Allow to read packages to pull the container image from GitHub Container Registry
+      packages: read
       pull-requests: write
     runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/${{ github.repository_owner }}/flutter-android:${{ vars.FLUTTER_VERSION }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ github.token }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
 
-      - uses: actions/create-github-app-token@31c86eb3b33c9b601a1f60f98dcbfd1d70f379b4 # v1
+      - name: Generate authentication token with GitHub App
+        uses: actions/create-github-app-token@31c86eb3b33c9b601a1f60f98dcbfd1d70f379b4 # v1
         id: generate-token
         with:
           app-id: ${{ secrets.VERIFIED_COMMIT_ID }}
           private-key: ${{ secrets.VERIFIED_COMMIT_KEY }}
 
-      - name: Copy Flutter version into version manifest
+      - name: Copy Flutter version into version manifest and export FLUTTER_* environment variables
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7
         with:
           script: |
@@ -40,11 +48,10 @@ jobs:
             await script({core, fetch})
 
       - name: Setup Flutter
-        uses: flutter-actions/setup-flutter@6c57a0cee985bcea2f7dedad0d432eabd3072866 # v3.6
-        with:
-          cache: true
-          channel: ${{ env.FLUTTER_CHANNEL }}
-          version: ${{ env.FLUTTER_VERSION }}
+        run: |
+          cd $FLUTTER_ROOT
+          git fetch origin ${{ env.FLUTTER_VERSION }}:${{ env.FLUTTER_VERSION }}
+          git switch ${{ env.FLUTTER_VERSION }}
 
       # TODO: Create test app in specific folder with step id, to allow parallel execution
       - name: Create test application

@@ -10,13 +10,13 @@ module.exports = async ({ core}) => {
   let versionJson = JSON.parse(versionData)
 
   const resultPath = 'config/version.json'
-
   const result = {
     ...versionJson,
     ...fluterVersionJson,
   }
 
-  fs.writeFileSync(resultPath, JSON.stringify(result, null, 4))
+  resultJson = JSON.stringify(result, null, 4)
+  fs.writeFileSync(resultPath, `${resultJson}\n`)
 
   const version = fluterVersionJson.flutter.version
   const channel = fluterVersionJson.flutter.channel
