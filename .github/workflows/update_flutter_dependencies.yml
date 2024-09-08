@@ -31,7 +31,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
 
-      - uses: actions/create-github-app-token@31c86eb3b33c9b601a1f60f98dcbfd1d70f379b4 # v1
+      - name: Generate authentication token with GitHub App
+        uses: actions/create-github-app-token@31c86eb3b33c9b601a1f60f98dcbfd1d70f379b4 # v1
         id: generate-token
         with:
           app-id: ${{ secrets.VERIFIED_COMMIT_ID }}
