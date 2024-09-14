@@ -153,4 +153,4 @@ See [Contributing](docs/contributing.md).
 
 ## License
 
-[MIT License](LICENSE)
+[MIT License](LICENSE.md)
