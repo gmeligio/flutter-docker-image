@@ -4,8 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "npm run readme && npm run contributing",
+    "build": "npm run readme && npm run contributing && npm run license",
     "readme": "cross-env NODE_ENV=production mdx-to-md readme.mdx ../../readme.md",
+    "license": "cross-env NODE_ENV=production mdx-to-md license.mdx ../../LICENSE.md",
     "contributing": "cross-env NODE_ENV=production mdx-to-md contributing.mdx ../contributing.md",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
