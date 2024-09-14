@@ -19,7 +19,7 @@ The images includes the minimum tools to run Flutter and build apps. The version
 Features:
 1. [x] Installed Flutter SDK {flutterVersion}
 1. [x] Analytics disabled by default, opt-in if `ENABLE_ANALYTICS` environment variable is passed when running the container.
-1. [x] Rootless user `flutter:flutter`, with permissions to run on GitLab CI.
+1. [x] Rootless user `flutter:flutter`, with permissions to run on Github workflows and GitLab CI.
 1. [x] Cached Fastlane gem {fastlaneVersion}
 1. [ ] Minimal image with predownloaded SDKs and tools ready to run `flutter` commands:
   
@@ -51,7 +51,6 @@ TODO:
 
 - [ ] Android emulator
 - [ ] Android NDK
-- [ ] Replace flutter-actions/setup-flutter and bootstrap with the latest published docker image
 
 ## Running containers
 
@@ -137,7 +136,7 @@ The storage of the images starts to cost after 50 GB and increases with every pu
 
 ## Contributing
 
-See [Contributing](docs/contributing.md)
+See [Contributing](docs/contributing.md).
 
 ## Other Docker projects for mobile development
 
@@ -155,5 +154,4 @@ See [Contributing](docs/contributing.md)
 
 ## License
 
-[MIT License](../LICENSE)
-
+[MIT License](LICENSE)
