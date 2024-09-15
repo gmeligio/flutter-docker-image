@@ -12,6 +12,7 @@
 1. Test where is installed.
 1. Test that path to powershell.exe exists.
 1. Test with a snapshot of flutter config to determine if new feature flags should be enabled or disabled.
+1. Test that Build Tools were installed in C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\msbuild\current\bin
 1. Check [Windows installation requirements for Flutter](https://docs.flutter.dev/get-started/install/windows/desktop)
 1. Add docs explaining to use `$VerbosePreference = 'Continue';` in the SHELL to debug unexpected pwsh problems.
 
@@ -72,6 +73,7 @@ Debug with `curl -A github165 -v https://mcr.microsoft.com/v2/powershell/manifes
 
     1. Install msstore CLI.
 
+    1. From https://github.com/tauu/flutter-windows-builder/blob/main/Dockerfile => install https://github.com/microsoft/StoreBroker
 
     1. Install the [Windows App Certification Kit](https://learn.microsoft.com/en-us/windows/uwp/debug-test-perf/windows-app-certification-kit) or the [Windows SDK that already includes it](https://developer.microsoft.com/en-us/windows/downloads/windows-sdk/)
 
