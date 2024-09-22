@@ -97,8 +97,3 @@ jobs:
           # Enable debug logging when needed
           # debug: true
           # verbose-debug: true
-
-      # - name: Upload scan results to the GitHub Security tab
-      #   uses: github/codeql-action/upload-sarif@4dd16135b69a43b6c8efb853346f8437d92d3c93 # v3
-      #   with:
-      #     sarif_file: output.sarif.json
