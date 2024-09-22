@@ -30,7 +30,7 @@ jobs:
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
 
       - name: Generate test files
-        uses: mikefarah/yq@master
+        uses: mikefarah/yq@bbdd97482f2d439126582a59689eb1c855944955 # v4
         with:
           cmd: ./script/update_test.sh
 
