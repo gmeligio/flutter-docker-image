@@ -1,10 +1,8 @@
 # escape=`
 
-# FROM mcr.microsoft.com/powershell:lts-7.2-nanoserver-ltsc2022@sha256:816b28df3ce39a36d6c6f696a4fd6f7823e09defb2af865f31501e868cb0e082 as flutter
 FROM mcr.microsoft.com/windows/servercore:ltsc2022@sha256:b7b2e5b4c2414400c4eef13db747376e0f10ef8e15b8d0587ef5b953ad4e6d43 as flutter
 
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
-# SHELL ["pwsh", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 
 ARG git_version=2.46.0
 ARG git_installation_path="C:\Program Files\Git"
@@ -29,34 +27,18 @@ RUN $installer = \"MinGit-${env:git_version}-busybox-64-bit.zip\"; `
 USER ContainerAdministrator
 
 # The PATH variable will be updated in the next shell session, so the RUN command that sets the PATH needs to be separated from the one that uses it
-RUN [Environment]::SetEnvironmentVariable('PATH', \"${env:PATH};${env:git_installation_path}\cmd;${env:git_installation_path}\usr\bin;${env:FLUTTER_ROOT}\bin;${env:FLUTTER_ROOT}\bin\cache\dart-sdk\bin;C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\msbuild\current\bin\", 'Machine'); `
-    # Download the Build Tools bootstrapper
-    # See https://learn.microsoft.com/en-us/visualstudio/install/build-tools-container?view=vs-2022
-    Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vs_buildtools.exe -OutFile vs_BuildTools.exe; `
-    Start-Process vs_BuildTools.exe -ArgumentList '--quiet --wait --norestart --nocache --includeRecommended `
-    --add Microsoft.Component.MSBuild `
-    --add Microsoft.VisualStudio.Workload.VCTools `
-    --add Microsoft.VisualStudio.ComponentGroup.VC.Tools.142.x86.x64' -Wait; `
-    Remove-Item vs_BuildTools.exe;
+RUN [Environment]::SetEnvironmentVariable('PATH', \"${env:PATH};${env:git_installation_path}\cmd;${env:git_installation_path}\usr\bin;${env:FLUTTER_ROOT}\bin;${env:FLUTTER_ROOT}\bin\cache\dart-sdk\bin;C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\msbuild\current\bin\", 'Machine');
 
 # MinGit has a circular reference in its global configuration, which causes git to crash
 # See https://github.com/git-for-windows/git/issues/2387#issuecomment-679367609
 # hadolint ignore=DL3059
 RUN $env:GIT_CONFIG_NOSYSTEM=1; git config --system --unset-all include.path;
 
-# Flutter uses a hardcoded powershell command for flutter doctor so powershell.exe needs to exist https://github.com/flutter/flutter/blob/3123d98132ba392025469d459846f7ccc44b6040/packages/flutter_tools/lib/src/windows/windows_version_validator.dart#L111    
-# RUN $pwshInstallationPath = Split-Path -Parent (Get-Command pwsh).Source; `
-#     New-Item -Force -ItemType SymbolicLink -Path "${pwshInstallationPath}\powershell.exe" -Target "${pwshInstallationPath}\pwsh.exe";
-
 # Switch to the non-admin user when the admin user is not needed anymore
 USER ContainerUser
 
-# Copy the where executable because is required by Flutter but it's not available in the windows/nanoserver image
-# COPY --from=mcr.microsoft.com/windows/servercore:ltsc2022 C:\Windows\System32\where.exe C:\Windows\System32\where.exe
-
 ARG flutter_version
 
-# RUN $env:GIT_CONFIG_NOSYSTEM=1; git config --system --unset-all include.path; `
 RUN git clone `
     --depth 1 `
     --branch "$env:flutter_version" `
@@ -70,15 +52,33 @@ RUN git clone `
     --no-enable-android `
     --no-enable-web `
     --no-enable-linux-desktop `
-    --no-enable-windows-desktop `
+    --enable-windows-desktop `
     --no-enable-fuchsia `
     --no-enable-custom-devices `
     --no-enable-ios `
     --no-enable-macos-desktop; `
-    flutter doctor;
+    flutter doctor --verbose; `
+    flutter precache --windows; `
+    flutter create build_app;
 
-# ## && chown -R flutter:flutter "$FLUTTER_ROOT" `
+USER ContainerAdministrator
+# Download the Build Tools bootstrapper
+# See https://learn.microsoft.com/en-us/visualstudio/install/build-tools-container?view=vs-2022
+RUN Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vs_buildtools.exe -OutFile vs_BuildTools.exe; `
+    Start-Process vs_BuildTools.exe -ArgumentList '--quiet --wait --norestart --nocache `
+    --add Microsoft.VisualStudio.Component.VC.CMake.Project `
+    --add Microsoft.VisualStudio.Component.Windows11SDK.22621 `
+    --add Microsoft.VisualStudio.Workload.VCTools' `
+    -Wait; `
+    Remove-Item vs_BuildTools.exe;
+USER ContainerUser
 
+WORKDIR "$USERPROFILE/build_app"
+RUN flutter build windows;
+
+WORKDIR "$USERPROFILE"
 COPY ./script/docker_windows_entrypoint.ps1 "docker_entrypoint.ps1"
 
 ENTRYPOINT "C:\Users\ContainerUser\docker_entrypoint.ps1"
+
+RUN Remove-Item -Recurse build_app;
