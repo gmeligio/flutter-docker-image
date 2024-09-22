@@ -11,6 +11,10 @@ on:
       - test/**
   workflow_dispatch:
 
+# Declare default permissions as read only.
+permissions:
+  contents: read
+
 jobs:
   build_push_android:
     permissions:

@@ -6,6 +6,10 @@ on:
       - config/version.json
   workflow_dispatch:
 
+# Declare default permissions as read only.
+permissions:
+  contents: read
+
 jobs:
   build_docs:
     runs-on: ubuntu-22.04

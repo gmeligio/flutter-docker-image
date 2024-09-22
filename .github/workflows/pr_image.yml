@@ -8,6 +8,9 @@ on:
       - script/set_environment_variables.sh
   workflow_dispatch:
 
+# Declare default permissions as read only.
+permissions: read-all
+
 jobs:
   test_image:
     permissions:
