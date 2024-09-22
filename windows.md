@@ -4,8 +4,30 @@
 
 & $Env:ProgramFiles\Docker\Docker\DockerCli.exe -SwitchDaemon
 
-
 ## TODO
+
+1. Install tools
+
+```powershell`
+   # # needed? No
+#    --add Microsoft.Component.MSBuild' `
+   # # needed? No
+   # --add Microsoft.VisualStudio.Component.TestTools.BuildTools `
+   # # needed? No
+   # --add Microsoft.VisualStudio.Component.VC.ASAN `
+   # # needed? no
+   # # --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 `
+RUN Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vs_buildtools.exe -OutFile vs_BuildTools.exe; `
+    Start-Process vs_BuildTools.exe -ArgumentList '--quiet --wait --norestart --nocache `
+   # # needed? yes
+   # --add Microsoft.VisualStudio.Component.VC.CMake.Project `
+   # # needed? Yes
+   # --add Microsoft.VisualStudio.Component.Windows11SDK.22621 `
+   # # needed?
+   # --add Microsoft.VisualStudio.Workload.VCTools' `
+    -Wait; `
+    Remove-Item vs_BuildTools.exe;
+```
 
 1. Check how it can be run in Github actions.
 1. Check how it can be run in Gitlab CI/CD.

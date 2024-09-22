@@ -19,6 +19,5 @@ if ($args.length -gt 0) {
     Invoke-Expression "$args"
 }
 else {
-    # pwsh
     powershell
 }
