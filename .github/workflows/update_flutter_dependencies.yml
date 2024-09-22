@@ -20,6 +20,7 @@ jobs:
       contents: write
       # Allow to read packages to pull the container image from GitHub Container Registry
       packages: read
+      # Allow to write pull requests to create a pull request
       pull-requests: write
     runs-on: ubuntu-22.04
     container:
