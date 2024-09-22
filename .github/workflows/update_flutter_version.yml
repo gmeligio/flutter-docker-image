@@ -2,6 +2,11 @@ on:
   schedule:
     - cron: '0 0 * * MON-FRI'
   workflow_dispatch:
+
+# Declare default permissions as read only.
+permissions:
+  contents: read
+
 jobs:
   update_flutter_version:
     permissions:

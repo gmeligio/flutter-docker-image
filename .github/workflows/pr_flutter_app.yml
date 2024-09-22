@@ -6,6 +6,10 @@ on:
       - version.json
   workflow_dispatch:
 
+# Declare default permissions as read only.
+permissions:
+  contents: read
+
 jobs:
   test_gradle:
     permissions:

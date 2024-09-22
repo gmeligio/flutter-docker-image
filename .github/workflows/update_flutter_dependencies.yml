@@ -7,6 +7,10 @@ on:
       - config/flutter_version.json
   workflow_dispatch:
 
+# Declare default permissions as read only.
+permissions:
+  contents: read
+
 jobs:
   update_version:
     permissions:

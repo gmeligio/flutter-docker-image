@@ -5,6 +5,10 @@ on:
       - config/**
   workflow_dispatch:
 
+# Declare default permissions as read only.
+permissions:
+  contents: read
+
 jobs:
   validate_version:
     runs-on: ubuntu-22.04
