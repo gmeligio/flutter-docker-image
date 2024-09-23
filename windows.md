@@ -93,7 +93,9 @@ Debug with `curl -A github165 -v https://mcr.microsoft.com/v2/powershell/manifes
         - [makepri.exe](https://learn.microsoft.com/en-us/windows/uwp/app-resources/makepri-exe-command-options)
         - [signtool.exe](https://learn.microsoft.com/en-us/dotnet/framework/tools/signtool-exe)
 
-    1. Install msstore CLI.
+    1. Install msstore CLI https://github.com/microsoft/msstore-cli It seems behind StoreBroker but it looks that it's going to be the primary and recommended way to publish to Microsoft Store
+
+    1. From <https://github.com/tauu/flutter-windows-builder/blob/main/Dockerfile> => install <https://github.com/microsoft/StoreBroker> This is currently the primary tool to publish to Microsoft Store
 
     1. From https://github.com/tauu/flutter-windows-builder/blob/main/Dockerfile => install https://github.com/microsoft/StoreBroker
 
