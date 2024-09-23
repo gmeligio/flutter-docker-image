@@ -44,6 +44,8 @@ RUN git clone `
     --branch "$env:flutter_version" `
     https://github.com/flutter/flutter `
     "$env:FLUTTER_ROOT"; `
+    # To fix fatal: detected dubious ownership in repository at 'C:/Users/ContainerUser/sdks/flutter/.git' owned by BUILTIN/Administrators but the current user is: User Manager/ContainerUser
+    git config --global --add safe.directory "$env:FLUTTER_ROOT"; `
     flutter --version; `
     dart --disable-analytics; `
     flutter config `
