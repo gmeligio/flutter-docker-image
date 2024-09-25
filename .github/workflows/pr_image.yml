@@ -91,6 +91,7 @@ jobs:
           image: local://${{ fromJson(steps.metadata.outputs.json).tags[0] }}
           # github-token is needed to be able to write the PR comment
           github-token: ${{ github.token }}
+          only-fixed: true
           organization: ${{ secrets.DOCKER_HUB_USERNAME }}
           # sarif-file: output.sarif.json
           to-env: prod
