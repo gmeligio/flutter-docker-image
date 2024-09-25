@@ -135,6 +135,7 @@ jobs:
           # Use the Docker Hub image that is the first tag in the metadata
           image: registry://${{ fromJson(steps.metadata.outputs.json).tags[0] }}
           environment: prod
+          only-fixed: true
           organization: ${{ secrets.DOCKER_HUB_USERNAME }}
           sarif-file: sarif.json
       
