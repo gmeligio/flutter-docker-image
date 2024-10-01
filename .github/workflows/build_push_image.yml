@@ -32,7 +32,7 @@ jobs:
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
 
       - name: Generate authentication token with GitHub App
-        uses: actions/create-github-app-token@31c86eb3b33c9b601a1f60f98dcbfd1d70f379b4 # v1
+        uses: actions/create-github-app-token@5d869da34e18e7287c1daad50e0b8ea0f506ce69 # v1
         id: generate-token
         with:
           app-id: ${{ secrets.VERIFIED_COMMIT_ID }}
@@ -129,7 +129,7 @@ jobs:
 
       - name: Record image in Docker Scout environment
         id: docker-scout-environment
-        uses: docker/scout-action@e71a6e518e912cc9094cb8c89e29bb0dcef01668 #v1
+        uses: docker/scout-action@cc6bf8dd03587425ef920278b3e2726ba8d791e8 # v1
         with:
           command: environment, cves
           # Use the Docker Hub image that is the first tag in the metadata

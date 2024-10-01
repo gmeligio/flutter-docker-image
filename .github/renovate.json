@@ -9,16 +9,10 @@
   ],
   "packageRules": [
     {
-      "matchManagers": ["github-actions"],
-      "matchPackageNames": [
-        "actions/checkout",
-        "actions/github-script",
-        "actions/setup-node",
-        "chainguard-dev/actions",
-        "cue-lang/setup-cue"
-      ],
-      "automerge": true,
-      "pinDigests": true
+      "groupName": "github-actions",
+      "matchDatasources": [
+        "github-tags"
+      ]
     }
   ],
   "customManagers": [
