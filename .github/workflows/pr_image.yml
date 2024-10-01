@@ -84,7 +84,7 @@ jobs:
       # TODO: Parallelize testing and vulnerability scanning
       - name: Scan with Docker Scout
         id: docker-scout
-        uses: docker/scout-action@e71a6e518e912cc9094cb8c89e29bb0dcef01668 # v1
+        uses: docker/scout-action@cc6bf8dd03587425ef920278b3e2726ba8d791e8 # v1
         with:
           command: compare, recommendations
           # Use the Docker Hub image that is the first tag in the metadata
