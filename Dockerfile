@@ -32,8 +32,6 @@ RUN apt-get update \
     # libpulse0=1:15.99.1+dfsg1-1ubuntu2 \
     # locales=2.35-0ubuntu3.1 \
     # openssh-client=1:8.9p1-3ubuntu0.1 \
-    # ruby-bundler=2.3.5-2 \
-    # ruby-full=1:3.0~exp1 \
     # software-properties-common=0.99.22.5 \
     # zip=3.0-12build2 \
     ca-certificates="$CA_CERTIFICATES_VERSION" \
