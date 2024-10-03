@@ -60,3 +60,53 @@ jobs:
         run: |
           git add -A  
           git diff --exit-code HEAD
+
+  test_gradle:
+    permissions:
+      # Allow to read packages to pull the container image from GitHub Container Registry
+      packages: read
+    runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/${{ github.repository_owner }}/flutter-android:${{ vars.FLUTTER_VERSION }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ github.token }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+
+      - name: Read version.json
+        id: version-json
+        run: |
+          {
+            echo "content<<EOF" 
+            cat ./config/version.json
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+
+      - name: Set environment variables from version.json
+        run: |
+          echo "FLUTTER_VERSION=${{ fromJson( steps.version-json.outputs.content ).flutter.version }}" >> $GITHUB_ENV
+          echo "FLUTTER_CHANNEL=${{ fromJson( steps.version-json.outputs.content ).flutter.channel }}" >> $GITHUB_ENV
+
+      - name: Setup Flutter
+        run: |
+          cd $FLUTTER_ROOT
+          git fetch origin ${{ env.FLUTTER_VERSION }}:${{ env.FLUTTER_VERSION }}
+          git switch ${{ env.FLUTTER_VERSION }}
+
+      - name: Create test application
+        run: |
+          flutter create test_app
+
+      - name: Update default Android platform versions in Flutter
+        working-directory: test_app/android
+        run: |
+          cat ../../script/updateAndroidVersions.gradle >> app/build.gradle
+          ./gradlew --warning-mode all updateAndroidVersions
+
+      - name: Setup Cue for JSON validation
+        uses: cue-lang/setup-cue@a93fa358375740cd8b0078f76355512b9208acb1 # v1.0.1
+
+      - name: Validate version.json
+        run: cue vet config/version.cue config/version.json
