@@ -14,8 +14,6 @@ permissions:
 jobs:
   update_version:
     permissions:
-      # Enable OIDC token because Gitsign creates keys based on the GitHub runner OIDC credentials
-      # id-token: write
       # Allow to write contents to push commits
       contents: write
       # Allow to read packages to pull the container image from GitHub Container Registry
@@ -93,9 +91,6 @@ jobs:
         run: |
           npm ci --prefer-offline
           npm run build
-
-      # - name: Setup Gitsign to sign git commits
-      #   uses: chainguard-dev/actions/setup-gitsign@9ba949ac63357c725a9438f3e05a1e33d313498e # main
 
       - name: Create commit message variable
         run: |

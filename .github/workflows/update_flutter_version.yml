@@ -10,8 +10,6 @@ permissions:
 jobs:
   update_flutter_version:
     permissions:
-      # Enable OIDC token because Gitsign creates keys based on the GitHub runner OIDC credentials
-      # id-token: write
       # Allow to write contents to push commits
       contents: write
       # Allow to write pull requests to push commits and write comments
@@ -41,9 +39,6 @@ jobs:
       - name: Validate version.json
         run: cue vet config/flutter_version.cue config/flutter_version.json
 
-      # - name: Setup Gitsign to sign git commits
-      #   uses: chainguard-dev/actions/setup-gitsign@9ba949ac63357c725a9438f3e05a1e33d313498e # main
-      
       - name: Create commit message variable
         run: |
           echo "COMMIT_MESSAGE=chore: update flutter version in flutter_version.json to ${{ env.FLUTTER_VERSION }}" >> $GITHUB_ENV
