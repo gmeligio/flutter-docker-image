@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout repository
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
       - name: Generate authentication token with GitHub App
         uses: actions/create-github-app-token@5d869da34e18e7287c1daad50e0b8ea0f506ce69 # v1
@@ -44,7 +44,7 @@ jobs:
           echo "COMMIT_MESSAGE=chore: update flutter version in flutter_version.json to ${{ env.FLUTTER_VERSION }}" >> $GITHUB_ENV
 
       - name: Create pull request if there are changes
-        uses: peter-evans/create-pull-request@4320041ed380b20e97d388d56a7fb4f9b8c20e79 # v7
+        uses: peter-evans/create-pull-request@5e914681df9dc83aa4e4905692ca88beb2f9e91f # v7
         with:
           commit-message: ${{ env.COMMIT_MESSAGE }}
           branch: update-flutter-version/${{ env.FLUTTER_VERSION }}
