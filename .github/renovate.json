@@ -5,7 +5,7 @@
     "group:allNonMajor",
     "group:recommended",
     "group:monorepos",
-    "schedule:monthly"
+    "schedule:weekly"
   ],
   "packageRules": [
     {
@@ -18,7 +18,9 @@
   "customManagers": [
     {
       "customType": "regex",
-      "fileMatch": ["^Dockerfile$"],
+      "fileMatch": [
+        "^Dockerfile$"
+      ],
       "matchStrings": [
         "#\\s*renovate:\\s*datasource=(?<datasource>.*?) depName=(?<depName>.*?)( versioning=(?<versioning>.*?))?\\sARG .*?_VERSION=\"(?<currentValue>.*)\"\\s"
       ],
