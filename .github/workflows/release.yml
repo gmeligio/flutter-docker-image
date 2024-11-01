@@ -29,7 +29,7 @@ jobs:
       VERSION_MANIFEST: config/version.json
     steps:
       - name: Checkout repository
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
       - name: Generate authentication token with GitHub App
         uses: actions/create-github-app-token@5d869da34e18e7287c1daad50e0b8ea0f506ce69 # v1
@@ -80,7 +80,7 @@ jobs:
             type=raw,value=${{ env.FLUTTER_VERSION }}
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@988b5a0280414f521da01fcc63a27aeeb4b104db # v3
+        uses: docker/setup-buildx-action@c47758b77c9736f4b2ef4073d4d51994fabfe349 # v3
 
       - name: Build image and push to local Docker daemon
         uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25 # v5
@@ -129,7 +129,7 @@ jobs:
 
       - name: Record image in Docker Scout environment
         id: docker-scout-environment
-        uses: docker/scout-action@cc6bf8dd03587425ef920278b3e2726ba8d791e8 # v1
+        uses: docker/scout-action@e1c0d589b972d5605e035bbf74ed95cfc306d597 # v1
         with:
           command: environment, cves
           # Use the Docker Hub image that is the first tag in the metadata
@@ -147,7 +147,7 @@ jobs:
       # Upload the results to GitHub's code scanning dashboard (optional).
       # Commenting out will disable upload of results to your repo's Code Scanning dashboard
       - name: Upload to code-scanning
-        uses: github/codeql-action/upload-sarif@294a9d92911152fe08befb9ec03e240add280cb3 # v3
+        uses: github/codeql-action/upload-sarif@662472033e021d55d94146f66f6058822b0b39fd # v3
         with:
           sarif_file: sarif.json
 
