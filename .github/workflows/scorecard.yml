@@ -22,7 +22,7 @@ permissions:
 jobs:
   analysis:
     name: Scorecard analysis
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     permissions:
       # Allow to write id-token to publish results and get a badge (see publish_results below).
       id-token: write
