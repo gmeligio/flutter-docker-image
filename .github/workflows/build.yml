@@ -15,7 +15,7 @@ jobs:
       pull-requests: write
       # Allow to write security events for github/codeql-action/upload-sarif to upload SARIF results
       security-events: write 
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     env:
       IMAGE_REPOSITORY_NAME: flutter-android
       VERSION_MANIFEST: config/version.json
@@ -95,7 +95,7 @@ jobs:
           # verbose-debug: true
 
   validate_version:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
@@ -109,7 +109,7 @@ jobs:
           cue vet config/flutter_version.cue config/flutter_version.json
 
   validate_generated_config:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
@@ -125,7 +125,7 @@ jobs:
           git diff --exit-code HEAD
 
   build_docs:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
@@ -152,7 +152,7 @@ jobs:
     permissions:
       # Allow to read packages to pull the container image from GitHub Container Registry
       packages: read
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     container:
       image: ghcr.io/${{ github.repository_owner }}/flutter-android:${{ vars.FLUTTER_VERSION }}
       credentials:

@@ -22,7 +22,7 @@ jobs:
       packages: write
       # Allow to write security events to upload the results to code-scanning dashboard.
       security-events: write
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     env:
       IMAGE_REPOSITORY_NAME: flutter-android
       ANDROID_BUILD_TOOLS_VERSION: 30.0.3
