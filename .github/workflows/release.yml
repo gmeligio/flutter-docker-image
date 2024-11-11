@@ -129,7 +129,7 @@ jobs:
 
       - name: Record image in Docker Scout environment
         id: docker-scout-environment
-        uses: docker/scout-action@e1c0d589b972d5605e035bbf74ed95cfc306d597 # v1
+        uses: docker/scout-action@6ac950eb733f8b2811f25c05d97bfb3d181b8026 # v1
         with:
           command: environment, cves
           # Use the Docker Hub image that is the first tag in the metadata
@@ -147,7 +147,7 @@ jobs:
       # Upload the results to GitHub's code scanning dashboard (optional).
       # Commenting out will disable upload of results to your repo's Code Scanning dashboard
       - name: Upload to code-scanning
-        uses: github/codeql-action/upload-sarif@662472033e021d55d94146f66f6058822b0b39fd # v3
+        uses: github/codeql-action/upload-sarif@4f3212b61783c3c68e8309a0f18a699764811cda # v3
         with:
           sarif_file: sarif.json
 
