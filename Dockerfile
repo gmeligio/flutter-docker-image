@@ -5,7 +5,7 @@ SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 ENV LANG=C.UTF-8
 
 # renovate: datasource=repology depName=debian_12/curl versioning=loose
-ARG CURL_VERSION="7.88.1-10+deb12u7"
+ARG CURL_VERSION="7.88.1-10+deb12u8"
 # renovate: datasource=repology depName=debian_12/git versioning=loose
 ARG GIT_VERSION="1:2.39.5-0+deb12u1"
 # renovate: datasource=repology depName=debian_12/lcov versioning=loose
