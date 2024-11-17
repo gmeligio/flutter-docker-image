@@ -16,43 +16,31 @@ Docker images for Flutter Continuous Integration (CI). The source is available [
 
 The images includes the minimum tools to run Flutter and build apps. The versions of the tools installed are based on the official [Flutter](https://github.com/flutter/flutter) repository. The final goal is that Flutter doesn't need to download anything like tools or SDKs when running the container.
 
-Features:
-1. [x] Installed Flutter SDK {flutterVersion}
-1. [x] Analytics disabled by default, opt-in if `ENABLE_ANALYTICS` environment variable is passed when running the container.
-1. [x] Rootless user `flutter:flutter`, with permissions to run on Github workflows and GitLab CI.
-1. [x] Cached Fastlane gem {fastlaneVersion}
-1. [ ] Minimal image with predownloaded SDKs and tools ready to run `flutter` commands:
-  
-   - [x] Android
-   - [ ] iOS
-   - [ ] Linux
-   - [ ] Windows
-   - [ ] Web
+## Features
 
-## Alpha stability
+- Installed Flutter SDK {flutterVersion}.
+- Analytics disabled by default, opt-in if `ENABLE_ANALYTICS` environment variable is passed when running the container.
+- Rootless user `flutter:flutter`, with permissions to run on Github workflows and GitLab CI.
+- Cached Fastlane gem {fastlaneVersion}.
+- Minimal image with predownloaded SDKs and tools ready to run `flutter` commands for the Android platform.
 
-The images are experimental and are in active development. They are being used for small projects but there is no confirmation of production usage yet.
-
-## flutter-android image
-    
-Predownloaded SDKs and tools:
+Predownloaded SDKs and tools in Android:
 
 - Licenses accepted
 - Android SDK Platforms: {androidPlatformVersions}
 - Gradle: {gradleVersion}
+
+## Alpha Stability
+
+The images are experimental and are in active development. They are being used for small projects but there is no confirmation of production usage yet.
+
+## Running Containers
 
 Registries:
 
 - <a href={dockerHubUrl}>Docker Hub</a>
 - [Github Container Registry](https://github.com/gmeligio/flutter-docker-image/pkgs/container/flutter-android)
 - <a href={quayUrl}>Quay</a>
-
-TODO:
-
-- [ ] Android emulator
-- [ ] Android NDK
-
-## Running containers
 
 On the terminal:
 <pre><code className="language-bash">
@@ -107,9 +95,9 @@ The tag is composed of the Flutter version used to build the image. For example:
 - Docker image: {imageUri}
 - Flutter version: {flutterVersion}
 
-## Developing locally
+## Developing Locally
 
-### Running the container
+### Running The Container
 
 The Dockerfile expects a few parameters:
 - `flutter_version <string>`: The version of Flutter to use when building. Example: {flutterVersion}
@@ -128,9 +116,21 @@ The base image is `debian/debian:12-slim` and from there multiple stages are cre
 1. `fastlane` stage has the dependencies required to install fastlane but doesn't install fastlane.
 1. `android` stage has the dependencies required to install the Android SDK and to develop Flutter apps for Android.
 
+## Roadmap
+
+- Minimal image with predownloaded SDKs and tools ready to run `flutter` commands for the platforms:
+   - [ ] iOS
+   - [ ] Linux
+   - [ ] Windows
+   - [ ] Web
+
+- Android features:
+   - [ ] Android emulator
+   - [ ] Android NDK
+
 ## FAQ
 
-### Why not push to AWS ECR Public registry?
+### Why the images are not published in the AWS ECR Public registry?
 
 The storage of the images starts to cost after 50 GB and increases with every pushed image because the AWS Free Tier covers up to 50 GB of total storage for free in ECR Public.
 
