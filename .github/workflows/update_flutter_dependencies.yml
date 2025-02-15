@@ -66,7 +66,7 @@ jobs:
       - name: Update default Android platform versions in Flutter
         working-directory: test_app/android
         run: |
-          cat ../../script/updateAndroidVersions.gradle >> app/build.gradle
+          cat ../../script/updateAndroidVersions.gradle.kts >> app/build.gradle.kts
           ./gradlew --warning-mode all updateAndroidVersions
 
       - name: Clean test application
