@@ -1,8 +1,7 @@
-// Snippet to include at the end of android/app/build.gradle.kts
 tasks.register<DefaultTask>("updateAndroidVersions") {
     doLast {
-        val jsonFile = File("../../config/version.json")        
-        
+        val jsonFile = File("../../config/version.json")     
+
         // Parse existing JSON file
         val resultJsonMap = groovy.json.JsonSlurper().parseText(jsonFile.readText()) as MutableMap<String, Any>
 

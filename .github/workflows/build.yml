@@ -189,7 +189,7 @@ jobs:
       - name: Update default Android platform versions in Flutter
         working-directory: test_app/android
         run: |
-          cat ../../script/updateAndroidVersions.gradle >> app/build.gradle.kts
+          cat ../../script/updateAndroidVersions.gradle.kts >> app/build.gradle.kts
           ./gradlew --warning-mode all updateAndroidVersions
 
       - name: Setup Cue for JSON validation
