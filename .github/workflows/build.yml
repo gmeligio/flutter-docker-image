@@ -69,6 +69,7 @@ jobs:
             fastlane_version=${{ env.FASTLANE_VERSION }}
             android_build_tools_version=${{ env.ANDROID_BUILD_TOOLS_VERSION }}
             android_platform_versions=${{ env.ANDROID_PLATFORM_VERSIONS }}
+            android_ndk_version=${{ env.ANDROID_NDK_VERSION }}
 
       - name: Test image
         uses: plexsystems/container-structure-test-action@c0a028aa96e8e82ae35be556040340cbb3e280ca # v0.3.0
