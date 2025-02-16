@@ -27,5 +27,7 @@ services:
         fastlane_version: $FASTLANE_VERSION
         android_build_tools_version: $ANDROID_BUILD_TOOLS_VERSION
         android_platform_versions: $ANDROID_PLATFORM_VERSIONS
+        android_ndk_version: $ANDROID_NDK_VERSION
+        cmake_version: $CMAKE_VERSION
     environment:
       ENABLE_ANALYTICS: $ENABLE_ANALYTICS
