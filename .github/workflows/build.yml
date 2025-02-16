@@ -70,6 +70,7 @@ jobs:
             android_build_tools_version=${{ env.ANDROID_BUILD_TOOLS_VERSION }}
             android_platform_versions=${{ env.ANDROID_PLATFORM_VERSIONS }}
             android_ndk_version=${{ env.ANDROID_NDK_VERSION }}
+            cmake_version=${{ env.CMAKE_VERSION }}
 
       - name: Test image
         uses: plexsystems/container-structure-test-action@c0a028aa96e8e82ae35be556040340cbb3e280ca # v0.3.0
