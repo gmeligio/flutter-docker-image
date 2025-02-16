@@ -20,6 +20,7 @@ Predownloaded SDKs and tools in Android:
 
 * Licenses accepted
 * Android SDK Platforms: 35
+* Android NDK: 26.3.11579264
 * Gradle: 8.10.2
 
 ## Alpha Stability
@@ -99,12 +100,12 @@ The tag is composed of the Flutter version used to build the image. For example:
 The Dockerfile expects a few parameters:
 
 * `flutter_version <string>`: The version of Flutter to use when building. Example: 3.29.0
-* `android_build_tools_version <string>`: The version of the Android SDK Build Tools to install. Example: 33.0.1
+* `android_build_tools_version <string>`: The version of the Android SDK Build Tools to install. Example: 34.0.0
 * `android_platform_versions <list>`: The versions of the Android SDK Platforms to install, separated by spaces. Example: 28 31 33
 
 ```bash
 # Android
-docker build --target android --build-arg flutter_version=3.29.0 --build-arg fastlane_version=2.226.0 --build-arg android_build_tools_version=33.0.1 --build-arg android_platform_versions="35" -t android-test .
+docker build --target android --build-arg flutter_version=3.29.0 --build-arg fastlane_version=2.226.0 --build-arg android_build_tools_version=34.0.0 --build-arg android_platform_versions="35" -t android-test .
 ```
 
 ### Dockerfile stages
@@ -123,8 +124,7 @@ The base image is `debian/debian:12-slim` and from there multiple stages are cre
    * \[ \] Windows  
    * \[ \] Web
 * Android features:  
-   * \[ \] Android emulator  
-   * \[ \] Android NDK
+   * \[ \] Android emulator
 
 ## FAQ
 
