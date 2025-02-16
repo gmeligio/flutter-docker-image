@@ -7,6 +7,7 @@ export const buildToolsVersion = androidJson.buildTools.version
 export const repositoryPath = 'gmeligio/flutter-android'
 export const imageUri = `${repositoryPath}:${flutterVersion}`
 export const androidPlatformVersions = androidJson.platforms.map(p => p.version).join(', ')
+export const androidNdkVersion = androidJson.ndk.version
 export const dockerHubUrl = `https://hub.docker.com/r/${repositoryPath}`
 export const quayUrl = `https://quay.io/repository/${repositoryPath}`
 
@@ -28,6 +29,7 @@ Predownloaded SDKs and tools in Android:
 
 - Licenses accepted
 - Android SDK Platforms: {androidPlatformVersions}
+- Android NDK: {androidNdkVersion}
 - Gradle: {gradleVersion}
 
 ## Alpha Stability
@@ -126,7 +128,6 @@ The base image is `debian/debian:12-slim` and from there multiple stages are cre
 
 - Android features:
    - [ ] Android emulator
-   - [ ] Android NDK
 
 ## FAQ
 

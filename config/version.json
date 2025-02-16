@@ -1,8 +1,8 @@
 {
     "flutter": {
         "channel": "stable",
-        "commit": "d8a9f9a52e5af486f80d932e838ee93861ffd863",
-        "version": "3.27.4"
+        "commit": "35c388afb57ef061d06a39b537336c87e0e3d1b1",
+        "version": "3.29.0"
     },
     "android": {
         "platforms": [
@@ -11,13 +11,19 @@
             }
         ],
         "gradle": {
-            "version": "8.3"
+            "version": "8.10.2"
         },
         "buildTools": {
-            "version": "33.0.1"
+            "version": "34.0.0"
         },
         "cmdlineTools": {
             "version": "12.0"
+        },
+        "ndk": {
+            "version": "26.3.11579264"
+        },
+        "cmake": {
+            "version": "3.22.1"
         }
     },
     "fastlane": {

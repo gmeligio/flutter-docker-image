@@ -18,7 +18,8 @@ tasks.register<DefaultTask>("updateAndroidVersions") {
             "platforms" to platformVersions.map {
                 mapOf("version" to it)
             },
-            "gradle" to mapOf("version" to gradle.gradleVersion)
+            "gradle" to mapOf("version" to gradle.gradleVersion),
+            "ndk" to mapOf("version" to flutter.ndkVersion)
         )
 
         // Merge new values into the existing JSON structure

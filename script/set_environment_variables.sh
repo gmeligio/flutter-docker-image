@@ -11,5 +11,9 @@ IMAGE_REPOSITORY_PATH="$GITHUB_REPOSITORY_OWNER/$IMAGE_REPOSITORY_NAME"
 
     echo "ANDROID_PLATFORM_VERSIONS=$(jq -r '.android.platforms[].version' "$VERSION_MANIFEST" | tr '\n' ' ' | sed 's/ $//')"
 
+    echo "ANDROID_NDK_VERSION=$(jq -r '.android.ndk.version' "$VERSION_MANIFEST")"
+
+    echo "CMAKE_VERSION=$(jq -r '.android.cmake.version' "$VERSION_MANIFEST")"
+
     echo "IMAGE_REPOSITORY_PATH=$IMAGE_REPOSITORY_PATH"
 } >>"$GITHUB_ENV"

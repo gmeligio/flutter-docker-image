@@ -96,6 +96,8 @@ jobs:
             fastlane_version=${{ env.FASTLANE_VERSION }}
             android_build_tools_version=${{ env.ANDROID_BUILD_TOOLS_VERSION }}
             android_platform_versions=${{ env.ANDROID_PLATFORM_VERSIONS }}
+            android_ndk_version=${{ env.ANDROID_NDK_VERSION }}
+            cmake_version=${{ env.CMAKE_VERSION }}
 
       - name: Test image
         uses: plexsystems/container-structure-test-action@c0a028aa96e8e82ae35be556040340cbb3e280ca # v0.3.0
@@ -117,6 +119,8 @@ jobs:
             fastlane_version=${{ env.FASTLANE_VERSION }}
             android_build_tools_version=${{ env.ANDROID_BUILD_TOOLS_VERSION }}
             android_platform_versions=${{ env.ANDROID_PLATFORM_VERSIONS }}
+            android_ndk_version=${{ env.ANDROID_NDK_VERSION }}
+            cmake_version=${{ env.CMAKE_VERSION }}
 
       - name: Update Docker Hub description
         uses: peter-evans/dockerhub-description@e98e4d1628a5f3be2be7c231e50981aee98723ae # v4

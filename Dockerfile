@@ -179,7 +179,8 @@ WORKDIR "$HOME"
 
 ARG android_build_tools_version
 ARG android_platform_versions
-# ARG android_ndk_version
+ARG android_ndk_version
+ARG cmake_version
 
 RUN mkdir -p "$ANDROID_HOME" \
     && chown -R flutter:flutter "$ANDROID_HOME" \
@@ -191,10 +192,10 @@ RUN mkdir -p "$ANDROID_HOME" \
     && rm android-cmdline-tools.zip \
     # Installing deprecated Android SDK Tools (revision: 26.1.1)
     # Because Flutter always downloads it, even when it's not necessary, with log: "Install Android SDK Tools (revision: 26.1.1)"
-    && curl -o android-sdk-tools.zip https://dl.google.com/android/repository/sdk-tools-windows-4333796.zip \
-    && mkdir -p "$ANDROID_HOME/" \
-    && unzip -q android-sdk-tools.zip -d "$ANDROID_HOME/" \
-    && rm android-sdk-tools.zip \
+    # && curl -o android-sdk-tools.zip https://dl.google.com/android/repository/sdk-tools-linux-4333796.zip \
+    # && mkdir -p "$ANDROID_HOME/" \
+    # && unzip -q android-sdk-tools.zip -d "$ANDROID_HOME/" \
+    # && rm android-sdk-tools.zip \
     && (yes || true) | sdkmanager --licenses \
     # && mkdir -p "$HOME/.local/bin" \
     # && curl -o "$HOME/.local/bin/android-wait-for-emulator" https://raw.githubusercontent.com/travis-ci/travis-cookbooks/master/community-cookbooks/android-sdk/files/default/android-wait-for-emulator \
@@ -208,7 +209,8 @@ RUN mkdir -p "$ANDROID_HOME" \
     && (yes || true) | sdkmanager \
     "platform-tools" \
     "build-tools;$android_build_tools_version" \
-    # "ndk;$android_ndk_version" \
+    "ndk;$android_ndk_version" \
+    "cmake;$cmake_version" \
     && for version in $android_platform_versions; do (yes || true) | sdkmanager "platforms;android-$version"; done \
     && flutter config --enable-android \
     && (yes || true) | flutter doctor --android-licenses \
