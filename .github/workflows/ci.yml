@@ -102,6 +102,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      - name: Read environment variables from version.json
+        env:
+          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+        run: ./script/set_environment_variables.sh
       
       - name: Create Tag for a new Flutter Version
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7
@@ -111,4 +116,4 @@ jobs:
         with:
           script: |
             const script = require('./script/createGitTag.js')
-            await script({ context, github })
+            await script({ core, context, github })
