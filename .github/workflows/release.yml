@@ -1,22 +1,15 @@
 on:
   push:
-    branches:
-      - main
-    # paths:
-    #   - .github/workflows/release.yml
-    #   - Dockerfile
-    #   - config/version.json
-    #   - script/docker-entrypoint.sh
-    #   - script/set_environment_variables.sh
-    #   - test/**
+    tags:
+    - '*'
   workflow_dispatch:
 
-# Declare default permissions as read only.
+# Read-only permissions by default
 permissions:
   contents: read
 
 jobs:
-  build_push_android:
+  release_android:
     permissions:
       # Allow to write packages to push the container image to the Github Container Registry
       packages: write
@@ -81,29 +74,6 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@c47758b77c9736f4b2ef4073d4d51994fabfe349 # v3
-
-      - name: Build image and push to local Docker daemon
-        uses: docker/build-push-action@4f58ea79222b3b9dc2c8bbdd6debcef730109a75 # v6
-        with:
-          load: true
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          tags: ${{ steps.metadata.outputs.tags }}
-          labels: ${{ steps.metadata.outputs.labels }}
-          target: android
-          build-args: |
-            flutter_version=${{ env.FLUTTER_VERSION }}
-            fastlane_version=${{ env.FASTLANE_VERSION }}
-            android_build_tools_version=${{ env.ANDROID_BUILD_TOOLS_VERSION }}
-            android_platform_versions=${{ env.ANDROID_PLATFORM_VERSIONS }}
-            android_ndk_version=${{ env.ANDROID_NDK_VERSION }}
-            cmake_version=${{ env.CMAKE_VERSION }}
-
-      - name: Test image
-        uses: plexsystems/container-structure-test-action@c0a028aa96e8e82ae35be556040340cbb3e280ca # v0.3.0
-        with:
-          image: ${{ fromJSON(steps.metadata.outputs.json).tags[0] }}
-          config: test/android.yml
 
       - name: Build image and push it to registries
         uses: docker/build-push-action@4f58ea79222b3b9dc2c8bbdd6debcef730109a75 # v6

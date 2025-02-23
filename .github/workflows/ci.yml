@@ -1,0 +1,111 @@
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+# Read-only permissions by default
+permissions:
+  contents: read
+
+jobs:
+  test_image:
+    runs-on: ubuntu-24.04
+    env:
+      IMAGE_REPOSITORY_NAME: flutter-android
+      ANDROID_BUILD_TOOLS_VERSION: 30.0.3
+      VERSION_MANIFEST: config/version.json
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      - name: Generate authentication token with GitHub App
+        uses: actions/create-github-app-token@5d869da34e18e7287c1daad50e0b8ea0f506ce69 # v1
+        id: generate-token
+        with:
+          app-id: ${{ secrets.VERIFIED_COMMIT_ID }}
+          private-key: ${{ secrets.VERIFIED_COMMIT_KEY }}
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Login to Quay.io
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3
+        with:
+          registry: quay.io
+          username: ${{ secrets.QUAY_USERNAME }}
+          password: ${{ secrets.QUAY_ROBOT_TOKEN }}
+
+      - name: Read environment variables from version.json
+        env:
+          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+        run: ./script/set_environment_variables.sh
+
+      - name: Set environment variable for image repository and tag
+        run: |
+          IMAGE_REPOSITORY_PATH="${{ github.repository_owner }}/${{ env.IMAGE_REPOSITORY_NAME }}"
+          echo "IMAGE_REPOSITORY_PATH=$IMAGE_REPOSITORY_PATH" >> $GITHUB_ENV
+
+      - name: Load image metadata
+        uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5
+        id: metadata
+        with:
+          images: |
+            ${{ env.IMAGE_REPOSITORY_PATH }}
+            ghcr.io/${{ env.IMAGE_REPOSITORY_PATH }}
+            quay.io/${{ env.IMAGE_REPOSITORY_PATH }}
+          tags: |
+            type=raw,value=${{ env.FLUTTER_VERSION }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@c47758b77c9736f4b2ef4073d4d51994fabfe349 # v3
+
+      - name: Build image and push to local Docker daemon
+        uses: docker/build-push-action@4f58ea79222b3b9dc2c8bbdd6debcef730109a75 # v6
+        with:
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: ${{ steps.metadata.outputs.tags }}
+          labels: ${{ steps.metadata.outputs.labels }}
+          target: android
+          build-args: |
+            flutter_version=${{ env.FLUTTER_VERSION }}
+            fastlane_version=${{ env.FASTLANE_VERSION }}
+            android_build_tools_version=${{ env.ANDROID_BUILD_TOOLS_VERSION }}
+            android_platform_versions=${{ env.ANDROID_PLATFORM_VERSIONS }}
+            android_ndk_version=${{ env.ANDROID_NDK_VERSION }}
+            cmake_version=${{ env.CMAKE_VERSION }}
+
+      - name: Test image
+        uses: plexsystems/container-structure-test-action@c0a028aa96e8e82ae35be556040340cbb3e280ca # v0.3.0
+        with:
+          image: ${{ fromJSON(steps.metadata.outputs.json).tags[0] }}
+          config: test/android.yml
+
+  create_git_tag:
+    permissions:
+      # Allow to write contents to push tags
+      contents: write
+    needs: test_image
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Create Tag for a new Flutter Version
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7
+        env:
+          OLD_FLUTTER_VERSION: ${{ vars.FLUTTER_VERSION }}
+          NEW_FLUTTER_VERSION: ${{ env.FLUTTER_VERSION }}
+        with:
+          script: |
+            const script = require('./script/createGitTag.js')
+            await script({ context, octokit })
