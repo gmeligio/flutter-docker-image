@@ -1,5 +1,13 @@
-module.exports = async ({ context, github }) => {
+module.exports = async ({ core, context, github }) => {
   const { OLD_FLUTTER_VERSION, NEW_FLUTTER_VERSION } = process.env
+
+  if (!OLD_FLUTTER_VERSION) {
+    core.setFailed('Environment variable OLD_FLUTTER_VERSION is required.')
+  }
+
+  if (!NEW_FLUTTER_VERSION) {
+    core.setFailed('Environment variable NEW_FLUTTER_VERSION is required.')
+  }
 
   if (OLD_FLUTTER_VERSION === NEW_FLUTTER_VERSION) {
     return
