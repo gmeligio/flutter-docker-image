@@ -2,7 +2,7 @@ on:
   pull_request:
   workflow_dispatch:
 
-# Declare default permissions as read only.
+# Read-only permissions by default
 permissions:
   contents: read
 
