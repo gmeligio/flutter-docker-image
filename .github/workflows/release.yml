@@ -54,12 +54,9 @@ jobs:
       - name: Read environment variables from version.json
         env:
           GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+          IMAGE_REPOSITORY_NAME: ${{ env.IMAGE_REPOSITORY_NAME }}
+          VERSION_MANIFEST: ${{ env.VERSION_MANIFEST }}
         run: ./script/set_environment_variables.sh
-
-      - name: Set environment variable for image repository and tag
-        run: |
-          IMAGE_REPOSITORY_PATH="${{ github.repository_owner }}/${{ env.IMAGE_REPOSITORY_NAME }}"
-          echo "IMAGE_REPOSITORY_PATH=$IMAGE_REPOSITORY_PATH" >> $GITHUB_ENV
 
       - name: Load image metadata
         uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5

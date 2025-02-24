@@ -8,13 +8,15 @@ on:
 permissions:
   contents: read
 
+env:
+  IMAGE_REPOSITORY_NAME: flutter-android
+  VERSION_MANIFEST: config/version.json
+
 jobs:
   test_image:
     runs-on: ubuntu-24.04
     env:
-      IMAGE_REPOSITORY_NAME: flutter-android
       ANDROID_BUILD_TOOLS_VERSION: 30.0.3
-      VERSION_MANIFEST: config/version.json
     steps:
       - name: Checkout repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
@@ -49,12 +51,9 @@ jobs:
       - name: Read environment variables from version.json
         env:
           GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+          IMAGE_REPOSITORY_NAME: ${{ env.IMAGE_REPOSITORY_NAME }}
+          VERSION_MANIFEST: ${{ env.VERSION_MANIFEST }}
         run: ./script/set_environment_variables.sh
-
-      - name: Set environment variable for image repository and tag
-        run: |
-          IMAGE_REPOSITORY_PATH="${{ github.repository_owner }}/${{ env.IMAGE_REPOSITORY_NAME }}"
-          echo "IMAGE_REPOSITORY_PATH=$IMAGE_REPOSITORY_PATH" >> $GITHUB_ENV
 
       - name: Load image metadata
         uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5
@@ -106,9 +105,11 @@ jobs:
       - name: Read environment variables from version.json
         env:
           GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+          IMAGE_REPOSITORY_NAME: ${{ env.IMAGE_REPOSITORY_NAME }}
+          VERSION_MANIFEST: ${{ env.VERSION_MANIFEST }}
         run: ./script/set_environment_variables.sh
       
-      - name: Create Tag for a new Flutter Version
+      - name: Create Tag for a New Flutter Version
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7
         env:
           OLD_FLUTTER_VERSION: ${{ vars.FLUTTER_VERSION }}
