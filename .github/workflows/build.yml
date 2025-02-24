@@ -39,6 +39,8 @@ jobs:
       - name: Read environment variables from version.json
         env:
           GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+          IMAGE_REPOSITORY_NAME: ${{ env.IMAGE_REPOSITORY_NAME }}
+          VERSION_MANIFEST: ${{ env.VERSION_MANIFEST }}
         run: ./script/set_environment_variables.sh
 
       - name: Load image metadata
