@@ -28,24 +28,24 @@ jobs:
         password: ${{ github.token }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Generate authentication token with GitHub App
-        uses: actions/create-github-app-token@0d564482f06ca65fa9e77e2510873638c82206f2 # v1
+        uses: actions/create-github-app-token@0d564482f06ca65fa9e77e2510873638c82206f2 # v1.11.5
         id: generate-token
         with:
           app-id: ${{ secrets.VERIFIED_COMMIT_ID }}
           private-key: ${{ secrets.VERIFIED_COMMIT_KEY }}
 
       - name: Copy Flutter version into version manifest and export FLUTTER_* environment variables
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         with:
           script: |
             const script = require('./script/copyFlutterVersion.js')
             await script({core})
 
       - name: Update latest Fastlane version
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         with:
           script: |
             const script = require('./script/updateFastlaneVersion.js')
@@ -80,7 +80,7 @@ jobs:
         run: cue vet config/version.cue -d '#Version' config/version.json
 
       - name: Setup NodeJS
-        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4
+        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
         with:
           cache: 'npm'
           cache-dependency-path: docs/src/package-lock.json
@@ -97,7 +97,7 @@ jobs:
           echo "COMMIT_MESSAGE=chore: update flutter dependencies in version.json for ${{ env.FLUTTER_VERSION }}" >> $GITHUB_ENV
 
       - name: Create pull request if there are changes
-        uses: peter-evans/create-pull-request@dd2324fc52d5d43c699a5636bcf19fceaa70c284 # v7
+        uses: peter-evans/create-pull-request@dd2324fc52d5d43c699a5636bcf19fceaa70c284 # v7.0.7
         with:
           commit-message: ${{ env.COMMIT_MESSAGE }}
           branch: update-flutter-dependencies/${{ env.FLUTTER_VERSION }}
