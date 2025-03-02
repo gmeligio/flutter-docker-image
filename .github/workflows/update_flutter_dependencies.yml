@@ -73,10 +73,10 @@ jobs:
         run: |
           rm -rf test_app
 
-      - name: Setup Cue for JSON validation
+      - name: Setup CUE
         uses: cue-lang/setup-cue@a93fa358375740cd8b0078f76355512b9208acb1 # v1.0.1
 
-      - name: Validate version.json
+      - name: Validate version.json with CUE
         run: cue vet config/version.cue -d '#Version' config/version.json
 
       - name: Setup NodeJS

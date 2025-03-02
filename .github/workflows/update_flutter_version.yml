@@ -33,10 +33,10 @@ jobs:
             const script = require('./script/updateFlutterVersion.js')
             await script({core, fetch})
 
-      - name: Setup Cue for JSON validation
+      - name: Setup CUE
         uses: cue-lang/setup-cue@a93fa358375740cd8b0078f76355512b9208acb1 # v1.0.1
 
-      - name: Validate version.json
+      - name: Validate version.json with CUE
         run: cue vet config/version.cue -d '#FlutterVersion' config/flutter_version.json
 
       - name: Create commit message variable

@@ -104,10 +104,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
-      - name: Setup Cue for JSON validation
+      - name: Setup CUE
         uses: cue-lang/setup-cue@a93fa358375740cd8b0078f76355512b9208acb1 # v1.0.1
 
-      - name: Validate version.json and flutter_version.json
+      - name: Validate version.json and flutter_version.json with CUE
         run: |
           cue vet config/version.cue -d '#FlutterVersion' config/flutter_version.json
           cue vet config/version.cue -d '#Version' config/version.json
@@ -118,10 +118,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
-      - name: Setup Cue
+      - name: Setup CUE
         uses: cue-lang/setup-cue@a93fa358375740cd8b0078f76355512b9208acb1 # v1.0.1
 
-      - name: Generate test files
+      - name: Generate test files with CUE
         run: |
           ./script/update_test.sh
 
@@ -198,8 +198,8 @@ jobs:
           cat ../../script/updateAndroidVersions.gradle.kts >> app/build.gradle.kts
           ./gradlew --warning-mode all updateAndroidVersions
 
-      - name: Setup Cue for JSON validation
+      - name: Setup CUE
         uses: cue-lang/setup-cue@a93fa358375740cd8b0078f76355512b9208acb1 # v1.0.1
 
-      - name: Validate version.json
+      - name: Validate version.json with CUE
         run: cue vet config/version.cue -d '#Version' config/version.json
