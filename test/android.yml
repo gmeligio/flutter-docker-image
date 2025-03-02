@@ -50,7 +50,10 @@ commandTests:
         - /home/flutter/test_app/android/fastlane/Appfile
       - - sh
         - -c
-        - "echo 'lane :hello do\n puts \"Hello\"\nend' > /home/flutter/test_app/android/fastlane/Fastfile"
+        - |-
+          echo 'lane :hello do
+           puts "Hello"
+          end' > /home/flutter/test_app/android/fastlane/Fastfile
       - - touch
         - /home/flutter/test_app/android/fastlane/Pluginfile
     teardown:
@@ -78,7 +81,10 @@ fileContentTests:
   - name: Android SDK Command-line Tools is version 12.0
     path: /home/flutter/sdks/android-sdk/cmdline-tools/latest/source.properties
     expectedContents:
-      - "Pkg.Revision=12.0\nPkg.Path=cmdline-tools;12.0\nPkg.Desc=Android SDK Command-line Tools"
+      - |-
+        Pkg.Revision=12.0
+        Pkg.Path=cmdline-tools;12.0
+        Pkg.Desc=Android SDK Command-line Tools
   - name: Dart and Flutter analytics are disabled
     path: /home/flutter/.dart-tool/dart-flutter-telemetry.config
     expectedContents:

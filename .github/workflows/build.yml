@@ -109,8 +109,8 @@ jobs:
 
       - name: Validate version.json and flutter_version.json
         run: |
-          cue vet config/version.cue config/version.json
-          cue vet config/flutter_version.cue config/flutter_version.json
+          cue vet config/version.cue -d '#FlutterVersion' config/flutter_version.json
+          cue vet config/version.cue -d '#Version' config/version.json
 
   validate_generated_config:
     runs-on: ubuntu-24.04
@@ -118,10 +118,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
+      - name: Setup Cue
+        uses: cue-lang/setup-cue@a93fa358375740cd8b0078f76355512b9208acb1 # v1.0.1
+
       - name: Generate test files
-        uses: mikefarah/yq@bbdd97482f2d439126582a59689eb1c855944955 # v4
-        with:
-          cmd: ./script/update_test.sh
+        run: |
+          ./script/update_test.sh
 
       - name: Check if there are any changes in the git working tree
         run: |
@@ -200,4 +202,4 @@ jobs:
         uses: cue-lang/setup-cue@a93fa358375740cd8b0078f76355512b9208acb1 # v1.0.1
 
       - name: Validate version.json
-        run: cue vet config/version.cue config/version.json
+        run: cue vet config/version.cue -d '#Version' config/version.json

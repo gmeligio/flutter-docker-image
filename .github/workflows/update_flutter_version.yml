@@ -37,7 +37,7 @@ jobs:
         uses: cue-lang/setup-cue@a93fa358375740cd8b0078f76355512b9208acb1 # v1.0.1
 
       - name: Validate version.json
-        run: cue vet config/flutter_version.cue config/flutter_version.json
+        run: cue vet config/version.cue -d '#FlutterVersion' config/flutter_version.json
 
       - name: Create commit message variable
         run: |
