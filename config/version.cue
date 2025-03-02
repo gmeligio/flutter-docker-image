@@ -13,20 +13,27 @@ import "list"
 	version!: =~ "^\\d+.\\d+.\\d+$"
 }
 
+#FlutterVersion: {
+	flutter: {
+		channel!: "stable" | "beta"
+		commit!:  strings.MaxRunes(40)
+		#PatchVersion
+	}
+}
 
 #MinorOrPatchVersion: #MinorVersion | #PatchVersion
 
-flutter: {
-	channel!: "stable" | "beta"
-	commit!:  strings.MaxRunes(40)
-	#PatchVersion
-}
+#Version: {
+	#FlutterVersion
 
-android: {
-	platforms!: [...#PlatformVersion] & list.MinItems(1) & list.UniqueItems
-	gradle!: #MinorOrPatchVersion
-	buildTools!: #PatchVersion
-	cmdlineTools!: #MinorVersion
-}
+	android: {
+		platforms!: [...#PlatformVersion] & list.MinItems(1) & list.UniqueItems
+		gradle!: #MinorOrPatchVersion
+		buildTools!: #PatchVersion
+		cmdlineTools!: #MinorVersion
+		ndk!: #PatchVersion
+		cmake!: #PatchVersion
+	}
 
-fastlane!: #PatchVersion
+	fastlane!: #PatchVersion
+}
