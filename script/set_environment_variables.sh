@@ -1,19 +1,17 @@
 #!/usr/bin/env bash
 
-IMAGE_REPOSITORY_PATH="$GITHUB_REPOSITORY_OWNER/$IMAGE_REPOSITORY_NAME"
-
 {
-    echo "FLUTTER_VERSION=$(jq -r '.flutter.version' "$VERSION_MANIFEST")"
+    echo "FLUTTER_VERSION=$(cue eval -e 'flutter.version' "$VERSION_MANIFEST" | tr -d '"')"
 
-    echo "FASTLANE_VERSION=$(jq -r '.fastlane.version' "$VERSION_MANIFEST")"
+    echo "FASTLANE_VERSION=$(cue eval -e 'fastlane.version' "$VERSION_MANIFEST" | tr -d '"')"
 
-    echo "ANDROID_BUILD_TOOLS_VERSION=$(jq -r '.android.buildTools.version' "$VERSION_MANIFEST")"
+    echo "ANDROID_BUILD_TOOLS_VERSION=$(cue eval -e 'android.buildTools.version' "$VERSION_MANIFEST" | tr -d '"')"
 
-    echo "ANDROID_PLATFORM_VERSIONS=$(jq -r '.android.platforms[].version' "$VERSION_MANIFEST" | tr '\n' ' ' | sed 's/ $//')"
+    echo "ANDROID_PLATFORM_VERSIONS=$(cue eval -e 'strings.Join([for p in android.platforms {"\(p.version)"}], " ")' "$VERSION_MANIFEST" | tr -d '"\n')"
 
-    echo "ANDROID_NDK_VERSION=$(jq -r '.android.ndk.version' "$VERSION_MANIFEST")"
+    echo "ANDROID_NDK_VERSION=$(cue eval -e 'android.ndk.version' "$VERSION_MANIFEST" | tr -d '"')"
 
-    echo "CMAKE_VERSION=$(jq -r '.android.cmake.version' "$VERSION_MANIFEST")"
+    echo "CMAKE_VERSION=$(cue eval -e 'android.cmake.version' "$VERSION_MANIFEST" | tr -d '"')"
 
-    echo "IMAGE_REPOSITORY_PATH=$IMAGE_REPOSITORY_PATH"
+    echo "IMAGE_REPOSITORY_PATH=$GITHUB_REPOSITORY_OWNER/$IMAGE_REPOSITORY_NAME"
 } >>"$GITHUB_ENV"

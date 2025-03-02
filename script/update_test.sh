@@ -6,7 +6,7 @@ test_file_path="./test/android.yml"
 temp_file_path="./test/temp.yml"
 
 # Extracting the version value from the version.json file
-android_cmdline_tools_version=$(cue eval --expression 'android.cmdlineTools.version' "$version_file_path" | sed 's/^"\(.*\)"$/\1/')
+android_cmdline_tools_version=$(cue eval -e 'android.cmdlineTools.version' "$version_file_path" | tr -d '"')
 android_cmdline_tools_test_expected_content="Pkg.Revision=$android_cmdline_tools_version
 Pkg.Path=cmdline-tools;$android_cmdline_tools_version
 Pkg.Desc=Android SDK Command-line Tools"
