@@ -152,4 +152,10 @@ See [Contributing](docs/contributing.md).
 
 ## License
 
-[MIT License](LICENSE.md)
+Flutter is licensed under [BSD 3-Clause "New" or "Revised" license](https://github.com/flutter/flutter/blob/master/LICENSE).
+
+As with all Docker images, these likely also contain other software which may be under other licenses (such as Bash, etc from the base distribution, along with any direct or indirect dependencies of the primary software being contained).
+
+As for any pre-built image usage, it is the image user's responsibility to ensure that any use of this image complies with any relevant licenses for all software contained within.
+
+The [sources](https://github.com/gmeligio/flutter-docker-image) for producing gmeligio/flutter-android Docker images are licensed under [MIT License](LICENSE.md).
