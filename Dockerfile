@@ -4,15 +4,15 @@ SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
 ENV LANG=C.UTF-8
 
-# renovate: datasource=repology depName=debian_12/curl versioning=loose
+# renovate: release=bullseye depName=curl
 ARG CURL_VERSION="7.88.1-10+deb12u8"
-# renovate: datasource=repology depName=debian_12/git versioning=loose
+# renovate: release=bullseye depName=git
 ARG GIT_VERSION="1:2.39.5-0+deb12u2"
-# renovate: datasource=repology depName=debian_12/lcov versioning=loose
+# renovate: release=bullseye depName=lcov
 ARG LCOV_VERSION="1.16-1"
-# renovate: datasource=repology depName=debian_12/ca-certificates versioning=loose
+# renovate: release=bullseye depName=ca-certificates
 ARG CA_CERTIFICATES_VERSION="20230311"
-# renovate: datasource=repology depName=debian_12/unzip versioning=loose
+# renovate: release=bullseye depName=unzip
 ARG UNZIP_VERSION="6.0-28"
 
 USER root
@@ -92,9 +92,9 @@ FROM flutter AS fastlane
 
 SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
-# renovate: datasource=repology depName=debian_12/ruby-dev versioning=loose
+# renovate: release=bullseye depName=ruby-dev
 ARG RUBY_VERSION="1:3.1"
-# renovate: datasource=repology depName=debian_12/build-essential versioning=loose
+# renovate: release=bullseye depName=build-essential
 ENV BUILD_ESSENTIAL_VERSION="12.9"
 
 USER root
@@ -148,9 +148,9 @@ ENV ANDROID_HOME="$SDK_ROOT/android-sdk" \
     JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 ENV PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$HOME/.local/bin"
 
-# renovate: datasource=repology depName=debian_12/openjdk-17-jdk-headless versioning=loose
+# renovate: release=bullseye depName=openjdk-17-jdk-headless
 ARG OPENJDK_17_JDK_HEADLESS_VERSION="17.0.14+7-1~deb12u1"
-# renovate: datasource=repology depName=debian_12/sudo versioning=loose
+# renovate: release=bullseye depName=sudo
 ARG SUDO_VERSION="1.9.13p3-1+deb12u1"
 
 USER root
