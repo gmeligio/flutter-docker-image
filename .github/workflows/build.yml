@@ -189,7 +189,7 @@ jobs:
         run: |
           cd $FLUTTER_ROOT
           git fetch origin ${{ env.FLUTTER_VERSION }}:${{ env.FLUTTER_VERSION }}
-          git switch ${{ env.FLUTTER_VERSION }}
+          git switch --discard-changes ${{ env.FLUTTER_VERSION }}
 
       - name: Create test application
         run: |
