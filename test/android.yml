@@ -31,6 +31,12 @@ commandTests:
       - /home/flutter/sdks/android-sdk/ndk
     expectedOutput:
       - 26.3.11579264
+  - name: CMake is pinned
+    command: ls
+    args:
+      - /home/flutter/sdks/android-sdk/cmake
+    expectedOutput:
+      - 3.22.1
   - name: Android SDK build tools directory only has one directory
     command: bash
     args:

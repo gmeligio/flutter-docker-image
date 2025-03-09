@@ -96,6 +96,7 @@ jobs:
         run: |
           echo "COMMIT_MESSAGE=chore: update flutter dependencies in version.json for ${{ env.FLUTTER_VERSION }}" >> $GITHUB_ENV
 
+      # TODO: Generate changelog for the new flutter version, that will be the new tag
       - name: Create pull request if there are changes
         uses: peter-evans/create-pull-request@dd2324fc52d5d43c699a5636bcf19fceaa70c284 # v7.0.7
         with:
