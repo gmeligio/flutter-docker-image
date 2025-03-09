@@ -1,5 +1,7 @@
 #!/usr/bin/env sh
 
+# TODO: Update all versions used in android.yml from version.json, like NDK, CMake, etc.
+
 # Path to the JSON and YAML files
 version_file_path="./config/version.json"
 test_file_path="./test/android.yml"
