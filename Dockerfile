@@ -58,8 +58,8 @@ ENV PATH="$PATH:$FLUTTER_ROOT/bin:$FLUTTER_ROOT/bin/cache/dart-sdk/bin"
 
 ARG flutter_version
 
-# TODO: Add --depth 1 after https://github.com/flutter/flutter/issues/163198 is fixed
 RUN git clone \
+    --depth 1 \
     --branch "$flutter_version" \
     https://github.com/flutter/flutter.git \
     "$FLUTTER_ROOT" \
