@@ -93,15 +93,32 @@ Debug with `curl -A github165 -v https://mcr.microsoft.com/v2/powershell/manifes
         - [makepri.exe](https://learn.microsoft.com/en-us/windows/uwp/app-resources/makepri-exe-command-options)
         - [signtool.exe](https://learn.microsoft.com/en-us/dotnet/framework/tools/signtool-exe)
 
+        - certificate
+            - Make a note that --install-certificate should be "false" or configured because the certificate can't be installed as ContainerUser.
+            
+            ```powershell
+            # OK
+            Import-PfxCertificate -FilePath "C:\Users\ContainerUser\AppData\Local\Pub\Cache\hosted\pub.dev\msix-3.16.8\lib\assets\test_certificate.pfx" -Password (ConvertTo-SecureString -AsPlainText -Force "1234") -CertStoreLocation Cert:\LocalMachine\Root
+
+            # Doesn't work
+            Import-PfxCertificate -FilePath "C:\Users\ContainerUser\AppData\Local\Pub\Cache\hosted\pub.dev\msix-3.16.8\lib\assets\test_certificate.pfx" -Password (ConvertTo-SecureString -AsPlainText -Force "1234")
+            ```
+
     1. Install msstore CLI https://github.com/microsoft/msstore-cli It seems behind StoreBroker but it looks that it's going to be the primary and recommended way to publish to Microsoft Store
+        
+        - According to the [msstore guide](https://learn.microsoft.com/en-us/windows/apps/publish/msstore-dev-cli/commands?pivots=msstoredevcli-installer-linux#installation), It will be needed to install Microsoft.NetCore.Component.Runtime.8.0 with vs_BuildTools
 
     1. From <https://github.com/tauu/flutter-windows-builder/blob/main/Dockerfile> => install <https://github.com/microsoft/StoreBroker> This is currently the primary tool to publish to Microsoft Store
 
-    1. From https://github.com/tauu/flutter-windows-builder/blob/main/Dockerfile => install https://github.com/microsoft/StoreBroker
+        - Not installed right now
 
     1. Install the [Windows App Certification Kit](https://learn.microsoft.com/en-us/windows/uwp/debug-test-perf/windows-app-certification-kit) or the [Windows SDK that already includes it](https://developer.microsoft.com/en-us/windows/downloads/windows-sdk/)
+        
+        - Installed currently by one of the workloads in vs_BuildTools
 
 ## References
 
 - [How environment variables work on Windows containers?](https://blog.sixeyed.com/windows-weekly-dockerfile-14-environment-variables/)
 - [Windows deployment in Flutter](https://docs.flutter.dev/deployment/windows)
+- [vs_BuildTools workloads](https://learn.microsoft.com/en-us/visualstudio/install/workload-component-id-vs-build-tools?view=vs-2022&preserve-view=true)
+- Useful Dockerfile https://git.openprivacy.ca/openprivacy/flutter-desktop/src/branch/main/windows/Dockerfile
