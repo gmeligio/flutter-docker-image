@@ -63,6 +63,8 @@ RUN git clone `
     flutter precache --windows; `
     flutter create build_app;
 
+
+# The user ContainerAdministrator must be used because is the one that has permissions to install with vs_BuildTools
 USER ContainerAdministrator
 # Download the Build Tools bootstrapper
 # See https://learn.microsoft.com/en-us/visualstudio/install/build-tools-container?view=vs-2022
