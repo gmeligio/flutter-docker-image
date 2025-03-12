@@ -10,6 +10,10 @@
   "packageRules": [
     {
       "groupName": "github-actions",
+      "matchUpdateTypes": [
+        "major",
+        "minor"
+      ],
       "matchDatasources": [
         "github-tags"
       ]
