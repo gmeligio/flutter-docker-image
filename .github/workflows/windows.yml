@@ -53,25 +53,21 @@ jobs:
           tags: |
             type=raw,value=${{ env.FLUTTER_VERSION }}
 
-    #   - name: Set up Docker Buildx
-    #     uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
 
-    #   - name: Build image and push to local Docker daemon
-    #     uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # v6.15.0
-    #     with:
-    #       load: true
-    #       cache-from: type=gha
-    #       cache-to: type=gha,mode=max
-    #       labels: ${{ steps.metadata.outputs.labels }}
-    #       tags: ${{ steps.metadata.outputs.tags }}
-    #       target: android
-    #       build-args: |
-    #         flutter_version=${{ env.FLUTTER_VERSION }}
-    #         fastlane_version=${{ env.FASTLANE_VERSION }}
-    #         android_build_tools_version=${{ env.ANDROID_BUILD_TOOLS_VERSION }}
-    #         android_platform_versions=${{ env.ANDROID_PLATFORM_VERSIONS }}
-    #         android_ndk_version=${{ env.ANDROID_NDK_VERSION }}
-    #         cmake_version=${{ env.CMAKE_VERSION }}
+      - name: Build image and push to local Docker daemon
+        uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # v6.15.0
+        with:
+          file: windows.Dockerfile
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          labels: ${{ steps.metadata.outputs.labels }}
+          tags: ${{ steps.metadata.outputs.tags }}
+          target: android
+          build-args: |
+            flutter_version=${{ env.FLUTTER_VERSION }}
 
     #   - name: Test image
     #     uses: plexsystems/container-structure-test-action@c0a028aa96e8e82ae35be556040340cbb3e280ca # v0.3.0
