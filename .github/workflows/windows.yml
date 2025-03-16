@@ -1,0 +1,106 @@
+on:
+  pull_request:
+  workflow_dispatch:
+
+# Read-only permissions by default
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  test_image:
+    permissions:
+      # Allow to write packages for the docker/scout-action to write a comment
+      packages: write
+      # Allow to write pull requests for the docker/scout-action to write a comment
+      pull-requests: write
+      # Allow to write security events for github/codeql-action/upload-sarif to upload SARIF results
+      security-events: write 
+    runs-on: windows-2025
+    env:
+      IMAGE_REPOSITORY_NAME: flutter-android
+      VERSION_MANIFEST: config/version.json
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+    #   - name: Login to Docker Hub
+    #     uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
+    #     with:
+    #       username: ${{ secrets.DOCKER_HUB_USERNAME }}
+    #       password: ${{ secrets.DOCKER_HUB_TOKEN }}
+ 
+    #   - name: Login to GitHub Container Registry
+    #     uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
+    #     with:
+    #       registry: ghcr.io
+    #       username: ${{ github.actor }}
+    #       password: ${{ github.token }}
+
+    #   - name: Setup CUE
+    #     uses: cue-lang/setup-cue@a93fa358375740cd8b0078f76355512b9208acb1 # v1.0.1
+
+    #   - name: Read environment variables from version.json with CUE
+    #     env:
+    #       GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+    #       IMAGE_REPOSITORY_NAME: ${{ env.IMAGE_REPOSITORY_NAME }}
+    #       VERSION_MANIFEST: ${{ env.VERSION_MANIFEST }}
+    #     run: ./script/set_environment_variables.sh
+
+    #   - name: Load image metadata
+    #     uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804 # v5.7.0
+    #     id: metadata
+    #     with:
+    #       images: |
+    #         ${{ env.IMAGE_REPOSITORY_PATH }}
+    #         ghcr.io/${{ env.IMAGE_REPOSITORY_PATH }}
+    #         quay.io/${{ env.IMAGE_REPOSITORY_PATH }}
+    #       tags: |
+    #         type=raw,value=${{ env.FLUTTER_VERSION }}
+
+    #   - name: Set up Docker Buildx
+    #     uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
+
+    #   - name: Build image and push to local Docker daemon
+    #     uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # v6.15.0
+    #     with:
+    #       load: true
+    #       cache-from: type=gha
+    #       cache-to: type=gha,mode=max
+    #       labels: ${{ steps.metadata.outputs.labels }}
+    #       tags: ${{ steps.metadata.outputs.tags }}
+    #       target: android
+    #       build-args: |
+    #         flutter_version=${{ env.FLUTTER_VERSION }}
+    #         fastlane_version=${{ env.FASTLANE_VERSION }}
+    #         android_build_tools_version=${{ env.ANDROID_BUILD_TOOLS_VERSION }}
+    #         android_platform_versions=${{ env.ANDROID_PLATFORM_VERSIONS }}
+    #         android_ndk_version=${{ env.ANDROID_NDK_VERSION }}
+    #         cmake_version=${{ env.CMAKE_VERSION }}
+
+    #   - name: Test image
+    #     uses: plexsystems/container-structure-test-action@c0a028aa96e8e82ae35be556040340cbb3e280ca # v0.3.0
+    #     with:
+    #       image: ${{ fromJSON(steps.metadata.outputs.json).tags[0] }}
+    #       config: test/android.yml
+
+    #   # TODO: Parallelize testing and vulnerability scanning
+    #   - name: Scan with Docker Scout
+    #     id: docker-scout
+    #     uses: docker/scout-action@0133ff88fe16d4a412dc4827a8fccbccb6b583e0 # v1.16.3
+    #     with:
+    #       command: compare, recommendations
+    #       # Use the Docker Hub image that is the first tag in the metadata
+    #       image: local://${{ fromJson(steps.metadata.outputs.json).tags[0] }}
+    #       # github-token is needed to be able to write the PR comment
+    #       github-token: ${{ github.token }}
+    #       only-fixed: true
+    #       organization: ${{ secrets.DOCKER_HUB_USERNAME }}
+    #       # sarif-file: output.sarif.json
+    #       to-env: prod
+    #       # Enable debug logging when needed
+    #       # debug: true
+    #       # verbose-debug: true
