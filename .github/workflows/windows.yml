@@ -56,7 +56,7 @@ jobs:
       # - name: Set up Docker Buildx
       #   uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
 
-      - name: Build and Push
+      - name: Build image and push to local Docker daemon
         shell: powershell
         run: |
           docker build . -f windows.Dockerfile -t ${{ env.IMAGE_REPOSITORY_PATH }}/windows-python:latest

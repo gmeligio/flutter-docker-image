@@ -39,6 +39,9 @@ USER ContainerUser
 
 ARG flutter_version
 
+RUN Write-Host $env:GIT_SSH_COMMAND
+RUN Write-Host $env:GIT_SSH
+
 RUN git clone `
     --depth 1 `
     --branch "$env:flutter_version" `
