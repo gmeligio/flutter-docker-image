@@ -44,30 +44,35 @@ jobs:
             const script = require('./script/setEnvironmentVariables.js')
             return await script({ core })
 
-      - name: Load image metadata
-        uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804 # v5.7.0
-        id: metadata
-        with:
-          images: |
-            ${{ env.IMAGE_REPOSITORY_PATH }}
-          tags: |
-            type=raw,value=${{ env.FLUTTER_VERSION }}
+      # - name: Load image metadata
+      #   uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804 # v5.7.0
+      #   id: metadata
+      #   with:
+      #     images: |
+      #       ${{ env.IMAGE_REPOSITORY_PATH }}
+      #     tags: |
+      #       type=raw,value=${{ env.FLUTTER_VERSION }}
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
+      # - name: Set up Docker Buildx
+      #   uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
 
-      - name: Build image and push to local Docker daemon
-        uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # v6.15.0
-        with:
-          file: windows.Dockerfile
-          load: true
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          labels: ${{ steps.metadata.outputs.labels }}
-          tags: ${{ steps.metadata.outputs.tags }}
-          target: android
-          build-args: |
-            flutter_version=${{ env.FLUTTER_VERSION }}
+      - name: Build and Push
+        shell: powershell
+        run: |
+          docker build . -f windows.Dockerfile -t ${{ env.IMAGE_REPOSITORY_PATH }}/windows-python:latest
+
+      # - name: Build image and push to local Docker daemon
+      #   uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # v6.15.0
+      #   with:
+      #     file: windows.Dockerfile
+      #     load: true
+      #     cache-from: type=gha
+      #     cache-to: type=gha,mode=max
+      #     labels: ${{ steps.metadata.outputs.labels }}
+      #     tags: ${{ steps.metadata.outputs.tags }}
+      #     target: android
+      #     build-args: |
+      #       flutter_version=${{ env.FLUTTER_VERSION }}
 
     #   - name: Test image
     #     uses: plexsystems/container-structure-test-action@c0a028aa96e8e82ae35be556040340cbb3e280ca # v0.3.0
