@@ -10,22 +10,21 @@ module.exports = async ({ core, fetch }) => {
    * @param {*} fileUrl
    * @returns object|boolean
    */
-  async function downloadReleases(fileUrl) {
+  async function downloadReleases(core, fileUrl) {
     try {
       const response = await fetch(fileUrl)
 
       return response.json()
     } catch (error) {
-      console.error(
-        `An error occurred while requesting the file URL: ${fileUrl}`,
-        error
+      core.error(
+        `An error occurred while requesting the file URL ${fileUrl}: ${error}`
       )
 
       return false
     }
   }
 
-  const linuxReleasesResponse = await downloadReleases(linuxReleasesUrl)
+  const linuxReleasesResponse = await downloadReleases(core, linuxReleasesUrl)
 
   if (linuxReleasesResponse === false) {
     core.setFailed(
@@ -46,6 +45,12 @@ module.exports = async ({ core, fetch }) => {
 
   const { version, channel, hash: commit } = latestRelease
 
+  if (data.flutter.version === version) {
+    core.info(`Flutter version ${version} is already set.`)
+
+    return false
+  }
+
   // Update result file, i.e. version.json
   const newJson = {
     ...oldJson,
@@ -60,4 +65,6 @@ module.exports = async ({ core, fetch }) => {
   resultJson = JSON.stringify(newJson, null, 4)
   fs.writeFileSync(resultPath, `${resultJson}\n`)
   core.exportVariable('FLUTTER_VERSION', version)
+
+  return true
 }
