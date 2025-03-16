@@ -58,7 +58,7 @@ jobs:
       # Allow to write pull requests to create a pull request
       pull-requests: write
     needs: update_flutter_version
-    if: ${{ needs.update_flutter_version.outputs.new_version }}
+    if: ${{ needs.update_flutter_version.outputs.new_version == 'true' }}
     runs-on: ubuntu-24.04
     container:
       image: ghcr.io/${{ github.repository_owner }}/flutter-android:${{ vars.FLUTTER_VERSION }}
