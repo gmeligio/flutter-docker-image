@@ -1,7 +1,6 @@
 services:
   flutter:
     build:
-      context: .
       target: flutter
       args:
         flutter_version: $FLUTTER_VERSION
@@ -10,7 +9,6 @@ services:
   
   fastlane:
     build:
-      context: .
       target: fastlane
       args:
         flutter_version: $FLUTTER_VERSION
@@ -20,7 +18,6 @@ services:
   
   android:
     build:
-      context: .
       target: android
       args:
         flutter_version: $FLUTTER_VERSION
@@ -31,3 +28,9 @@ services:
         cmake_version: $CMAKE_VERSION
     environment:
       ENABLE_ANALYTICS: $ENABLE_ANALYTICS
+
+  windows:
+    build:
+      dockerfile: ./windows.Dockerfile
+      args:
+        flutter_version: $FLUTTER_VERSION
