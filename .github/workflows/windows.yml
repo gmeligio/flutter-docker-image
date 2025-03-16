@@ -59,7 +59,7 @@ jobs:
       - name: Build image and push to local Docker daemon
         shell: powershell
         run: |
-          docker build . -f windows.Dockerfile -t ${{ env.IMAGE_REPOSITORY_PATH }}/windows-python:latest
+          docker build . -f windows.Dockerfile --build-arg flutter_version=${{ env.FLUTTER_VERSION }} -t ${{ env.IMAGE_REPOSITORY_PATH }}
 
       # - name: Build image and push to local Docker daemon
       #   uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # v6.15.0
