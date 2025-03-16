@@ -32,23 +32,17 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
- 
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
+
+      - name: Read environment variables from version.json
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        env:
+          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+          IMAGE_REPOSITORY_NAME: ${{ env.IMAGE_REPOSITORY_NAME }}
+          VERSION_MANIFEST: ${{ env.VERSION_MANIFEST }}
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ github.token }}
-
-      - name: Setup CUE
-        uses: cue-lang/setup-cue@a93fa358375740cd8b0078f76355512b9208acb1 # v1.0.1
-
-    #   - name: Read environment variables from version.json with CUE
-    #     env:
-    #       GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
-    #       IMAGE_REPOSITORY_NAME: ${{ env.IMAGE_REPOSITORY_NAME }}
-    #       VERSION_MANIFEST: ${{ env.VERSION_MANIFEST }}
-    #     run: ./script/set_environment_variables.sh
+          script: |
+            const script = require('./script/setEnvironmentVariables.js')
+            return await script({ core })
 
     #   - name: Load image metadata
     #     uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804 # v5.7.0
@@ -56,8 +50,6 @@ jobs:
     #     with:
     #       images: |
     #         ${{ env.IMAGE_REPOSITORY_PATH }}
-    #         ghcr.io/${{ env.IMAGE_REPOSITORY_PATH }}
-    #         quay.io/${{ env.IMAGE_REPOSITORY_PATH }}
     #       tags: |
     #         type=raw,value=${{ env.FLUTTER_VERSION }}
 
