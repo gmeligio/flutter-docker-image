@@ -80,7 +80,7 @@ RUN git clone \
     --no-enable-macos-desktop \
     && flutter doctor
 
-COPY --chown=flutter:flutter ./script/docker_entrypoint.sh "$HOME/docker_entrypoint.sh"
+COPY --chown=flutter:flutter ./script/docker_linux_entrypoint.sh "$HOME/docker_entrypoint.sh"
 RUN chmod +x "$HOME/docker_entrypoint.sh"
 
 ENTRYPOINT [ "/home/flutter/docker_entrypoint.sh" ]
