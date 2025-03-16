@@ -45,7 +45,7 @@ module.exports = async ({ core, fetch }) => {
 
   const { version, channel, hash: commit } = latestRelease
 
-  if (data.flutter.version === version) {
+  if (oldJson.flutter.version === version) {
     core.info(`Flutter version ${version} is already set.`)
 
     return false
