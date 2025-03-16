@@ -39,53 +39,50 @@ USER ContainerUser
 
 ARG flutter_version
 
-RUN Write-Host $env:GIT_SSH_COMMAND
-RUN Write-Host $env:GIT_SSH
-
 RUN git clone `
     --depth 1 `
     --branch "$env:flutter_version" `
     https://github.com/flutter/flutter `
     "$env:FLUTTER_ROOT"; `
     # To fix fatal: detected dubious ownership in repository at 'C:/Users/ContainerUser/sdks/flutter/.git' owned by BUILTIN/Administrators but the current user is: User Manager/ContainerUser
-    git config --global --add safe.directory "$env:FLUTTER_ROOT";
-#     flutter --version; `
-#     dart --disable-analytics; `
-#     flutter config `
-#     --no-cli-animations `
-#     --no-analytics `
-#     --no-enable-android `
-#     --no-enable-web `
-#     --no-enable-linux-desktop `
-#     --enable-windows-desktop `
-#     --no-enable-fuchsia `
-#     --no-enable-custom-devices `
-#     --no-enable-ios `
-#     --no-enable-macos-desktop; `
-#     flutter doctor --verbose; `
-#     flutter precache --windows; `
-#     flutter create build_app;
+    git config --global --add safe.directory "$env:FLUTTER_ROOT"; `
+    flutter --version; `
+    dart --disable-analytics; `
+    flutter config `
+    --no-cli-animations `
+    --no-analytics `
+    --no-enable-android `
+    --no-enable-web `
+    --no-enable-linux-desktop `
+    --enable-windows-desktop `
+    --no-enable-fuchsia `
+    --no-enable-custom-devices `
+    --no-enable-ios `
+    --no-enable-macos-desktop; `
+    flutter doctor --verbose; `
+    flutter precache --windows; `
+    flutter create build_app;
 
 
-# # The user ContainerAdministrator must be used because is the one that has permissions to install with vs_BuildTools
-# USER ContainerAdministrator
-# # Download the Build Tools bootstrapper
-# # See https://learn.microsoft.com/en-us/visualstudio/install/build-tools-container?view=vs-2022
-# RUN Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vs_buildtools.exe -OutFile vs_BuildTools.exe; `
-#     Start-Process vs_BuildTools.exe -ArgumentList '--quiet --wait --norestart --nocache `
-#     --add Microsoft.VisualStudio.Component.VC.CMake.Project `
-#     --add Microsoft.VisualStudio.Component.Windows11SDK.22621 `
-#     --add Microsoft.VisualStudio.Workload.VCTools' `
-#     -Wait; `
-#     Remove-Item vs_BuildTools.exe;
-# USER ContainerUser
+# The user ContainerAdministrator must be used because is the one that has permissions to install with vs_BuildTools
+USER ContainerAdministrator
+# Download the Build Tools bootstrapper
+# See https://learn.microsoft.com/en-us/visualstudio/install/build-tools-container?view=vs-2022
+RUN Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vs_buildtools.exe -OutFile vs_BuildTools.exe; `
+    Start-Process vs_BuildTools.exe -ArgumentList '--quiet --wait --norestart --nocache `
+    --add Microsoft.VisualStudio.Component.VC.CMake.Project `
+    --add Microsoft.VisualStudio.Component.Windows11SDK.22621 `
+    --add Microsoft.VisualStudio.Workload.VCTools' `
+    -Wait; `
+    Remove-Item vs_BuildTools.exe;
+USER ContainerUser
 
-# WORKDIR "$USERPROFILE/build_app"
-# RUN flutter build windows;
+WORKDIR "$USERPROFILE/build_app"
+RUN flutter build windows;
 
-# WORKDIR "$USERPROFILE"
-# COPY ./script/docker_windows_entrypoint.ps1 "docker_entrypoint.ps1"
+WORKDIR "$USERPROFILE"
+COPY ./script/docker_windows_entrypoint.ps1 "docker_entrypoint.ps1"
 
-# ENTRYPOINT "C:\Users\ContainerUser\docker_entrypoint.ps1"
+ENTRYPOINT "C:\Users\ContainerUser\docker_entrypoint.ps1"
 
-# RUN Remove-Item -Recurse build_app;
+RUN Remove-Item -Recurse build_app;
