@@ -9,13 +9,13 @@
   ],
   "packageRules": [
     {
+      "description": "Schedule Github Actions updates on the first day of the month",
       "groupName": "github-actions",
-      "matchUpdateTypes": [
-        "major",
-        "minor"
-      ],
       "matchDatasources": [
         "github-tags"
+      ],
+      "schedule": [
+        "* 0-3 1 * *"
       ]
     }
   ],
