@@ -37,12 +37,15 @@ jobs:
             return await script({core, fetch})
 
       - name: Setup CUE
+        if: ${{ steps.update_flutter_version.outputs.result == 'true' }}
         uses: cue-lang/setup-cue@a93fa358375740cd8b0078f76355512b9208acb1 # v1.0.1
 
       - name: Validate version.json with CUE
+        if: ${{ steps.update_flutter_version.outputs.result == 'true' }}
         run: cue vet config/version.cue -d '#FlutterVersion' config/flutter_version.json
 
       - name: Upload artifact with the new Flutter version
+        if: ${{ steps.update_flutter_version.outputs.result == 'true' }}
         uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.2
         with:
           name: flutter_version
