@@ -21,13 +21,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-      - name: Generate authentication token with GitHub App to trigger Actions
-        uses: actions/create-github-app-token@21cfef2b496dd8ef5b904c159339626a10ad380e # v1.11.6
-        id: generate-token
-        with:
-          app-id: ${{ secrets.VERIFIED_COMMIT_ID }}
-          private-key: ${{ secrets.VERIFIED_COMMIT_KEY }}
-
       - name: Update latest Flutter version
         id: update_flutter_version
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
@@ -79,10 +72,12 @@ jobs:
 
       - name: Generate authentication token with GitHub App to trigger Actions
         uses: actions/create-github-app-token@21cfef2b496dd8ef5b904c159339626a10ad380e # v1.11.6
-        id: generate-token
+        id: app-token
         with:
           app-id: ${{ secrets.VERIFIED_COMMIT_ID }}
           private-key: ${{ secrets.VERIFIED_COMMIT_KEY }}
+          repositories: ${{ github.event.repository.name }}
+          owner: ${{ github.repository_owner }}
 
       - name: Copy Flutter version into version manifest and export FLUTTER_* environment variables
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
@@ -151,4 +146,4 @@ jobs:
           branch: update-flutter-dependencies/${{ env.FLUTTER_VERSION }}
           sign-commits: true
           title: ${{ env.COMMIT_MESSAGE }}
-          token: ${{ steps.generate-token.outputs.token }}
+          token: ${{ steps.app-token.outputs.token }}
