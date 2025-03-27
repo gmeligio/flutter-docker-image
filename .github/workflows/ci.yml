@@ -89,10 +89,12 @@ jobs:
 
       - name: Generate authentication token with GitHub App to trigger Actions
         uses: actions/create-github-app-token@21cfef2b496dd8ef5b904c159339626a10ad380e # v1.11.6
-        id: generate-token
+        id: app-token
         with:
           app-id: ${{ secrets.VERIFIED_COMMIT_ID }}
           private-key: ${{ secrets.VERIFIED_COMMIT_KEY }}
+          repositories: ${{ github.event.repository.name }}
+          owner: ${{ github.repository_owner }}
 
       - name: Setup CUE
         uses: cue-lang/setup-cue@a93fa358375740cd8b0078f76355512b9208acb1 # v1.0.1
@@ -114,7 +116,7 @@ jobs:
           OLD_FLUTTER_VERSION: ${{ vars.FLUTTER_VERSION }}
           NEW_FLUTTER_VERSION: ${{ env.FLUTTER_VERSION }}
         with:
-          github-token: ${{ steps.generate-token.outputs.token }}
+          github-token: ${{ steps.app-token.outputs.token }}
           script: |
             const script = require('./script/createGitTag.js')
             await script({ core, context, github })
