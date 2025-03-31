@@ -1,6 +1,7 @@
 services:
   flutter:
     build:
+      dockerfile: ./android.Dockerfile
       target: flutter
       args:
         flutter_version: $FLUTTER_VERSION
@@ -18,6 +19,7 @@ services:
   
   android:
     build:
+      dockerfile: ./android.Dockerfile
       target: android
       args:
         flutter_version: $FLUTTER_VERSION
