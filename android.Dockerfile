@@ -1,11 +1,11 @@
-FROM debian:12.9-slim@sha256:12c396bd585df7ec21d5679bb6a83d4878bc4415ce926c9e5ea6426d23c60bdc AS flutter
+FROM debian:12.10-slim@sha256:1209d8fd77def86ceb6663deef7956481cc6c14a25e1e64daec12c0ceffcc19d AS flutter
 
 SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
 ENV LANG=C.UTF-8
 
 # renovate: release=bullseye depName=curl
-ARG CURL_VERSION="7.88.1-10+deb12u8"
+ARG CURL_VERSION="7.88.1-10+deb12u12"
 # renovate: release=bullseye depName=git
 ARG GIT_VERSION="1:2.39.5-0+deb12u2"
 # renovate: release=bullseye depName=lcov
