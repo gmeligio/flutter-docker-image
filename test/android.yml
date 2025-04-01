@@ -84,7 +84,7 @@ commandTests:
     excludedOutput:
       - Sending anonymous analytics information
 fileContentTests:
-  - name: Android SDK Command-line Tools is version 12.0
+  - name: Android SDK Command-line Tools is version 19.0
     path: /home/flutter/sdks/android-sdk/cmdline-tools/latest/source.properties
     expectedContents:
       - |-
