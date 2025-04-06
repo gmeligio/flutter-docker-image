@@ -8,6 +8,20 @@ Docker images for Flutter Continuous Integration (CI). The source is available [
 
 The images includes the minimum tools to run Flutter and build apps. The versions of the tools installed are based on the official [Flutter](https://github.com/flutter/flutter) repository. The final goal is that Flutter doesn't need to download anything like tools or SDKs when running the container.
 
+## Contents
+
+* [Features](#features)
+* [Alpha Stability](#alpha-stability)
+* [Running Containers](#running-containers)
+* [Tags](#tags)
+* [Building Locally](#building-locally)
+* [Roadmap](#roadmap)
+* [FAQ](#faq)  
+   * [Why the images are not published in the AWS ECR Public registry?](#why-the-images-are-not-published-in-the-aws-ecr-public-registry)
+* [Why there is no dynamic tag like latest?](#why-there-is-no-dynamic-tag-like-latest)
+* [Contributing](#contributing)
+* [License](#license)
+
 ## Features
 
 * Installed Flutter SDK 3.29.2.
@@ -29,23 +43,17 @@ The images are experimental and are in active development. They are being used f
 
 ## Running Containers
 
-Registries:
-
-* [Docker Hub](https://hub.docker.com/r/gmeligio/flutter-android)
-* [Github Container Registry](https://github.com/gmeligio/flutter-docker-image/pkgs/container/flutter-android)
-* [Quay](https://quay.io/repository/gmeligio/flutter-android)
+| Registry                  | flutter-android                                                                                                            |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Docker Hub                | [gmeligio/flutter-android:3.29.2](https://hub.docker.com/r/gmeligio/flutter-android)                                       |
+| GitHub Container Registry | [ghcr.io/gmeligio/flutter-android:3.29.2](https://github.com/gmeligio/flutter-docker-image/pkgs/container/flutter-android) |
+| Quay                      | [quay.io/gmeligio/flutter-android:3.29.2](https://quay.io/repository/gmeligio/flutter-android)                             |
 
 On the terminal:
 
 ```bash
-# From Docker Hub
-docker run --rm -it gmeligio/flutter-android:3.29.2 bash
-
 # From GitHub Container Registry
 docker run --rm -it ghcr.io/gmeligio/flutter-android:3.29.2 bash
-
-# From Quay.io
-docker run --rm -it quay.io/gmeligio/flutter-android:3.29.2 bash
 ```
 
 On a workflow in GitHub Actions:
@@ -84,47 +92,35 @@ bundle install --prefer-local
 bundle exec fastlane
 ```
 
-## Versions
+## Tags
 
-There is no `latest` Docker tag on purpose. You need to specify the version of the image you want to use. The reason for that is that `latest` is a dynamic tag that can be confusing when reading the image URI because doesn't necessarily point to the latest image built and can cause unexpected behavior when rerunning a past CI job that runs with an overwritten latest tags. There are multiple articles explaining more about this reasoning like [What's Wrong With The Docker :latest Tag?](https://vsupalov.com/docker-latest-tag/) and [The misunderstood Docker tag: latest](https://medium.com/@mccode/the-misunderstood-docker-tag-latest-af3babfd6375).
-
-The tag is composed of the Flutter version used to build the image. For example:
+Every new tag on the flutter stable channel gets built. The tag is composed of the Flutter version used to build the image:
 
 * Docker image: gmeligio/flutter-android:3.29.2
 * Flutter version: 3.29.2
 
-## Developing Locally
+## Building Locally
 
-### Running The Container
-
-The Dockerfile expects a few parameters:
+The android.Dockerfile expects a few arguments:
 
 * `flutter_version <string>`: The version of Flutter to use when building. Example: 3.29.2
 * `android_build_tools_version <string>`: The version of the Android SDK Build Tools to install. Example: 34.0.0
-* `android_platform_versions <list>`: The versions of the Android SDK Platforms to install, separated by spaces. Example: 28 31 33
+* `android_platform_versions <list>`: The versions of the Android SDK Platforms to install, separated by spaces. Example: 35
 
 ```bash
 # Android
 docker build --target android --build-arg flutter_version=3.29.2 --build-arg fastlane_version=2.227.0 --build-arg android_build_tools_version=34.0.0 --build-arg android_platform_versions="35" -t android-test .
 ```
 
-### Dockerfile stages
-
-The base image is `debian/debian:12-slim` and from there multiple stages are created:
-
-1. `flutter` stage hast only the dependencies required to install flutter and common tools used by flutter internal commands, like `git`.
-2. `fastlane` stage has the dependencies required to install fastlane but doesn't install fastlane.
-3. `android` stage has the dependencies required to install the Android SDK and to develop Flutter apps for Android.
-
 ## Roadmap
 
 * Minimal image with predownloaded SDKs and tools ready to run `flutter` commands for the platforms:  
-   * \[ \] iOS  
-   * \[ \] Linux  
-   * \[ \] Windows  
-   * \[ \] Web
+   * iOS  
+   * Linux  
+   * Windows  
+   * Web
 * Android features:  
-   * \[ \] Android emulator
+   * Android emulator
 
 ## FAQ
 
@@ -132,23 +128,13 @@ The base image is `debian/debian:12-slim` and from there multiple stages are cre
 
 The storage of the images starts to cost after 50 GB and increases with every pushed image because the AWS Free Tier covers up to 50 GB of total storage for free in ECR Public.
 
+## Why there is no dynamic tag like `latest`?
+
+There is no `latest` Docker tag on purpose. You need to specify the version of the image you want to use. The reason for that is that `latest` can cause unexpected behavior when rerunning a past CI job that was expected to use the old build of the `latest` tag. There are multiple articles explaining more about this reasoning like [What's Wrong With The Docker :latest Tag?](https://vsupalov.com/docker-latest-tag/) and [The misunderstood Docker tag: latest](https://medium.com/@mccode/the-misunderstood-docker-tag-latest-af3babfd6375).
+
 ## Contributing
 
 See [Contributing](docs/contributing.md).
-
-## Other Docker projects for mobile development
-
-* [docker-android-fastlane](https://github.com/softartdev/docker-android-fastlane)
-
-## Acknowledgments
-
-* [docker-android-build-box](https://github.com/mingchen/docker-android-build-box)
-* [flutter-fastlane-android](https://github.com/gmemstr/flutter-fastlane-android)
-* [circleci-images](https://github.com/circleci/circleci-images)
-* [docker-images-android](https://github.com/cirruslabs/docker-images-android)
-* [docker-images-flutter](https://github.com/cirruslabs/docker-images-flutter)
-* [flutter-docker-image](https://github.com/instrumentisto/flutter-docker-image)
-* [DockerFlutter](https://github.com/fischerscode/DockerFlutter)
 
 ## License
 

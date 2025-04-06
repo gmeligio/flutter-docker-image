@@ -5,7 +5,9 @@ export const androidJson = versionJson.android
 export const gradleVersion = androidJson.gradle.version
 export const buildToolsVersion = androidJson.buildTools.version
 export const repositoryPath = 'gmeligio/flutter-android'
-export const imageUri = `${repositoryPath}:${flutterVersion}`
+export const dockerHubUri = `${repositoryPath}:${flutterVersion}`
+export const githubUri = `ghcr.io/${dockerHubUri}`
+export const quayUri = `quay.io/${dockerHubUri}`
 export const androidPlatformVersions = androidJson.platforms.map(p => p.version).join(', ')
 export const androidNdkVersion = androidJson.ndk.version
 export const dockerHubUrl = `https://hub.docker.com/r/${repositoryPath}`
@@ -16,6 +18,8 @@ export const quayUrl = `https://quay.io/repository/${repositoryPath}`
 Docker images for Flutter Continuous Integration (CI). The source is available [on GitHub](https://github.com/gmeligio/flutter-docker-image).
 
 The images includes the minimum tools to run Flutter and build apps. The versions of the tools installed are based on the official [Flutter](https://github.com/flutter/flutter) repository. The final goal is that Flutter doesn't need to download anything like tools or SDKs when running the container.
+
+## Contents
 
 ## Features
 
@@ -38,44 +42,38 @@ The images are experimental and are in active development. They are being used f
 
 ## Running Containers
 
-Registries:
-
-- <a href={dockerHubUrl}>Docker Hub</a>
-- [Github Container Registry](https://github.com/gmeligio/flutter-docker-image/pkgs/container/flutter-android)
-- <a href={quayUrl}>Quay</a>
+| Registry                  | flutter-android                                        |
+|---------------------------|--------------------------------------------------------|
+| Docker Hub                | <a href={dockerHubUrl}>{dockerHubUri}</a>    |
+| GitHub Container Registry | <a href="https://github.com/gmeligio/flutter-docker-image/pkgs/container/flutter-android">{githubUri}</a> |
+| Quay                      | <a href={quayUrl}>{quayUri}</a> |
 
 On the terminal:
 <pre><code className="language-bash">
-{`# From Docker Hub
-docker run --rm -it ${imageUri} bash
-
-# From GitHub Container Registry
-docker run --rm -it ghcr.io/${imageUri} bash
-
-# From Quay.io
-docker run --rm -it quay.io/${imageUri} bash`}
+{`# From GitHub Container Registry
+docker run --rm -it ${githubUri} bash`}
 </code></pre>
 
 On a workflow in GitHub Actions:
 <pre><code className="language-yaml">
 {`jobs:
-  build:
-    runs-on: ubuntu-22.04
-    container:
-      image: ghcr.io/${imageUri}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Build
-        run: flutter build apk`}
+    build:
+      runs-on: ubuntu-22.04
+      container:
+        image: ${githubUri}
+      steps:
+        - name: Checkout
+          uses: actions/checkout@v2
+        - name: Build
+          run: flutter build apk`}
 </code></pre>
 
 On a `.gitlab-ci.yml` in GitLab CI:
 <pre><code className="language-yaml">
 {`build:
-  image: ghcr.io/${imageUri}
-  script:
-    - flutter build apk`}
+    image: ${githubUri}
+    script:
+      - flutter build apk`}
 </code></pre>
 
 Fastlane:
@@ -89,45 +87,37 @@ bundle install --prefer-local
 bundle exec fastlane`}
 </code></pre>
 
-## Versions
+## Tags
 
-There is no `latest` Docker tag on purpose. You need to specify the version of the image you want to use. The reason for that is that `latest` is a dynamic tag that can be confusing when reading the image URI because doesn't necessarily point to the latest image built and can cause unexpected behavior when rerunning a past CI job that runs with an overwritten latest tags. There are multiple articles explaining more about this reasoning like [What's Wrong With The Docker :latest Tag?](https://vsupalov.com/docker-latest-tag/) and [The misunderstood Docker tag: latest](https://medium.com/@mccode/the-misunderstood-docker-tag-latest-af3babfd6375).
-
-The tag is composed of the Flutter version used to build the image. For example:
-- Docker image: {imageUri}
+Every new tag on the flutter stable channel gets built. The tag is composed of the Flutter version used to build the image:
+- Docker image: {dockerHubUri}
 - Flutter version: {flutterVersion}
 
-## Developing Locally
+## Building Locally
 
-### Running The Container
+The android.Dockerfile expects a few arguments:
 
-The Dockerfile expects a few parameters:
 - `flutter_version <string>`: The version of Flutter to use when building. Example: {flutterVersion}
 - `android_build_tools_version <string>`: The version of the Android SDK Build Tools to install. Example: {buildToolsVersion}
-- `android_platform_versions <list>`: The versions of the Android SDK Platforms to install, separated by spaces. Example: 28 31 33
+- `android_platform_versions <list>`: The versions of the Android SDK Platforms to install, separated by spaces. Example: {androidPlatformVersions}
   
 <pre><code className="language-bash">
 {`# Android
 docker build --target android --build-arg flutter_version=${flutterVersion} --build-arg fastlane_version=${fastlaneVersion} --build-arg android_build_tools_version=${buildToolsVersion} --build-arg android_platform_versions="${androidPlatformVersions}" -t android-test .`}
 </code></pre>
 
-### Dockerfile stages
-
-The base image is `debian/debian:12-slim` and from there multiple stages are created:
-1. `flutter` stage hast only the dependencies required to install flutter and common tools used by flutter internal commands, like `git`.
-1. `fastlane` stage has the dependencies required to install fastlane but doesn't install fastlane.
-1. `android` stage has the dependencies required to install the Android SDK and to develop Flutter apps for Android.
-
 ## Roadmap
 
 - Minimal image with predownloaded SDKs and tools ready to run `flutter` commands for the platforms:
-   - [ ] iOS
-   - [ ] Linux
-   - [ ] Windows
-   - [ ] Web
+   
+   - iOS
+   - Linux
+   - Windows
+   - Web
 
 - Android features:
-   - [ ] Android emulator
+   
+   - Android emulator
 
 ## FAQ
 
@@ -135,23 +125,13 @@ The base image is `debian/debian:12-slim` and from there multiple stages are cre
 
 The storage of the images starts to cost after 50 GB and increases with every pushed image because the AWS Free Tier covers up to 50 GB of total storage for free in ECR Public.
 
+## Why there is no dynamic tag like `latest`?
+
+There is no `latest` Docker tag on purpose. You need to specify the version of the image you want to use. The reason for that is that `latest` can cause unexpected behavior when rerunning a past CI job that was expected to use the old build of the `latest` tag. There are multiple articles explaining more about this reasoning like [What's Wrong With The Docker :latest Tag?](https://vsupalov.com/docker-latest-tag/) and [The misunderstood Docker tag: latest](https://medium.com/@mccode/the-misunderstood-docker-tag-latest-af3babfd6375).
+
 ## Contributing
 
 See [Contributing](docs/contributing.md).
-
-## Other Docker projects for mobile development
-
-- [docker-android-fastlane](https://github.com/softartdev/docker-android-fastlane)
-
-## Acknowledgments
-
-- [docker-android-build-box](https://github.com/mingchen/docker-android-build-box)
-- [flutter-fastlane-android](https://github.com/gmemstr/flutter-fastlane-android)
-- [circleci-images](https://github.com/circleci/circleci-images)
-- [docker-images-android](https://github.com/cirruslabs/docker-images-android)
-- [docker-images-flutter](https://github.com/cirruslabs/docker-images-flutter)
-- [flutter-docker-image](https://github.com/instrumentisto/flutter-docker-image)
-- [DockerFlutter](https://github.com/fischerscode/DockerFlutter)
 
 ## License
 
@@ -161,4 +141,4 @@ As with all Docker images, these likely also contain other software which may be
 
 As for any pre-built image usage, it is the image user's responsibility to ensure that any use of this image complies with any relevant licenses for all software contained within.
 
-The [sources](https://github.com/gmeligio/flutter-docker-image) for producing gmeligio/flutter-android Docker images are licensed under [MIT License](LICENSE.md).
+The [sources](https://github.com/gmeligio/flutter-docker-image) for producing {repositoryPath} Docker images are licensed under [MIT License](LICENSE.md).

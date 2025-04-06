@@ -3,18 +3,26 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "build": "npm run readme && npm run contributing && npm run license",
-    "readme": "cross-env NODE_ENV=production mdx-to-md readme.mdx ../../readme.md",
-    "license": "cross-env NODE_ENV=production mdx-to-md license.mdx ../../LICENSE.md",
-    "contributing": "cross-env NODE_ENV=production mdx-to-md contributing.mdx ../contributing.md",
+    "readme": "cross-env NODE_ENV=production node compile.js readme.mdx ../../readme.md",
+    "license": "cross-env NODE_ENV=production node compile.js license.mdx ../../LICENSE.md",
+    "contributing": "cross-env NODE_ENV=production node compile.js contributing.mdx ../contributing.md",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "cross-env": "^7.0.3",
-    "mdx-to-md": "^0.3.2"
+    "mdx-to-md": "^0.3.2",
+    "remark-gfm": "^4.0.1",
+    "remark-toc": "^9.0.0"
+  },
+  "overrides": {
+    "mdx-to-md": {
+      "mdx-bundler": "^10.1.1"
+    }
   },
   "volta": {
     "node": "22.14.0"
