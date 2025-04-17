@@ -41,7 +41,7 @@ jobs:
         if: ${{ steps.update_flutter_version.outputs.result == 'true' }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: flutter_version
+          name: flutter_version.json
           path: config/flutter_version.json
   
   update_android_version:
@@ -74,8 +74,8 @@ jobs:
       - name: Download artifact with the new Flutter version
         uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4.2.1
         with:
-          name: flutter_version
-          path: config/flutter_version.json
+          name: flutter_version.json
+          path: config
 
       - name: Generate authentication token with GitHub App to trigger Actions
         uses: actions/create-github-app-token@d72941d797fd3113feb6b93fd0dec494b13a2547 # v1.12.0
