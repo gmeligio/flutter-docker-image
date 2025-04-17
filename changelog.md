@@ -2,535 +2,443 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [3.29.3] - 2025-04-17
+
+### 🚀 Features
+
+- Build windows image (#314)
+
+### 🐛 Bug Fixes
+
+- *(deps)* Update dependency mdx-to-md to ^0.5.0 (#324)
+
+### 💼 Other
+
+- *(deps)* Bump @babel/runtime (#312)
+- Update windows image to ltsc2025 (#317)
+- *(deps)* Bump estree-util-value-to-estree from 3.3.2 to 3.3.3 in /docs/src in the npm_and_yarn group across 1 directory (#325)
+
+### 📚 Documentation
+
+- Add table of contents and image table (#323)
+
+### ⚙️ Miscellaneous Tasks
+
+- Single workflow to update versions (#311)
+- Get version from parsed JSON (#313)
+- Schedule GitHub Actions updates on the first day of the month (#318)
+- Upgrade artifact actions to use digest (#319)
+- Grant app token only  current repository (#320)
+- Download-artifact can not overwrite existing files (#327)
+- Path is a folder in download-artifact (#328)
+- Update flutter dependencies in version.json for 3.29.3
 
 ## [3.29.2] - 2025-03-15
 
-### Changed
-- Update flutter dependencies in version.json for 3.29.2
-- Update flutter version in flutter_version.json to 3.29.2 by @verified-commit[bot] in [#309](https://github.com/gmeligio/flutter-docker-image/pull/309)
-- Upgrade actions only for new major or minor versions by @gmeligio in [#308](https://github.com/gmeligio/flutter-docker-image/pull/308)
-- Run pr build only from latest commit by @gmeligio in [#306](https://github.com/gmeligio/flutter-docker-image/pull/306)
-- Generate tag with Github App token to trigger Actions by @gmeligio in [#305](https://github.com/gmeligio/flutter-docker-image/pull/305)
+### ⚙️ Miscellaneous Tasks
 
-## New Contributors
-* @verified-commit[bot] made their first contribution in [#309](https://github.com/gmeligio/flutter-docker-image/pull/309)
-* @gmeligio made their first contribution in [#308](https://github.com/gmeligio/flutter-docker-image/pull/308)
+- Generate tag with Github App token to trigger Actions (#305)
+- Run pr build only from latest commit (#306)
+- Upgrade actions only for new major or minor versions (#308)
+- Update flutter version in flutter_version.json to 3.29.2 (#309)
+- Update flutter dependencies in version.json for 3.29.2 (#310)
+
 ## [3.29.1] - 2025-03-09
 
-### Changed
-- Update flutter dependencies in version.json for 3.29.1 by @verified-commit[bot] in [#304](https://github.com/gmeligio/flutter-docker-image/pull/304)
-- Discard changes to flutter source code when switching tags by @gmeligio in [#303](https://github.com/gmeligio/flutter-docker-image/pull/303)
-- Update flutter version in flutter_version.json to 3.29.1 by @verified-commit[bot] in [#302](https://github.com/gmeligio/flutter-docker-image/pull/302)
-- Mention Flutter license by @gmeligio in [#301](https://github.com/gmeligio/flutter-docker-image/pull/301)
-- Use deb renovate datasource instead of repology by @gmeligio in [#300](https://github.com/gmeligio/flutter-docker-image/pull/300)
-- Update github-actions by @renovate[bot] in [#299](https://github.com/gmeligio/flutter-docker-image/pull/299)
-- Update debian:12-slim docker digest to 12c396b by @renovate[bot] in [#298](https://github.com/gmeligio/flutter-docker-image/pull/298)
-- Update github-actions by @renovate[bot] in [#266](https://github.com/gmeligio/flutter-docker-image/pull/266)
-- Replace jq with cue to reduce tool dependencies by @gmeligio in [#297](https://github.com/gmeligio/flutter-docker-image/pull/297)
-- Replace yq with cue to reduce tool dependencies by @gmeligio in [#296](https://github.com/gmeligio/flutter-docker-image/pull/296)
-- Define VERSION_MANIFEST at workflow level by @gmeligio in [#295](https://github.com/gmeligio/flutter-docker-image/pull/295)
-- Read environment variables in create_git_tag by @gmeligio in [#294](https://github.com/gmeligio/flutter-docker-image/pull/294)
-- Checkout repository by @gmeligio in [#292](https://github.com/gmeligio/flutter-docker-image/pull/292)
-- Split ci and release workflows by @gmeligio in [#291](https://github.com/gmeligio/flutter-docker-image/pull/291)
+### 🐛 Bug Fixes
 
-### Fixed
-- Use github context because octokit is not available by @gmeligio in [#293](https://github.com/gmeligio/flutter-docker-image/pull/293)
+- Use github context because octokit is not available (#293)
+
+### 💼 Other
+
+- Replace yq with cue to reduce tool dependencies (#296)
+
+### 📚 Documentation
+
+- Mention Flutter license (#301)
+
+### ⚙️ Miscellaneous Tasks
+
+- Split ci and release workflows (#291)
+- Checkout repository (#292)
+- Read environment variables in create_git_tag (#294)
+- Define VERSION_MANIFEST at workflow level (#295)
+- Replace jq with cue to reduce tool dependencies (#297)
+- Use deb renovate datasource instead of repology (#300)
+- Update flutter version in flutter_version.json to 3.29.1 (#302)
+- Discard changes to flutter source code when switching tags (#303)
+- Update flutter dependencies in version.json for 3.29.1 (#304)
 
 ## [3.29.0] - 2025-02-17
 
-### Added
-- Add openssf scorecard by @gmeligio in [#241](https://github.com/gmeligio/flutter-docker-image/pull/241)
-- Add a security policy by @gmeligio in [#238](https://github.com/gmeligio/flutter-docker-image/pull/238)
-- Add CODEOWNERS by @gmeligio in [#237](https://github.com/gmeligio/flutter-docker-image/pull/237)
-- Add scorecard by @gmeligio in [#235](https://github.com/gmeligio/flutter-docker-image/pull/235)
-- Add docker/scout-action to compare differences by @gmeligio in [#219](https://github.com/gmeligio/flutter-docker-image/pull/219)
-- Add renovate groups by @gmeligio in [#94](https://github.com/gmeligio/flutter-docker-image/pull/94)
-- Add workflow for changes that affect the dockerfile by @gmeligio in [#77](https://github.com/gmeligio/flutter-docker-image/pull/77)
-- Add tag chainguard-dev/actions/setup-gitsign@main by @gmeligio in [#35](https://github.com/gmeligio/flutter-docker-image/pull/35)
-- Add other trigger to job if by @gmeligio
-- Add workflow_dispatch trigger by @gmeligio
-- Add flutter regex to renovate by @gmeligio
-- Add flutter-version to renovate.json by @gmeligio
-- Add test commands for downloads by @gmeligio
-- Add variable CACHE_REPOSITORY_PATH by @gmeligio
-- Add fastlane stage by @gmeligio
-- Add space after first badge by @gmeligio
-- Add channel badge by @gmeligio
-- Add command to render both docs by @gmeligio
-- Add fastlane related project by @gmeligio
-- Add cross-env by @gmeligio
-- Add interpolating expressions and className to code blocks by @gmeligio
-- Add source repository by @gmeligio
-- Add npm cache to documentation update job by @gmeligio
-- Add url to badges by @gmeligio
-- Add license by @gmeligio
-- Add mdx readme by @gmeligio
-- Add target android by @gmeligio
-- Add build args and cache to local docker image by @gmeligio
-- Add xargs to convert multiline string to string with spaces by @gmeligio
-- Add environment variable GITHUB_SHORT_SHA by @gmeligio
-- Add args for openjdk and sudo by @gmeligio
-- Add version epoch to git ubuntu version by @gmeligio
-- Add repology source ubuntu 22:04 by @gmeligio
-- Add renovate by @gmeligio
-- Add extension to updateAndroidPlatform.gradle by @gmeligio
-- Add variable env.FLUTTER_VERSION by @gmeligio
-- Add flutter version to tag by @gmeligio
-- Add permissions for create pull request by @gmeligio
-- Add property node by @gmeligio
-- Add github action for graphql by @gmeligio
-- Add outputs by @gmeligio
-- Add ENABLE_ANALYTICS to entrypoint by @gmeligio
-- Add env variable PLATFORMS_VERSIONS by @gmeligio
-- Add env variables FLUTTER_VERSION and ANDROID_BUILD_TOOLS_VERSION by @gmeligio
-- Add multiple platform versions by @gmeligio
-- Add --use-new-run to kaniko by @gmeligio
-- Add image opencontainers labels by @gmeligio
-- Add pattern /builds/* to sudoers by @gmeligio
-- Add logical and before modifying sudoers by @gmeligio
-- Add entrypoint to change ownership of CI_PROJECT_DIR by @gmeligio
-- Add variable IMAGE_REPOSITORY_TAG by @gmeligio
-- Add todo to get latest versions by @gmeligio
-- Add test_app by @gmeligio
-- Add example workflow by @gmeligio
+### 🐛 Bug Fixes
 
-### Changed
-- Update node.js to v22.14.0 by @renovate[bot] in [#290](https://github.com/gmeligio/flutter-docker-image/pull/290)
-- Update flutter dependencies in version.json for 3.29.0 by @verified-commit[bot] in [#289](https://github.com/gmeligio/flutter-docker-image/pull/289)
-- Migrate Android version update script to Kotlin DSL and remove Groovy version by @gmeligio in [#288](https://github.com/gmeligio/flutter-docker-image/pull/288)
-- Update flutter version in flutter_version.json to 3.29.0 by @verified-commit[bot] in [#286](https://github.com/gmeligio/flutter-docker-image/pull/286)
-- Bump esbuild by @dependabot[bot] in [#285](https://github.com/gmeligio/flutter-docker-image/pull/285)
-- Update debian:12-slim docker digest to 40b1073 by @renovate[bot] in [#284](https://github.com/gmeligio/flutter-docker-image/pull/284)
-- Update flutter dependencies in version.json for 3.27.4 by @verified-commit[bot] in [#283](https://github.com/gmeligio/flutter-docker-image/pull/283)
-- Update flutter version in flutter_version.json to 3.27.4 by @verified-commit[bot] in [#282](https://github.com/gmeligio/flutter-docker-image/pull/282)
-- Update all non-major dependencies by @renovate[bot] in [#281](https://github.com/gmeligio/flutter-docker-image/pull/281)
-- Update flutter dependencies in version.json for 3.27.3 by @verified-commit[bot] in [#280](https://github.com/gmeligio/flutter-docker-image/pull/280)
-- Update flutter version in flutter_version.json to 3.27.3 by @verified-commit[bot] in [#279](https://github.com/gmeligio/flutter-docker-image/pull/279)
-- Update debian:12-slim docker digest to f70dc8d by @renovate[bot] in [#278](https://github.com/gmeligio/flutter-docker-image/pull/278)
-- Update flutter dependencies in version.json for 3.27.2 by @verified-commit[bot] in [#277](https://github.com/gmeligio/flutter-docker-image/pull/277)
-- Update flutter version in flutter_version.json to 3.27.2 by @verified-commit[bot] in [#276](https://github.com/gmeligio/flutter-docker-image/pull/276)
-- Update node.js to v22.13.0 by @renovate[bot] in [#275](https://github.com/gmeligio/flutter-docker-image/pull/275)
-- Update debian:12-slim docker digest to d365f49 by @renovate[bot] in [#274](https://github.com/gmeligio/flutter-docker-image/pull/274)
-- Update flutter dependencies in version.json for 3.27.1 by @verified-commit[bot] in [#273](https://github.com/gmeligio/flutter-docker-image/pull/273)
-- Update flutter version in flutter_version.json to 3.27.1 by @verified-commit[bot] in [#272](https://github.com/gmeligio/flutter-docker-image/pull/272)
-- Update flutter dependencies in version.json for 3.27.0 by @verified-commit[bot] in [#271](https://github.com/gmeligio/flutter-docker-image/pull/271)
-- Update flutter version in flutter_version.json to 3.27.0 by @verified-commit[bot] in [#270](https://github.com/gmeligio/flutter-docker-image/pull/270)
-- Update debian:12-slim docker digest to 1537a6a by @renovate[bot] in [#268](https://github.com/gmeligio/flutter-docker-image/pull/268)
-- Update node.js to v22.12.0 by @renovate[bot] in [#269](https://github.com/gmeligio/flutter-docker-image/pull/269)
-- Bump cross-spawn from 7.0.3 to 7.0.6 in /docs/src in the npm_and_yarn group across 1 directory by @dependabot[bot] in [#267](https://github.com/gmeligio/flutter-docker-image/pull/267)
-- Update debian:12-slim docker digest to ca3372c by @renovate[bot] in [#265](https://github.com/gmeligio/flutter-docker-image/pull/265)
-- Reorganize sections in readme.md by @gmeligio in [#264](https://github.com/gmeligio/flutter-docker-image/pull/264)
-- Update flutter dependencies in version.json for 3.24.5 by @verified-commit[bot] in [#263](https://github.com/gmeligio/flutter-docker-image/pull/263)
-- Update flutter version in flutter_version.json to 3.24.5 by @verified-commit[bot] in [#262](https://github.com/gmeligio/flutter-docker-image/pull/262)
-- Update docker/build-push-action action to v6 by @renovate[bot] in [#260](https://github.com/gmeligio/flutter-docker-image/pull/260)
-- Update node.js to v22 by @renovate[bot] in [#261](https://github.com/gmeligio/flutter-docker-image/pull/261)
-- Update github-actions by @renovate[bot] in [#258](https://github.com/gmeligio/flutter-docker-image/pull/258)
-- Update dependency debian_12/curl to v7.88.1-10+deb12u8 by @renovate[bot] in [#259](https://github.com/gmeligio/flutter-docker-image/pull/259)
-- Update dependency ubuntu to v24 by @renovate[bot] in [#257](https://github.com/gmeligio/flutter-docker-image/pull/257)
-- Update node.js to v20.18.0 by @renovate[bot] in [#256](https://github.com/gmeligio/flutter-docker-image/pull/256)
-- Run renovate weekly to keep low noise with prHourlyLimit 2 by @gmeligio in [#255](https://github.com/gmeligio/flutter-docker-image/pull/255)
-- Update debian:12-slim docker digest to 36e591f by @renovate[bot] in [#253](https://github.com/gmeligio/flutter-docker-image/pull/253)
-- Update github-actions by @renovate[bot] in [#254](https://github.com/gmeligio/flutter-docker-image/pull/254)
-- Update flutter dependencies in version.json for 3.24.4 by @verified-commit[bot] in [#252](https://github.com/gmeligio/flutter-docker-image/pull/252)
-- Update flutter version in flutter_version.json to 3.24.4 by @verified-commit[bot] in [#251](https://github.com/gmeligio/flutter-docker-image/pull/251)
-- Update flutter dependencies in version.json for 3.24.3 by @verified-commit[bot] in [#250](https://github.com/gmeligio/flutter-docker-image/pull/250)
-- Rename build_and_push workflow to release by @gmeligio in [#249](https://github.com/gmeligio/flutter-docker-image/pull/249)
-- Unify PR workflows into build.yml by @gmeligio in [#248](https://github.com/gmeligio/flutter-docker-image/pull/248)
-- Update flutter dependencies in version.json for 3.24.3 by @verified-commit[bot] in [#247](https://github.com/gmeligio/flutter-docker-image/pull/247)
-- Update debian:12-slim docker digest to ad86386 by @renovate[bot] in [#245](https://github.com/gmeligio/flutter-docker-image/pull/245)
-- Update docker/scout-action digest to cc6bf8d by @renovate[bot] in [#246](https://github.com/gmeligio/flutter-docker-image/pull/246)
-- Update actions/create-github-app-token digest to 5d869da by @renovate[bot] in [#243](https://github.com/gmeligio/flutter-docker-image/pull/243)
-- Show only fixable CVEs by @gmeligio in [#242](https://github.com/gmeligio/flutter-docker-image/pull/242)
-- Pin yq action with sha by @gmeligio in [#240](https://github.com/gmeligio/flutter-docker-image/pull/240)
-- Upload docker hub CVEs to code scanning by @gmeligio in [#239](https://github.com/gmeligio/flutter-docker-image/pull/239)
-- Set default permission to contents:read by @gmeligio in [#236](https://github.com/gmeligio/flutter-docker-image/pull/236)
-- Update license path by @gmeligio in [#234](https://github.com/gmeligio/flutter-docker-image/pull/234)
-- Update documents by @gmeligio in [#233](https://github.com/gmeligio/flutter-docker-image/pull/233)
-- Update flutter dependencies in version.json for 3.24.3 by @verified-commit[bot] in [#232](https://github.com/gmeligio/flutter-docker-image/pull/232)
-- Update flutter version in flutter_version.json to 3.24.3 by @verified-commit[bot] in [#231](https://github.com/gmeligio/flutter-docker-image/pull/231)
-- Update repo flutter version after pushing new image by @gmeligio in [#230](https://github.com/gmeligio/flutter-docker-image/pull/230)
-- Update flutter dependencies in version.json for 3.24.2 by @verified-commit[bot] in [#229](https://github.com/gmeligio/flutter-docker-image/pull/229)
-- Run job in ghcr.io/gmeligio/flutter-android image by @gmeligio in [#228](https://github.com/gmeligio/flutter-docker-image/pull/228)
-- Update flutter version in flutter_version.json to 3.24.2 by @verified-commit[bot] in [#227](https://github.com/gmeligio/flutter-docker-image/pull/227)
-- Pin docker/scount-action by @gmeligio in [#226](https://github.com/gmeligio/flutter-docker-image/pull/226)
-- Update peter-evans/create-pull-request action to v7 by @renovate[bot] in [#225](https://github.com/gmeligio/flutter-docker-image/pull/225)
-- Update peter-evans/dockerhub-description action to v4 by @renovate[bot] in [#224](https://github.com/gmeligio/flutter-docker-image/pull/224)
-- Update flutter-actions/setup-flutter action to v3 by @renovate[bot] in [#223](https://github.com/gmeligio/flutter-docker-image/pull/223)
-- Update all non-major dependencies by @renovate[bot] in [#222](https://github.com/gmeligio/flutter-docker-image/pull/222)
-- Scout compare by @gmeligio in [#221](https://github.com/gmeligio/flutter-docker-image/pull/221)
-- Record only docker hub image by @gmeligio in [#220](https://github.com/gmeligio/flutter-docker-image/pull/220)
-- Use github integration for docker buildx cache by @gmeligio in [#218](https://github.com/gmeligio/flutter-docker-image/pull/218)
-- Update debian:12-slim docker digest to 2ccc7e3 by @renovate[bot] in [#215](https://github.com/gmeligio/flutter-docker-image/pull/215)
-- Update docker/login-action digest to 9780b0c by @renovate[bot] in [#216](https://github.com/gmeligio/flutter-docker-image/pull/216)
-- Update docker/setup-buildx-action digest to 988b5a0 by @renovate[bot] in [#217](https://github.com/gmeligio/flutter-docker-image/pull/217)
-- Update chainguard-dev/actions digest to 9ba949a by @renovate[bot] in [#214](https://github.com/gmeligio/flutter-docker-image/pull/214)
-- Update flutter dependencies in version.json for 3.24.1 by @gmeligio in [#213](https://github.com/gmeligio/flutter-docker-image/pull/213)
-- Update flutter version in flutter_version.json to 3.24.1 by @gmeligio in [#212](https://github.com/gmeligio/flutter-docker-image/pull/212)
-- Update flutter dependencies in version.json for 3.24.0 by @gmeligio in [#211](https://github.com/gmeligio/flutter-docker-image/pull/211)
-- Update flutter version in flutter_version.json to 3.24.0 by @gmeligio in [#210](https://github.com/gmeligio/flutter-docker-image/pull/210)
-- Upgrade cue-lang/setup-cue to v1.0.1 in other workflows by @gmeligio in [#209](https://github.com/gmeligio/flutter-docker-image/pull/209)
-- Upgrade cue-lang/setup-cue to v1.0.1 by @gmeligio in [#208](https://github.com/gmeligio/flutter-docker-image/pull/208)
-- Upgrade peter-evans/create-pull-request to v6 by @gmeligio in [#207](https://github.com/gmeligio/flutter-docker-image/pull/207)
-- Update fastlane in version.json for 3.22.3 by @gmeligio in [#206](https://github.com/gmeligio/flutter-docker-image/pull/206)
-- Update chainguard-dev/actions digest to 9d943fc by @renovate[bot] in [#205](https://github.com/gmeligio/flutter-docker-image/pull/205)
-- Update actions/setup-node digest to 1e60f62 by @renovate[bot] in [#204](https://github.com/gmeligio/flutter-docker-image/pull/204)
-- Update flutter dependencies in version.json for 3.22.3 by @gmeligio in [#203](https://github.com/gmeligio/flutter-docker-image/pull/203)
-- Update flutter version in flutter_version.json to 3.22.3 by @gmeligio in [#202](https://github.com/gmeligio/flutter-docker-image/pull/202)
-- Update debian:12-slim docker digest to f528891 by @renovate[bot] in [#198](https://github.com/gmeligio/flutter-docker-image/pull/198)
-- Update docker/login-action digest to 0d4c9c5 by @renovate[bot] in [#200](https://github.com/gmeligio/flutter-docker-image/pull/200)
-- Update docker/setup-buildx-action digest to d70bba7 by @renovate[bot] in [#201](https://github.com/gmeligio/flutter-docker-image/pull/201)
-- Update docker/build-push-action digest to ca052bb by @renovate[bot] in [#199](https://github.com/gmeligio/flutter-docker-image/pull/199)
-- Update flutter dependencies in version.json for 3.22.2 by @gmeligio in [#197](https://github.com/gmeligio/flutter-docker-image/pull/197)
-- Bump braces by @dependabot[bot] in [#196](https://github.com/gmeligio/flutter-docker-image/pull/196)
-- Update chainguard-dev/actions digest to f94883c by @renovate[bot] in [#195](https://github.com/gmeligio/flutter-docker-image/pull/195)
-- Update actions/checkout digest to 692973e by @renovate[bot] in [#194](https://github.com/gmeligio/flutter-docker-image/pull/194)
-- Update flutter dependencies in version.json for 3.22.2 by @gmeligio in [#193](https://github.com/gmeligio/flutter-docker-image/pull/193)
-- Update flutter version in flutter_version.json to 3.22.2 by @gmeligio in [#192](https://github.com/gmeligio/flutter-docker-image/pull/192)
-- Update chainguard-dev/actions digest to e82b4e5 by @renovate[bot] in [#191](https://github.com/gmeligio/flutter-docker-image/pull/191)
-- Update actions/checkout digest to a5ac7e5 by @renovate[bot] in [#190](https://github.com/gmeligio/flutter-docker-image/pull/190)
-- Update flutter dependencies in version.json for 3.22.1 by @gmeligio in [#189](https://github.com/gmeligio/flutter-docker-image/pull/189)
-- Update flutter version in flutter_version.json to 3.22.1 by @gmeligio in [#188](https://github.com/gmeligio/flutter-docker-image/pull/188)
-- Update flutter dependencies in version.json for 3.22.0 by @gmeligio in [#187](https://github.com/gmeligio/flutter-docker-image/pull/187)
-- Update flutter version in flutter_version.json to 3.22.0 by @gmeligio in [#186](https://github.com/gmeligio/flutter-docker-image/pull/186)
-- Update actions/checkout digest to 0ad4b8f by @renovate[bot] in [#184](https://github.com/gmeligio/flutter-docker-image/pull/184)
-- Update chainguard-dev/actions digest to 8799517 by @renovate[bot] in [#185](https://github.com/gmeligio/flutter-docker-image/pull/185)
-- Update flutter dependencies in version.json for 3.19.6 by @gmeligio in [#183](https://github.com/gmeligio/flutter-docker-image/pull/183)
-- Update flutter version in flutter_version.json to 3.19.6 by @gmeligio in [#182](https://github.com/gmeligio/flutter-docker-image/pull/182)
-- Update debian:12-slim docker digest to ccb33c3 by @renovate[bot] in [#181](https://github.com/gmeligio/flutter-docker-image/pull/181)
-- Update chainguard-dev/actions digest to 2cadca1 by @renovate[bot] in [#180](https://github.com/gmeligio/flutter-docker-image/pull/180)
-- Update flutter dependencies in version.json for 3.19.5 by @gmeligio in [#179](https://github.com/gmeligio/flutter-docker-image/pull/179)
-- Update flutter version in flutter_version.json to 3.19.5 by @gmeligio in [#178](https://github.com/gmeligio/flutter-docker-image/pull/178)
-- Update flutter dependencies in version.json for 3.19.4 by @gmeligio in [#177](https://github.com/gmeligio/flutter-docker-image/pull/177)
-- Update flutter version in flutter_version.json to 3.19.4 by @gmeligio in [#176](https://github.com/gmeligio/flutter-docker-image/pull/176)
-- Update flutter dependencies in version.json for 3.19.3 by @gmeligio in [#175](https://github.com/gmeligio/flutter-docker-image/pull/175)
-- Update flutter version in flutter_version.json to 3.19.3 by @gmeligio in [#174](https://github.com/gmeligio/flutter-docker-image/pull/174)
-- Update cron schedule to run only on weekdays by @gmeligio in [#173](https://github.com/gmeligio/flutter-docker-image/pull/173)
-- Update docker/setup-buildx-action digest to 0d103c3 by @renovate[bot] in [#172](https://github.com/gmeligio/flutter-docker-image/pull/172)
-- Update debian:12-slim docker digest to d02c76d by @renovate[bot] in [#171](https://github.com/gmeligio/flutter-docker-image/pull/171)
-- Update chainguard-dev/actions digest to 2d71fc0 by @renovate[bot] in [#170](https://github.com/gmeligio/flutter-docker-image/pull/170)
-- Update actions/setup-node digest to 60edb5d by @renovate[bot] in [#169](https://github.com/gmeligio/flutter-docker-image/pull/169)
-- Update flutter dependencies in version.json for 3.19.2 by @gmeligio in [#168](https://github.com/gmeligio/flutter-docker-image/pull/168)
-- Update flutter version in flutter_version.json to 3.19.2 by @gmeligio in [#167](https://github.com/gmeligio/flutter-docker-image/pull/167)
-- Update flutter dependencies in version.json for 3.19.1 by @gmeligio in [#166](https://github.com/gmeligio/flutter-docker-image/pull/166)
-- Update flutter version in flutter_version.json to 3.19.1 by @gmeligio in [#165](https://github.com/gmeligio/flutter-docker-image/pull/165)
-- Update flutter dependencies in version.json for 3.19.0 by @gmeligio in [#163](https://github.com/gmeligio/flutter-docker-image/pull/163)
-- Join parsed platform versions with space by @gmeligio in [#164](https://github.com/gmeligio/flutter-docker-image/pull/164)
-- Update flutter version in flutter_version.json to 3.19.0 by @gmeligio in [#160](https://github.com/gmeligio/flutter-docker-image/pull/160)
-- Check if files were changed by @gmeligio in [#159](https://github.com/gmeligio/flutter-docker-image/pull/159)
-- Upgrade openjdk-17-jdk-headless to 17.0.10+7-1~deb12u1 by @gmeligio in [#158](https://github.com/gmeligio/flutter-docker-image/pull/158)
-- Split config validation by @gmeligio in [#157](https://github.com/gmeligio/flutter-docker-image/pull/157)
-- Run build if entrypoint changes by @gmeligio in [#156](https://github.com/gmeligio/flutter-docker-image/pull/156)
-- Update node.js to v20.11.0 by @renovate[bot] in [#154](https://github.com/gmeligio/flutter-docker-image/pull/154)
-- Update docker/metadata-action digest to 8e5442c by @renovate[bot] in [#153](https://github.com/gmeligio/flutter-docker-image/pull/153)
-- Update debian:12-slim docker digest to 7802002 by @renovate[bot] in [#152](https://github.com/gmeligio/flutter-docker-image/pull/152)
-- Update chainguard-dev/actions digest to a1514a4 by @renovate[bot] in [#151](https://github.com/gmeligio/flutter-docker-image/pull/151)
-- Update flutter dependencies in version.json for 3.16.9 by @gmeligio in [#150](https://github.com/gmeligio/flutter-docker-image/pull/150)
-- Update flutter version in flutter_version.json to 3.16.9 by @gmeligio in [#149](https://github.com/gmeligio/flutter-docker-image/pull/149)
-- Update flutter dependencies in version.json for 3.16.8 by @gmeligio in [#148](https://github.com/gmeligio/flutter-docker-image/pull/148)
-- Update flutter version in flutter_version.json to 3.16.8 by @gmeligio in [#147](https://github.com/gmeligio/flutter-docker-image/pull/147)
-- Update flutter dependencies in version.json for 3.16.7 by @gmeligio in [#146](https://github.com/gmeligio/flutter-docker-image/pull/146)
-- Update flutter version in flutter_version.json to 3.16.7 by @gmeligio in [#145](https://github.com/gmeligio/flutter-docker-image/pull/145)
-- Update flutter dependencies in version.json for 3.16.6 by @gmeligio in [#144](https://github.com/gmeligio/flutter-docker-image/pull/144)
-- Update flutter version in flutter_version.json to 3.16.6 by @gmeligio in [#143](https://github.com/gmeligio/flutter-docker-image/pull/143)
-- Update chainguard-dev/actions digest to 4d12a92 by @renovate[bot] in [#142](https://github.com/gmeligio/flutter-docker-image/pull/142)
-- Update actions/setup-node digest to b39b52d by @renovate[bot] in [#141](https://github.com/gmeligio/flutter-docker-image/pull/141)
-- Update flutter dependencies in version.json for 3.16.5 by @gmeligio in [#140](https://github.com/gmeligio/flutter-docker-image/pull/140)
-- Update flutter version in flutter_version.json to 3.16.5 by @gmeligio in [#139](https://github.com/gmeligio/flutter-docker-image/pull/139)
-- Update flutter dependencies in version.json for 3.16.4 by @gmeligio in [#138](https://github.com/gmeligio/flutter-docker-image/pull/138)
-- Update flutter version in flutter_version.json to 3.16.4 by @gmeligio in [#137](https://github.com/gmeligio/flutter-docker-image/pull/137)
-- Update flutter dependencies in version.json for 3.16.3 by @gmeligio in [#136](https://github.com/gmeligio/flutter-docker-image/pull/136)
-- Update flutter version in flutter_version.json to 3.16.3 by @gmeligio in [#135](https://github.com/gmeligio/flutter-docker-image/pull/135)
-- Run renovate monthly by @gmeligio in [#134](https://github.com/gmeligio/flutter-docker-image/pull/134)
-- Update docker/metadata-action digest to 31cebac by @renovate[bot] in [#133](https://github.com/gmeligio/flutter-docker-image/pull/133)
-- Update flutter dependencies in version.json for 3.16.2 by @gmeligio in [#132](https://github.com/gmeligio/flutter-docker-image/pull/132)
-- Update flutter version in flutter_version.json to 3.16.2 by @gmeligio in [#131](https://github.com/gmeligio/flutter-docker-image/pull/131)
-- Update flutter dependencies in version.json for 3.16.1 by @gmeligio in [#130](https://github.com/gmeligio/flutter-docker-image/pull/130)
-- Update flutter version in flutter_version.json to 3.16.1 by @gmeligio in [#129](https://github.com/gmeligio/flutter-docker-image/pull/129)
-- Update debian:12-slim docker digest to 2bc5c23 by @renovate[bot] in [#127](https://github.com/gmeligio/flutter-docker-image/pull/127)
-- Update node.js to v20.10.0 by @renovate[bot] in [#128](https://github.com/gmeligio/flutter-docker-image/pull/128)
-- Update chainguard-dev/actions digest to e74da3c by @renovate[bot] in [#126](https://github.com/gmeligio/flutter-docker-image/pull/126)
-- Update docker/build-push-action digest to 4a13e50 by @renovate[bot] in [#124](https://github.com/gmeligio/flutter-docker-image/pull/124)
-- Update actions/github-script action to v7 by @renovate[bot] in [#125](https://github.com/gmeligio/flutter-docker-image/pull/125)
-- Update chainguard-dev/actions digest to 01b5d32 by @renovate[bot] in [#123](https://github.com/gmeligio/flutter-docker-image/pull/123)
-- Update renovate according to validator by @gmeligio in [#122](https://github.com/gmeligio/flutter-docker-image/pull/122)
-- Update flutter dependencies in version.json for 3.16.0 by @gmeligio in [#121](https://github.com/gmeligio/flutter-docker-image/pull/121)
-- Update flutter version in flutter_version.json to 3.16.0 by @gmeligio in [#120](https://github.com/gmeligio/flutter-docker-image/pull/120)
-- Update flutter-actions/setup-flutter action to v2.3 by @renovate[bot] in [#117](https://github.com/gmeligio/flutter-docker-image/pull/117)
-- Update node.js to v20 by @renovate[bot] in [#119](https://github.com/gmeligio/flutter-docker-image/pull/119)
-- Update debian:12-slim docker digest to 6cc67f7 by @renovate[bot] in [#116](https://github.com/gmeligio/flutter-docker-image/pull/116)
-- Update actions/setup-node action to v4 by @renovate[bot] in [#118](https://github.com/gmeligio/flutter-docker-image/pull/118)
-- Update chainguard-dev/actions digest to 3f8eec3 by @renovate[bot] in [#115](https://github.com/gmeligio/flutter-docker-image/pull/115)
-- Update actions/setup-node digest to 1a4442c by @renovate[bot] in [#114](https://github.com/gmeligio/flutter-docker-image/pull/114)
-- Update flutter dependencies in version.json for 3.13.9 by @gmeligio in [#113](https://github.com/gmeligio/flutter-docker-image/pull/113)
-- Update flutter version in flutter_version.json to 3.13.9 by @gmeligio in [#112](https://github.com/gmeligio/flutter-docker-image/pull/112)
-- Update chainguard-dev/actions digest to c3c52b6 by @renovate[bot] in [#111](https://github.com/gmeligio/flutter-docker-image/pull/111)
-- Update actions/checkout digest to b4ffde6 by @renovate[bot] in [#110](https://github.com/gmeligio/flutter-docker-image/pull/110)
-- Update flutter dependencies in version.json for 3.13.8 by @github-actions[bot] in [#108](https://github.com/gmeligio/flutter-docker-image/pull/108)
-- Use GH_APP_TOKEN to trigger workflows on created pull requests by @gmeligio in [#109](https://github.com/gmeligio/flutter-docker-image/pull/109)
-- Update flutter version in flutter_version.json to 3.13.8 by @github-actions[bot] in [#107](https://github.com/gmeligio/flutter-docker-image/pull/107)
-- Update debian:12-slim docker digest to b55e265 by @renovate[bot] in [#105](https://github.com/gmeligio/flutter-docker-image/pull/105)
-- Update all non-major dependencies by @renovate[bot] in [#106](https://github.com/gmeligio/flutter-docker-image/pull/106)
-- Update chainguard-dev/actions digest to 85c167d by @renovate[bot] in [#104](https://github.com/gmeligio/flutter-docker-image/pull/104)
-- Update pull request titles created with action by @gmeligio in [#103](https://github.com/gmeligio/flutter-docker-image/pull/103)
-- Update dependencies versions in manifest with flutter 3.13.7 by @github-actions[bot] in [#102](https://github.com/gmeligio/flutter-docker-image/pull/102)
-- Update dependencies versions in manifest with flutter 3.13.7 by @github-actions[bot] in [#101](https://github.com/gmeligio/flutter-docker-image/pull/101)
-- Update path of readme.md by @gmeligio in [#100](https://github.com/gmeligio/flutter-docker-image/pull/100)
-- Update dependency debian_12/curl to v7.88.1-10+deb12u3 by @renovate[bot] in [#99](https://github.com/gmeligio/flutter-docker-image/pull/99)
-- Update chainguard-dev/actions digest to eda5199 by @renovate[bot] in [#98](https://github.com/gmeligio/flutter-docker-image/pull/98)
-- Rename jobs to separate status checks by @gmeligio in [#97](https://github.com/gmeligio/flutter-docker-image/pull/97)
-- Update dependencies versions in manifest with flutter 3.13.6 by @github-actions[bot] in [#96](https://github.com/gmeligio/flutter-docker-image/pull/96)
-- Update dependencies versions in manifest with flutter 3.13.6 by @github-actions[bot] in [#95](https://github.com/gmeligio/flutter-docker-image/pull/95)
-- Update chainguard-dev/actions digest to 9265f5c by @renovate[bot] in [#93](https://github.com/gmeligio/flutter-docker-image/pull/93)
-- Update chainguard-dev/actions digest to 3831485 by @renovate[bot] in [#92](https://github.com/gmeligio/flutter-docker-image/pull/92)
-- Update chainguard-dev/actions digest to 1c34825 by @renovate[bot] in [#91](https://github.com/gmeligio/flutter-docker-image/pull/91)
-- Change debian registry to docker hub by @gmeligio in [#90](https://github.com/gmeligio/flutter-docker-image/pull/90)
-- Ignore .vscode folder by @gmeligio in [#89](https://github.com/gmeligio/flutter-docker-image/pull/89)
-- Update actions/checkout digest to 8ade135 by @renovate[bot] in [#88](https://github.com/gmeligio/flutter-docker-image/pull/88)
-- Update dependencies versions in manifest with flutter 3.13.5 by @github-actions[bot] in [#87](https://github.com/gmeligio/flutter-docker-image/pull/87)
-- Update dependencies versions in manifest with flutter 3.13.5 by @github-actions[bot] in [#86](https://github.com/gmeligio/flutter-docker-image/pull/86)
-- Update public.ecr.aws/debian/debian:12-slim docker digest to 0283315 by @renovate[bot] in [#85](https://github.com/gmeligio/flutter-docker-image/pull/85)
-- Update node.js to v18.18.0 by @renovate[bot] in [#84](https://github.com/gmeligio/flutter-docker-image/pull/84)
-- Update chainguard-dev/actions digest to 7149c13 by @renovate[bot] in [#83](https://github.com/gmeligio/flutter-docker-image/pull/83)
-- Change setup-flutter action to follow tag v2.2 by @gmeligio in [#82](https://github.com/gmeligio/flutter-docker-image/pull/82)
-- Change action host os to ubuntu-22.04 by @gmeligio in [#81](https://github.com/gmeligio/flutter-docker-image/pull/81)
-- Update dependencies versions in manifest with flutter 3.13.4 by @github-actions[bot] in [#80](https://github.com/gmeligio/flutter-docker-image/pull/80)
-- Update chainguard-dev/actions digest to 6866fa3 by @renovate[bot] in [#76](https://github.com/gmeligio/flutter-docker-image/pull/76)
-- Automerge chainguard digest changes by @gmeligio in [#79](https://github.com/gmeligio/flutter-docker-image/pull/79)
-- Upgrade to debian 12 by @gmeligio in [#78](https://github.com/gmeligio/flutter-docker-image/pull/78)
-- Update dependencies versions in manifest with flutter 3.13.4 by @github-actions[bot] in [#73](https://github.com/gmeligio/flutter-docker-image/pull/73)
-- Update dependencies versions in manifest with flutter 3.13.4 by @github-actions[bot] in [#72](https://github.com/gmeligio/flutter-docker-image/pull/72)
-- Update chainguard-dev/actions digest to 660b943 by @renovate[bot] in [#71](https://github.com/gmeligio/flutter-docker-image/pull/71)
-- Update docker/metadata-action action to v5 by @renovate[bot] in [#69](https://github.com/gmeligio/flutter-docker-image/pull/69)
-- Update docker/setup-buildx-action action to v3 by @renovate[bot] in [#70](https://github.com/gmeligio/flutter-docker-image/pull/70)
-- Update docker/login-action action to v3 by @renovate[bot] in [#68](https://github.com/gmeligio/flutter-docker-image/pull/68)
-- Update docker/build-push-action action to v5 by @renovate[bot] in [#67](https://github.com/gmeligio/flutter-docker-image/pull/67)
-- Pin cue-lang/setup-cue action to digest by @gmeligio in [#66](https://github.com/gmeligio/flutter-docker-image/pull/66)
-- Update docker/build-push-action digest to 0a97817 by @renovate[bot] in [#65](https://github.com/gmeligio/flutter-docker-image/pull/65)
-- Update dependencies versions in manifest with flutter 3.13.3 by @github-actions[bot] in [#64](https://github.com/gmeligio/flutter-docker-image/pull/64)
-- Update dependencies versions in manifest with flutter 3.13.3 by @github-actions[bot] in [#62](https://github.com/gmeligio/flutter-docker-image/pull/62)
-- Update docker/build-push-action digest to 4e4ee68 by @renovate[bot] in [#63](https://github.com/gmeligio/flutter-docker-image/pull/63)
-- Update chainguard-dev/actions digest to 81dc0f9 by @renovate[bot] in [#61](https://github.com/gmeligio/flutter-docker-image/pull/61)
-- Update actions/checkout action to v4 by @renovate[bot] in [#60](https://github.com/gmeligio/flutter-docker-image/pull/60)
-- Update chainguard-dev/actions digest to 099f822 by @renovate[bot] in [#59](https://github.com/gmeligio/flutter-docker-image/pull/59)
-- Update dependencies versions in manifest with flutter 3.13.2 by @github-actions[bot] in [#58](https://github.com/gmeligio/flutter-docker-image/pull/58)
-- Update dependencies versions in manifest with flutter 3.13.2 by @github-actions[bot] in [#57](https://github.com/gmeligio/flutter-docker-image/pull/57)
-- Update chainguard-dev/actions digest to c9b5c5e by @renovate[bot] in [#56](https://github.com/gmeligio/flutter-docker-image/pull/56)
-- Update docker/setup-buildx-action digest to 885d146 by @renovate[bot] in [#55](https://github.com/gmeligio/flutter-docker-image/pull/55)
-- Update actions/checkout digest to f43a0e5 by @renovate[bot] in [#52](https://github.com/gmeligio/flutter-docker-image/pull/52)
-- Update dependencies versions in manifest with flutter 3.13.1 by @github-actions[bot] in [#54](https://github.com/gmeligio/flutter-docker-image/pull/54)
-- Update dependencies versions in manifest with flutter 3.13.1 by @github-actions[bot] in [#51](https://github.com/gmeligio/flutter-docker-image/pull/51)
-- Validate json schema with cue by @gmeligio in [#50](https://github.com/gmeligio/flutter-docker-image/pull/50)
-- Update node.js to v18.17.1 by @renovate[bot] in [#46](https://github.com/gmeligio/flutter-docker-image/pull/46)
-- Use putAll to merge maps by @gmeligio in [#49](https://github.com/gmeligio/flutter-docker-image/pull/49)
-- Merge old and new maps in gradle by @gmeligio in [#48](https://github.com/gmeligio/flutter-docker-image/pull/48)
-- Get node version from package.json by @gmeligio in [#47](https://github.com/gmeligio/flutter-docker-image/pull/47)
-- Use volta to reproduce nodejs version by @gmeligio in [#45](https://github.com/gmeligio/flutter-docker-image/pull/45)
-- LinuxReleasesResponse variable by @gmeligio in [#44](https://github.com/gmeligio/flutter-docker-image/pull/44)
-- Search in releases json file instead of github query by @gmeligio in [#43](https://github.com/gmeligio/flutter-docker-image/pull/43)
-- Group sections related to features by @gmeligio in [#42](https://github.com/gmeligio/flutter-docker-image/pull/42)
-- Trigger workflow on push to main instead of pr closed by @gmeligio in [#41](https://github.com/gmeligio/flutter-docker-image/pull/41)
-- Update chainguard-dev/actions digest to 18e5df8 by @renovate[bot] in [#40](https://github.com/gmeligio/flutter-docker-image/pull/40)
-- Use commit sha for github action versions by @gmeligio in [#39](https://github.com/gmeligio/flutter-docker-image/pull/39)
-- Upgrade to openjdk 17 to 17.0.7+7-1~deb11u1 by @gmeligio in [#37](https://github.com/gmeligio/flutter-docker-image/pull/37)
-- Update openjdk11 to 11.0.20+8-1~deb11u1 by @gmeligio in [#36](https://github.com/gmeligio/flutter-docker-image/pull/36)
-- Update dependencies versions in manifest with flutter 3.13.0' by @github-actions[bot] in [#33](https://github.com/gmeligio/flutter-docker-image/pull/33)
-- Use gitsign to sign commits in github workflows by @gmeligio in [#34](https://github.com/gmeligio/flutter-docker-image/pull/34)
-- Override version json with flutter version by @gmeligio in [#32](https://github.com/gmeligio/flutter-docker-image/pull/32)
-- Move paths to pull request event by @gmeligio in [#31](https://github.com/gmeligio/flutter-docker-image/pull/31)
-- Change automatic pr title by @gmeligio
-- Run update_flutter_dependencies after pr is merged by @gmeligio
-- Changes by create-pull-request action by @github-actions[bot] in [#30](https://github.com/gmeligio/flutter-docker-image/pull/30)
-- Update trigger to flutter_version by @gmeligio
-- Correct flutter version to 3.10.6 by @gmeligio
-- Declare version variable by @gmeligio
-- Split update workflow into flutter and dependencies by @gmeligio
-- Set config directory for flutter version by @gmeligio
-- Escape dot in fileMatch regex by @gmeligio
-- Use recursive matchStringsStrategy for flutter-version by @gmeligio
-- Increase tags returned from query to 60 by @gmeligio
-- Merge branch 'main' of https://github.com/gmeligio/flutter-docker-image by @gmeligio
-- Changes by create-pull-request action by @github-actions[bot] in [#28](https://github.com/gmeligio/flutter-docker-image/pull/28)
-- [create-pull-request] automated change by @github-actions[bot] in [#27](https://github.com/gmeligio/flutter-docker-image/pull/27)
-- Changes by create-pull-request action by @github-actions[bot] in [#26](https://github.com/gmeligio/flutter-docker-image/pull/26)
-- Require fs by @gmeligio
-- Initialize data in js by @gmeligio
-- Await json by @gmeligio
-- Log version by @gmeligio
-- Update fastlane version by @gmeligio
-- Install fastlane with bundler by @gmeligio
-- Rename android test to bundle test by @gmeligio
-- Reorganize files to clean root directory by @gmeligio
-- Changes by create-pull-request action by @github-actions[bot] in [#25](https://github.com/gmeligio/flutter-docker-image/pull/25)
-- Use .com github domain by @gmeligio
-- Update android badges by @gmeligio
-- Changes by create-pull-request action by @github-actions[bot] in [#23](https://github.com/gmeligio/flutter-docker-image/pull/23)
-- Move github script to script directory by @gmeligio
-- Check in which channel the tag exists by @gmeligio
-- Merge branch 'main' of https://github.com/gmeligio/flutter-docker-image by @gmeligio
-- Changes by create-pull-request action by @github-actions[bot] in [#22](https://github.com/gmeligio/flutter-docker-image/pull/22)
-- Changes by create-pull-request action by @github-actions[bot] in [#21](https://github.com/gmeligio/flutter-docker-image/pull/21)
-- Export flutter version from javascript by @gmeligio
-- Change wording of related projects by @gmeligio
-- Split readme and ecr about by @gmeligio
-- Changes by create-pull-request action by @github-actions[bot] in [#20](https://github.com/gmeligio/flutter-docker-image/pull/20)
-- Explain more why not latest by @gmeligio
-- Changes by create-pull-request action by @github-actions[bot] in [#19](https://github.com/gmeligio/flutter-docker-image/pull/19)
-- Changes by create-pull-request action by @github-actions[bot] in [#18](https://github.com/gmeligio/flutter-docker-image/pull/18)
-- Replace triple backtick with pre code block to remove exceeding line by @gmeligio
-- Changes by create-pull-request action by @github-actions[bot] in [#17](https://github.com/gmeligio/flutter-docker-image/pull/17)
-- Reorganize readme by @gmeligio
-- Changes by create-pull-request action by @github-actions[bot] in [#16](https://github.com/gmeligio/flutter-docker-image/pull/16)
-- Use preinstalled jq in github actions by @gmeligio
-- Update ecr repository description by @gmeligio
-- Update docker hub description by @gmeligio
-- Change working directory for update android versions by @gmeligio
-- Change setup-node path by @gmeligio
-- Rename usage to getting started by @gmeligio
-- Update tool versions by @gmeligio
-- Render docs by @gmeligio
-- Mention gitlab ci yaml by @gmeligio
-- Reorganize readme by @gmeligio
-- Set the docs path to docs/src by @gmeligio
-- Update docs after version by @gmeligio
-- Change path triggers by @gmeligio
-- Update readme.mdx by @gmeligio
-- Update plexsystems/container-structure-test-action action to v0.3.0 by @renovate[bot] in [#15](https://github.com/gmeligio/flutter-docker-image/pull/15)
-- Setup docker buildx before testing image by @gmeligio
-- Test image structure by @gmeligio
-- Use ghcr for image cache by @gmeligio
-- Setup buildx with docker/setup-buildx-action by @gmeligio
-- Migrate to docker/build-push-action to allow testing image by @gmeligio
-- Use jq to extract variables from version.json by @gmeligio
-- Show platform versions by @gmeligio
-- Rename gradle script to updateAndroidVersions by @gmeligio
-- Update gradle version by @gmeligio
-- Switch to debian/debian:11-slim by @gmeligio
-- [create-pull-request] automated change by @github-actions[bot] in [#14](https://github.com/gmeligio/flutter-docker-image/pull/14)
-- Uncomment flutter installation by @gmeligio
-- Restore openjdk-11-jdk-headless by @gmeligio
-- Update openjdk-11-jre-headless in renovate annotation by @gmeligio
-- Migrate to JRE with openjdk-11-jre-headless by @gmeligio
-- Use snapshotMode redo in kaniko by @gmeligio
-- Migrate to openjdk-11-jdk-headless by @gmeligio
-- Chmod entrypoint by @gmeligio
-- Upgrade openjdk-11-jdk to 11.0.19+7~us1-0ubuntu1~22.04.1 by @gmeligio
-- Copy entrypoint with flutter user permissions by @gmeligio
-- Make entrypoint executable by @gmeligio
-- Pin version of ca-certificates by @gmeligio
-- Upgrade git to 2.34.1-1ubuntu1.8 by @gmeligio
-- Update peter-evans/create-pull-request action to v5 by @renovate[bot] in [#10](https://github.com/gmeligio/flutter-docker-image/pull/10)
-- Disable docker minor update by @gmeligio
-- Update aws-actions/configure-aws-credentials action to v2 by @renovate[bot] in [#9](https://github.com/gmeligio/flutter-docker-image/pull/9)
-- Disable docker major updates by @gmeligio
-- Update public.ecr.aws/ubuntu/ubuntu:22.04 docker digest to 5fb5e64 by @renovate[bot] in [#6](https://github.com/gmeligio/flutter-docker-image/pull/6)
-- Change ENV to ARG in renovate by @gmeligio
-- Merge branch 'main' of https://github.com/gmeligio/flutter-docker-image by @gmeligio
-- Changes by create-pull-request action by @github-actions[bot] in [#5](https://github.com/gmeligio/flutter-docker-image/pull/5)
-- Get last 20 tags to increase change of matching regex by @gmeligio
-- Changes by create-pull-request action by @github-actions[bot] in [#4](https://github.com/gmeligio/flutter-docker-image/pull/4)
-- Merge branch 'main' of https://github.com/gmeligio/flutter-docker-image by @gmeligio
-- Changes by create-pull-request action by @github-actions[bot] in [#3](https://github.com/gmeligio/flutter-docker-image/pull/3)
-- Update sudo to 1.9.9-1ubuntu2.4 by @gmeligio
-- Use raw tags in metadata by @gmeligio
-- Load image metadata with docker/metadata-action by @gmeligio
-- Push to quay by @gmeligio
-- Push to docker hub by @gmeligio
-- Changes by create-pull-request action by @github-actions[bot] in [#2](https://github.com/gmeligio/flutter-docker-image/pull/2)
-- Leave registry link only by @gmeligio
-- Merge branch 'main' of https://github.com/gmeligio/flutter-docker-image by @gmeligio
-- Changes by create-pull-request action by @github-actions[bot] in [#1](https://github.com/gmeligio/flutter-docker-image/pull/1)
-- Clarify readme by @gmeligio
-- Run on every day by @gmeligio
-- Clean test app by @gmeligio
-- Restore create pull request by @gmeligio
-- Use forward slash for path separator by @gmeligio
-- Running gradlew by @gmeligio
-- Create test app by @gmeligio
-- Use fromJson by @gmeligio
-- Setup flutter by @gmeligio
-- Format version.json with prettier by @gmeligio
-- Create pull request by @gmeligio
-- Read current version json by @gmeligio
-- Write latest tag to file by @gmeligio
-- Unescape regex by @gmeligio
-- Keep only latest tag by @gmeligio
-- Log more output by @gmeligio
-- Updating github-token to GH_API_TOKEN by @gmeligio
-- Upgrade curl to 7.81.0-1ubuntu1.10 by @gmeligio
-- Use fromJson in flutter_version by @gmeligio
-- FromJson version and commit by @gmeligio
-- Output only flutter by @gmeligio
-- Print all outputs by @gmeligio
-- Echo all outputs by @gmeligio
-- Use release version in action zoexx/github-action-json-file-properties by @gmeligio
-- Format echo by @gmeligio
-- Read version.json by @gmeligio
-- Read version json by @gmeligio
-- Upgrade openjdk-11-jdk to 11.0.18+10-0ubuntu1~22.04 and sudo to 1.9.9-1ubuntu2.2 by @gmeligio
-- Upgrade curl to 7.81.0-1ubuntu1.8 by @gmeligio
-- Do not quote array of arguments in build args by @gmeligio
-- Use platforms_versions by @gmeligio
-- Upgrade flutter to 3.7.4 by @gmeligio
-- Join env statements by @gmeligio
-- Explicitly set java home by @gmeligio
-- Use --snapshotMode=redo in kaniko by @gmeligio
-- Upgrade flutter to 3.7.3 by @gmeligio
-- Set JAVA_HOME by @gmeligio
-- Use kaniko to build and push by @gmeligio
-- Use variables for container registries by @gmeligio
-- Leave sudo but remove entrypoint by @gmeligio
-- Flutter downloads obsolete Android SDK Tools (revision: 26.1.1) by @gmeligio
-- Set non-root user as flutter by @gmeligio
-- Create flutter base image and then android by @gmeligio
-- Give read permission to contents to github token by @gmeligio
-- Give write permission to packages to github token by @gmeligio
-- Update scripts by @gmeligio
-- Build and push to ecr by @gmeligio
-- Move scripts to a new directory by @gmeligio
-- Move Dockerfile to root by @gmeligio
-- Sync after commit in vscode by @gmeligio
-- First commit by @gmeligio
+- Update version.json path
+- Remove annotation CompileDynamic
+- Remove ecr registry
+- Don't print message on entrypoint to allow initial calls from CI systems (#155)
 
-### Fixed
-- Platforms can have multiple versions by @gmeligio in [#162](https://github.com/gmeligio/flutter-docker-image/pull/162)
-- Gradle can have a patch version by @gmeligio in [#161](https://github.com/gmeligio/flutter-docker-image/pull/161)
-- Don't print message on entrypoint to allow initial calls from CI systems by @gmeligio in [#155](https://github.com/gmeligio/flutter-docker-image/pull/155)
-- Update expected android sdk command line tools to version 11.0 by @gmeligio in [#38](https://github.com/gmeligio/flutter-docker-image/pull/38)
-- Fastlane can run lanes by @gmeligio
-- Check dart and flutter analytics are disabled by @gmeligio
-- Verify analytics are disabled by @gmeligio
-- Increase timeout to 4m by @gmeligio
-- Fix typo in script directory by @gmeligio
-- Fix gradle script path by @gmeligio
-- Fix ubuntu package names by @gmeligio
-- Fix typo between curl and git by @gmeligio
-- Update version.json path by @gmeligio
+### 💼 Other
 
-### Removed
-- Remove --depth 1 from git clone in Dockerfile by @gmeligio in [#287](https://github.com/gmeligio/flutter-docker-image/pull/287)
-- Remove quote from pr title by @gmeligio in [#53](https://github.com/gmeligio/flutter-docker-image/pull/53)
-- Remove recursive strategy from renovate by @gmeligio
-- Remove ecr registry by @gmeligio
-- Remove semicolon by @gmeligio
-- Remove todo URLs from Dockerfile by @gmeligio
-- Delete unused sha from readme by @gmeligio
-- Remove sha from tag by @gmeligio
-- Remove exceeding single quote by @gmeligio
-- Delete images.json by @gmeligio
-- Remove annotation CompileDynamic by @gmeligio
-- Delete unused test_app by @gmeligio
-- Remove os specifc versioning by @gmeligio
-- Remove locale env and update regex and update git version by @gmeligio
+- Move Dockerfile to root
+- Remove locale env and update regex and update git version
+- Create flutter base image and then android
+- Set non-root user as flutter
+- Flutter downloads obsolete Android SDK Tools (revision: 26.1.1)
+- Add entrypoint to change ownership of CI_PROJECT_DIR
+- Leave sudo but remove entrypoint
+- Add logical and before modifying sudoers
+- Add pattern /builds/* to sudoers
+- Add image opencontainers labels
+- Set JAVA_HOME
+- Explicitly set java home
+- Join env statements
+- Add multiple platform versions
+- Use platforms_versions
+- Do not quote array of arguments in build args
+- Upgrade curl to 7.81.0-1ubuntu1.8
+- Upgrade openjdk-11-jdk to 11.0.18+10-0ubuntu1~22.04 and sudo to 1.9.9-1ubuntu2.2
+- Add ENABLE_ANALYTICS to entrypoint
+- Upgrade curl to 7.81.0-1ubuntu1.10
+- Update sudo to 1.9.9-1ubuntu2.4
+- Add repology source ubuntu 22:04
+- Remove os specifc versioning
+- Fix typo between curl and git
+- Fix ubuntu package names
+- Upgrade git to 2.34.1-1ubuntu1.8
+- Add args for openjdk and sudo
+- Make entrypoint executable
+- Copy entrypoint with flutter user permissions
+- Upgrade openjdk-11-jdk to 11.0.19+7~us1-0ubuntu1~22.04.1
+- Chmod entrypoint
+- Migrate to openjdk-11-jdk-headless
+- Migrate to JRE with openjdk-11-jre-headless
+- Restore openjdk-11-jdk-headless
+- Uncomment flutter installation
+- Switch to debian/debian:11-slim
+- Add cross-env
+- Add fastlane stage
+- Install fastlane with bundler
+- Update dependencies versions in manifest with flutter 3.13.0' (#33)
+- Upgrade to openjdk 17 to 17.0.7+7-1~deb11u1 (#37)
+- Upgrade to debian 12 (#78)
+- Change debian registry to docker hub (#90)
+- Upgrade openjdk-17-jdk-headless to 17.0.10+7-1~deb12u1 (#158)
+- Join parsed platform versions with space
+- *(deps)* Bump braces (#196)
+- *(deps)* Bump cross-spawn from 7.0.3 to 7.0.6 in /docs/src in the npm_and_yarn group across 1 directory (#267)
+- *(deps)* Bump esbuild (#285)
+- Remove --depth 1 from git clone in Dockerfile (#287)
 
-## New Contributors
-* @renovate[bot] made their first contribution in [#290](https://github.com/gmeligio/flutter-docker-image/pull/290)
-* @verified-commit[bot] made their first contribution in [#289](https://github.com/gmeligio/flutter-docker-image/pull/289)
-* @gmeligio made their first contribution in [#288](https://github.com/gmeligio/flutter-docker-image/pull/288)
-* @dependabot[bot] made their first contribution in [#285](https://github.com/gmeligio/flutter-docker-image/pull/285)
-* @github-actions[bot] made their first contribution in [#108](https://github.com/gmeligio/flutter-docker-image/pull/108)
-[3.29.2]: https://github.com/gmeligio/flutter-docker-image/compare/3.29.1..3.29.2
-[3.29.1]: https://github.com/gmeligio/flutter-docker-image/compare/3.29.0..3.29.1
+### 🚜 Refactor
+
+- Format version.json with prettier
+- Update renovate according to validator (#122)
+- Migrate Android version update script to Kotlin DSL and remove Groovy version (#288)
+
+### 📚 Documentation
+
+- Add todo to get latest versions
+- Clarify readme
+- Leave registry link only
+- Add mdx readme
+- Update readme.mdx
+- Add license
+- Add url to badges
+- Delete images.json
+- Reorganize readme
+- Mention gitlab ci yaml
+- Render docs
+- Update tool versions
+- Rename usage to getting started
+- Add source repository
+- Reorganize readme
+- Add interpolating expressions and className to code blocks
+- Replace triple backtick with pre code block to remove exceeding line
+- Delete unused sha from readme
+- Explain more why not latest
+- Split readme and ecr about
+- Add fastlane related project
+- Change wording of related projects
+- Remove todo URLs from Dockerfile
+- Add command to render both docs
+- Add channel badge
+- Update android badges
+- Add space after first badge
+- Use .com github domain
+- Group sections related to features (#42)
+- Update documents (#233)
+- Update license path (#234)
+- Add a security policy (#238)
+- Add openssf scorecard (#241)
+- Reorganize sections in readme.md (#264)
+
+### 🧪 Testing
+
+- Add test_app
+- Add test commands for downloads
+- Increase timeout to 4m
+- Verify analytics are disabled
+- Check dart and flutter analytics are disabled
+- Fastlane can run lanes
+- Update expected android sdk command line tools to version 11.0 (#38)
+- Gradle can have a patch version
+- Platforms can have multiple versions
+
+### ⚙️ Miscellaneous Tasks
+
+- Add example workflow
+- Sync after commit in vscode
+- Move scripts to a new directory
+- Build and push to ecr
+- Add variable IMAGE_REPOSITORY_TAG
+- Update scripts
+- Give write permission to packages to github token
+- Give read permission to contents to github token
+- Use variables for container registries
+- Use kaniko to build and push
+- Upgrade flutter to 3.7.3
+- Add --use-new-run to kaniko
+- Use --snapshotMode=redo in kaniko
+- Upgrade flutter to 3.7.4
+- Add env variables FLUTTER_VERSION and ANDROID_BUILD_TOOLS_VERSION
+- Add env variable PLATFORMS_VERSIONS
+- Read version json
+- Read version.json
+- Add outputs
+- Format echo
+- Use release version in action zoexx/github-action-json-file-properties
+- Echo all outputs
+- Print all outputs
+- Output only flutter
+- FromJson version and commit
+- Use fromJson in flutter_version
+- Add github action for graphql
+- Updating github-token to GH_API_TOKEN
+- Log more output
+- Keep only latest tag
+- Unescape regex
+- Write latest tag to file
+- Add property node
+- Read current version json
+- Create pull request
+- Add permissions for create pull request
+- Add flutter version to tag
+- Add variable env.FLUTTER_VERSION
+- Setup flutter
+- Use fromJson
+- Create test app
+- Running gradlew
+- Add extension to updateAndroidPlatform.gradle
+- Use forward slash for path separator
+- Restore create pull request
+- Clean test app
+- Run on every day
+- Push to docker hub
+- Push to quay
+- Load image metadata with docker/metadata-action
+- Use raw tags in metadata
+- Get last 20 tags to increase change of matching regex
+- Add renovate
+- Change ENV to ARG in renovate
+- Disable docker major updates
+- Disable docker minor update
+- Pin version of ca-certificates
+- Add version epoch to git ubuntu version
+- Add environment variable GITHUB_SHORT_SHA
+- Use snapshotMode redo in kaniko
+- Update openjdk-11-jre-headless in renovate annotation
+- Update gradle version
+- Rename gradle script to updateAndroidVersions
+- Delete unused test_app
+- Show platform versions
+- Use jq to extract variables from version.json
+- Add xargs to convert multiline string to string with spaces
+- Migrate to docker/build-push-action to allow testing image
+- Setup buildx with docker/setup-buildx-action
+- Use ghcr for image cache
+- Test image structure
+- Add build args and cache to local docker image
+- Setup docker buildx before testing image
+- Add target android
+- Change path triggers
+- Update docs after version
+- Set the docs path to docs/src
+- Add npm cache to documentation update job
+- Change setup-node path
+- Change working directory for update android versions
+- Update docker hub description
+- Fix gradle script path
+- Update ecr repository description
+- Use preinstalled jq in github actions
+- Remove exceeding single quote
+- Remove sha from tag
+- Export flutter version from javascript
+- Check in which channel the tag exists
+- Remove semicolon
+- Move github script to script directory
+- Fix typo in script directory
+- Reorganize files to clean root directory
+- Add variable CACHE_REPOSITORY_PATH
+- Rename android test to bundle test
+- Update fastlane version
+- Log version
+- Await json
+- Initialize data in js
+- Require fs
+- Increase tags returned from query to 60
+- Add flutter-version to renovate.json
+- Add flutter regex to renovate
+- Use recursive matchStringsStrategy for flutter-version
+- Escape dot in fileMatch regex
+- Set config directory for flutter version
+- Remove recursive strategy from renovate
+- Split update workflow into flutter and dependencies
+- Declare version variable
+- Add workflow_dispatch trigger
+- Correct flutter version to 3.10.6
+- Update trigger to flutter_version
+- Run update_flutter_dependencies after pr is merged
+- Change automatic pr title
+- Add other trigger to job if
+- Move paths to pull request event (#31)
+- Override version json with flutter version (#32)
+- Use gitsign to sign commits in github workflows (#34)
+- Add tag chainguard-dev/actions/setup-gitsign@main (#35)
+- Update openjdk11 to 11.0.20+8-1~deb11u1 (#36)
+- Use commit sha for github action versions (#39)
+- Trigger workflow on push to main instead of pr closed (#41)
+- Search in releases json file instead of github query (#43)
+- LinuxReleasesResponse variable (#44)
+- Use volta to reproduce nodejs version (#45)
+- Get node version from package.json (#47)
+- Merge old and new maps in gradle (#48)
+- Use putAll to merge maps (#49)
+- Validate json schema with cue (#50)
+- Update dependencies versions in manifest with flutter 3.13.1 (#51)
+- Update dependencies versions in manifest with flutter 3.13.1 (#54)
+- Remove quote from pr title (#53)
+- Update dependencies versions in manifest with flutter 3.13.2 (#57)
+- Update dependencies versions in manifest with flutter 3.13.2 (#58)
+- Update dependencies versions in manifest with flutter 3.13.3 (#62)
+- Update dependencies versions in manifest with flutter 3.13.3 (#64)
+- Pin cue-lang/setup-cue action to digest (#66)
+- Update dependencies versions in manifest with flutter 3.13.4 (#72)
+- Update dependencies versions in manifest with flutter 3.13.4 (#73)
+- Add workflow for changes that affect the dockerfile (#77)
+- Automerge chainguard digest changes (#79)
+- Update dependencies versions in manifest with flutter 3.13.4 (#80)
+- Change action host os to ubuntu-22.04 (#81)
+- Change setup-flutter action to follow tag v2.2 (#82)
+- Update dependencies versions in manifest with flutter 3.13.5 (#86)
+- Update dependencies versions in manifest with flutter 3.13.5 (#87)
+- Ignore .vscode folder (#89)
+- Add renovate groups (#94)
+- Update dependencies versions in manifest with flutter 3.13.6 (#95)
+- Update dependencies versions in manifest with flutter 3.13.6 (#96)
+- Rename jobs to separate status checks (#97)
+- Update path of readme.md (#100)
+- Update dependencies versions in manifest with flutter 3.13.7 (#101)
+- Update dependencies versions in manifest with flutter 3.13.7 (#102)
+- Update pull request titles created with action (#103)
+- Update flutter version in flutter_version.json to 3.13.8 (#107)
+- Use GH_APP_TOKEN to trigger workflows on created pull requests (#109)
+- Update flutter dependencies in version.json for 3.13.8 (#108)
+- Update flutter version in flutter_version.json to 3.13.9 (#112)
+- Update flutter dependencies in version.json for 3.13.9 (#113)
+- Update flutter version in flutter_version.json to 3.16.0 (#120)
+- Update flutter dependencies in version.json for 3.16.0 (#121)
+- Update flutter version in flutter_version.json to 3.16.1 (#129)
+- Update flutter dependencies in version.json for 3.16.1 (#130)
+- Update flutter version in flutter_version.json to 3.16.2 (#131)
+- Update flutter dependencies in version.json for 3.16.2 (#132)
+- Run renovate monthly (#134)
+- Update flutter version in flutter_version.json to 3.16.3 (#135)
+- Update flutter dependencies in version.json for 3.16.3 (#136)
+- Update flutter version in flutter_version.json to 3.16.4 (#137)
+- Update flutter dependencies in version.json for 3.16.4 (#138)
+- Update flutter version in flutter_version.json to 3.16.5 (#139)
+- Update flutter dependencies in version.json for 3.16.5 (#140)
+- Update flutter version in flutter_version.json to 3.16.6 (#143)
+- Update flutter dependencies in version.json for 3.16.6 (#144)
+- Update flutter version in flutter_version.json to 3.16.7 (#145)
+- Update flutter dependencies in version.json for 3.16.7 (#146)
+- Update flutter version in flutter_version.json to 3.16.8 (#147)
+- Update flutter dependencies in version.json for 3.16.8 (#148)
+- Update flutter version in flutter_version.json to 3.16.9 (#149)
+- Update flutter dependencies in version.json for 3.16.9 (#150)
+- Run build if entrypoint changes (#156)
+- Split config validation (#157)
+- Check if files were changed (#159)
+- Update flutter version in flutter_version.json to 3.19.0 (#160)
+- Update flutter dependencies in version.json for 3.19.0 (#163)
+- Update flutter version in flutter_version.json to 3.19.1 (#165)
+- Update flutter dependencies in version.json for 3.19.1 (#166)
+- Update flutter version in flutter_version.json to 3.19.2 (#167)
+- Update flutter dependencies in version.json for 3.19.2 (#168)
+- Update cron schedule to run only on weekdays (#173)
+- Update flutter version in flutter_version.json to 3.19.3 (#174)
+- Update flutter dependencies in version.json for 3.19.3 (#175)
+- Update flutter version in flutter_version.json to 3.19.4 (#176)
+- Update flutter dependencies in version.json for 3.19.4 (#177)
+- Update flutter version in flutter_version.json to 3.19.5 (#178)
+- Update flutter dependencies in version.json for 3.19.5 (#179)
+- Update flutter version in flutter_version.json to 3.19.6 (#182)
+- Update flutter dependencies in version.json for 3.19.6 (#183)
+- Update flutter version in flutter_version.json to 3.22.0 (#186)
+- Update flutter dependencies in version.json for 3.22.0 (#187)
+- Update flutter version in flutter_version.json to 3.22.1 (#188)
+- Update flutter dependencies in version.json for 3.22.1 (#189)
+- Update flutter version in flutter_version.json to 3.22.2 (#192)
+- Update flutter dependencies in version.json for 3.22.2 (#193)
+- Update flutter dependencies in version.json for 3.22.2 (#197)
+- Update flutter version in flutter_version.json to 3.22.3 (#202)
+- Update flutter dependencies in version.json for 3.22.3 (#203)
+- Update fastlane in version.json for 3.22.3 (#206)
+- Upgrade peter-evans/create-pull-request to v6 (#207)
+- Upgrade cue-lang/setup-cue to v1.0.1 (#208)
+- Upgrade cue-lang/setup-cue to v1.0.1 in other workflows (#209)
+- Update flutter version in flutter_version.json to 3.24.0 (#210)
+- Update flutter dependencies in version.json for 3.24.0 (#211)
+- Update flutter version in flutter_version.json to 3.24.1 (#212)
+- Update flutter dependencies in version.json for 3.24.1 (#213)
+- Use github integration for docker buildx cache (#218)
+- Add docker/scout-action to compare differences (#219)
+- Record only docker hub image (#220)
+- Scout compare (#221)
+- Pin docker/scount-action (#226)
+- Update flutter version in flutter_version.json to 3.24.2 (#227)
+- Run job in ghcr.io/gmeligio/flutter-android image (#228)
+- Update flutter dependencies in version.json for 3.24.2 (#229)
+- Update repo flutter version after pushing new image (#230)
+- Update flutter version in flutter_version.json to 3.24.3 (#231)
+- Update flutter dependencies in version.json for 3.24.3 (#232)
+- Add scorecard (#235)
+- Set default permission to contents:read (#236)
+- Add CODEOWNERS (#237)
+- Upload docker hub CVEs to code scanning (#239)
+- Pin yq action with sha (#240)
+- Show only fixable CVEs (#242)
+- Update flutter dependencies in version.json for 3.24.3 (#247)
+- Unify PR workflows into build.yml (#248)
+- Rename build_and_push workflow to release (#249)
+- Update flutter dependencies in version.json for 3.24.3 (#250)
+- Update flutter version in flutter_version.json to 3.24.4 (#251)
+- Update flutter dependencies in version.json for 3.24.4 (#252)
+- Run renovate weekly to keep low noise with prHourlyLimit 2 (#255)
+- Update flutter version in flutter_version.json to 3.24.5 (#262)
+- Update flutter dependencies in version.json for 3.24.5 (#263)
+- Update flutter version in flutter_version.json to 3.27.0 (#270)
+- Update flutter dependencies in version.json for 3.27.0 (#271)
+- Update flutter version in flutter_version.json to 3.27.1 (#272)
+- Update flutter dependencies in version.json for 3.27.1 (#273)
+- Update flutter version in flutter_version.json to 3.27.2 (#276)
+- Update flutter dependencies in version.json for 3.27.2 (#277)
+- Update flutter version in flutter_version.json to 3.27.3 (#279)
+- Update flutter dependencies in version.json for 3.27.3 (#280)
+- Update flutter version in flutter_version.json to 3.27.4 (#282)
+- Update flutter dependencies in version.json for 3.27.4 (#283)
+- Update flutter version in flutter_version.json to 3.29.0 (#286)
+- Update flutter dependencies in version.json for 3.29.0 (#289)
 
 <!-- generated by git-cliff -->
