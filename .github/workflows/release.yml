@@ -54,7 +54,9 @@ jobs:
           password: ${{ secrets.QUAY_ROBOT_TOKEN }}
 
       - name: Setup CUE
-        uses: cue-lang/setup-cue@a93fa358375740cd8b0078f76355512b9208acb1 # v1.0.1
+        uses: jaxxstorm/action-install-gh-release@4304621e8c48d66093a8a214af5d5b5bc3b3d943 # v2.0.0
+        with:
+          repo: cue-lang/cue
 
       - name: Read environment variables from version.json
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
