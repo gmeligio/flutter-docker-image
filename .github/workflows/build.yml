@@ -34,9 +34,11 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
       - name: Setup CUE
-        uses: jaxxstorm/action-install-gh-release@4304621e8c48d66093a8a214af5d5b5bc3b3d943 # v2.0.0
+        uses: gmeligio/action-install-gh-release@fbc00e2b7b1e178038630fb25742bdf08818f2e6
+        # uses: jaxxstorm/action-install-gh-release@4304621e8c48d66093a8a214af5d5b5bc3b3d943 # v2.0.0
         with:
           repo: cue-lang/cue
+          digest: 40EF0A84594494C953945FB297842D3168C92170694928C9565CC0B581235AC5
 
       - name: Read environment variables from version.json
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
@@ -110,9 +112,11 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Setup CUE
-        uses: jaxxstorm/action-install-gh-release@4304621e8c48d66093a8a214af5d5b5bc3b3d943 # v2.0.0
+        uses: gmeligio/action-install-gh-release@fbc00e2b7b1e178038630fb25742bdf08818f2e6
+        # uses: jaxxstorm/action-install-gh-release@4304621e8c48d66093a8a214af5d5b5bc3b3d943 # v2.0.0
         with:
           repo: cue-lang/cue
+          digest: 40EF0A84594494C953945FB297842D3168C92170694928C9565CC0B581235AC5
 
       - name: Validate version.json and flutter_version.json with CUE
         run: |
@@ -126,9 +130,11 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Setup CUE
-        uses: jaxxstorm/action-install-gh-release@4304621e8c48d66093a8a214af5d5b5bc3b3d943 # v2.0.0
+        uses: gmeligio/action-install-gh-release@fbc00e2b7b1e178038630fb25742bdf08818f2e6
+        # uses: jaxxstorm/action-install-gh-release@4304621e8c48d66093a8a214af5d5b5bc3b3d943 # v2.0.0
         with:
           repo: cue-lang/cue
+          digest: 40EF0A84594494C953945FB297842D3168C92170694928C9565CC0B581235AC5
 
       - name: Generate test files with CUE
         run: |
@@ -208,9 +214,11 @@ jobs:
           ./gradlew --warning-mode all updateAndroidVersions
 
       - name: Setup CUE
-        uses: jaxxstorm/action-install-gh-release@4304621e8c48d66093a8a214af5d5b5bc3b3d943 # v2.0.0
+        uses: gmeligio/action-install-gh-release@fbc00e2b7b1e178038630fb25742bdf08818f2e6
+        # uses: jaxxstorm/action-install-gh-release@4304621e8c48d66093a8a214af5d5b5bc3b3d943 # v2.0.0
         with:
           repo: cue-lang/cue
+          digest: 40EF0A84594494C953945FB297842D3168C92170694928C9565CC0B581235AC5
 
       - name: Validate version.json with CUE
         run: cue vet config/version.cue -d '#Version' config/version.json
