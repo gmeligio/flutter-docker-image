@@ -31,9 +31,11 @@ jobs:
 
       - name: Setup CUE
         if: ${{ steps.update_flutter_version.outputs.result == 'true' }}
-        uses: jaxxstorm/action-install-gh-release@4304621e8c48d66093a8a214af5d5b5bc3b3d943 # v2.0.0
+        uses: jaxxstorm/action-install-gh-release@6096f2a2bbfee498ced520b6922ac2c06e990ed2 # v2.1.0
         with:
           repo: cue-lang/cue
+          tag: v0.12.0
+          digest: 40ef0a84594494c953945fb297842d3168c92170694928c9565cc0b581235ac5
 
       - name: Validate version.json with CUE
         if: ${{ steps.update_flutter_version.outputs.result == 'true' }}
@@ -131,9 +133,11 @@ jobs:
           rm -rf test_app
 
       - name: Setup CUE
-        uses: jaxxstorm/action-install-gh-release@4304621e8c48d66093a8a214af5d5b5bc3b3d943 # v2.0.0
+        uses: jaxxstorm/action-install-gh-release@6096f2a2bbfee498ced520b6922ac2c06e990ed2 # v2.1.0
         with:
           repo: cue-lang/cue
+          tag: v0.12.0
+          digest: 40ef0a84594494c953945fb297842d3168c92170694928c9565cc0b581235ac5
 
       - name: Validate version.json with CUE
         run: cue vet config/version.cue -d '#Version' config/version.json
@@ -152,13 +156,15 @@ jobs:
           npm run build
 
       - name: Setup git-cliff
-        uses: jaxxstorm/action-install-gh-release@4304621e8c48d66093a8a214af5d5b5bc3b3d943 # v2.0.0
+        uses: jaxxstorm/action-install-gh-release@6096f2a2bbfee498ced520b6922ac2c06e990ed2 # v2.1.0
         with:
           repo: orhun/git-cliff
+          tag: v2.8.0
+          digest: 17da092783079c63a0fb14c24fbfa0d3b589e225c6ef01c93111e39cecbc88e8
 
       - name: Update changelog
         run: |
-          git-cliff -t ${{ env.FLUTTER_VERSION }} -o changelog.md
+          git-cliff -v --tag ${{ env.FLUTTER_VERSION }} --github-repo ${{ github.repository }} --output changelog.md
 
       - name: Create commit message variable
         run: |
