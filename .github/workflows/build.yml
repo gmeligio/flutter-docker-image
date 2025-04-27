@@ -34,8 +34,7 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
       - name: Setup CUE
-        uses: gmeligio/action-install-gh-release@b004a89613992da8a5be319b382a9ac9401effc9
-        # uses: jaxxstorm/action-install-gh-release@4304621e8c48d66093a8a214af5d5b5bc3b3d943 # v2.0.0
+        uses: jaxxstorm/action-install-gh-release@6096f2a2bbfee498ced520b6922ac2c06e990ed2 # v2.1.0
         with:
           repo: cue-lang/cue
           digest: 40ef0a84594494c953945fb297842d3168c92170694928c9565cc0b581235ac5
@@ -112,8 +111,7 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Setup CUE
-        uses: gmeligio/action-install-gh-release@b004a89613992da8a5be319b382a9ac9401effc9
-        # uses: jaxxstorm/action-install-gh-release@4304621e8c48d66093a8a214af5d5b5bc3b3d943 # v2.0.0
+        uses: jaxxstorm/action-install-gh-release@6096f2a2bbfee498ced520b6922ac2c06e990ed2 # v2.1.0
         with:
           repo: cue-lang/cue
           digest: 40ef0a84594494c953945fb297842d3168c92170694928c9565cc0b581235ac5
@@ -130,8 +128,7 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Setup CUE
-        uses: gmeligio/action-install-gh-release@b004a89613992da8a5be319b382a9ac9401effc9
-        # uses: jaxxstorm/action-install-gh-release@4304621e8c48d66093a8a214af5d5b5bc3b3d943 # v2.0.0
+        uses: jaxxstorm/action-install-gh-release@6096f2a2bbfee498ced520b6922ac2c06e990ed2 # v2.1.0
         with:
           repo: cue-lang/cue
           digest: 40ef0a84594494c953945fb297842d3168c92170694928c9565cc0b581235ac5
@@ -214,8 +211,7 @@ jobs:
           ./gradlew --warning-mode all updateAndroidVersions
 
       - name: Setup CUE
-        uses: gmeligio/action-install-gh-release@b004a89613992da8a5be319b382a9ac9401effc9
-        # uses: jaxxstorm/action-install-gh-release@4304621e8c48d66093a8a214af5d5b5bc3b3d943 # v2.0.0
+        uses: jaxxstorm/action-install-gh-release@6096f2a2bbfee498ced520b6922ac2c06e990ed2 # v2.1.0
         with:
           repo: cue-lang/cue
           digest: 40ef0a84594494c953945fb297842d3168c92170694928c9565cc0b581235ac5
