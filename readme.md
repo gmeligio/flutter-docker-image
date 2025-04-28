@@ -11,7 +11,6 @@ The images includes the minimum tools to run Flutter and build apps. The version
 ## Contents
 
 * [Features](#features)
-* [Alpha Stability](#alpha-stability)
 * [Running Containers](#running-containers)
 * [Tags](#tags)
 * [Building Locally](#building-locally)
@@ -36,10 +35,6 @@ Predownloaded SDKs and tools in Android:
 * Android SDK Platforms: 35
 * Android NDK: 26.3.11579264
 * Gradle: 8.10.2
-
-## Alpha Stability
-
-The images are experimental and are in active development. They are being used for small projects but there is no confirmation of production usage yet.
 
 ## Running Containers
 
