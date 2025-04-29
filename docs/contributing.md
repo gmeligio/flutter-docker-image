@@ -11,5 +11,4 @@ When adding new Github Actions the `.github\renovate.json` needs to be checked a
 ### Dockerfile stages
 
 1. `flutter` stage hast only the dependencies required to install flutter and common tools used by flutter internal commands, like `git`.
-2. `fastlane` stage has the dependencies required to install fastlane but doesn't install fastlane.
 3. `android` stage has the dependencies required to install the Android SDK and to develop Flutter apps for Android.

@@ -26,7 +26,6 @@ The images includes the minimum tools to run Flutter and build apps. The version
 * Installed Flutter SDK 3.29.3.
 * Analytics disabled by default, opt-in if `ENABLE_ANALYTICS` environment variable is passed when running the container.
 * Rootless user `flutter:flutter`, with permissions to run on Github workflows and GitLab CI.
-* Cached Fastlane gem 2.227.1.
 * Minimal image with predownloaded SDKs and tools ready to run `flutter` commands for the Android platform.
 
 Predownloaded SDKs and tools in Android:
@@ -75,18 +74,6 @@ build:
     - flutter build apk
 ```
 
-Fastlane:
-
-```bash
-# Ruby bundler is available in the container.
-# The fastlane gem is cached but not installed
-# For more information, see https://docs.fastlane.tools
-
-# Use --prefer-local to download gems only if they are not cached
-bundle install --prefer-local
-bundle exec fastlane
-```
-
 ## Tags
 
 Every new tag on the flutter stable channel gets built. The tag is composed of the Flutter version used to build the image:
@@ -104,7 +91,7 @@ The android.Dockerfile expects a few arguments:
 
 ```bash
 # Android
-docker build --target android --build-arg flutter_version=3.29.3 --build-arg fastlane_version=2.227.1 --build-arg android_build_tools_version=34.0.0 --build-arg android_platform_versions="35" -t android-test .
+docker build --target android --build-arg flutter_version=3.29.3 --build-arg android_build_tools_version=34.0.0 --build-arg android_platform_versions="35" -t android-test .
 ```
 
 ## Roadmap

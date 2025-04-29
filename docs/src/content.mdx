@@ -1,6 +1,5 @@
 import * as versionJson from '../../config/version.json'
 export const flutterVersion = versionJson.flutter.version
-export const fastlaneVersion = versionJson.fastlane.version
 export const androidJson = versionJson.android
 export const gradleVersion = androidJson.gradle.version
 export const buildToolsVersion = androidJson.buildTools.version
@@ -26,7 +25,6 @@ The images includes the minimum tools to run Flutter and build apps. The version
 - Installed Flutter SDK {flutterVersion}.
 - Analytics disabled by default, opt-in if `ENABLE_ANALYTICS` environment variable is passed when running the container.
 - Rootless user `flutter:flutter`, with permissions to run on Github workflows and GitLab CI.
-- Cached Fastlane gem {fastlaneVersion}.
 - Minimal image with predownloaded SDKs and tools ready to run `flutter` commands for the Android platform.
 
 Predownloaded SDKs and tools in Android:
@@ -72,17 +70,6 @@ On a `.gitlab-ci.yml` in GitLab CI:
       - flutter build apk`}
 </code></pre>
 
-Fastlane:
-<pre><code className="language-bash">
-{`# Ruby bundler is available in the container.
-# The fastlane gem is cached but not installed
-# For more information, see https://docs.fastlane.tools
-
-# Use --prefer-local to download gems only if they are not cached
-bundle install --prefer-local
-bundle exec fastlane`}
-</code></pre>
-
 ## Tags
 
 Every new tag on the flutter stable channel gets built. The tag is composed of the Flutter version used to build the image:
@@ -99,7 +86,7 @@ The android.Dockerfile expects a few arguments:
   
 <pre><code className="language-bash">
 {`# Android
-docker build --target android --build-arg flutter_version=${flutterVersion} --build-arg fastlane_version=${fastlaneVersion} --build-arg android_build_tools_version=${buildToolsVersion} --build-arg android_platform_versions="${androidPlatformVersions}" -t android-test .`}
+docker build --target android --build-arg flutter_version=${flutterVersion} --build-arg android_build_tools_version=${buildToolsVersion} --build-arg android_platform_versions="${androidPlatformVersions}" -t android-test .`}
 </code></pre>
 
 ## Roadmap

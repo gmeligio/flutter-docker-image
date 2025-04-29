@@ -44,46 +44,6 @@ commandTests:
       - |
         ls /home/flutter/sdks/android-sdk/build-tools \
         | wc -l
-  - name: Fastlane can run lanes
-    setup:
-      - - flutter
-        - create
-        - test_app
-      - - mkdir
-        - -p
-        - /home/flutter/test_app/android/fastlane
-      - - touch
-        - /home/flutter/test_app/android/fastlane/Appfile
-      - - sh
-        - -c
-        - |-
-          echo 'lane :hello do
-           puts "Hello"
-          end' > /home/flutter/test_app/android/fastlane/Fastfile
-      - - touch
-        - /home/flutter/test_app/android/fastlane/Pluginfile
-    teardown:
-      - - rm
-        - -r
-        - test_app
-    command: bash
-    args:
-      - -c
-      - |
-        cd test_app/android \
-        && timeout --preserve-status 240s fastlane hello
-    excludedOutput:
-      - Checking
-      - Installing
-      - Downloading
-  - name: Fastlane usage is opted-out
-    command: fastlane
-    args:
-      - action
-      - debug
-    excludedOutput:
-      - Sending anonymous analytics information
-fileContentTests:
   - name: Android SDK Command-line Tools is version 19.0
     path: /home/flutter/sdks/android-sdk/cmdline-tools/latest/source.properties
     expectedContents:
