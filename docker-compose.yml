@@ -20,9 +20,3 @@ services:
         cmake_version: $CMAKE_VERSION
     environment:
       ENABLE_ANALYTICS: $ENABLE_ANALYTICS
-
-  windows:
-    build:
-      dockerfile: ./windows.Dockerfile
-      args:
-        flutter_version: $FLUTTER_VERSION
