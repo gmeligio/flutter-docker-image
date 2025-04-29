@@ -1,7 +1,7 @@
 {
   "flutter": {
     "channel": "stable",
-    "commit": "ea121f8859e4b13e47a8f845e4586164519588bc",
+    "commit": "dec2ee5c1f98f8e84a7d5380c05eb8a3d0a81668",
     "version": "3.24.5"
   },
   "android": {
@@ -11,10 +11,10 @@
       }
     ],
     "gradle": {
-      "version": "8.10.2"
+      "version": "8.4.2"
     },
     "buildTools": {
-      "version": "35.0.0"
+      "version": "34.0.0"
     },
     "cmdlineTools": {
       "version": "19.0"
