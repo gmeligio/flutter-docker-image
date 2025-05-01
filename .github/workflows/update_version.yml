@@ -17,6 +17,7 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       new_version: ${{ steps.update_flutter_version.outputs.result }}
+      version_artifact_id: ${{ steps.upload-version.outputs.artifact-id }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -43,6 +44,7 @@ jobs:
 
       - name: Upload artifact with the new Flutter version
         if: ${{ steps.update_flutter_version.outputs.result == 'true' }}
+        id: upload-version
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: flutter_version.json
@@ -84,7 +86,7 @@ jobs:
       - name: Download artifact with the new Flutter version
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: flutter_version.json
+          artifact-ids: ${{ needs.update_flutter_version.outputs.version_artifact_id }}
           path: config
 
       - name: Generate authentication token with GitHub App to trigger Actions
