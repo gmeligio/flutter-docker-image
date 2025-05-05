@@ -8,7 +8,7 @@
 
 1. Install tools
 
-```powershell`
+```powershell
    # # needed? No
 #    --add Microsoft.Component.MSBuild' `
    # # needed? No
@@ -73,13 +73,12 @@ Debug with `curl -A github165 -v https://mcr.microsoft.com/v2/powershell/manifes
 
 1. Enable Windows Developer Settings to solve error:
 
-    >Building with plugins requires symlink support.
-    >
-    >Please enable Developer Mode in your system settings. Run
-    > start ms-settings:developers
-    >to open settings.
-
     ```powershell
+    # >Building with plugins requires symlink support.
+    # >
+    # >Please enable Developer Mode in your system settings. Run
+    # > start ms-settings:developers
+    # >to open settings.
     reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" /t REG_DWORD /f /v "AllowDevelopmentWithoutDevLicense" /d "1"
     ```
 
@@ -87,7 +86,7 @@ Debug with `curl -A github165 -v https://mcr.microsoft.com/v2/powershell/manifes
 
     1. Docker version must be pinned in Github workflow to avoid breaking changes: with escaping `\"` syntax inside RUN directive, etc.
 
-    1. Packaging tool in Windows: <https://pub.dev/packages/msix> . It uses the executables:
+    1. Packaging tool in Windows: [msix](https://pub.dev/packages/msix) . It uses the executables:
 
         - [makeappx.exe](https://learn.microsoft.com/en-us/windows/win32/appxpkg/make-appx-package--makeappx-exe-)
         - [makepri.exe](https://learn.microsoft.com/en-us/windows/uwp/app-resources/makepri-exe-command-options)
@@ -108,7 +107,7 @@ Debug with `curl -A github165 -v https://mcr.microsoft.com/v2/powershell/manifes
         
         - According to the [msstore guide](https://learn.microsoft.com/en-us/windows/apps/publish/msstore-dev-cli/commands?pivots=msstoredevcli-installer-linux#installation), It will be needed to install Microsoft.NetCore.Component.Runtime.8.0 with vs_BuildTools
 
-    1. From <https://github.com/tauu/flutter-windows-builder/blob/main/Dockerfile> => install <https://github.com/microsoft/StoreBroker> This is currently the primary tool to publish to Microsoft Store
+    1. From [github.com/tauu/flutter-windows-builder/Dockerfile](https://github.com/tauu/flutter-windows-builder/blob/main/Dockerfile) => install [github.com/microsoft/StoreBroker](https://github.com/microsoft/StoreBroker) This is currently the primary tool to publish to Microsoft Store
 
         - Not installed right now
 
