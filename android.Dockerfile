@@ -1,4 +1,4 @@
-FROM debian:12.10-slim@sha256:b1211f6d19afd012477bd34fdcabb6b663d680e0f4b0537da6e6b0fd057a3ec3 AS flutter
+FROM debian:12.10-slim@sha256:4b50eb66f977b4062683ff434ef18ac191da862dbe966961bc11990cf5791a8d AS flutter
 
 SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
@@ -150,7 +150,7 @@ ENV ANDROID_HOME="$SDK_ROOT/android-sdk" \
 ENV PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$HOME/.local/bin"
 
 # renovate: release=bullseye depName=openjdk-17-jdk-headless
-ARG OPENJDK_17_JDK_HEADLESS_VERSION="17.0.14+7-1~deb12u1"
+ARG OPENJDK_17_JDK_HEADLESS_VERSION="17.0.15+6-1~deb12u1"
 # renovate: release=bullseye depName=sudo
 ARG SUDO_VERSION="1.9.13p3-1+deb12u1"
 

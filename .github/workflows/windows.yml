@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test_image:
+  test_windows:
     permissions:
       # Allow to write packages for the docker/scout-action to write a comment
       packages: write
