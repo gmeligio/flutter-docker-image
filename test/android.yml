@@ -19,19 +19,19 @@ commandTests:
       - Checking
       - Installing
       - Downloading
-  - name: Android SDK build tools is pinned
+  - name: Android SDK build tools version matches
     command: ls
     args:
       - /home/flutter/sdks/android-sdk/build-tools
     expectedOutput:
       - 34.0.0
-  - name: Android NDK is pinned
+  - name: Android NDK version matches
     command: ls
     args:
       - /home/flutter/sdks/android-sdk/ndk
     expectedOutput:
       - 26.3.11579264
-  - name: CMake is pinned
+  - name: CMake version matches
     command: ls
     args:
       - /home/flutter/sdks/android-sdk/cmake

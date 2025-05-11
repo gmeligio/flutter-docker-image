@@ -83,7 +83,8 @@ RUN flutter build windows;
 WORKDIR "$USERPROFILE"
 COPY ./script/docker_windows_entrypoint.ps1 "docker_entrypoint.ps1"
 
-ENTRYPOINT ["C:\Users\ContainerUser\docker_entrypoint.ps1"]
+# hadolint ignore=DL3025
+ENTRYPOINT "C:\Users\ContainerUser\docker_entrypoint.ps1"
 
 RUN Remove-Item -Recurse build_app;
 
