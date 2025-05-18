@@ -21,7 +21,7 @@ jobs:
       security-events: write 
     runs-on: windows-2025
     env:
-      IMAGE_REPOSITORY_NAME: flutter-android
+      IMAGE_REPOSITORY_NAME: flutter-windows
       VERSION_MANIFEST: config/version.json
     steps:
       - name: Checkout repository
@@ -44,56 +44,72 @@ jobs:
             const script = require('./script/setEnvironmentVariables.js')
             return await script({ core })
 
-      # - name: Load image metadata
-      #   uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804 # v5.7.0
-      #   id: metadata
-      #   with:
-      #     images: |
-      #       ${{ env.IMAGE_REPOSITORY_PATH }}
-      #     tags: |
-      #       type=raw,value=${{ env.FLUTTER_VERSION }}
+      - name: Load image metadata
+        uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804 # v5.7.0
+        id: metadata
+        with:
+          images: |
+            ${{ env.IMAGE_REPOSITORY_PATH }}
+          tags: |
+            type=raw,value=${{ env.FLUTTER_VERSION }}
 
-      # - name: Set up Docker Buildx
-      #   uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
-
+      # Docker Buildx is not supported for Windows containers
+      # so we'll use direct docker build commands
       - name: Build image and push to local Docker daemon
         shell: powershell
         run: |
-          docker build . -f windows.Dockerfile --build-arg flutter_version=${{ env.FLUTTER_VERSION }} -t ${{ env.IMAGE_REPOSITORY_PATH }}
+          docker build . -f windows.Dockerfile --build-arg flutter_version=${{ env.FLUTTER_VERSION }} -t ${{ fromJson(steps.metadata.outputs.json).tags[0] }}
 
-      # - name: Build image and push to local Docker daemon
-      #   uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # v6.15.0
+      - name: Test image with PowerShell
+        shell: powershell
+        run: |
+          # Run container-structure-test on Windows using the test/Windows.Tests.ps1 file
+          # If the file exists, otherwise skip
+          if (Test-Path test/Windows.Tests.ps1) {
+            ./test/Windows.Tests.ps1 -Image ${{ fromJson(steps.metadata.outputs.json).tags[0] }}
+          } else {
+            Write-Host "No Windows.Tests.ps1 file found, skipping tests"
+          }
+
+      # - name: Scan with Docker Scout
+      #   id: docker-scout
+      #   uses: docker/scout-action@381b657c498a4d287752e7f2cfb2b41823f566d9 # v1.17.1
       #   with:
-      #     file: windows.Dockerfile
-      #     load: true
-      #     cache-from: type=gha
-      #     cache-to: type=gha,mode=max
-      #     labels: ${{ steps.metadata.outputs.labels }}
-      #     tags: ${{ steps.metadata.outputs.tags }}
-      #     target: android
-      #     build-args: |
-      #       flutter_version=${{ env.FLUTTER_VERSION }}
+      #     command: compare, recommendations
+      #     # Use the Docker Hub image that is the first tag in the metadata
+      #     image: local://${{ fromJson(steps.metadata.outputs.json).tags[0] }}
+      #     # github-token is needed to be able to write the PR comment
+      #     github-token: ${{ github.token }}
+      #     only-fixed: true
+      #     organization: ${{ secrets.DOCKER_HUB_USERNAME }}
+      #     # sarif-file: output.sarif.json
+      #     to-env: prod
+      #     # Enable debug logging when needed
+      #     # debug: true
+          # verbose-debug: true
 
-    #   - name: Test image
-    #     uses: plexsystems/container-structure-test-action@c0a028aa96e8e82ae35be556040340cbb3e280ca # v0.3.0
-    #     with:
-    #       image: ${{ fromJSON(steps.metadata.outputs.json).tags[0] }}
-    #       config: test/android.yml
+      # Add a step to push to registries if this is a release (when triggered by workflow_dispatch)
+      - name: Push to Docker Hub
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        shell: powershell
+        run: |
+          # Tag and push to Docker Hub
+          docker push ${{ fromJson(steps.metadata.outputs.json).tags[0] }}
 
-    #   # TODO: Parallelize testing and vulnerability scanning
-    #   - name: Scan with Docker Scout
-    #     id: docker-scout
-    #     uses: docker/scout-action@0133ff88fe16d4a412dc4827a8fccbccb6b583e0 # v1.16.3
-    #     with:
-    #       command: compare, recommendations
-    #       # Use the Docker Hub image that is the first tag in the metadata
-    #       image: local://${{ fromJson(steps.metadata.outputs.json).tags[0] }}
-    #       # github-token is needed to be able to write the PR comment
-    #       github-token: ${{ github.token }}
-    #       only-fixed: true
-    #       organization: ${{ secrets.DOCKER_HUB_USERNAME }}
-    #       # sarif-file: output.sarif.json
-    #       to-env: prod
-    #       # Enable debug logging when needed
-    #       # debug: true
-    #       # verbose-debug: true
+  # validate_version:
+  #   runs-on: ubuntu-24.04
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+  #     - name: Setup CUE
+  #       uses: jaxxstorm/action-install-gh-release@6096f2a2bbfee498ced520b6922ac2c06e990ed2 # v2.1.0
+  #       with:
+  #         repo: cue-lang/cue
+  #         tag: v0.12.0
+  #         digest: e55cd5abd98a592c110f87a7da9ef15bc72515200aecfe1bed04bf86311f5ba1
+
+  #     - name: Validate version.json and flutter_version.json with CUE
+  #       run: |
+  #         cue vet config/version.cue -d '#FlutterVersion' config/flutter_version.json
+  #         cue vet config/version.cue -d '#Version' config/version.json

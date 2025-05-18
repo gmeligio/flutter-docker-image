@@ -29,6 +29,7 @@ RUN Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vs_buildtools.exe -OutFi
     Remove-Item vs_BuildTools.exe;
 ```
 
+1. Read dependencies from [flutter_tools](https://github.com/flutter/flutter/blob/master/packages/flutter_tools/lib/src/windows/visual_studio.dart).
 1. Check how it can be run in Github actions.
 1. Check how it can be run in Gitlab CI/CD.
 1. Test where is installed.
