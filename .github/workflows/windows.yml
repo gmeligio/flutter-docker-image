@@ -55,21 +55,10 @@ jobs:
 
       # Docker Buildx is not supported for Windows containers
       # so we'll use direct docker build commands
-      - name: Build image and push to local Docker daemon
+      - name: Test image and push to local Docker daemon
         shell: powershell
         run: |
-          docker build . -f windows.Dockerfile --build-arg flutter_version=${{ env.FLUTTER_VERSION }} -t ${{ fromJson(steps.metadata.outputs.json).tags[0] }}
-
-      - name: Test image with PowerShell
-        shell: powershell
-        run: |
-          # Run container-structure-test on Windows using the test/Windows.Tests.ps1 file
-          # If the file exists, otherwise skip
-          if (Test-Path test/Windows.Tests.ps1) {
-            ./test/Windows.Tests.ps1 -Image ${{ fromJson(steps.metadata.outputs.json).tags[0] }}
-          } else {
-            Write-Host "No Windows.Tests.ps1 file found, skipping tests"
-          }
+          docker build . -f windows.Dockerfile --build-arg flutter_version=${{ env.FLUTTER_VERSION }} -t ${{ fromJson(steps.metadata.outputs.json).tags[0] }} --target test
 
       # - name: Scan with Docker Scout
       #   id: docker-scout
@@ -89,12 +78,12 @@ jobs:
           # verbose-debug: true
 
       # Add a step to push to registries if this is a release (when triggered by workflow_dispatch)
-      - name: Push to Docker Hub
-        if: ${{ github.event_name == 'workflow_dispatch' }}
-        shell: powershell
-        run: |
-          # Tag and push to Docker Hub
-          docker push ${{ fromJson(steps.metadata.outputs.json).tags[0] }}
+      # - name: Push to Docker Hub
+      #   if: ${{ github.event_name == 'workflow_dispatch' }}
+      #   shell: powershell
+      #   run: |
+      #     # Tag and push to Docker Hub
+      #     docker push ${{ fromJson(steps.metadata.outputs.json).tags[0] }}
 
   # validate_version:
   #   runs-on: ubuntu-24.04
