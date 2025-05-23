@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.32.0] - 2025-05-23
+
+### ⚙️ Miscellaneous Tasks
+
+- Generate changelog with git-cliff (#330)
+- Set tools digest to verify integrity (#331)
+- Download immutable artifact by id (#337)
+- Update artifact download configuration (#342)
+
 ## [3.29.3] - 2025-04-17
 
 ### 🚀 Features
@@ -31,7 +40,7 @@ All notable changes to this project will be documented in this file.
 - Grant app token only  current repository (#320)
 - Download-artifact can not overwrite existing files (#327)
 - Path is a folder in download-artifact (#328)
-- Update flutter dependencies in version.json for 3.29.3
+- Update flutter dependencies in version.json for 3.29.3 (#329)
 
 ## [3.29.2] - 2025-03-15
 
