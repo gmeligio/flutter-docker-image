@@ -88,6 +88,8 @@ jobs:
         with:
           artifact-ids: ${{ needs.update_flutter_version.outputs.version_artifact_id }}
           path: config
+          # Download to the configured path instead of separated directories by artifact id
+          merge-multiple: true
 
       - name: Generate authentication token with GitHub App to trigger Actions
         uses: actions/create-github-app-token@3ff1caaa28b64c9cc276ce0a02e2ff584f3900c5 # v2.0.2
