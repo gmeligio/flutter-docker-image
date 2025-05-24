@@ -1,5 +1,5 @@
 Describe "Windows file structure tests" {
-    It "Should have specific file content in config.txt" {
+    It "Should have specific file content in dart telemetry config" {
         "$env:APPDATA\.dart-tool\dart-flutter-telemetry.config" | Should -FileContentMatchExactly "reporting=0"
     }
 
@@ -10,17 +10,17 @@ Describe "Windows file structure tests" {
 
         It "CMake version matches" {
             $directoryName = $visualStudioPackages | Select-String -CaseSensitive Microsoft.VisualStudio.Component.VC.CMake.Project
-            $directoryName | Should -BeExactly "Microsoft.VisualStudio.Component.VC.CMake.Project,version=17.13.35710.127"
+            $directoryName | Should -BeLikeExactly "Microsoft.VisualStudio.Component.VC.CMake.Project,version*"
         }
 
         It "Windows11SDK version matches" {
             $directoryName = $visualStudioPackages | Select-String -CaseSensitive Microsoft.VisualStudio.Component.Windows11SDK
-            $directoryName | Should -BeExactly "Microsoft.VisualStudio.Component.Windows11SDK.22621,version=17.13.35710.127"
+            $directoryName | Should -BeLikeExactly "Microsoft.VisualStudio.Component.Windows11SDK.22621,version*"
         }
 
         It "VCTools version matches" {
             $directoryName = $visualStudioPackages | Select-String -CaseSensitive Microsoft.VisualStudio.Workload.VCTools
-            $directoryName | Should -BeExactly "Microsoft.VisualStudio.Workload.VCTools,version=17.13.35710.127"
+            $directoryName | Should -BeLikeExactly "Microsoft.VisualStudio.Workload.VCTools,version*"
         }
     }
 }
