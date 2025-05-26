@@ -102,16 +102,17 @@ ENV USERPROFILE="C:\Users\ContainerUser"
 WORKDIR "$USERPROFILE"
 
 # Install Pester
-COPY ./script/install_pester.ps1 ".\install_pester.ps1"
+COPY ./script/InstallPester.ps1 ".\InstallPester.ps1"
 
 # Administrator rights are required to install modules in 'C:\Program Files\WindowsPowerShell\Modules'
 USER ContainerAdministrator
-RUN ".\install_pester.ps1"; `
-    Remove-Item ".\install_pester.ps1"; `
+RUN ".\InstallPester.ps1"; `
+    Remove-Item ".\InstallPester.ps1"; `
     Import-Module Pester;
 USER ContainerUser
 
 # Run the tests
 COPY ./test/Windows.Tests.ps1 ".\test\Windows.Tests.ps1"
-RUN Invoke-Pester -Output Detailed ".\test\Windows.Tests.ps1"; `
-    Remove-Item ".\test\Windows.Tests.ps1";
+COPY ./script/RunPester.ps1 ".\script\RunPester.ps1"
+
+# CMD Invoke-Pester -Configuration @{Run=@{Path='.\\test'; Exit=$true}; Output=@{Verbosity='Detailed'}}

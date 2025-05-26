@@ -60,6 +60,8 @@ jobs:
         run: |
           docker build . -f windows.Dockerfile --build-arg flutter_version=${{ env.FLUTTER_VERSION }} -t ${{ fromJson(steps.metadata.outputs.json).tags[0] }} --target test
 
+          docker run --rm ${{ fromJson(steps.metadata.outputs.json).tags[0] }} ".\script\RunPester.ps1"
+
       # - name: Scan with Docker Scout
       #   id: docker-scout
       #   uses: docker/scout-action@381b657c498a4d287752e7f2cfb2b41823f566d9 # v1.17.1

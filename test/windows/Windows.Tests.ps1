@@ -10,7 +10,7 @@ Describe "Windows file structure tests" {
 
         It "CMake version matches" {
             $directoryName = $visualStudioPackages | Select-String -CaseSensitive Microsoft.VisualStudio.Component.VC.CMake.Project
-            $directoryName | Should -BeLikeExactly "Microsoft.VisualStudio.Component.VC.CMake.Project,version*"
+            $directoryName | Should -BeLikeExactly "Microsoft.VisualStudio.Component.VC.CMake.Project,versiona*"
         }
 
         It "Windows11SDK version matches" {
@@ -24,3 +24,4 @@ Describe "Windows file structure tests" {
         }
     }
 }
+ 
