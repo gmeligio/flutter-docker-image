@@ -35,8 +35,8 @@ jobs:
         uses: jaxxstorm/action-install-gh-release@6096f2a2bbfee498ced520b6922ac2c06e990ed2 # v2.1.0
         with:
           repo: cue-lang/cue
-          tag: v0.12.0
-          digest: e55cd5abd98a592c110f87a7da9ef15bc72515200aecfe1bed04bf86311f5ba1
+          tag: v0.13.0
+          digest: 59ba96137da07cd2cdd2e17ec33af81f850126f022f25dd96516f0b42071b6a9
 
       - name: Validate version.json with CUE
         if: ${{ steps.update_flutter_version.outputs.result == 'true' }}
@@ -140,8 +140,8 @@ jobs:
         uses: jaxxstorm/action-install-gh-release@6096f2a2bbfee498ced520b6922ac2c06e990ed2 # v2.1.0
         with:
           repo: cue-lang/cue
-          tag: v0.12.0
-          digest: e55cd5abd98a592c110f87a7da9ef15bc72515200aecfe1bed04bf86311f5ba1
+          tag: v0.13.0
+          digest: 59ba96137da07cd2cdd2e17ec33af81f850126f022f25dd96516f0b42071b6a9
 
       - name: Validate version.json with CUE
         run: cue vet config/version.cue -d '#Version' config/version.json
