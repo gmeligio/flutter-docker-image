@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 - Set tools digest to verify integrity (#331)
 - Download immutable artifact by id (#337)
 - Update artifact download configuration (#342)
+- *(release)* Update flutter dependencies in version.json for 3.32.0 (#343)
 
 ## [3.29.3] - 2025-04-17
 
