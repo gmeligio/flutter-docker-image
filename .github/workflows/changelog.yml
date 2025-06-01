@@ -45,7 +45,7 @@ jobs:
           git-cliff -v --tag ${{ env.FLUTTER_VERSION }} --github-repo ${{ github.repository }} --output changelog.md
       
       - name: Generate authentication token with GitHub App to trigger Actions
-        uses: actions/create-github-app-token@3ff1caaa28b64c9cc276ce0a02e2ff584f3900c5 # v2.0.2
+        uses: actions/create-github-app-token@df432ceedc7162793a195dd1713ff69aefc7379e # v2.0.6
         id: app-token
         with:
           app-id: ${{ secrets.VERIFIED_COMMIT_ID }}
