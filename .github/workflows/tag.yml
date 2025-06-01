@@ -1,0 +1,45 @@
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - changelog.md
+  workflow_dispatch:
+
+jobs:
+  create_git_tag:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Generate authentication token with GitHub App to trigger Actions
+        uses: actions/create-github-app-token@3ff1caaa28b64c9cc276ce0a02e2ff584f3900c5 # v2.0.2
+        id: app-token
+        with:
+          app-id: ${{ secrets.VERIFIED_COMMIT_ID }}
+          private-key: ${{ secrets.VERIFIED_COMMIT_KEY }}
+          repositories: ${{ github.event.repository.name }}
+          owner: ${{ github.repository_owner }}
+
+      - name: Read environment variables from the version manifest
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        env:
+          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+          IMAGE_REPOSITORY_NAME: ${{ env.IMAGE_REPOSITORY_NAME }}
+          VERSION_MANIFEST: ${{ env.VERSION_MANIFEST }}
+        with:
+          script: |
+            const script = require('./script/setEnvironmentVariables.js')
+            return await script({ core })
+      
+      - name: Create Tag for a New Flutter Version
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        env:
+          OLD_FLUTTER_VERSION: ${{ vars.FLUTTER_VERSION }}
+          NEW_FLUTTER_VERSION: ${{ env.FLUTTER_VERSION }}
+        with:
+          github-token: ${{ steps.app-token.outputs.token }}
+          script: |
+            const script = require('./script/createGitTag.js')
+            await script({ core, context, github })
