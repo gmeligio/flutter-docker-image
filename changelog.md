@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.32.2] - 2025-06-05
+
+### ⚙️ Miscellaneous Tasks
+
+- Split  into tag.yml and changelog.yml workflows (#347)
+- *(release)* Update flutter dependencies in version.json for 3.32.2 (#348)
+
+## [3.32.1] - 2025-05-30
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Update flutter dependencies in version.json for 3.32.1 (#345)
+
 ## [3.32.0] - 2025-05-23
 
 ### ⚙️ Miscellaneous Tasks
