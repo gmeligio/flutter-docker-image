@@ -1,6 +1,6 @@
 # escape=`
 
-FROM mcr.microsoft.com/windows/servercore:ltsc2025@sha256:c6b2b26058a096cb3f627ed03d0be66bea262c89222c988b516e63ae68f3ea72 as flutter
+FROM mcr.microsoft.com/windows/servercore:ltsc2022@sha256:69c2b51ca7a86cdfd3ec431528b52694cd6179b89167fe75971ea878ecc5ea79 as flutter
 
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 
@@ -83,6 +83,36 @@ RUN flutter build windows;
 WORKDIR "$USERPROFILE"
 COPY ./script/docker_windows_entrypoint.ps1 "docker_entrypoint.ps1"
 
+# hadolint ignore=DL3025
 ENTRYPOINT "C:\Users\ContainerUser\docker_entrypoint.ps1"
 
 RUN Remove-Item -Recurse build_app;
+
+#-----------------------------------------------
+#-----------------------------------------------
+#-----------------------------------------------
+
+FROM flutter as test
+
+SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
+
+# TODO: Find a way to pass $env:USERPROFILE instead of hardcoding C:\Users\ContainerUser. It's hardcoded because  environment variables in Windows container works by setting for the Machine scope and that will have $env:USERPROFILE as C:\Users\ContainerAdministrator instead.
+ENV USERPROFILE="C:\Users\ContainerUser"
+
+WORKDIR "$USERPROFILE"
+
+# Install Pester
+COPY ./script/InstallPester.ps1 ".\InstallPester.ps1"
+
+# Administrator rights are required to install modules in 'C:\Program Files\WindowsPowerShell\Modules'
+USER ContainerAdministrator
+RUN ".\InstallPester.ps1"; `
+    Remove-Item ".\InstallPester.ps1"; `
+    Import-Module Pester;
+USER ContainerUser
+
+# Run the tests
+COPY ./test/Windows.Tests.ps1 ".\test\Windows.Tests.ps1"
+COPY ./script/RunPester.ps1 ".\script\RunPester.ps1"
+
+# CMD Invoke-Pester -Configuration @{Run=@{Path='.\\test'; Exit=$true}; Output=@{Verbosity='Detailed'}}
