@@ -26,7 +26,7 @@ The images includes the minimum tools to run Flutter and build apps. The version
 * Installed Flutter SDK 3.32.2.
 * Analytics disabled by default, opt-in if `ENABLE_ANALYTICS` environment variable is passed when running the container.
 * Rootless user `flutter:flutter`, with permissions to run on Github workflows and GitLab CI.
-* Cached Fastlane gem 2.228.0.
+* Cached Fastlane gem 2.227.2.
 * Minimal image with predownloaded SDKs and tools ready to run `flutter` commands for the Android platform.
 
 Predownloaded SDKs and tools in Android:
@@ -104,7 +104,7 @@ The android.Dockerfile expects a few arguments:
 
 ```bash
 # Android
-docker build --target android --build-arg flutter_version=3.32.2 --build-arg fastlane_version=2.228.0 --build-arg android_build_tools_version=34.0.0 --build-arg android_platform_versions="35" -t android-test .
+docker build --target android --build-arg flutter_version=3.32.2 --build-arg fastlane_version=2.227.2 --build-arg android_build_tools_version=34.0.0 --build-arg android_platform_versions="35" -t android-test .
 ```
 
 ## Roadmap
