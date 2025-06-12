@@ -164,6 +164,7 @@ jobs:
 
   update_docs_and_create_pr:
     needs:
+      - update_flutter_version
       - update_android_version
       - validate_config_version
     runs-on: ubuntu-24.04
@@ -178,13 +179,14 @@ jobs:
       # Check if this workaround can be removed after the following issues are fixed:
       # https://github.com/actions/download-artifact/issues/225
       # https://github.com/actions/download-artifact/issues/138
-      - name: Delete version.json
-        run: rm config/version.json
+      - name: Delete flutter_version.json and version.json
+        run: |-
+          rm config/flutter_version.json config/version.json
 
       - name: Download artifact with the new Flutter version
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          artifact-ids: ${{ needs.update_android_version.outputs.version_artifact_id }}
+          artifact-ids: ${{ needs.update_flutter_version.outputs.flutter_version_artifact_id }},${{ needs.update_android_version.outputs.version_artifact_id }}
           path: config
           # Download to the configured path instead of separated directories by artifact id
           merge-multiple: true
