@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.32.3] - 2025-06-12
+
+### ⚙️ Miscellaneous Tasks
+
+- Add VERSION_MANIFEST to tag workflow (#349)
+- *(release)* Update flutter dependencies in version.json for 3.32.2 (#350)
+- *(release)* Update flutter dependencies in version.json for 3.32.3 (#351)
+
 ## [3.32.2] - 2025-06-05
 
 ### ⚙️ Miscellaneous Tasks
