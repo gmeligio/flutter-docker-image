@@ -5,11 +5,12 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "build": "npm run readme && npm run contributing && npm run license",
-    "readme": "cross-env NODE_ENV=production node compile.js readme.mdx ../../readme.md",
-    "license": "cross-env NODE_ENV=production node compile.js license.mdx ../../LICENSE.md",
     "contributing": "cross-env NODE_ENV=production node compile.js contributing.mdx ../contributing.md",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "npm run readme && npm run windows && npm run contributing && npm run license",
+    "license": "cross-env NODE_ENV=production node compile.js license.mdx ../../LICENSE.md",
+    "readme": "cross-env NODE_ENV=production node compile.js readme.mdx ../../readme.md",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "windows": "cross-env NODE_ENV=production node compile.js windows.mdx ../windows.md"
   },
   "author": "",
   "license": "ISC",
