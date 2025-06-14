@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.32.4] - 2025-06-14
+
+### ⚙️ Miscellaneous Tasks
+
+- Split release workflow into jobs (#352)
+- *(release)* Update flutter dependencies in version.json for 3.32.4 (#353)
+
 ## [3.32.3] - 2025-06-12
 
 ### ⚙️ Miscellaneous Tasks
