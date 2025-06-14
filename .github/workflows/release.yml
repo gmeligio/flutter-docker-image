@@ -8,14 +8,17 @@ on:
 permissions:
   contents: read
 
+env:
+  FLUTTER_VERSION: ${{ github.ref_name }}
+
 jobs:
   release_android:
     permissions:
       # Allow to write packages to push the container image to the Github Container Registry
       packages: write
-      # Allow to write security events to upload the results to code-scanning dashboard.
-      security-events: write
     runs-on: ubuntu-24.04
+    outputs:
+      metadata: ${{ steps.metadata.outputs.json }}
     env:
       IMAGE_REPOSITORY_NAME: flutter-android
       ANDROID_BUILD_TOOLS_VERSION: 30.0.3
@@ -86,6 +89,27 @@ jobs:
             android_platform_versions=${{ env.ANDROID_PLATFORM_VERSIONS }}
             android_ndk_version=${{ env.ANDROID_NDK_VERSION }}
             cmake_version=${{ env.CMAKE_VERSION }}
+  
+  update_description:
+    runs-on: ubuntu-24.04
+    needs: release_android
+    env:
+      IMAGE_REPOSITORY_NAME: flutter-android
+      VERSION_MANIFEST: config/version.json
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Read environment variables from the version manifest
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        env:
+          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+          IMAGE_REPOSITORY_NAME: ${{ env.IMAGE_REPOSITORY_NAME }}
+          VERSION_MANIFEST: ${{ env.VERSION_MANIFEST }}
+        with:
+          script: |
+            const script = require('./script/setEnvironmentVariables.js')
+            return await script({ core })
 
       - name: Update Docker Hub description
         uses: peter-evans/dockerhub-description@432a30c9e07499fd01da9f8a49f0faf9e0ca5b77 # v4.0.2
@@ -95,19 +119,47 @@ jobs:
           repository: ${{ env.IMAGE_REPOSITORY_PATH }}
           short-description: ${{ github.event.repository.description }}
           readme-filepath: readme.md
+  
+  record_image:
+    permissions:
+      # Allow to write code scanning results to GitHub's code scanning dashboard
+      security-events: write
+    runs-on: ubuntu-24.04
+    needs: release_android
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
       - name: Record image in Docker Scout environment
-        id: docker-scout-environment
         uses: docker/scout-action@aceeb83b88f2ae54376891227858dda7af647183 # v1.18.1
         with:
           command: environment, cves
-          # Use the Docker Hub image that is the first tag in the metadata
-          image: registry://${{ fromJson(steps.metadata.outputs.json).tags[0] }}
+          # Use the Docker Hub image which is the first tag in the metadata
+          image: registry://${{ fromJson(needs.release_android.outputs.metadata).tags[0] }}
           environment: prod
           only-fixed: true
           organization: ${{ secrets.DOCKER_HUB_USERNAME }}
           sarif-file: sarif.json
-      
+
+      - name: Upload the results to GitHub's code scanning dashboard
+        uses: github/codeql-action/upload-sarif@ff0a06e83cb2de871e5a09832bc6a81e7276941f # v3.28.18
+        with:
+          sarif_file: sarif.json
+
+  set_bootstrap_image:
+    runs-on: ubuntu-24.04
+    needs: release_android
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
       - name: Generate authentication token with GitHub App to trigger Actions
         uses: actions/create-github-app-token@df432ceedc7162793a195dd1713ff69aefc7379e # v2.0.6
         id: app-token
@@ -121,38 +173,37 @@ jobs:
         run: gh variable set FLUTTER_VERSION --body "${{ env.FLUTTER_VERSION }}"
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
-
-      # Upload the results to GitHub's code scanning dashboard (optional).
-      # Commenting out will disable upload of results to your repo's Code Scanning dashboard
-      - name: Upload to code-scanning
-        uses: github/codeql-action/upload-sarif@ff0a06e83cb2de871e5a09832bc6a81e7276941f # v3.28.18
+  
+  create_github_release:
+    permissions:
+      # Allow to create releases and upload assets to them
+      contents: write
+    runs-on: ubuntu-24.04
+    needs: [release_android, update_description, record_image, set_bootstrap_image]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
-          sarif_file: sarif.json
+          # TODO: Fetch only a few commits after using --unreleased in git-cliff
+          # Fetch all commits to use as input for the changelog generation
+          fetch-depth: 0
+          # Fetch all tags to use as input for the changelog generation
+          fetch-tags: true
+      
+      - name: Get the tag details
+        id: get-tag-details
+        run: |-
+          # Store the changelog in a temporary directory to not pollute the working directory
+          mkdir -p "${{ runner.temp }}/git-cliff"
+          changelog_file="${{ runner.temp }}/git-cliff/changelog.md"
+          echo "changelog_file=${changelog_file}" >>$GITHUB_OUTPUT
 
-      # TODO: Use kaniko for building and pushing after slowness is solved
-      # TODO: https://github.com/GoogleContainerTools/kaniko/issues/970
-      # TODO: https://github.com/GoogleContainerTools/kaniko/issues/875
-      # TODO: Use kaniko for building and pushing after pushing to Docker daemon is solved, to be able to test Docker image, with the following issues
-      # TODO: https://github.com/GoogleContainerTools/kaniko/issues/1331
-      # - name: Build image and push it to registries
-      #   uses: int128/kaniko-action@v1
-      #   with:
-      #     push: true
-      #     cache: true
-      #     cache-repository: ${{ steps.ecr-cache.outputs.repository-uri }}
-      #     tags: ${{ steps.metadata.outputs.tags }}
-      #     labels: ${{ steps.metadata.outputs.labels }}
-      #     build-args: |
-      #       flutter_version=${{ env.FLUTTER_VERSION }}
-      #       android_build_tools_version=${{ env.ANDROID_BUILD_TOOLS_VERSION }}
-      #       android_platform_versions=${{ env.ANDROID_PLATFORM_VERSIONS }}
-      #     kaniko-args: |
-      #       --skip-unused-stages=true
-      #       --use-new-run=true
-      #       --snapshotMode=redo
-      #     target: android
-      #     executor: gcr.io/kaniko-project/executor:latest
-# TODO: https://github.com/snok/container-retention-policy
-# TODO: Push a build image before the final image
-# TODO: Run basic tests with build image
-# TODO: Push final image only if tests pass https://redhat-cop.github.io/ci/publishing-images.html
+          git-cliff -v --latest --strip all --no-exec --github-repo "${{ github.repository }}" --output "$changelog_file"
+      
+      - name: Create Github release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |-
+          gh release create "${{ env.FLUTTER_VERSION }}" \
+            --title="${{ env.FLUTTER_VERSION }}" \
+            --notes-file="${{ steps.get-tag-details.outputs.changelog_file }}"
