@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.32.5] - 2025-06-26
+
+### ⚙️ Miscellaneous Tasks
+
+- Parse json before output (#354)
+- *(release)* Update flutter dependencies in version.json for 3.32.5 (#357)
+
 ## [3.32.4] - 2025-06-14
 
 ### ⚙️ Miscellaneous Tasks
