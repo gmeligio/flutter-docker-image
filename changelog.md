@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.32.6] - 2025-07-13
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Update flutter dependencies in version.json for 3.32.6 (#361)
+
 ## [3.32.5] - 2025-06-26
 
 ### ⚙️ Miscellaneous Tasks
