@@ -196,7 +196,7 @@ jobs:
         with:
           cache: npm
           cache-dependency-path: docs/src/package-lock.json
-          node-version-file: docs/src/package.json
+          node-version: lts/*
 
       - name: Update documentation
         working-directory: docs/src
