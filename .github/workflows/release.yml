@@ -17,9 +17,6 @@ jobs:
       # Allow to write packages to push the container image to the Github Container Registry
       packages: write
     runs-on: ubuntu-24.04
-    outputs:
-      # Use the Docker Hub image which is the first tag in the metadata
-      docker_hub_image_path: ${{ fromJson(steps.metadata.outputs.json).tags[0] }}
     env:
       IMAGE_REPOSITORY_NAME: flutter-android
       ANDROID_BUILD_TOOLS_VERSION: 30.0.3
