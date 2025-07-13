@@ -127,6 +127,8 @@ jobs:
       security-events: write
     runs-on: ubuntu-24.04
     needs: release_android
+    env:
+      IMAGE_REPOSITORY_NAME: flutter-android
     steps:
       - name: Checkout repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -141,7 +143,7 @@ jobs:
         uses: docker/scout-action@aceeb83b88f2ae54376891227858dda7af647183 # v1.18.1
         with:
           command: environment, cves
-          image: registry://${{ needs.release_android.outputs.docker_hub_image_path }}
+          image: registry://${{ github.repository_owner }}/${{ env.IMAGE_REPOSITORY_NAME }}:${{ env.FLUTTER_VERSION }}
           environment: prod
           only-fixed: true
           organization: ${{ secrets.DOCKER_HUB_USERNAME }}
