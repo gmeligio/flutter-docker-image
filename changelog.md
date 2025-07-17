@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.32.7] - 2025-07-17
+
+### ⚙️ Miscellaneous Tasks
+
+- Build image path to solve "skip output since it may contain secret" (#362)
+- *(release)* Update flutter dependencies in version.json for 3.32.7 (#364)
+
 ## [3.32.6] - 2025-07-13
 
 ### ⚙️ Miscellaneous Tasks
