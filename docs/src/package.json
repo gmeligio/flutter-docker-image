@@ -14,7 +14,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "cross-env": "^7.0.3",
+    "cross-env": "^10.0.0",
     "mdx-to-md": "^0.5.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
