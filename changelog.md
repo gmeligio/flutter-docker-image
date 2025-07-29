@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.32.8] - 2025-07-29
+
+### 🐛 Bug Fixes
+
+- *(deps)* Update dependency cross-env to v10 (#367)
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Update flutter dependencies in version.json for 3.32.8 (#365)
+
 ## [3.32.7] - 2025-07-17
 
 ### ⚙️ Miscellaneous Tasks
