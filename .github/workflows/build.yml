@@ -39,7 +39,7 @@ jobs:
             return await script({ core })
 
       - name: Load image metadata
-        uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804 # v5.7.0
+        uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
         id: metadata
         with:
           images: |
@@ -83,7 +83,7 @@ jobs:
       # TODO: Parallelize testing and vulnerability scanning
       - name: Scan with Docker Scout
         id: docker-scout
-        uses: docker/scout-action@aceeb83b88f2ae54376891227858dda7af647183 # v1.18.1
+        uses: docker/scout-action@f8c776824083494ab0d56b8105ba2ca85c86e4de # v1.18.2
         with:
           command: compare, recommendations
           # Use the Docker Hub image that is the first tag in the metadata
