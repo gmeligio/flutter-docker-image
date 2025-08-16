@@ -4,9 +4,12 @@ import "list"
 
 #CommandTests: {
 	name: _
+	setup?: _
+	teardown?: _
 	command: _
 	args: _
-	expectedOutput: [string]
+	expectedOutput?: [string]
+	excludedOutput?: _
 }
 
 #FileContentTests: {
@@ -33,8 +36,10 @@ output: {
 	commandTests: list.Concat([
 		list.Take(input.commandTests, 2),
 		[{
-			input.commandTests[2]
-			android_ndk_version: android_ndk_version
+			name: input.commandTests[2].name
+			command: input.commandTests[2].command
+			args: input.commandTests[2].args
+			expectedOutput: [android_ndk_version]
 		}],
 		list.Drop(input.commandTests, 3),
 	])
