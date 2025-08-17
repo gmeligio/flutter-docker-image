@@ -99,12 +99,12 @@ Every new tag on the flutter stable channel gets built. The tag is composed of t
 The android.Dockerfile expects a few arguments:
 
 * `flutter_version <string>`: The version of Flutter to use when building. Example: 3.35.1
-* `android_build_tools_version <string>`: The version of the Android SDK Build Tools to install. Example: 34.0.0
+* `android_build_tools_version <string>`: The version of the Android SDK Build Tools to install. Example: 35.0.0
 * `android_platform_versions <list>`: The versions of the Android SDK Platforms to install, separated by spaces. Example: 36
 
 ```bash
 # Android
-docker build --target android --build-arg flutter_version=3.35.1 --build-arg fastlane_version=2.228.0 --build-arg android_build_tools_version=34.0.0 --build-arg android_platform_versions="36" -t android-test .
+docker build --target android --build-arg flutter_version=3.35.1 --build-arg fastlane_version=2.228.0 --build-arg android_build_tools_version=35.0.0 --build-arg android_platform_versions="36" -t android-test .
 ```
 
 ## Roadmap
