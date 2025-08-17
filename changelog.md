@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.35.1] - 2025-08-17
+
+### 🐛 Bug Fixes
+
+- *(deps)* Update react monorepo to v19.1.1 (#369)
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Update flutter dependencies in version.json for 3.35.1 (#371)
+
 ## [3.32.8] - 2025-07-29
 
 ### 🐛 Bug Fixes
