@@ -24,7 +24,7 @@ commandTests:
     args:
       - /home/flutter/sdks/android-sdk/build-tools
     expectedOutput:
-      - 34.0.0
+      - 35.0.0
   - name: Android NDK is pinned
     command: ls
     args:

@@ -29,18 +29,27 @@ input: #ContainerStructureTest
 android_cmdline_tools_test_expected_content: string @tag(android_cmdline_tools_test_expected_content)
 android_cmdline_tools_version: string @tag(android_cmdline_tools_version)
 android_ndk_version: string @tag(android_ndk_version)
+android_sdk_build_tools_version: string @tag(android_sdk_build_tools_version)
 
 output: {
 	schemaVersion: input.schemaVersion
 	
 	commandTests: list.Concat([
-		list.Take(input.commandTests, 2),
-		[{
-			name: input.commandTests[2].name
-			command: input.commandTests[2].command
-			args: input.commandTests[2].args
-			expectedOutput: [android_ndk_version]
-		}],
+		list.Take(input.commandTests, 1),
+		[
+			{
+				name: input.commandTests[1].name
+				command: input.commandTests[1].command
+				args: input.commandTests[1].args
+				expectedOutput: [android_sdk_build_tools_version]
+			},
+			{
+				name: input.commandTests[2].name
+				command: input.commandTests[2].command
+				args: input.commandTests[2].args
+				expectedOutput: [android_ndk_version]
+			}
+		],
 		list.Drop(input.commandTests, 3),
 	])
 	
