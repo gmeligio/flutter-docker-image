@@ -4,16 +4,16 @@ SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
 ENV LANG=C.UTF-8
 
-# renovate: release=bullseye depName=curl
-ARG CURL_VERSION="7.88.1-10+deb12u12"
-# renovate: release=bullseye depName=git
-ARG GIT_VERSION="1:2.39.5-0+deb12u2"
-# renovate: release=bullseye depName=lcov
-ARG LCOV_VERSION="1.16-1"
-# renovate: release=bullseye depName=ca-certificates
-ARG CA_CERTIFICATES_VERSION="20230311"
-# renovate: release=bullseye depName=unzip
-ARG UNZIP_VERSION="6.0-28"
+# renovate: suite=trixie depName=curl
+ARG CURL_VERSION="8.14.1-2"
+# renovate: suite=trixie depName=git
+ARG GIT_VERSION="1:2.47.2-0.2"
+# renovate: suite=trixie depName=lcov
+ARG LCOV_VERSION="2.3.1-1"
+# renovate: suite=trixie depName=ca-certificates
+ARG CA_CERTIFICATES_VERSION="20250419"
+# renovate: suite=trixie depName=unzip
+ARG UNZIP_VERSION="6.0-29"
 
 USER root
 RUN apt-get update \
