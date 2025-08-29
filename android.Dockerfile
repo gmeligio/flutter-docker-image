@@ -93,10 +93,10 @@ FROM flutter AS fastlane
 
 SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
-# renovate: release=bullseye depName=ruby-dev
-ARG RUBY_VERSION="1:3.1"
-# renovate: release=bullseye depName=build-essential
-ENV BUILD_ESSENTIAL_VERSION="12.9"
+# renovate: suite=trixie depName=ruby-dev
+ARG RUBY_VERSION="1:3.3"
+# renovate: suite=trixie depName=build-essential
+ENV BUILD_ESSENTIAL_VERSION="12.12"
 
 USER root
 RUN apt-get update \
@@ -146,13 +146,13 @@ SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 # TODO: Use `dirname $(dirname $(readlink -f $(which javac)))` after the following issue is fixed
 # TODO: https://github.com/moby/moby/issues/29110
 ENV ANDROID_HOME="$SDK_ROOT/android-sdk" \
-    JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+    JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
 ENV PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$HOME/.local/bin"
 
-# renovate: release=bullseye depName=openjdk-17-jdk-headless
-ARG OPENJDK_17_JDK_HEADLESS_VERSION="17.0.16+8-1~deb12u1"
-# renovate: release=bullseye depName=sudo
-ARG SUDO_VERSION="1.9.13p3-1+deb12u1"
+# renovate: suite=trixie depName=openjdk-21-jdk-headless
+ARG OPENJDK_21_JDK_HEADLESS_VERSION="21.0.8+9-1"
+# renovate: suite=trixie depName=sudo
+ARG SUDO_VERSION="1.9.16p2-3"
 
 USER root
 RUN apt-get update \
@@ -168,7 +168,7 @@ RUN apt-get update \
     # libgdk-pixbuf2.0-0=2.40.2-2build4 \
     # Android SDK dependencies
     ## JDK needs to be used instead of JRE because it provides the jlink tool used by the Android build
-    openjdk-17-jdk-headless="$OPENJDK_17_JDK_HEADLESS_VERSION" \
+    openjdk-21-jdk-headless="$OPENJDK_21_JDK_HEADLESS_VERSION" \
     # To allow changing ownership in GitLab CI /builds
     sudo="$SUDO_VERSION" \
     && rm -rf /var/lib/apt/lists/* \
