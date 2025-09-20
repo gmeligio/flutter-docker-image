@@ -5,13 +5,13 @@ SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 ENV LANG=C.UTF-8
 
 # renovate: release=bullseye depName=curl
-ARG CURL_VERSION="7.88.1-10+deb12u12"
+ARG CURL_VERSION="7.88.1-10+deb12u14"
 # renovate: release=bullseye depName=git
 ARG GIT_VERSION="1:2.39.5-0+deb12u2"
 # renovate: release=bullseye depName=lcov
 ARG LCOV_VERSION="1.16-1"
 # renovate: release=bullseye depName=ca-certificates
-ARG CA_CERTIFICATES_VERSION="20230311"
+ARG CA_CERTIFICATES_VERSION="20230311+deb12u1"
 # renovate: release=bullseye depName=unzip
 ARG UNZIP_VERSION="6.0-28"
 
