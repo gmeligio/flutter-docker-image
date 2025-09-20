@@ -1,17 +1,17 @@
-FROM debian:12.11-slim@sha256:b1a741487078b369e78119849663d7f1a5341ef2768798f7b7406c4240f86aef AS flutter
+FROM debian:12.12-slim@sha256:acd98e6cfc42813a4db9ca54ed79b6f702830bfc2fa43a2c2e87517371d82edb AS flutter
 
 SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
 ENV LANG=C.UTF-8
 
 # renovate: release=bullseye depName=curl
-ARG CURL_VERSION="7.88.1-10+deb12u12"
+ARG CURL_VERSION="7.88.1-10+deb12u14"
 # renovate: release=bullseye depName=git
 ARG GIT_VERSION="1:2.39.5-0+deb12u2"
 # renovate: release=bullseye depName=lcov
 ARG LCOV_VERSION="1.16-1"
 # renovate: release=bullseye depName=ca-certificates
-ARG CA_CERTIFICATES_VERSION="20230311"
+ARG CA_CERTIFICATES_VERSION="20230311+deb12u1"
 # renovate: release=bullseye depName=unzip
 ARG UNZIP_VERSION="6.0-28"
 
@@ -152,7 +152,7 @@ ENV PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-to
 # renovate: release=bullseye depName=openjdk-17-jdk-headless
 ARG OPENJDK_17_JDK_HEADLESS_VERSION="17.0.16+8-1~deb12u1"
 # renovate: release=bullseye depName=sudo
-ARG SUDO_VERSION="1.9.13p3-1+deb12u1"
+ARG SUDO_VERSION="1.9.13p3-1+deb12u2"
 
 USER root
 RUN apt-get update \
