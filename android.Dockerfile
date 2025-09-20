@@ -152,7 +152,7 @@ ENV PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-to
 # renovate: release=bullseye depName=openjdk-17-jdk-headless
 ARG OPENJDK_17_JDK_HEADLESS_VERSION="17.0.16+8-1~deb12u1"
 # renovate: release=bullseye depName=sudo
-ARG SUDO_VERSION="1.9.13p3-1+deb12u1"
+ARG SUDO_VERSION="1.9.13p3-1+deb12u2"
 
 USER root
 RUN apt-get update \
