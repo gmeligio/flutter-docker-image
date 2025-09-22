@@ -7,7 +7,7 @@ ENV LANG=C.UTF-8
 # renovate: suite=trixie depName=curl
 ARG CURL_VERSION="8.14.1-2"
 # renovate: suite=trixie depName=git
-ARG GIT_VERSION="1:2.47.2-0.2"
+ARG GIT_VERSION="1:2.47.3-0+deb13u1"
 # renovate: suite=trixie depName=lcov
 ARG LCOV_VERSION="2.3.1-1"
 # renovate: suite=trixie depName=ca-certificates
@@ -146,15 +146,17 @@ SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 # TODO: Use `dirname $(dirname $(readlink -f $(which javac)))` after the following issue is fixed
 # TODO: https://github.com/moby/moby/issues/29110
 ENV ANDROID_HOME="$SDK_ROOT/android-sdk" \
-    JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
+    JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 ENV PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$HOME/.local/bin"
 
-# renovate: suite=trixie depName=openjdk-21-jdk-headless
-ARG OPENJDK_21_JDK_HEADLESS_VERSION="21.0.8+9-1"
+# renovate: suite=bookworm depName=openjdk-17-jdk-headless
+ARG OPENJDK_17_JDK_HEADLESS_VERSION="17.0.16+8-1~deb12u1"
 # renovate: suite=trixie depName=sudo
 ARG SUDO_VERSION="1.9.16p2-3"
 
 USER root
+# Add debian 12 bookworm repository alongside debian 13 trixie to install Java 17
+COPY config/debian_12_bookworm.sources /etc/apt/sources.list.d/debian_12_bookworm.sources
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
     # For Android x86 emulators
@@ -168,7 +170,7 @@ RUN apt-get update \
     # libgdk-pixbuf2.0-0=2.40.2-2build4 \
     # Android SDK dependencies
     ## JDK needs to be used instead of JRE because it provides the jlink tool used by the Android build
-    openjdk-21-jdk-headless="$OPENJDK_21_JDK_HEADLESS_VERSION" \
+    openjdk-17-jdk-headless="$OPENJDK_17_JDK_HEADLESS_VERSION" \
     # To allow changing ownership in GitLab CI /builds
     sudo="$SUDO_VERSION" \
     && rm -rf /var/lib/apt/lists/* \
