@@ -1,0 +1,1 @@
+jq -r '.releases[] | select(.channel=="stable") | max_by(.release_date) | .version'
