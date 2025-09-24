@@ -174,6 +174,8 @@ RUN apt-get update \
     # To allow changing ownership in GitLab CI /builds
     sudo="$SUDO_VERSION" \
     && rm -rf /var/lib/apt/lists/* \
+    # Delete debian 12 bookworm repository after installing Java 17
+    && rm /etc/apt/sources.list.d/debian_12_bookworm.sources \
     # To allow changing ownership in GitLab CI /builds
     && echo "flutter ALL= NOPASSWD:/bin/chown -R flutter /builds, /bin/chown -R flutter /builds/*" >> /etc/sudoers.d/flutter
 

@@ -1,3 +1,5 @@
+# Add debian 12 bookworm repository alongside debian 13 trixie to install Java 17
+
 Types: deb
 URIs: http://deb.debian.org/debian
 Suites: bookworm bookworm-updates
