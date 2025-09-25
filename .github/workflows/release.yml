@@ -193,7 +193,7 @@ jobs:
         uses: jaxxstorm/action-install-gh-release@6096f2a2bbfee498ced520b6922ac2c06e990ed2 # v2.1.0
         with:
           repo: orhun/git-cliff
-          tag: v2.8.0
+          tag: v2.10.1
           digest: 17da092783079c63a0fb14c24fbfa0d3b589e225c6ef01c93111e39cecbc88e8
 
       - name: Get the tag details
