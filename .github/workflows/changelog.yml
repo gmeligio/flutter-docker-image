@@ -27,7 +27,7 @@ jobs:
         with:
           repo: orhun/git-cliff
           tag: v2.10.1
-          digest: 17da092783079c63a0fb14c24fbfa0d3b589e225c6ef01c93111e39cecbc88e8
+          digest: 6abe8a3e112b266dd00abf9089a8052ddf7314f39e1c53e192edf0652abca4eb
 
       - name: Read environment variables from the version manifest
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1

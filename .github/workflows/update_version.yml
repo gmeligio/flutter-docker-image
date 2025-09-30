@@ -36,7 +36,7 @@ jobs:
         with:
           repo: cue-lang/cue
           tag: v0.14.1
-          digest: 59ba96137da07cd2cdd2e17ec33af81f850126f022f25dd96516f0b42071b6a9
+          digest: c7d29f5988d088627cf53bd6a223807c466066cf432c7cf5c36429ffc9e734f6
 
       - name: Validate version.json with CUE
         if: ${{ steps.update_flutter_version.outputs.result == 'true' }}
@@ -157,7 +157,7 @@ jobs:
         with:
           repo: cue-lang/cue
           tag: v0.14.1
-          digest: 59ba96137da07cd2cdd2e17ec33af81f850126f022f25dd96516f0b42071b6a9
+          digest: c7d29f5988d088627cf53bd6a223807c466066cf432c7cf5c36429ffc9e734f6
 
       - name: Validate version.json with CUE
         run: cue vet config/version.cue -d '#Version' config/version.json

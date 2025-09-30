@@ -34,7 +34,7 @@ jobs:
         with:
           repo: cue-lang/cue
           tag: v0.14.1
-          digest: 59ba96137da07cd2cdd2e17ec33af81f850126f022f25dd96516f0b42071b6a9
+          digest: c7d29f5988d088627cf53bd6a223807c466066cf432c7cf5c36429ffc9e734f6
 
       - name: Read environment variables from the version manifest
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
