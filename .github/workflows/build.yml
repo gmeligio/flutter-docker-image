@@ -108,7 +108,7 @@ jobs:
         uses: jaxxstorm/action-install-gh-release@6096f2a2bbfee498ced520b6922ac2c06e990ed2 # v2.1.0
         with:
           repo: cue-lang/cue
-          tag: v0.13.0
+          tag: v0.14.1
           digest: 59ba96137da07cd2cdd2e17ec33af81f850126f022f25dd96516f0b42071b6a9
 
       - name: Validate version.json and flutter_version.json with CUE
@@ -126,7 +126,7 @@ jobs:
         uses: jaxxstorm/action-install-gh-release@6096f2a2bbfee498ced520b6922ac2c06e990ed2 # v2.1.0
         with:
           repo: cue-lang/cue
-          tag: v0.13.0
+          tag: v0.14.1
           digest: 59ba96137da07cd2cdd2e17ec33af81f850126f022f25dd96516f0b42071b6a9
 
       - name: Generate test files with CUE
@@ -210,7 +210,7 @@ jobs:
         uses: jaxxstorm/action-install-gh-release@6096f2a2bbfee498ced520b6922ac2c06e990ed2 # v2.1.0
         with:
           repo: cue-lang/cue
-          tag: v0.13.0
+          tag: v0.14.1
           digest: 59ba96137da07cd2cdd2e17ec33af81f850126f022f25dd96516f0b42071b6a9
 
       - name: Validate version.json with CUE
