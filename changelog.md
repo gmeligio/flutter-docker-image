@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.35.5] - 2025-09-30
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Upgrade flutter to 3.35.5 (#383)
+
 ## [3.35.4] - 2025-09-20
 
 ### ⚙️ Miscellaneous Tasks
