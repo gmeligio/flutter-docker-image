@@ -151,16 +151,27 @@ jobs:
           cache-dependency-path: docs/src/package-lock.json
           node-version: lts/*
 
+      - name: Generate authentication token with GitHub App to trigger Actions
+        uses: actions/create-github-app-token@df432ceedc7162793a195dd1713ff69aefc7379e # v2.0.6
+        id: app-token
+        with:
+          app-id: ${{ secrets.VERIFIED_COMMIT_ID }}
+          private-key: ${{ secrets.VERIFIED_COMMIT_KEY }}
+          repositories: ${{ github.event.repository.name }}
+          owner: ${{ github.repository_owner }}
+      
       - name: Update documentation
         working-directory: docs/src
         run: |
           npm ci --prefer-offline
           npm run build
 
-      - name: Check if there are any changes in the git working tree
-        run: |
-          git add -A  
-          git diff --exit-code HEAD
+      - name: Commit and push documentation
+        uses: grafana/github-api-commit-action@b1d81091e8480dd11fcea8bc1f0ab977a0376ca5 # v1.0.0
+        with:
+          commit-message: "chore(release): prepare for ${{ env.FLUTTER_VERSION }}"
+          stage-all-files: true
+          token: ${{ steps.app-token.outputs.token }}
 
   test_gradle:
     permissions:
