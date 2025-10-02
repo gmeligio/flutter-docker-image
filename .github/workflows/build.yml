@@ -113,8 +113,8 @@ jobs:
 
       - name: Validate version.json and flutter_version.json with CUE
         run: |
-          cue vet config/version.cue -d '#FlutterVersion' config/flutter_version.json
-          cue vet config/version.cue -d '#Version' config/version.json
+          cue vet config/schema.cue -d '#FlutterVersion' config/flutter_version.json
+          cue vet config/schema.cue -d '#Version' config/version.json
 
   validate_generated_config:
     runs-on: ubuntu-24.04
@@ -228,4 +228,4 @@ jobs:
           digest: c7d29f5988d088627cf53bd6a223807c466066cf432c7cf5c36429ffc9e734f6
 
       - name: Validate version.json with CUE
-        run: cue vet config/version.cue -d '#Version' config/version.json
+        run: cue vet config/schema.cue -d '#Version' config/version.json
