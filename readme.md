@@ -16,8 +16,8 @@ The images includes the minimum tools to run Flutter and build apps. The version
 * [Building Locally](#building-locally)
 * [Roadmap](#roadmap)
 * [FAQ](#faq)  
-   * [Why the images are not published in the AWS ECR Public registry?](#why-the-images-are-not-published-in-the-aws-ecr-public-registry)
-* [Why there is no dynamic tag like latest?](#why-there-is-no-dynamic-tag-like-latest)
+   * [Why the images are not published in the AWS ECR Public registry?](#why-the-images-are-not-published-in-the-aws-ecr-public-registry)  
+   * [Why there is no dynamic tag like latest?](#why-there-is-no-dynamic-tag-like-latest)
 * [Contributing](#contributing)
 * [License](#license)
 
@@ -123,7 +123,7 @@ docker build --target android --build-arg flutter_version=3.35.5 --build-arg fas
 
 The storage of the images starts to cost after 50 GB and increases with every pushed image because the AWS Free Tier covers up to 50 GB of total storage for free in ECR Public.
 
-## Why there is no dynamic tag like `latest`?
+### Why there is no dynamic tag like `latest`?
 
 There is no `latest` Docker tag on purpose. You need to specify the version of the image you want to use. The reason for that is that `latest` can cause unexpected behavior when rerunning a past CI job that was expected to use the old build of the `latest` tag. There are multiple articles explaining more about this reasoning like [What's Wrong With The Docker :latest Tag?](https://vsupalov.com/docker-latest-tag/) and [The misunderstood Docker tag: latest](https://medium.com/@mccode/the-misunderstood-docker-tag-latest-af3babfd6375).
 
