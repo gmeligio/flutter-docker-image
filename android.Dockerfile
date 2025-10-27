@@ -100,7 +100,7 @@ ENV BUILD_ESSENTIAL_VERSION="12.12"
 
 USER root
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends \ 
+    && apt-get install -y --no-install-recommends \
     # Fastlane dependencies
     ruby-full="$RUBY_VERSION" \
     build-essential="$BUILD_ESSENTIAL_VERSION" \
@@ -142,7 +142,7 @@ FROM fastlane AS android
 
 SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
-# TODO: Get JAVA_HOME dinamically from a JDK binary 
+# TODO: Get JAVA_HOME dinamically from a JDK binary
 # TODO: Use `dirname $(dirname $(readlink -f $(which javac)))` after the following issue is fixed
 # TODO: https://github.com/moby/moby/issues/29110
 ENV ANDROID_HOME="$SDK_ROOT/android-sdk" \
@@ -150,7 +150,7 @@ ENV ANDROID_HOME="$SDK_ROOT/android-sdk" \
 ENV PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$HOME/.local/bin"
 
 # renovate: suite=bookworm depName=openjdk-17-jdk-headless
-ARG OPENJDK_17_JDK_HEADLESS_VERSION="17.0.16+8-1~deb12u1"
+ARG OPENJDK_17_JDK_HEADLESS_VERSION="17.0.17+10-1~deb12u1"
 # renovate: suite=trixie depName=sudo
 ARG SUDO_VERSION="1.9.16p2-3"
 
