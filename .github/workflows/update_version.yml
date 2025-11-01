@@ -7,10 +7,14 @@ on:
 permissions:
   contents: read
 
+env:
+  FLUTTER_VERSION_PATH: config/flutter_version.json
+
 jobs:
   update_flutter_version:
     permissions:
       # Allow to write contents to push commits
+      #
       contents: write
       # Allow to write pull requests to push commits and write comments
       pull-requests: write
@@ -22,6 +26,29 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
+      - name: Setup CUE
+        uses: jaxxstorm/action-install-gh-release@6096f2a2bbfee498ced520b6922ac2c06e990ed2 # v2.1.0
+        with:
+          repo: cue-lang/cue
+          tag: v0.13.0
+          digest: 59ba96137da07cd2cdd2e17ec33af81f850126f022f25dd96516f0b42071b6a9
+
+      - name: Fetch and update latest Flutter version
+        id: update_latest_version
+        run: |
+
+          # 1. First read the current version from config/flutter_version.json using CUE
+
+          releases_json_path=${{ runner.temp }}/releases.json
+          releases_cue_path=${{ runner.temp }}/releases.cue
+          curl -s https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json -o "$releases_json_path"
+          cue import "$releases_json_path"
+          cue eval --force --outfile "${{ env.FLUTTER_VERSION_PATH }}" --concrete --expression '{flutter: {channel: releases[0].channel, commit: releases[0].hash, version: releases[0].version } }' "$releases_cue_path"
+
+          # 2. Read the new version using CUE
+          # 3. Compare the new and the old version.
+          # 4. Set result to true if they are different
+
       - name: Update latest Flutter version
         id: update_flutter_version
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
@@ -30,17 +57,9 @@ jobs:
             const script = require('./script/updateFlutterVersion.js')
             return await script({core, fetch})
 
-      - name: Setup CUE
-        if: ${{ steps.update_flutter_version.outputs.result == 'true' }}
-        uses: jaxxstorm/action-install-gh-release@6096f2a2bbfee498ced520b6922ac2c06e990ed2 # v2.1.0
-        with:
-          repo: cue-lang/cue
-          tag: v0.14.1
-          digest: c7d29f5988d088627cf53bd6a223807c466066cf432c7cf5c36429ffc9e734f6
-
       - name: Validate version.json with CUE
         if: ${{ steps.update_flutter_version.outputs.result == 'true' }}
-        run: cue vet config/version.cue -d '#FlutterVersion' config/flutter_version.json
+        run: cue vet config/schema.cue -d '#FlutterVersion' ${{ env.FLUTTER_VERSION_PATH }}
 
       - name: Upload artifact with the new Flutter version
         if: ${{ steps.update_flutter_version.outputs.result == 'true' }}
@@ -48,7 +67,7 @@ jobs:
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         with:
           name: flutter_version.json
-          path: config/flutter_version.json
+          path: ${{ env.FLUTTER_VERSION_PATH }}
 
   update_android_version:
     permissions:
@@ -77,7 +96,7 @@ jobs:
       # https://github.com/actions/download-artifact/issues/225
       # https://github.com/actions/download-artifact/issues/138
       - name: Delete flutter_version.json
-        run: rm config/flutter_version.json
+        run: rm ${{ env.FLUTTER_VERSION_PATH }}
 
       - name: Download artifact with the new Flutter version
         uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
@@ -98,6 +117,11 @@ jobs:
           script: |
             const script = require('./script/updateFastlaneVersion.js')
             await script({core, fetch})
+
+      - name: Update Android SDK build tools version
+        run: |
+          build_tools_version=$(curl -s https://raw.githubusercontent.com/flutter/flutter/refs/tags/${{ env.FLUTTER_VERSION }}/engine/src/flutter/tools/android_sdk/packages.txt | grep 'build-tools' | awk -F'[;:]' '{print $2}')
+          echo "build_tools_version=$build_tools_version" >>"$GITHUB_OUTPUT"
 
       - name: Setup Flutter
         run: |
@@ -156,7 +180,7 @@ jobs:
           digest: c7d29f5988d088627cf53bd6a223807c466066cf432c7cf5c36429ffc9e734f6
 
       - name: Validate version.json with CUE
-        run: cue vet config/version.cue -d '#Version' config/version.json
+        run: cue vet config/schema.cue -d '#Version' config/version.json
 
   update_docs_and_create_pr:
     needs:
@@ -177,7 +201,7 @@ jobs:
       # https://github.com/actions/download-artifact/issues/138
       - name: Delete flutter_version.json and version.json
         run: |-
-          rm config/flutter_version.json config/version.json
+          rm ${{ env.FLUTTER_VERSION_PATH }} config/version.json
 
       - name: Download artifact with the new Flutter version
         uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
@@ -210,8 +234,9 @@ jobs:
             return await script({ core })
 
       - name: Create commit message variable
+        id: create_commit_message
         run: |
-          echo "COMMIT_MESSAGE=chore(release): upgrade flutter to ${{ env.FLUTTER_VERSION }}" >> $GITHUB_ENV
+          echo "commit_message=chore(release): upgrade flutter to ${{ env.FLUTTER_VERSION }}" >> $GITHUB_ENV
 
       - name: Generate authentication token with GitHub App to trigger Actions
         uses: actions/create-github-app-token@67018539274d69449ef7c02e8e71183d1719ab42 # v2.1.4
@@ -226,8 +251,8 @@ jobs:
       - name: Create pull request if there are changes
         uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e # v7.0.8
         with:
-          commit-message: ${{ env.COMMIT_MESSAGE }}
+          commit-message: ${{ steps.create_commit_message.outputs.commit_message }}
           branch: update-flutter-dependencies/${{ env.FLUTTER_VERSION }}
           sign-commits: true
-          title: ${{ env.COMMIT_MESSAGE }}
+          title: ${{ steps.create_commit_message.outputs.commit_message }}
           token: ${{ steps.app-token.outputs.token }}
