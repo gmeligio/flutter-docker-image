@@ -5,35 +5,35 @@ import "list"
 	version!: int
 }
 
-#MinorVersion: {
+#SemverMinor: {
 	version!: =~ "^\\d+.\\d+$"
 }
 
-#PatchVersion: {
+#SemverPatch: {
 	version!: =~ "^\\d+.\\d+.\\d+$"
 }
 
 #FlutterVersion: {
 	flutter: {
-		channel!: "stable" | "beta"
+		channel!: "stable"
 		commit!:  strings.MaxRunes(40)
 		#PatchVersion
 	}
 }
 
-#MinorOrPatchVersion: #MinorVersion | #PatchVersion
+#SemverVersion: #SemverMinor | #SemverPatch
 
 #Version: {
 	#FlutterVersion
 
 	android: {
 		platforms!: [...#PlatformVersion] & list.MinItems(1) & list.UniqueItems
-		gradle!: #MinorOrPatchVersion
-		buildTools!: #PatchVersion
-		cmdlineTools!: #MinorVersion
-		ndk!: #PatchVersion
-		cmake!: #PatchVersion
+		gradle!: #SemverVersion
+		buildTools!: #SemverPatch
+		cmdlineTools!: #SemverMinor
+		ndk!: #SemverPatch
+		cmake!: #SemverPatch
 	}
 
-	fastlane!: #PatchVersion
+	fastlane!: #SemverPatch
 }
