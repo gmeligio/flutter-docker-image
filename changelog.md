@@ -2,6 +2,35 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.35.5] - 2025-09-30
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Upgrade flutter to 3.35.5 (#383)
+
+## [3.35.4] - 2025-09-20
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Update flutter dependencies in version.json for 3.35.4 (#381)
+
+## [3.35.3] - 2025-09-05
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Update flutter dependencies in version.json for 3.35.3 (#379)
+
+## [3.35.2] - 2025-08-29
+
+### 📚 Documentation
+
+- Add issue templates (#376)
+
+### ⚙️ Miscellaneous Tasks
+
+- Create CODE_OF_CONDUCT.md (#374)
+- *(release)* Update flutter dependencies in version.json for 3.35.2 (#378)
+
 ## [3.35.1] - 2025-08-17
 
 ### 🐛 Bug Fixes

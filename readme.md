@@ -16,14 +16,14 @@ The images includes the minimum tools to run Flutter and build apps. The version
 * [Building Locally](#building-locally)
 * [Roadmap](#roadmap)
 * [FAQ](#faq)  
-   * [Why the images are not published in the AWS ECR Public registry?](#why-the-images-are-not-published-in-the-aws-ecr-public-registry)
-* [Why there is no dynamic tag like latest?](#why-there-is-no-dynamic-tag-like-latest)
+   * [Why the images are not published in the AWS ECR Public registry?](#why-the-images-are-not-published-in-the-aws-ecr-public-registry)  
+   * [Why there is no dynamic tag like latest?](#why-there-is-no-dynamic-tag-like-latest)
 * [Contributing](#contributing)
 * [License](#license)
 
 ## Features
 
-* Installed Flutter SDK 3.35.1.
+* Installed Flutter SDK 3.35.5.
 * Analytics disabled by default, opt-in if `ENABLE_ANALYTICS` environment variable is passed when running the container.
 * Rootless user `flutter:flutter`, with permissions to run on Github workflows and GitLab CI.
 * Cached Fastlane gem 2.228.0.
@@ -40,15 +40,15 @@ Predownloaded SDKs and tools in Android:
 
 | Registry                  | flutter-android                                                                                                            |
 | ------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| Docker Hub                | [gmeligio/flutter-android:3.35.1](https://hub.docker.com/r/gmeligio/flutter-android)                                       |
-| GitHub Container Registry | [ghcr.io/gmeligio/flutter-android:3.35.1](https://github.com/gmeligio/flutter-docker-image/pkgs/container/flutter-android) |
-| Quay                      | [quay.io/gmeligio/flutter-android:3.35.1](https://quay.io/repository/gmeligio/flutter-android)                             |
+| Docker Hub                | [gmeligio/flutter-android:3.35.5](https://hub.docker.com/r/gmeligio/flutter-android)                                       |
+| GitHub Container Registry | [ghcr.io/gmeligio/flutter-android:3.35.5](https://github.com/gmeligio/flutter-docker-image/pkgs/container/flutter-android) |
+| Quay                      | [quay.io/gmeligio/flutter-android:3.35.5](https://quay.io/repository/gmeligio/flutter-android)                             |
 
 On the terminal:
 
 ```bash
 # From GitHub Container Registry
-docker run --rm -it ghcr.io/gmeligio/flutter-android:3.35.1 bash
+docker run --rm -it ghcr.io/gmeligio/flutter-android:3.35.5 bash
 ```
 
 On a workflow in GitHub Actions:
@@ -58,7 +58,7 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/gmeligio/flutter-android:3.35.1
+      image: ghcr.io/gmeligio/flutter-android:3.35.5
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -70,7 +70,7 @@ On a `.gitlab-ci.yml` in GitLab CI:
 
 ```yaml
 build:
-  image: ghcr.io/gmeligio/flutter-android:3.35.1
+  image: ghcr.io/gmeligio/flutter-android:3.35.5
   script:
     - flutter build apk
 ```
@@ -91,20 +91,20 @@ bundle exec fastlane
 
 Every new tag on the flutter stable channel gets built. The tag is composed of the Flutter version used to build the image:
 
-* Docker image: gmeligio/flutter-android:3.35.1
-* Flutter version: 3.35.1
+* Docker image: gmeligio/flutter-android:3.35.5
+* Flutter version: 3.35.5
 
 ## Building Locally
 
 The android.Dockerfile expects a few arguments:
 
-* `flutter_version <string>`: The version of Flutter to use when building. Example: 3.35.1
+* `flutter_version <string>`: The version of Flutter to use when building. Example: 3.35.5
 * `android_build_tools_version <string>`: The version of the Android SDK Build Tools to install. Example: 35.0.0
 * `android_platform_versions <list>`: The versions of the Android SDK Platforms to install, separated by spaces. Example: 36
 
 ```bash
 # Android
-docker build --target android --build-arg flutter_version=3.35.1 --build-arg fastlane_version=2.228.0 --build-arg android_build_tools_version=35.0.0 --build-arg android_platform_versions="36" -t android-test .
+docker build --target android --build-arg flutter_version=3.35.5 --build-arg fastlane_version=2.228.0 --build-arg android_build_tools_version=35.0.0 --build-arg android_platform_versions="36" -t android-test .
 ```
 
 ## Roadmap
@@ -123,7 +123,7 @@ docker build --target android --build-arg flutter_version=3.35.1 --build-arg fas
 
 The storage of the images starts to cost after 50 GB and increases with every pushed image because the AWS Free Tier covers up to 50 GB of total storage for free in ECR Public.
 
-## Why there is no dynamic tag like `latest`?
+### Why there is no dynamic tag like `latest`?
 
 There is no `latest` Docker tag on purpose. You need to specify the version of the image you want to use. The reason for that is that `latest` can cause unexpected behavior when rerunning a past CI job that was expected to use the old build of the `latest` tag. There are multiple articles explaining more about this reasoning like [What's Wrong With The Docker :latest Tag?](https://vsupalov.com/docker-latest-tag/) and [The misunderstood Docker tag: latest](https://medium.com/@mccode/the-misunderstood-docker-tag-latest-af3babfd6375).
 

@@ -1,19 +1,19 @@
-FROM debian:12.11-slim@sha256:2424c1850714a4d94666ec928e24d86de958646737b1d113f5b2207be44d37d8 AS flutter
+FROM debian:13.1-slim@sha256:66b37a5078a77098bfc80175fb5eb881a3196809242fd295b25502854e12cbec AS flutter
 
 SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
 ENV LANG=C.UTF-8
 
-# renovate: release=bullseye depName=curl
-ARG CURL_VERSION="7.88.1-10+deb12u12"
-# renovate: release=bullseye depName=git
-ARG GIT_VERSION="1:2.39.5-0+deb12u2"
-# renovate: release=bullseye depName=lcov
-ARG LCOV_VERSION="1.16-1"
-# renovate: release=bullseye depName=ca-certificates
-ARG CA_CERTIFICATES_VERSION="20230311"
-# renovate: release=bullseye depName=unzip
-ARG UNZIP_VERSION="6.0-28"
+# renovate: suite=trixie depName=curl
+ARG CURL_VERSION="8.14.1-2"
+# renovate: suite=trixie depName=git
+ARG GIT_VERSION="1:2.47.3-0+deb13u1"
+# renovate: suite=trixie depName=lcov
+ARG LCOV_VERSION="2.3.1-1"
+# renovate: suite=trixie depName=ca-certificates
+ARG CA_CERTIFICATES_VERSION="20250419"
+# renovate: suite=trixie depName=unzip
+ARG UNZIP_VERSION="6.0-29"
 
 USER root
 RUN apt-get update \
@@ -93,14 +93,14 @@ FROM flutter AS fastlane
 
 SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
-# renovate: release=bullseye depName=ruby-dev
-ARG RUBY_VERSION="1:3.1"
-# renovate: release=bullseye depName=build-essential
-ENV BUILD_ESSENTIAL_VERSION="12.9"
+# renovate: suite=trixie depName=ruby-dev
+ARG RUBY_VERSION="1:3.3"
+# renovate: suite=trixie depName=build-essential
+ENV BUILD_ESSENTIAL_VERSION="12.12"
 
 USER root
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends \ 
+    && apt-get install -y --no-install-recommends \
     # Fastlane dependencies
     ruby-full="$RUBY_VERSION" \
     build-essential="$BUILD_ESSENTIAL_VERSION" \
@@ -142,19 +142,21 @@ FROM fastlane AS android
 
 SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
-# TODO: Get JAVA_HOME dinamically from a JDK binary 
+# TODO: Get JAVA_HOME dinamically from a JDK binary
 # TODO: Use `dirname $(dirname $(readlink -f $(which javac)))` after the following issue is fixed
 # TODO: https://github.com/moby/moby/issues/29110
 ENV ANDROID_HOME="$SDK_ROOT/android-sdk" \
     JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 ENV PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$HOME/.local/bin"
 
-# renovate: release=bullseye depName=openjdk-17-jdk-headless
-ARG OPENJDK_17_JDK_HEADLESS_VERSION="17.0.16+8-1~deb12u1"
-# renovate: release=bullseye depName=sudo
-ARG SUDO_VERSION="1.9.13p3-1+deb12u1"
+# renovate: suite=bookworm depName=openjdk-17-jdk-headless
+ARG OPENJDK_17_JDK_HEADLESS_VERSION="17.0.17+10-1~deb12u1"
+# renovate: suite=trixie depName=sudo
+ARG SUDO_VERSION="1.9.16p2-3"
 
 USER root
+# Add debian 12 bookworm repository alongside debian 13 trixie to install Java 17
+COPY config/debian_12_bookworm.sources /etc/apt/sources.list.d/debian_12_bookworm.sources
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
     # For Android x86 emulators
@@ -172,6 +174,8 @@ RUN apt-get update \
     # To allow changing ownership in GitLab CI /builds
     sudo="$SUDO_VERSION" \
     && rm -rf /var/lib/apt/lists/* \
+    # Delete debian 12 bookworm repository after installing Java 17
+    && rm /etc/apt/sources.list.d/debian_12_bookworm.sources \
     # To allow changing ownership in GitLab CI /builds
     && echo "flutter ALL= NOPASSWD:/bin/chown -R flutter /builds, /bin/chown -R flutter /builds/*" >> /etc/sudoers.d/flutter
 
