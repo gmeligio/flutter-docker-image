@@ -184,6 +184,8 @@ jobs:
         with:
           artifact-ids: ${{ needs.update_flutter_version.outputs.flutter_version_artifact_id }},${{ needs.update_android_version.outputs.version_artifact_id }}
           path: config
+          # Download to the configured path instead of separated directories by artifact id
+          merge-multiple: true
 
       - name: Setup NodeJS
         uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
