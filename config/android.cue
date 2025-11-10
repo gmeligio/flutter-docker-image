@@ -36,25 +36,27 @@ output: {
 	
 	commandTests: list.Concat([
 		list.Take(input.commandTests, 1),
-		[
-			{
-				name: input.commandTests[1].name
-				command: input.commandTests[1].command
-				args: input.commandTests[1].args
-				expectedOutput: [android_sdk_build_tools_version]
-			},
-			{
-				name: input.commandTests[2].name
-				command: input.commandTests[2].command
-				args: input.commandTests[2].args
-				expectedOutput: [android_ndk_version]
-			}
-		],
+		if len(input.fileContentTests) >= 3 {
+			[
+				{
+					name: input.commandTests[1].name
+					command: input.commandTests[1].command
+					args: input.commandTests[1].args
+					expectedOutput: [android_sdk_build_tools_version]
+				},
+				{
+					name: input.commandTests[2].name
+					command: input.commandTests[2].command
+					args: input.commandTests[2].args
+					expectedOutput: [android_ndk_version]
+				}
+			]
+		},
 		list.Drop(input.commandTests, 3),
 	])
 	
 	fileContentTests: list.Concat([
-		if len(input.fileContentTests) > 0 {
+		if len(input.fileContentTests) >= 1 {
 			[{
 				name: "Android SDK Command-line Tools is version \(android_cmdline_tools_version)"
 				path: input.fileContentTests[0].path
