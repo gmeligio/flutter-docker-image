@@ -30,7 +30,7 @@ commandTests:
     args:
       - /home/flutter/sdks/android-sdk/ndk
     expectedOutput:
-      - 27.0.12077973
+      - 28.2.13676358
   - name: CMake is pinned
     command: ls
     args:

@@ -62,6 +62,7 @@ jobs:
     if: ${{ needs.update_flutter_version.outputs.new_version == 'true' }}
     outputs:
       version_artifact_id: ${{ steps.upload-version.outputs.artifact-id }}
+      android_test_artifact_id: ${{ steps.upload-android-test.outputs.artifact-id }}
     runs-on: ubuntu-24.04
     container:
       image: ghcr.io/${{ github.repository_owner }}/flutter-android:${{ vars.FLUTTER_VERSION }}
@@ -121,12 +122,23 @@ jobs:
         run: |
           rm -rf test_app
 
+      - name: Generate test files with CUE
+        run: |
+          ./script/update_test.sh
+
       - name: Upload artifact with the updated version.json
         id: upload-version
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         with:
           name: version.json
           path: config/version.json
+
+      - name: Upload the test artifact for Android
+        id: upload-android-test
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        with:
+          name: android.yml
+          path: test/android.yml
 
   validate_config_version:
     needs: update_android_version
@@ -177,15 +189,21 @@ jobs:
       # https://github.com/actions/download-artifact/issues/138
       - name: Delete flutter_version.json and version.json
         run: |-
-          rm config/flutter_version.json config/version.json
+          rm config/flutter_version.json config/version.json test/android.yml
 
-      - name: Download artifact with the new Flutter version
+      - name: Download configuration artifacts
         uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         with:
           artifact-ids: ${{ needs.update_flutter_version.outputs.flutter_version_artifact_id }},${{ needs.update_android_version.outputs.version_artifact_id }}
           path: config
           # Download to the configured path instead of separated directories by artifact id
           merge-multiple: true
+
+      - name: Download test artifacts
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        with:
+          artifact-ids: ${{ needs.update_android_version.outputs.android_test_artifact_id }}
+          path: test
 
       - name: Setup NodeJS
         uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
