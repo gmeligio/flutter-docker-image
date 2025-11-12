@@ -1,3 +1,8 @@
+## [3.38.0] - 2025-11-12
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Upgrade flutter to 3.38.0 (#397)
 ## [3.35.7] - 2025-11-02
 
 ### ⚙️ Miscellaneous Tasks
