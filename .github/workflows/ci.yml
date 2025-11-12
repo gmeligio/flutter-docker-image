@@ -33,7 +33,7 @@ jobs:
         uses: jaxxstorm/action-install-gh-release@6096f2a2bbfee498ced520b6922ac2c06e990ed2 # v2.1.0
         with:
           repo: cue-lang/cue
-          tag: v0.14.1
+          tag: v0.15.0
           digest: c7d29f5988d088627cf53bd6a223807c466066cf432c7cf5c36429ffc9e734f6
 
       - name: Read environment variables from the version manifest
