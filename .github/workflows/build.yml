@@ -18,7 +18,7 @@ jobs:
       # Allow to write pull requests for the docker/scout-action to write a comment
       pull-requests: write
       # Allow to write security events for github/codeql-action/upload-sarif to upload SARIF results
-      security-events: write 
+      security-events: write
     runs-on: ubuntu-24.04
     env:
       IMAGE_REPOSITORY_NAME: flutter-android
@@ -109,7 +109,7 @@ jobs:
         with:
           repo: cue-lang/cue
           tag: v0.15.0
-          digest: c7d29f5988d088627cf53bd6a223807c466066cf432c7cf5c36429ffc9e734f6
+          digest: 06925fc1e5174591cef0b1e42ac32cff4271804742cd20893de1793b6d82d460
 
       - name: Validate version.json and flutter_version.json with CUE
         run: |
@@ -127,7 +127,7 @@ jobs:
         with:
           repo: cue-lang/cue
           tag: v0.15.0
-          digest: c7d29f5988d088627cf53bd6a223807c466066cf432c7cf5c36429ffc9e734f6
+          digest: 06925fc1e5174591cef0b1e42ac32cff4271804742cd20893de1793b6d82d460
 
       - name: Generate test files with CUE
         run: |
@@ -161,7 +161,7 @@ jobs:
           private-key: ${{ secrets.VERIFIED_COMMIT_KEY }}
           repositories: ${{ github.event.repository.name }}
           owner: ${{ github.repository_owner }}
-      
+
       - name: Update documentation
         working-directory: docs/src
         run: |
@@ -171,7 +171,7 @@ jobs:
       - name: Commit and push documentation
         uses: grafana/github-api-commit-action@b1d81091e8480dd11fcea8bc1f0ab977a0376ca5 # v1.0.0
         with:
-          commit-message: "docs: generate documentation files"
+          commit-message: 'docs: generate documentation files'
           success-if-no-changes: true
           stage-all-files: true
           token: ${{ steps.app-token.outputs.token }}
@@ -194,7 +194,7 @@ jobs:
         id: version-json
         run: |
           {
-            echo "content<<EOF" 
+            echo "content<<EOF"
             cat ./config/version.json
             echo "EOF"
           } >> $GITHUB_OUTPUT
@@ -225,7 +225,7 @@ jobs:
         with:
           repo: cue-lang/cue
           tag: v0.15.0
-          digest: c7d29f5988d088627cf53bd6a223807c466066cf432c7cf5c36429ffc9e734f6
+          digest: 06925fc1e5174591cef0b1e42ac32cff4271804742cd20893de1793b6d82d460
 
       - name: Validate version.json with CUE
         run: cue vet config/version.cue -d '#Version' config/version.json
