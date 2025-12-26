@@ -38,11 +38,17 @@ jobs:
             const script = require('./script/setEnvironmentVariables.js')
             return await script({ core })
 
+      - name: Show disk usage before cleaning
+        run: df -h
+
+      - name: Top-level directories before cleaning
+        run: du -h -d1 / | sort -hr | head -n 20
+
+      - name: Detailed file sizes before cleaning
+        run: find / -type f -exec du -h {} + 2>/dev/null | sort -hr | head -n 1000
+
       - name: Clean runner disk
         run: |
-          # Check disk usage before cleaning
-          df -h
-
           # Remove PHP
           sudo apt-get remove -y 'php.*' --fix-missing || echo "::warning::The command [sudo apt-get remove -y 'php.*' --fix-missing] failed to complete successfully. Proceeding..."
 
@@ -92,8 +98,8 @@ jobs:
           # Remove CodeQL and other toolcaches
           sudo rm -rf /opt/hostedtoolcache
 
-          # Check disk usage before cleaning
-          df -h
+      - name: Show disk usage after cleaning
+        run: df -h
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
