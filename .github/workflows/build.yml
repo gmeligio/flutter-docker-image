@@ -47,6 +47,9 @@ jobs:
       - name: Detailed file sizes before cleaning
         run: find / -type f -exec du -h {} + 2>/dev/null | sort -hr | head -n 1000
 
+      - name: List installed packages before cleaning
+        run: dpkg --get-selections | grep -v deinstall
+
       - name: Clean runner disk
         run: |
           # Remove PHP
@@ -98,6 +101,12 @@ jobs:
           # Remove CodeQL and other toolcaches
           sudo rm -rf /opt/hostedtoolcache
 
+          # Remove Rust
+          sudo rm -rf /home/runner/.rustup/
+
+          # Remove Docker images
+          sudo docker image prune --all --force || true
+
       - name: Show disk usage after cleaning
         run: df -h
 
@@ -106,6 +115,9 @@ jobs:
 
       - name: Detailed file sizes after cleaning
         run: find / -type f -exec du -h {} + 2>/dev/null | sort -hr | head -n 1000
+
+      - name: List installed packages after cleaning
+        run: dpkg --get-selections | grep -v deinstall
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
