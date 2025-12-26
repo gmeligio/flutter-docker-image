@@ -47,6 +47,9 @@ jobs:
             const script = require('./script/setEnvironmentVariables.js')
             return await script({ core })
 
+      - name: Clean runner disk
+        uses: ./.github/actions/clean-runner-disk
+
       - name: Load image metadata
         uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5.10.0
         id: metadata
