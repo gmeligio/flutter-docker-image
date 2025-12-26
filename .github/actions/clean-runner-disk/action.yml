@@ -58,7 +58,7 @@ runs:
       run: df -h
       shell: bash
     - name: Top-level directories after cleaning
-      run: du -h -d1 / | sort -hr | head -n 20
+      run: du -h -d1 / | sort -hr | head -n 20 || true
       shell: bash
     - name: Detailed file sizes after cleaning
       run: find / -type f -exec du -h {} + 2>/dev/null | sort -hr | head -n 1000
