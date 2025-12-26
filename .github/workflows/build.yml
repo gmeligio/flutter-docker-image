@@ -41,12 +41,6 @@ jobs:
       - name: Show disk usage before cleaning
         run: df -h
 
-      - name: Top-level directories before cleaning
-        run: du -h -d1 / | sort -hr | head -n 20
-
-      - name: Detailed file sizes before cleaning
-        run: find / -type f -exec du -h {} + 2>/dev/null | sort -hr | head -n 1000
-
       - name: List installed packages before cleaning
         run: dpkg --get-selections | grep -v deinstall
 
@@ -101,11 +95,14 @@ jobs:
           # Remove CodeQL and other toolcaches
           sudo rm -rf /opt/hostedtoolcache
 
-          # Remove Rust
-          sudo rm -rf /home/runner/.rustup/
+          # Remove Kubernetes
+          sudo rm -rf /usr/local/bin/minikube
 
-          # Remove Docker images
-          sudo docker image prune --all --force || true
+          # Remove Rust
+          sudo rm -rf /home/runner/.rustup /etc/skel/.rustup
+
+          # Remove NodeJS
+          sudo rm -rf /home/runner/actions-runner/cached/*/externals/node* /home/runner/actions-runner/cached/externals/node* /usr/local/n /usr/local/bin/node
 
       - name: Show disk usage after cleaning
         run: df -h
