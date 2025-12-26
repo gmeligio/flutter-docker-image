@@ -38,15 +38,6 @@ jobs:
             const script = require('./script/setEnvironmentVariables.js')
             return await script({ core })
 
-      - name: Load image metadata
-        uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5.10.0
-        id: metadata
-        with:
-          images: |
-            ${{ env.IMAGE_REPOSITORY_PATH }}
-          tags: |
-            type=raw,value=${{ env.FLUTTER_VERSION }}
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
 
@@ -58,13 +49,30 @@ jobs:
 
       - name: Clean runner disk
         run: |
+          # Check disk usage before cleaning
+          df -h
+
+          # Remove PHP
+          sudo apt-get remove -y 'php.*' --fix-missing || echo "::warning::The command [sudo apt-get remove -y 'php.*' --fix-missing] failed to complete successfully. Proceeding..."
+
+          # Remove databases
+          sudo apt-get remove -y '^mongodb-.*' --fix-missing || echo "::warning::The command [sudo apt-get remove -y '^mongodb-.*' --fix-missing] failed to complete successfully. Proceeding..."
+          sudo apt-get remove -y '^mysql-.*' --fix-missing || echo "::warning::The command [sudo apt-get remove -y '^mysql-.*' --fix-missing] failed to complete successfully. Proceeding..."
+
+          # Remove apt packages
+          sudo apt-get autoremove -y || echo "::warning::The command [sudo apt-get autoremove -y] failed to complete successfully. Proceeding..."
+          sudo apt-get clean || echo "::warning::The command [sudo apt-get clean] failed to complete successfully. Proceeding..."
+
           # Remove Java (JDKs)
           sudo rm -rf /usr/lib/jvm
 
           # Remove .NET SDKs
           sudo rm -rf /usr/share/dotnet
+          sudo apt-get remove -y '^aspnetcore-.*' || echo "::warning::The command [sudo apt-get remove -y '^aspnetcore-.*'] failed to complete successfully. Proceeding..."
+          sudo apt-get remove -y '^dotnet-.*' --fix-missing || echo "::warning::The command [sudo apt-get remove -y '^dotnet-.*' --fix-missing] failed to complete successfully. Proceeding..."
 
           # Remove Swift toolchain
+          sudo apt-get remove -y '^llvm-.*' --fix-missing || echo "::warning::The command [sudo apt-get remove -y '^llvm-.*' --fix-missing] failed to complete successfully. Proceeding..."
           sudo rm -rf /usr/share/swift
 
           # Remove Haskell (GHC)
@@ -76,24 +84,38 @@ jobs:
           # Remove Android SDKs
           sudo rm -rf /usr/local/lib/android
 
-          # Remove Chromium (optional if not using for browser tests)
-          sudo rm -rf /usr/local/share/chromium
+          # Remove browsers
+          sudo apt-get remove -y google-chrome-stable firefox --fix-missing || echo "::warning::The command [sudo apt-get remove -y azure-cli google-chrome-stable firefox powershell mono-devel libgl1-mesa-dri --fix-missing] failed to complete successfully. Proceeding..."
+          sudo rm -rf /usr/local/share/chromium /opt/microsoft /opt/google
 
-          # Remove Microsoft/Edge and Google Chrome builds
-          sudo rm -rf /opt/microsoft /opt/google
-
-          # Remove Azure CLI
+          # Remove cloud tools
           sudo rm -rf /opt/az
+          sudo apt-get remove -y azure-cli mono-devel libgl1-mesa-dri --fix-missing || echo "::warning::The command [sudo apt-get remove -y azure-cli google-chrome-stable firefox powershell mono-devel libgl1-mesa-dri --fix-missing] failed to complete successfully. Proceeding..."
+          sudo apt-get remove -y google-cloud-sdk --fix-missing || echo "::debug::The command [sudo apt-get remove -y google-cloud-sdk --fix-missing] failed to complete successfully. Proceeding..."
+          sudo apt-get remove -y google-cloud-cli --fix-missing || echo "::debug::The command [sudo apt-get remove -y google-cloud-cli --fix-missing] failed to complete successfully. Proceeding..."
 
           # Remove PowerShell
+          sudo apt-get remove -y powershell --fix-missing || echo "::warning::The command [sudo apt-get remove -y azure-cli google-chrome-stable firefox powershell mono-devel libgl1-mesa-dri --fix-missing] failed to complete successfully. Proceeding..."
           sudo rm -rf /usr/local/share/powershell
 
           # Remove CodeQL and other toolcaches
           sudo rm -rf /opt/hostedtoolcache
 
+          # Remove Docker images and containers
           docker system prune -af || true
           docker builder prune -af || true
+
+          # Check disk usage before cleaning
           df -h
+
+      - name: Load image metadata
+        uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5.10.0
+        id: metadata
+        with:
+          images: |
+            ${{ env.IMAGE_REPOSITORY_PATH }}
+          tags: |
+            type=raw,value=${{ env.FLUTTER_VERSION }}
 
       - name: Build image and push to local Docker daemon
         uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
