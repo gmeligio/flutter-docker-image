@@ -51,8 +51,6 @@ runs:
         sudo rm -rf /usr/local/bin/minikube
         # Remove Rust
         sudo rm -rf /home/runner/.rustup /etc/skel/.rustup
-        # Remove NodeJS
-        sudo rm -rf /home/runner/actions-runner/cached/*/externals/node* /home/runner/actions-runner/cached/externals/node* /usr/local/n /usr/local/bin/node
       shell: bash
     - name: Show disk usage after cleaning
       run: df -h
