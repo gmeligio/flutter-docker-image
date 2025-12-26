@@ -101,6 +101,12 @@ jobs:
       - name: Show disk usage after cleaning
         run: df -h
 
+      - name: Top-level directories after cleaning
+        run: du -h -d1 / | sort -hr | head -n 20
+
+      - name: Detailed file sizes after cleaning
+        run: find / -type f -exec du -h {} + 2>/dev/null | sort -hr | head -n 1000
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
 
