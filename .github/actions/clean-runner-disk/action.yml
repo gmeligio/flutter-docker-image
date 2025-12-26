@@ -1,0 +1,68 @@
+name: 'Clean Runner Disk'
+description: 'Cleans the GitHub Actions runner disk by removing unused packages and toolchains to free up space.'
+runs:
+  using: composite
+  steps:
+    - name: Show disk usage before cleaning
+      run: df -h
+      shell: bash
+    - name: List installed packages before cleaning
+      run: dpkg --get-selections | grep -v deinstall
+      shell: bash
+    - name: Clean runner disk
+      run: |
+        # Remove PHP
+        sudo apt-get remove -y 'php.*' --fix-missing || echo "::warning::The command [sudo apt-get remove -y 'php.*' --fix-missing] failed to complete successfully. Proceeding..."
+        # Remove databases
+        sudo apt-get remove -y '^mongodb-.*' --fix-missing || echo "::warning::The command [sudo apt-get remove -y '^mongodb-.*' --fix-missing] failed to complete successfully. Proceeding..."
+        sudo apt-get remove -y '^mysql-.*' --fix-missing || echo "::warning::The command [sudo apt-get remove -y '^mysql-.*' --fix-missing] failed to complete successfully. Proceeding..."
+        # Remove apt packages
+        sudo apt-get autoremove -y || echo "::warning::The command [sudo apt-get autoremove -y] failed to complete successfully. Proceeding..."
+        sudo apt-get clean || echo "::warning::The command [sudo apt-get clean] failed to complete successfully. Proceeding..."
+        # Remove Java (JDKs)
+        sudo rm -rf /usr/lib/jvm
+        # Remove .NET SDKs
+        sudo rm -rf /usr/share/dotnet
+        sudo apt-get remove -y '^aspnetcore-.*' || echo "::warning::The command [sudo apt-get remove -y '^aspnetcore-.*'] failed to complete successfully. Proceeding..."
+        sudo apt-get remove -y '^dotnet-.*' --fix-missing || echo "::warning::The command [sudo apt-get remove -y '^dotnet-.*' --fix-missing] failed to complete successfully. Proceeding..."
+        # Remove Swift toolchain
+        sudo apt-get remove -y '^llvm-.*' --fix-missing || echo "::warning::The command [sudo apt-get remove -y '^llvm-.*' --fix-missing] failed to complete successfully. Proceeding..."
+        sudo rm -rf /usr/share/swift
+        # Remove Haskell (GHC)
+        sudo rm -rf /usr/local/.ghcup
+        # Remove Julia
+        sudo rm -rf /usr/local/julia*
+        # Remove Android SDKs
+        sudo rm -rf /usr/local/lib/android
+        # Remove browsers
+        sudo apt-get remove -y google-chrome-stable firefox --fix-missing || echo "::warning::The command [sudo apt-get remove -y azure-cli google-chrome-stable firefox powershell mono-devel libgl1-mesa-dri --fix-missing] failed to complete successfully. Proceeding..."
+        sudo rm -rf /usr/local/share/chromium /opt/microsoft /opt/google
+        # Remove cloud tools
+        sudo rm -rf /opt/az
+        sudo apt-get remove -y azure-cli mono-devel libgl1-mesa-dri --fix-missing || echo "::warning::The command [sudo apt-get remove -y azure-cli google-chrome-stable firefox powershell mono-devel libgl1-mesa-dri --fix-missing] failed to complete successfully. Proceeding..."
+        sudo apt-get remove -y google-cloud-sdk --fix-missing || echo "::debug::The command [sudo apt-get remove -y google-cloud-sdk --fix-missing] failed to complete successfully. Proceeding..."
+        sudo apt-get remove -y google-cloud-cli --fix-missing || echo "::debug::The command [sudo apt-get remove -y google-cloud-cli --fix-missing] failed to complete successfully. Proceeding..."
+        # Remove PowerShell
+        sudo apt-get remove -y powershell --fix-missing || echo "::warning::The command [sudo apt-get remove -y azure-cli google-chrome-stable firefox powershell mono-devel libgl1-mesa-dri --fix-missing] failed to complete successfully. Proceeding..."
+        sudo rm -rf /usr/local/share/powershell
+        # Remove CodeQL and other toolcaches
+        sudo rm -rf /opt/hostedtoolcache
+        # Remove Kubernetes
+        sudo rm -rf /usr/local/bin/minikube
+        # Remove Rust
+        sudo rm -rf /home/runner/.rustup /etc/skel/.rustup
+        # Remove NodeJS
+        sudo rm -rf /home/runner/actions-runner/cached/*/externals/node* /home/runner/actions-runner/cached/externals/node* /usr/local/n /usr/local/bin/node
+      shell: bash
+    - name: Show disk usage after cleaning
+      run: df -h
+      shell: bash
+    - name: Top-level directories after cleaning
+      run: du -h -d1 / | sort -hr | head -n 20
+      shell: bash
+    - name: Detailed file sizes after cleaning
+      run: find / -type f -exec du -h {} + 2>/dev/null | sort -hr | head -n 1000
+      shell: bash
+    - name: List installed packages after cleaning
+      run: dpkg --get-selections | grep -v deinstall
+      shell: bash
