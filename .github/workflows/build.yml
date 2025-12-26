@@ -92,10 +92,6 @@ jobs:
           # Remove CodeQL and other toolcaches
           sudo rm -rf /opt/hostedtoolcache
 
-          # Remove Docker images and containers
-          docker system prune -af || true
-          docker builder prune -af || true
-
           # Check disk usage before cleaning
           df -h
 
