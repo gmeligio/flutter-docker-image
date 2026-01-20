@@ -1,3 +1,15 @@
+## [3.38.7] - 2026-01-15
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Upgrade flutter to 3.38.7 (#416)
+## [3.38.6] - 2026-01-09
+
+### ⚙️ Miscellaneous Tasks
+
+- Clean runner disk (#412)
+- Clean runner disk on ci.yml (#413)
+- *(release)* Upgrade flutter to 3.38.6 (#415)
 ## [3.38.5] - 2025-12-22
 
 ### ⚙️ Miscellaneous Tasks
