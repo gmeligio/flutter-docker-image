@@ -1,3 +1,12 @@
+## [3.38.8] - 2026-01-28
+
+### 💼 Other
+
+- Run npm update (#418)
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Upgrade flutter to 3.38.8 (#419)
 ## [3.38.7] - 2026-01-15
 
 ### ⚙️ Miscellaneous Tasks
