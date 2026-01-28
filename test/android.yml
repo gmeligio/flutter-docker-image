@@ -84,12 +84,12 @@ commandTests:
     excludedOutput:
       - Sending anonymous analytics information
 fileContentTests:
-  - name: Android SDK Command-line Tools is version 19.0
+  - name: Android SDK Command-line Tools is version 20.0
     path: /home/flutter/sdks/android-sdk/cmdline-tools/latest/source.properties
     expectedContents:
       - |-
-        Pkg.Revision=19.0
-        Pkg.Path=cmdline-tools;19.0
+        Pkg.Revision=20.0
+        Pkg.Path=cmdline-tools;20.0
         Pkg.Desc=Android SDK Command-line Tools
   - name: Dart and Flutter analytics are disabled
     path: /home/flutter/.dart-tool/dart-flutter-telemetry.config
