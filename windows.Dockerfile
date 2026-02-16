@@ -1,6 +1,6 @@
 # escape=`
 
-FROM mcr.microsoft.com/windows/servercore:ltsc2025@sha256:eb8ed8a3de3aad8458468075c3e0b7755174867e96705c4f2553e98ec5d55d95 as flutter
+FROM mcr.microsoft.com/windows/servercore:ltsc2025@sha256:79aa6a176b2e4f1786eb29c4facd33077769eddde4c4a650aea552f6320893c7 as flutter
 
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 
