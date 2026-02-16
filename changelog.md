@@ -1,3 +1,8 @@
+## [3.41.1] - 2026-02-16
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Upgrade flutter to 3.41.1 (#426)
 ## [3.41.0] - 2026-02-12
 
 ### ⚙️ Miscellaneous Tasks
