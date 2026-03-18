@@ -152,7 +152,7 @@ ENV PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-to
 # renovate: suite=bookworm depName=openjdk-17-jdk-headless
 ARG OPENJDK_17_JDK_HEADLESS_VERSION="17.0.18+8-1~deb12u1"
 # renovate: suite=trixie depName=sudo
-ARG SUDO_VERSION="1.9.16p2-3"
+ARG SUDO_VERSION="1.9.16p2-3+deb13u1"
 
 USER root
 # Add debian 12 bookworm repository alongside debian 13 trixie to install Java 17
