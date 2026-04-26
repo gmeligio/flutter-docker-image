@@ -1,4 +1,4 @@
-FROM debian:13.2-slim@sha256:4bcb9db66237237d03b55b969271728dd3d955eaaa254b9db8a3db94550b1885 AS flutter
+FROM debian:13.4-slim@sha256:cedb1ef40439206b673ee8b33a46a03a0c9fa90bf3732f54704f99cb061d2c5a AS flutter
 
 SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
