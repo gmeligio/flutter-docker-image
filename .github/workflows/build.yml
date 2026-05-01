@@ -119,24 +119,6 @@ jobs:
           cue vet config/version.cue -d '#FlutterVersion' config/flutter_version.json
           cue vet config/version.cue -d '#Version' config/version.json
 
-  gx_lint:
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
-
-      - name: Install gx
-        uses: jaxxstorm/action-install-gh-release@6096f2a2bbfee498ced520b6922ac2c06e990ed2 # v2.1.0
-        with:
-          repo: gmeligio/gx
-          tag: v0.7.1
-          digest: 6632843410c877c43aa8936eb757d8b0ddcb5940402203914543ef8a9cf8ecd9
-
-      - name: Lint pinned GitHub Actions
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gx lint
-
   validate_generated_config:
     runs-on: ubuntu-24.04
     steps:

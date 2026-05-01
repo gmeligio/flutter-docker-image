@@ -19,7 +19,7 @@ Adding a new action looks like adding a single line under `[actions]` in `.githu
 
 …then `gx tidy` resolves the SHA, writes the lock entry, and rewrites the `uses:` line.
 
-The `gx_lint` job in `.github/workflows/build.yml` fails any pull request that introduces an unpinned `uses:` reference or a lock that disagrees with the workflows. If you forget step 3, the `gx-tidy` workflow will push a fixup commit on PRs from this repository (forks must run `gx tidy` locally).
+The `lint` job in `.github/workflows/gx.yml` fails any pull request that introduces an unpinned `uses:` reference or a lock that disagrees with the workflows. The sibling `tidy` job runs `gx tidy` and pushes a fixup commit on PRs from this repository if the lock is stale (forks must run `gx tidy` locally).
 
 ## Adding new Github Actions
 
