@@ -1,0 +1,57 @@
+on:
+  pull_request:
+    paths:
+      - .github/workflows/**
+      - .github/gx.toml
+      - .github/gx.lock
+
+# Read-only by default; the auto-fix step uses a GitHub App token instead.
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  gx_tidy:
+    # Skip PRs from forks: the App token below is scoped to the upstream repo
+    # and the fork branch is on the contributor's repo, so the push would fail.
+    # Those PRs still get gx_lint feedback and must run `gx tidy` locally.
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Generate authentication token with GitHub App to trigger Actions
+        uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1
+        id: app-token
+        with:
+          app-id: ${{ secrets.VERIFIED_COMMIT_ID }}
+          private-key: ${{ secrets.VERIFIED_COMMIT_KEY }}
+          repositories: ${{ github.event.repository.name }}
+          owner: ${{ github.repository_owner }}
+
+      - name: Checkout PR branch
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          token: ${{ steps.app-token.outputs.token }}
+
+      - name: Install gx
+        uses: jaxxstorm/action-install-gh-release@6096f2a2bbfee498ced520b6922ac2c06e990ed2 # v2.1.0
+        with:
+          repo: gmeligio/gx
+          tag: v0.7.1
+          digest: 6632843410c877c43aa8936eb757d8b0ddcb5940402203914543ef8a9cf8ecd9
+
+      - name: Run gx tidy
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: gx tidy
+
+      - name: Commit and push lock updates if any
+        uses: grafana/github-api-commit-action@b1d81091e8480dd11fcea8bc1f0ab977a0376ca5 # v1.0.0
+        with:
+          commit-message: "chore(deps): sync .github/gx.lock via gx tidy"
+          stage-all-files: true
+          token: ${{ steps.app-token.outputs.token }}
