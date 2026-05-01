@@ -49,7 +49,17 @@ jobs:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
         run: gx tidy
 
+      - name: Detect lock drift
+        id: drift
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Commit and push lock updates if any
+        if: steps.drift.outputs.changed == 'true'
         uses: grafana/github-api-commit-action@b1d81091e8480dd11fcea8bc1f0ab977a0376ca5 # v1.0.0
         with:
           commit-message: "chore(deps): sync .github/gx.lock via gx tidy"
