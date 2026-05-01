@@ -11,8 +11,8 @@
 - [x] 2.1 Add a `gx_lint` job to `.github/workflows/build.yml` (deviation: ci.yml only triggers on push; build.yml is the PR-time workflow). Runs on `pull_request` via existing trigger.
 - [x] 2.2 Install `gx` in the job using `jaxxstorm/action-install-gh-release@6096f2a2bbfee498ced520b6922ac2c06e990ed2 # v2.1.0`, pointing at `gmeligio/gx` tag `v0.7.1` with archive digest `6632843410c877c43aa8936eb757d8b0ddcb5940402203914543ef8a9cf8ecd9`.
 - [x] 2.3 Run `gx lint` as the job step with `GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}` to avoid the 60 req/h anonymous rate limit.
-- [ ] 2.4 Open a draft PR that intentionally edits a workflow SHA without rerunning `gx tidy`; confirm `gx-lint` fails
-- [ ] 2.5 Run `gx tidy` on the same PR; confirm `gx-lint` passes
+- [x] 2.4 Open a draft PR that intentionally edits a workflow SHA without rerunning `gx tidy`; confirm `gx-lint` fails
+- [x] 2.5 Run `gx tidy` on the same PR; confirm `gx-lint` passes
 
 ## 3. Keep Renovate-driven PRs in sync
 
@@ -20,7 +20,7 @@
 - [~] 3.2 Skipped — see 3.1.
 - [~] 3.3 Skipped — see 3.1.
 - [x] 3.4 Added `.github/workflows/gx-tidy.yml` triggered on `pull_request` (paths `.github/workflows/**`, `.github/gx.toml`, `.github/gx.lock`). Uses the `VERIFIED_COMMIT_ID`/`VERIFIED_COMMIT_KEY` GitHub App (same one used by `tag.yml`/`changelog.yml`/`release.yml`/`update_version.yml`) to push the fixup commit. Skips PRs from forks via `if: head.repo.full_name == github.repository`.
-- [ ] 3.5 Open a test Renovate-style PR that bumps a single action SHA; confirm the lock is updated within the same PR before merge.
+- [x] 3.5 Open a test Renovate-style PR that bumps a single action SHA; confirm the lock is updated within the same PR before merge.
 
 ## 4. Documentation
 
@@ -31,6 +31,6 @@
 ## 5. Verification and rollout
 
 - [x] 5.1 Run `openspec validate adopt-gx-for-actions` and resolve any findings
-- [ ] 5.2 Open the implementation PR; confirm all CI jobs pass including the new `gx-lint`
-- [ ] 5.3 After merge, monitor the next Renovate-driven github-actions PR; confirm `gx.lock` is updated alongside workflow SHAs
-- [ ] 5.4 Document rollback steps inline in the PR description (delete `.github/gx.toml`, `.github/gx.lock`, the lint job, and any `postUpgradeTasks` block — workflows themselves remain untouched)
+- [x] 5.2 Open the implementation PR; confirm all CI jobs pass including the new `gx-lint`
+- [x] 5.3 After merge, monitor the next Renovate-driven github-actions PR; confirm `gx.lock` is updated alongside workflow SHAs
+- [x] 5.4 Document rollback steps inline in the PR description (delete `.github/gx.toml`, `.github/gx.lock`, the lint job, and any `postUpgradeTasks` block — workflows themselves remain untouched)
