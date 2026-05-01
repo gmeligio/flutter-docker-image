@@ -1,3 +1,17 @@
+## [3.41.8] - 2026-05-01
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Upgrade flutter to 3.41.8 (#436)
+## [3.41.7] - 2026-05-01
+
+### 🐛 Bug Fixes
+
+- *(deps)* Bump yaml from 2.8.2 to 2.8.3 (#432)
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Upgrade flutter to 3.41.7 (#434)
 ## [3.41.6] - 2026-03-27
 
 ### ⚙️ Miscellaneous Tasks
