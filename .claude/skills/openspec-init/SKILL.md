@@ -46,7 +46,7 @@ Suggest a framing as a starting point:
 
 | Framing | When to suggest | Default persona | Default scope-noun |
 |---|---|---|---|
-| `product` | CLI tools, libraries, mobile/web apps with end-users | `user` (or named role like `patient`, `shopper`) | `user capabilities` or `<role> workflows` |
+| `product` | CLI tools, libraries, mobile/web apps with end-users | `user` (or named role like `shopper`, `reader`) | `user capabilities` or `<role> workflows` |
 | `environment` | Dotfiles, system setup, agent skills, developer tooling | `desktop user` or `developer or their agent` | `experience contexts` |
 
 For `product` with a named role, also ask: **"What is the role name?"** That name replaces `user` throughout the config.
