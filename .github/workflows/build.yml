@@ -219,6 +219,8 @@ jobs:
 
       - name: Update default Android platform versions in Flutter
         working-directory: test_app/android
+        env:
+          BUILD_TOOLS_VERSION: ${{ fromJson(steps.version-json.outputs.content).android.buildTools.version }}
         run: |
           cat ../../script/updateAndroidVersions.gradle.kts >> app/build.gradle.kts
           ./gradlew --warning-mode all updateAndroidVersions
