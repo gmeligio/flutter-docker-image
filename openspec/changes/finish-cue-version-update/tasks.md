@@ -25,14 +25,14 @@
 
 ## 4. Fix the commit-message step
 
-- [ ] 4.1 In `.github/workflows/update_version.yml` job `update_docs_and_create_pr`, change `Create commit message variable` to write `commit_message=...` to `$GITHUB_OUTPUT` instead of `$GITHUB_ENV`.
-- [ ] 4.2 Echo the resolved commit message to the run log so an empty value is visible.
-- [ ] 4.3 Confirm `peter-evans/create-pull-request` references resolve to the non-empty step output.
+- [x] 4.1 In `.github/workflows/update_version.yml` job `update_docs_and_create_pr`, change `Create commit message variable` to write `commit_message=...` to `$GITHUB_OUTPUT` instead of `$GITHUB_ENV`.
+- [x] 4.2 Echo the resolved commit message to the run log so an empty value is visible.
+- [x] 4.3 Confirm `peter-evans/create-pull-request` references resolve to the non-empty step output.
 
 ## 5. Cosmetic and stale cleanup
 
-- [ ] 5.1 Remove the stray empty `#` comment line in the `permissions:` block of job `update_flutter_version` (above `contents: write`).
-- [ ] 5.2 Verify no unreferenced env vars or step ids remain (e.g. orphan `COMMIT_MESSAGE` env, unused job outputs).
+- [x] 5.1 Remove the stray empty `#` comment line in the `permissions:` block of job `update_flutter_version` (above `contents: write`).
+- [x] 5.2 Verify no unreferenced env vars or step ids remain (e.g. orphan `COMMIT_MESSAGE` env, unused job outputs).
 
 ## 6. End-to-end verification before merge
 

@@ -14,7 +14,6 @@ jobs:
   update_flutter_version:
     permissions:
       # Allow to write contents to push commits
-      #
       contents: write
       # Allow to write pull requests to push commits and write comments
       pull-requests: write
@@ -268,7 +267,9 @@ jobs:
       - name: Create commit message variable
         id: create_commit_message
         run: |
-          echo "commit_message=chore(release): upgrade flutter to ${{ env.FLUTTER_VERSION }}" >> $GITHUB_ENV
+          commit_message="chore(release): upgrade flutter to ${{ env.FLUTTER_VERSION }}"
+          echo "commit_message=$commit_message" >> "$GITHUB_OUTPUT"
+          echo "Commit message: $commit_message"
 
       - name: Generate authentication token with GitHub App to trigger Actions
         uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1
