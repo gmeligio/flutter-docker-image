@@ -8,12 +8,12 @@
 
 ## 2. Replace JS fetcher with CUE-driven step
 
-- [ ] 2.1 In `.github/workflows/update_version.yml`, delete the `Update latest Flutter version` step (the `actions/github-script` call to `script/updateFlutterVersion.js`).
-- [ ] 2.2 Rewrite the `Fetch and update latest Flutter version` step (id: `update_flutter_version`) to: (a) `curl` `releases_linux.json`; (b) `cue import` it; (c) read the on-disk old version via `cue export config/flutter_version.json --out json | jq -r .flutter.version` (or `cue eval` equivalent); (d) compute the latest stable version via `cue eval --concrete --expression '[for r in releases if r.channel == "stable" && (r.version =~ "^[0-9]+\\.[0-9]+\\.[0-9]+$") {r}][0]'` (verify shape during implementation); (e) compare; (f) only if different, run `cue eval --force --outfile config/flutter_version.json --concrete --expression ...` and `echo "result=true" >> $GITHUB_OUTPUT`; otherwise `echo "result=false" >> $GITHUB_OUTPUT`.
-- [ ] 2.3 Echo old version, new version, and verdict to the run log before writing `$GITHUB_OUTPUT`.
-- [ ] 2.4 Keep the existing `Validate version.json with CUE` and `Upload artifact with the new Flutter version` steps; verify their `if: steps.update_flutter_version.outputs.result == 'true'` gates still resolve correctly after step renames.
-- [ ] 2.5 Delete `script/updateFlutterVersion.js`.
-- [ ] 2.6 Search the repo for any remaining reference to `updateFlutterVersion.js` or `updateFlutterVersion` and remove it (none expected outside the workflow).
+- [x] 2.1 In `.github/workflows/update_version.yml`, delete the `Update latest Flutter version` step (the `actions/github-script` call to `script/updateFlutterVersion.js`).
+- [x] 2.2 Rewrite the `Fetch and update latest Flutter version` step (id: `update_flutter_version`) to: (a) `curl` `releases_linux.json`; (b) `cue import` it; (c) read the on-disk old version via `cue export config/flutter_version.json --out json | jq -r .flutter.version` (or `cue eval` equivalent); (d) compute the latest stable version via `cue eval --concrete --expression '[for r in releases if r.channel == "stable" && (r.version =~ "^[0-9]+\\.[0-9]+\\.[0-9]+$") {r}][0]'` (verify shape during implementation); (e) compare; (f) only if different, run `cue eval --force --outfile config/flutter_version.json --concrete --expression ...` and `echo "result=true" >> $GITHUB_OUTPUT`; otherwise `echo "result=false" >> $GITHUB_OUTPUT`.
+- [x] 2.3 Echo old version, new version, and verdict to the run log before writing `$GITHUB_OUTPUT`.
+- [x] 2.4 Keep the existing `Validate version.json with CUE` and `Upload artifact with the new Flutter version` steps; verify their `if: steps.update_flutter_version.outputs.result == 'true'` gates still resolve correctly after step renames.
+- [x] 2.5 Delete `script/updateFlutterVersion.js`.
+- [x] 2.6 Search the repo for any remaining reference to `updateFlutterVersion.js` or `updateFlutterVersion` and remove it (none expected outside the workflow).
 
 ## 3. Wire build-tools sourcing from packages.txt
 
