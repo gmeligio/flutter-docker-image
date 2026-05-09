@@ -13,12 +13,16 @@ tasks.register<DefaultTask>("updateAndroidVersions") {
             flutter.compileSdkVersion
         ).distinct()
 
+        val buildToolsVersion = System.getenv("BUILD_TOOLS_VERSION")
+            ?: error("BUILD_TOOLS_VERSION env var is required")
+
         // Create new Android version data
         val newJsonMap = mapOf(
             "platforms" to platformVersions.map {
                 mapOf("version" to it)
             },
             "gradle" to mapOf("version" to gradle.gradleVersion),
+            "buildTools" to mapOf("version" to buildToolsVersion),
             "ndk" to mapOf("version" to flutter.ndkVersion)
         )
 
