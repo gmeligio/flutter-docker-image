@@ -17,7 +17,7 @@ import "list"
 	flutter: {
 		channel!: "stable"
 		commit!:  strings.MaxRunes(40)
-		#PatchVersion
+		#SemverPatch
 	}
 }
 

@@ -36,7 +36,7 @@ output: {
 	
 	commandTests: list.Concat([
 		list.Take(input.commandTests, 1),
-		if len(input.fileContentTests) >= 3 {
+		if len(input.commandTests) >= 3 {
 			[
 				{
 					name: input.commandTests[1].name

@@ -1,10 +1,10 @@
 ## 1. Schema and validation fixes (independent, ship-able alone)
 
-- [ ] 1.1 In `config/schema.cue`, replace the dangling `#PatchVersion` reference inside `#FlutterVersion.flutter` with `#SemverPatch`.
-- [ ] 1.2 Confirm `config/schema.cue` already restricts `flutter.channel` to literal `"stable"` (no further change needed; verify only).
-- [ ] 1.3 Run `cue vet config/schema.cue -d '#FlutterVersion' config/flutter_version.json` locally — must exit 0.
-- [ ] 1.4 Run `cue vet config/schema.cue -d '#Version' config/version.json` locally — must exit 0.
-- [ ] 1.5 In `config/android.cue`, change the `commandTests` length guard from `if len(input.fileContentTests) >= 3` to `if len(input.commandTests) >= 3`.
+- [x] 1.1 In `config/schema.cue`, replace the dangling `#PatchVersion` reference inside `#FlutterVersion.flutter` with `#SemverPatch`.
+- [x] 1.2 Confirm `config/schema.cue` already restricts `flutter.channel` to literal `"stable"` (no further change needed; verify only).
+- [x] 1.3 Run `cue vet config/schema.cue -d '#FlutterVersion' config/flutter_version.json` locally — must exit 0.
+- [x] 1.4 Run `cue vet config/schema.cue -d '#Version' config/version.json` locally — must exit 0.
+- [x] 1.5 In `config/android.cue`, change the `commandTests` length guard from `if len(input.fileContentTests) >= 3` to `if len(input.commandTests) >= 3`.
 
 ## 2. Replace JS fetcher with CUE-driven step
 
