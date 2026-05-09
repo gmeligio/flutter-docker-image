@@ -9,22 +9,32 @@
   ],
   "packageRules": [
     {
-      "description": "Schedule Github Actions updates on the first day of the month",
+      "description": "Disable Renovate's built-in github-actions manager — gx owns workflow and composite-action files",
+      "matchManagers": ["github-actions"],
+      "enabled": false
+    },
+    {
+      "description": "Schedule gx.toml-driven action major upgrades on the first day of the month",
+      "matchFileNames": [".github/gx.toml"],
       "groupName": "github-actions",
-      "matchDatasources": [
-        "github-tags"
-      ],
-      "schedule": [
-        "* 0-3 1 * *"
-      ]
+      "schedule": ["* 0-3 1 * *"]
     }
   ],
   "customManagers": [
     {
       "customType": "regex",
-      "fileMatch": [
-        "^Dockerfile$"
+      "description": "Read GitHub Action specifiers from gx.toml",
+      "managerFilePatterns": ["/^\\.github/gx\\.toml$/"],
+      "matchStrings": [
+        "\"(?<depName>(?<packageName>[^/\"]+/[^/\"]+)(?:/[^\"]+)?)\"\\s*=\\s*\"(?<currentValue>[^\"]+)\""
       ],
+      "datasourceTemplate": "github-tags",
+      "versioningTemplate": "npm",
+      "extractVersionTemplate": "^v?(?<version>.+)$"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/^Dockerfile$/"],
       "matchStrings": [
         "#\\s*renovate:\\s*suite=(?<suite>.*?) depName=(?<depName>.*?)\\sARG .*?_VERSION=\"(?<currentValue>.*)\"\\s"
       ],
