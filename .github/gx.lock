@@ -1,0 +1,161 @@
+[resolutions."actions/checkout"."^6"]
+version = "v6.0.1"
+
+[resolutions."actions/create-github-app-token"."^2"]
+version = "v2.2.1"
+
+[resolutions."actions/download-artifact"."^6"]
+version = "v6.0.0"
+
+[resolutions."actions/github-script"."^8"]
+version = "v8.0.0"
+
+[resolutions."actions/setup-node"."^6"]
+version = "v6.1.0"
+
+[resolutions."actions/upload-artifact"."^5"]
+version = "v5.0.0"
+
+[resolutions."docker/build-push-action"."^6"]
+version = "v6.18.0"
+
+[resolutions."docker/login-action"."^3"]
+version = "v3.6.0"
+
+[resolutions."docker/metadata-action"."^5"]
+version = "v5.10.0"
+
+[resolutions."docker/scout-action"."^1"]
+version = "v1.18.2"
+
+[resolutions."docker/setup-buildx-action"."^3"]
+version = "v3.11.1"
+
+[resolutions."github/codeql-action/upload-sarif"."^4"]
+version = "v4.31.7"
+
+[resolutions."grafana/github-api-commit-action"."^1"]
+version = "v1.0.0"
+
+[resolutions."jaxxstorm/action-install-gh-release"."^2"]
+version = "v2.1.0"
+
+[resolutions."ossf/scorecard-action"."^2"]
+version = "v2.4.3"
+
+[resolutions."peter-evans/create-pull-request"."^7"]
+version = "v7.0.11"
+
+[resolutions."peter-evans/dockerhub-description"."^5"]
+version = "v5.0.0"
+
+[resolutions."plexsystems/container-structure-test-action"."~0.3.0"]
+version = "v0.3.0"
+
+[actions."actions/checkout"."v6.0.1"]
+sha = "8e8c483db84b4bee98b60c0593521ed34d9990e8"
+repository = "actions/checkout"
+ref_type = "tag"
+date = "2025-12-02T02:08:49Z"
+
+[actions."actions/create-github-app-token"."v2.2.1"]
+sha = "29824e69f54612133e76f7eaac726eef6c875baf"
+repository = "actions/create-github-app-token"
+ref_type = "tag"
+date = "2025-12-05T22:53:03Z"
+
+[actions."actions/download-artifact"."v6.0.0"]
+sha = "018cc2cf5baa6db3ef3c5f8a56943fffe632ef53"
+repository = "actions/download-artifact"
+ref_type = "tag"
+date = "2025-10-24T18:15:38Z"
+
+[actions."actions/github-script"."v8.0.0"]
+sha = "ed597411d8f924073f98dfc5c65a23a2325f34cd"
+repository = "actions/github-script"
+ref_type = "tag"
+date = "2025-09-04T14:48:16Z"
+
+[actions."actions/setup-node"."v6.1.0"]
+sha = "395ad3262231945c25e8478fd5baf05154b1d79f"
+repository = "actions/setup-node"
+ref_type = "tag"
+date = "2025-12-03T03:06:19Z"
+
+[actions."actions/upload-artifact"."v5.0.0"]
+sha = "330a01c490aca151604b8cf639adc76d48f6c5d4"
+repository = "actions/upload-artifact"
+ref_type = "tag"
+date = "2025-10-24T18:15:34Z"
+
+[actions."docker/build-push-action"."v6.18.0"]
+sha = "263435318d21b8e681c14492fe198d362a7d2c83"
+repository = "docker/build-push-action"
+ref_type = "tag"
+date = "2025-05-27T16:32:33Z"
+
+[actions."docker/login-action"."v3.6.0"]
+sha = "5e57cd118135c172c3672efd75eb46360885c0ef"
+repository = "docker/login-action"
+ref_type = "tag"
+date = "2025-09-29T10:29:19Z"
+
+[actions."docker/metadata-action"."v5.10.0"]
+sha = "c299e40c65443455700f0fdfc63efafe5b349051"
+repository = "docker/metadata-action"
+ref_type = "tag"
+date = "2025-11-27T12:36:24Z"
+
+[actions."docker/scout-action"."v1.18.2"]
+sha = "f8c776824083494ab0d56b8105ba2ca85c86e4de"
+repository = "docker/scout-action"
+ref_type = "tag"
+date = "2025-07-21T12:52:07Z"
+
+[actions."docker/setup-buildx-action"."v3.11.1"]
+sha = "e468171a9de216ec08956ac3ada2f0791b6bd435"
+repository = "docker/setup-buildx-action"
+ref_type = "tag"
+date = "2025-06-18T08:37:30Z"
+
+[actions."github/codeql-action/upload-sarif"."v4.31.7"]
+sha = "cf1bb45a277cb3c205638b2cd5c984db1c46a412"
+repository = "github/codeql-action"
+ref_type = "tag"
+date = "2025-12-05T17:17:21Z"
+
+[actions."grafana/github-api-commit-action"."v1.0.0"]
+sha = "b1d81091e8480dd11fcea8bc1f0ab977a0376ca5"
+repository = "grafana/github-api-commit-action"
+ref_type = "tag"
+date = "2025-05-07T18:28:02Z"
+
+[actions."jaxxstorm/action-install-gh-release"."v2.1.0"]
+sha = "6096f2a2bbfee498ced520b6922ac2c06e990ed2"
+repository = "jaxxstorm/action-install-gh-release"
+ref_type = "tag"
+date = "2025-04-27T17:13:59Z"
+
+[actions."ossf/scorecard-action"."v2.4.3"]
+sha = "4eaacf0543bb3f2c246792bd56e8cdeffafb205a"
+repository = "ossf/scorecard-action"
+ref_type = "tag"
+date = "2025-09-30T20:36:00Z"
+
+[actions."peter-evans/create-pull-request"."v7.0.11"]
+sha = "22a9089034f40e5a961c8808d113e2c98fb63676"
+repository = "peter-evans/create-pull-request"
+ref_type = "tag"
+date = "2025-12-05T17:14:47Z"
+
+[actions."peter-evans/dockerhub-description"."v5.0.0"]
+sha = "1b9a80c056b620d92cedb9d9b5a223409c68ddfa"
+repository = "peter-evans/dockerhub-description"
+ref_type = "tag"
+date = "2025-10-01T13:39:49Z"
+
+[actions."plexsystems/container-structure-test-action"."v0.3.0"]
+sha = "c0a028aa96e8e82ae35be556040340cbb3e280ca"
+repository = "plexsystems/container-structure-test-action"
+ref_type = "tag"
+date = "2023-03-30T18:19:59Z"

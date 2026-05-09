@@ -1,0 +1,24 @@
+schema: spec-driven
+
+context: |
+  Flutter Docker Image provides minimal Docker images for Flutter CI, with tools predownloaded so containers run `flutter`
+  commands without further downloads.
+  Specs cover what a CI engineer or developer would notice when pulling, running, or
+  building with these images.
+
+rules:
+  proposal:
+    - Justify why this change requires a spec (reference the relevance gate)
+  specs:
+    - Every spec must trace to something the desktop user would notice or care about
+    - Name the experience context where the change is noticed
+    - Use GIVEN/WHEN/THEN format for behavioral scenarios
+    - Architectural guardrails are constraints on how value is delivered to the desktop user — they must be load-bearing (violating one would degrade the desktop user's experience)
+    - Error classification determines whether the desktop user sees a warning or hard failure
+    - On archive, sync the spec to reflect the shipped behavior
+    - "CRITICAL: Reject if spec has no traceable impact on the desktop user's experience"
+    - 'CRITICAL: Reject if spec describes implementation without connection to what the desktop user would notice'
+    - "CRITICAL: Reject if change contradicts or duplicates an existing spec's experience impact"
+    - 'WARNING: Guardrail not justified as load-bearing'
+    - 'WARNING: Missing GIVEN/WHEN/THEN for claimed behaviors'
+    - 'WARNING: Scope too broad — multiple unrelated experience contexts'

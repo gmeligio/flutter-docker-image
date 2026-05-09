@@ -1,28 +1,35 @@
 {
-  "name": "doc",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "type": "module",
-  "scripts": {
-    "contributing": "cross-env NODE_ENV=production node compile.js contributing.mdx ../contributing.md",
-    "build": "npm run readme && npm run windows && npm run contributing && npm run license",
-    "license": "cross-env NODE_ENV=production node compile.js license.mdx ../../LICENSE.md",
-    "readme": "cross-env NODE_ENV=production node compile.js readme.mdx ../../readme.md",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "windows": "cross-env NODE_ENV=production node compile.js windows.mdx ../windows.md"
-  },
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "cross-env": "^7.0.3",
-    "mdx-to-md": "^0.5.0",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "remark-gfm": "^4.0.1",
-    "remark-toc": "^9.0.0"
-  },
-  "volta": {
-    "node": "22.16.0"
-  }
+    "name": "doc",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "type": "module",
+    "scripts": {
+        "build": "npm run readme && npm run windows && npm run contributing && npm run license",
+        "readme": "cross-env NODE_ENV=production node compile.js readme.mdx ../../readme.md",
+        "windows": "cross-env NODE_ENV=production node compile.js windows.mdx ../windows.md",
+        "license": "cross-env NODE_ENV=production node compile.js license.mdx ../../LICENSE.md",
+        "contributing": "cross-env NODE_ENV=production node compile.js contributing.mdx ../contributing.md",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "cross-env": "^10.0.0",
+        "mdx-to-md": "^0.5.0",
+        "react": "^19.1.0",
+        "react-dom": "^19.1.0",
+        "remark-gfm": "^4.0.1",
+        "remark-toc": "^9.0.0"
+    },
+    "devEngines": {
+        "runtime": {
+            "name": "node",
+            "onFail": "error"
+        },
+        "packageManager": {
+            "name": "npm",
+            "onFail": "error"
+        }
+    }
 }

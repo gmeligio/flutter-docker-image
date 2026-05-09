@@ -1,7 +1,207 @@
-# Changelog
+## [3.41.9] - 2026-05-01
 
-All notable changes to this project will be documented in this file.
+### ⚙️ Miscellaneous Tasks
 
+- *(release)* Upgrade flutter to 3.41.9 (#437)
+## [3.41.8] - 2026-05-01
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Upgrade flutter to 3.41.8 (#436)
+## [3.41.7] - 2026-05-01
+
+### 🐛 Bug Fixes
+
+- *(deps)* Bump yaml from 2.8.2 to 2.8.3 (#432)
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Upgrade flutter to 3.41.7 (#434)
+## [3.41.6] - 2026-03-27
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Upgrade flutter to 3.41.6 (#431)
+## [3.41.5] - 2026-03-21
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Upgrade flutter to 3.41.5 (#430)
+## [3.41.4] - 2026-03-19
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Upgrade flutter to 3.41.4 (#429)
+## [3.41.2] - 2026-02-20
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Upgrade flutter to 3.41.2 (#427)
+## [3.41.1] - 2026-02-16
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Upgrade flutter to 3.41.1 (#426)
+## [3.41.0] - 2026-02-12
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Upgrade flutter to 3.41.0 (#424)
+## [3.38.9] - 2026-01-30
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Upgrade flutter to 3.38.9 (#420)
+## [3.38.8] - 2026-01-28
+
+### 💼 Other
+
+- Run npm update (#418)
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Upgrade flutter to 3.38.8 (#419)
+## [3.38.7] - 2026-01-15
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Upgrade flutter to 3.38.7 (#416)
+## [3.38.6] - 2026-01-09
+
+### ⚙️ Miscellaneous Tasks
+
+- Clean runner disk (#412)
+- Clean runner disk on ci.yml (#413)
+- *(release)* Upgrade flutter to 3.38.6 (#415)
+## [3.38.5] - 2025-12-22
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Upgrade flutter to 3.38.5 (#408)
+## [3.38.4] - 2025-12-08
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Upgrade flutter to 3.38.4 (#406)
+## [3.38.3] - 2025-11-24
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Upgrade flutter to 3.38.3 (#401)
+## [3.38.2] - 2025-11-19
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Upgrade flutter to 3.38.2 (#400)
+## [3.38.1] - 2025-11-17
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Upgrade flutter to 3.38.1 (#399)
+## [3.38.0] - 2025-11-12
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Upgrade flutter to 3.38.0 (#397)
+## [3.35.7] - 2025-11-02
+
+### ⚙️ Miscellaneous Tasks
+
+- Use merge-multiple for multiple artifact IDs (#394)
+- *(release)* Upgrade flutter to 3.35.7 (#395)
+## [3.35.5] - 2025-09-30
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Upgrade flutter to 3.35.5 (#383)
+## [3.35.4] - 2025-09-20
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Update flutter dependencies in version.json for 3.35.4 (#381)
+## [3.35.3] - 2025-09-05
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Update flutter dependencies in version.json for 3.35.3 (#379)
+## [3.35.2] - 2025-08-29
+
+### 📚 Documentation
+
+- Add issue templates (#376)
+
+### ⚙️ Miscellaneous Tasks
+
+- Create CODE_OF_CONDUCT.md (#374)
+- *(release)* Update flutter dependencies in version.json for 3.35.2 (#378)
+## [3.35.1] - 2025-08-17
+
+### 🐛 Bug Fixes
+
+- *(deps)* Update react monorepo to v19.1.1 (#369)
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Update flutter dependencies in version.json for 3.35.1 (#371)
+## [3.32.8] - 2025-07-29
+
+### 🐛 Bug Fixes
+
+- *(deps)* Update dependency cross-env to v10 (#367)
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Update flutter dependencies in version.json for 3.32.8 (#365)
+## [3.32.7] - 2025-07-17
+
+### ⚙️ Miscellaneous Tasks
+
+- Build image path to solve "skip output since it may contain secret" (#362)
+- *(release)* Update flutter dependencies in version.json for 3.32.7 (#364)
+## [3.32.6] - 2025-07-13
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Update flutter dependencies in version.json for 3.32.6 (#361)
+## [3.32.5] - 2025-06-26
+
+### ⚙️ Miscellaneous Tasks
+
+- Parse json before output (#354)
+- *(release)* Update flutter dependencies in version.json for 3.32.5 (#357)
+## [3.32.4] - 2025-06-14
+
+### ⚙️ Miscellaneous Tasks
+
+- Split release workflow into jobs (#352)
+- *(release)* Update flutter dependencies in version.json for 3.32.4 (#353)
+## [3.32.3] - 2025-06-12
+
+### ⚙️ Miscellaneous Tasks
+
+- Add VERSION_MANIFEST to tag workflow (#349)
+- *(release)* Update flutter dependencies in version.json for 3.32.2 (#350)
+- *(release)* Update flutter dependencies in version.json for 3.32.3 (#351)
+## [3.32.2] - 2025-06-05
+
+### ⚙️ Miscellaneous Tasks
+
+- Split  into tag.yml and changelog.yml workflows (#347)
+- *(release)* Update flutter dependencies in version.json for 3.32.2 (#348)
+## [3.32.1] - 2025-05-30
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Update flutter dependencies in version.json for 3.32.1 (#345)
+## [3.32.0] - 2025-05-23
+
+### ⚙️ Miscellaneous Tasks
+
+- Generate changelog with git-cliff (#330)
+- Set tools digest to verify integrity (#331)
+- Download immutable artifact by id (#337)
+- Update artifact download configuration (#342)
+- *(release)* Update flutter dependencies in version.json for 3.32.0 (#343)
 ## [3.29.3] - 2025-04-17
 
 ### 🚀 Features
@@ -31,8 +231,7 @@ All notable changes to this project will be documented in this file.
 - Grant app token only  current repository (#320)
 - Download-artifact can not overwrite existing files (#327)
 - Path is a folder in download-artifact (#328)
-- Update flutter dependencies in version.json for 3.29.3
-
+- Update flutter dependencies in version.json for 3.29.3 (#329)
 ## [3.29.2] - 2025-03-15
 
 ### ⚙️ Miscellaneous Tasks
@@ -42,7 +241,6 @@ All notable changes to this project will be documented in this file.
 - Upgrade actions only for new major or minor versions (#308)
 - Update flutter version in flutter_version.json to 3.29.2 (#309)
 - Update flutter dependencies in version.json for 3.29.2 (#310)
-
 ## [3.29.1] - 2025-03-09
 
 ### 🐛 Bug Fixes
@@ -68,7 +266,6 @@ All notable changes to this project will be documented in this file.
 - Update flutter version in flutter_version.json to 3.29.1 (#302)
 - Discard changes to flutter source code when switching tags (#303)
 - Update flutter dependencies in version.json for 3.29.1 (#304)
-
 ## [3.29.0] - 2025-02-17
 
 ### 🐛 Bug Fixes
@@ -440,5 +637,3 @@ All notable changes to this project will be documented in this file.
 - Update flutter dependencies in version.json for 3.27.4 (#283)
 - Update flutter version in flutter_version.json to 3.29.0 (#286)
 - Update flutter dependencies in version.json for 3.29.0 (#289)
-
-<!-- generated by git-cliff -->
