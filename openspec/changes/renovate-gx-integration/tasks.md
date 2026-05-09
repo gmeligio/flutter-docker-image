@@ -11,6 +11,7 @@
 - [x] 2.4 Add a new `packageRules` entry keyed on `matchFileNames: [".github/gx.toml"]` with `groupName: "github-actions"` and the existing monthly schedule `["* 0-3 1 * *"]`
 - [x] 2.5 Preserve the existing Dockerfile `customManagers` entry untouched
 - [x] 2.6 Preserve the existing `extends` array untouched
+- [x] 2.7 Apply Renovate's `fileMatch` → `managerFilePatterns` migration (regex wrapped in `/.../`) on both `customManagers` entries to silence the validator's deprecation notice on first run
 
 ## 3. Local validation
 
