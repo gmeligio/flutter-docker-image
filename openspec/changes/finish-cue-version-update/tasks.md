@@ -17,11 +17,11 @@
 
 ## 3. Wire build-tools sourcing from packages.txt
 
-- [ ] 3.1 Read `script/update_test.sh` and `script/updateAndroidVersions.gradle.kts` to determine where `android_sdk_build_tools_version` is currently sourced and how it flows into `config/version.json`.
-- [ ] 3.2 In `update_version.yml` job `update_android_version`, give the `Update Android SDK build tools version` step `id: build_tools` and write the extracted version to `$GITHUB_OUTPUT` (the script already does this; just add the `id`).
-- [ ] 3.3 Replace the gradle-derived build-tools value in `script/update_test.sh` (or wherever it's consumed) with the `packages.txt`-sourced value from step 3.2 — exposed via env var or step-output reference.
-- [ ] 3.4 If `updateAndroidVersions.gradle.kts` no longer needs to extract build-tools, simplify it; if other Android values still need gradle extraction, leave gradle alone and only swap the build-tools field.
-- [ ] 3.5 Verify that the resulting `config/version.json` still passes `cue vet config/schema.cue -d '#Version'` (the `#SemverPatch` constraint will reject malformed extractions).
+- [x] 3.1 Read `script/update_test.sh` and `script/updateAndroidVersions.gradle.kts` to determine where `android_sdk_build_tools_version` is currently sourced and how it flows into `config/version.json`.
+- [x] 3.2 In `update_version.yml` job `update_android_version`, give the `Update Android SDK build tools version` step `id: build_tools` and write the extracted version to `$GITHUB_OUTPUT` (the script already does this; just add the `id`).
+- [x] 3.3 Replace the gradle-derived build-tools value in `script/update_test.sh` (or wherever it's consumed) with the `packages.txt`-sourced value from step 3.2 — exposed via env var or step-output reference.
+- [x] 3.4 If `updateAndroidVersions.gradle.kts` no longer needs to extract build-tools, simplify it; if other Android values still need gradle extraction, leave gradle alone and only swap the build-tools field.
+- [x] 3.5 Verify that the resulting `config/version.json` still passes `cue vet config/schema.cue -d '#Version'` (the `#SemverPatch` constraint will reject malformed extractions).
 
 ## 4. Fix the commit-message step
 

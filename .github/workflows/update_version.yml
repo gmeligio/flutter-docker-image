@@ -121,9 +121,11 @@ jobs:
             await script({core, fetch})
 
       - name: Update Android SDK build tools version
+        id: build_tools
         run: |
-          build_tools_version=$(curl -s https://raw.githubusercontent.com/flutter/flutter/refs/tags/${{ env.FLUTTER_VERSION }}/engine/src/flutter/tools/android_sdk/packages.txt | grep 'build-tools' | awk -F'[;:]' '{print $2}')
+          build_tools_version=$(curl -fsSL https://raw.githubusercontent.com/flutter/flutter/refs/tags/${{ env.FLUTTER_VERSION }}/engine/src/flutter/tools/android_sdk/packages.txt | grep 'build-tools' | awk -F'[;:]' '{print $2}')
           echo "build_tools_version=$build_tools_version" >>"$GITHUB_OUTPUT"
+          echo "Build tools version: $build_tools_version"
 
       - name: Setup Flutter
         run: |
@@ -139,6 +141,8 @@ jobs:
       # TODO: Cache gradle https://github.com/gradle/gradle-build-action
       - name: Update default Android platform versions in Flutter
         working-directory: test_app/android
+        env:
+          BUILD_TOOLS_VERSION: ${{ steps.build_tools.outputs.build_tools_version }}
         run: |
           cat ../../script/updateAndroidVersions.gradle.kts >> app/build.gradle.kts
           ./gradlew --warning-mode all updateAndroidVersions
