@@ -7,8 +7,8 @@ This passes the relevance gate: the badge and the linked wiki are visible to any
 ## What Changes
 
 - Add a DeepWiki badge to the README header so users can reach `deepwiki.com/gmeligio/flutter-docker-image` in one click. Source the badge in `docs/src/badges.mdx` so the existing MDX→MD compile carries it into `readme.md`.
-- Add `.devin/wiki.json` with `repo_notes` describing the project shape (android vs windows split, MDX docs pipeline, OpenSpec workflow) and a curated `pages` outline so the auto-generated wiki reflects how the repo is actually organized.
-- Document the integration in `docs/src/contributing.mdx` (recompiled into `docs/contributing.md`) so contributors know the wiki exists, how to refresh it, and how the badge wires up auto-refresh.
+- Document the integration in `docs/src/contributing.mdx` (recompiled into `docs/contributing.md`) so contributors know the wiki exists and that the badge in the README is what keeps it auto-refreshing.
+- Defer page-outline steering (`.devin/wiki.json`) until DeepWiki's default outline is observed — add it as a follow-up only if a load-bearing gap appears.
 - No CI changes, no new dependencies in the Dockerfiles, no changes to image contents.
 
 ## Capabilities
@@ -21,7 +21,6 @@ This passes the relevance gate: the badge and the linked wiki are visible to any
 
 ## Impact
 
-- **Files added**: `.devin/wiki.json`
 - **Files modified**: `docs/src/badges.mdx`, `docs/src/contributing.mdx`, regenerated `readme.md` and `docs/contributing.md` via `docs/src/compile.js`
 - **External dependency**: Hosted DeepWiki service (`deepwiki.com`) — free for public repos, owned by Cognition AI. No code or secrets sent; DeepWiki reads the public repo directly.
 - **No impact on**: Docker images, CI workflows, release pipeline, version bump scripts, end-user `docker run` UX.

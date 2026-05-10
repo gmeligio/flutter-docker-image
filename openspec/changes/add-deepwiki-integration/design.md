@@ -8,7 +8,6 @@ This proposal opts the repo into that hosted service. It does not stand up a doc
 
 **Goals:**
 - Give README readers a one-click path to an AI-generated wiki for the repo.
-- Steer the generated wiki's structure to match how this repo is actually organized (android vs windows image, MDX docs pipeline, OpenSpec workflow, release/CI pipeline) instead of accepting the default outline.
 - Keep the wiki current without any maintainer action after merge.
 - Keep the existing MDX→MD docs pipeline intact and authoritative for committed markdown.
 
@@ -16,14 +15,14 @@ This proposal opts the repo into that hosted service. It does not stand up a doc
 - Self-hosting DeepWiki or any OSS variant (deepwiki-open, OpenDeepWiki, RepoWiki). The hosted free tier is sufficient for a public repo of this size.
 - Replacing the MDX docs pipeline or migrating to Mintlify/Docusaurus/MkDocs.
 - Wiring the DeepWiki MCP server into shared tooling. Individual contributors can register `https://mcp.deepwiki.com/mcp` in their own Claude Code config; that is out of scope for this repo change.
+- Authoring a `.devin/wiki.json` outline up front. The default DeepWiki outline is the baseline; a steering file is a follow-up that should be motivated by an observed gap, not by speculation.
 - Generating reference docs from Dockerfiles or scripts.
-- Authoring wiki page bodies by hand. The whole point is that DeepWiki generates them.
 
 ## Decisions
 
 ### Use hosted DeepWiki, not a self-hosted alternative
 
-DeepWiki hosted (`deepwiki.com`) is free for public repos, is already operating against this repo's public GitHub URL, and requires zero infra. Self-hosted alternatives (deepwiki-open, OpenDeepWiki, RepoWiki) would require provisioning a server, paying for LLM tokens, and maintaining another service — all to reproduce a free capability. The trade is vendor lock-in to Cognition AI's roadmap, which is acceptable because the integration surface is one badge URL and one JSON file that any replacement could read.
+DeepWiki hosted (`deepwiki.com`) is free for public repos, is already operating against this repo's public GitHub URL, and requires zero infra. Self-hosted alternatives (deepwiki-open, OpenDeepWiki, RepoWiki) would require provisioning a server, paying for LLM tokens, and maintaining another service — all to reproduce a free capability. The trade is vendor lock-in to Cognition AI's roadmap, which is acceptable because the integration surface is one badge URL that any replacement could honor or be re-pointed away from.
 
 Source: <https://docs.devin.ai/work-with-devin/deepwiki>, <https://cognition.ai/blog/deepwiki>.
 
@@ -31,11 +30,9 @@ Source: <https://docs.devin.ai/work-with-devin/deepwiki>, <https://cognition.ai/
 
 `readme.md` is auto-generated and carries the comment `<!--- This markdown file was auto-generated from "readme.mdx" -->`. Editing it directly would be undone by the next compile. The MDX source for the badge row already lives at `docs/src/badges.mdx`. Adding the DeepWiki badge there flows it into the recompiled README and keeps the existing pipeline as the single source of truth.
 
-### Use `.devin/wiki.json` to steer page generation
+### Defer `.devin/wiki.json` until a real gap is observed
 
-DeepWiki's documented configuration file is `.devin/wiki.json`, which accepts a `repo_notes` array (steering context, ≤10k chars per note) and a `pages` array (explicit page outline with optional parent/child hierarchy). Without this file the wiki falls back to a generic auto-outline that wouldn't distinguish the android image, the windows image, the MDX docs pipeline, or the OpenSpec workflow. Authoring this file is the only way to make the wiki reflect the repo's actual axes of variation.
-
-Source: <https://docs.devin.ai/work-with-devin/deepwiki>.
+DeepWiki accepts a `.devin/wiki.json` with `repo_notes` and a `pages` outline that overrides the default page structure. For a repo this small with self-evident structure (clearly named Dockerfiles, scripts, workflows, MDX docs), the default outline is expected to be adequate. Authoring a `pages` list before seeing what DeepWiki produces is speculative, adds a `.devin/` directory contributors must understand, and creates a config that can drift from the codebase. The cheaper path is: ship the badge, observe the generated wiki, then add steering only for the specific gaps that materialize. Adding the file later is a one-PR follow-up with no rework cost.
 
 ### Trust badge-presence as the auto-refresh trigger
 
@@ -49,17 +46,15 @@ The DeepWiki badge format used widely in the ecosystem is `https://deepwiki.com/
 
 ## Automated Test Strategy
 
-This change has no runtime code path, so the verification surface is small and document-shaped. The critical path is: (1) the badge ends up in the regenerated `readme.md`, (2) the JSON config is parseable, (3) the contributing doc gains the new section.
+This change has no runtime code path, so the verification surface is small and document-shaped. The critical path is: (1) the badge ends up in the regenerated `readme.md`, (2) the contributing doc gains the new section.
 
-- **Build verification**: run `docs/src/compile.js` (or the existing npm script) and confirm the regenerated `readme.md` contains the DeepWiki badge in the header row. This is the same pipeline contributors already use; no new infrastructure.
-- **JSON validity**: `node -e "JSON.parse(require('fs').readFileSync('.devin/wiki.json','utf8'))"` — fast, no dependency.
-- **Manual smoke check**: open `https://deepwiki.com/gmeligio/flutter-docker-image` after merge and confirm the configured `pages` outline shows up. This is the user-visible outcome and cannot be automated against a third-party service.
-- **No new test infrastructure** is introduced. Adding a CI job to validate the JSON would be over-engineering for a single 30-line config; reviewers can read it.
+- **Build verification**: run the existing `npm run build` (or `npm run readme` + `npm run contributing`) inside `docs/src/` and confirm both regenerated files reflect the source changes. This is the same pipeline contributors already use; no new infrastructure.
+- **Manual smoke check**: open `https://deepwiki.com/gmeligio/flutter-docker-image` after merge and confirm the wiki renders. This is the user-visible outcome and cannot be automated against a third-party service.
+- **No new test infrastructure** is introduced.
 
 ## Observability
 
 Failures are loud and shallow:
-- A malformed `.devin/wiki.json` would surface as DeepWiki refusing to apply the configuration; the wiki would fall back to its default outline. Detection: open the wiki page after merge.
 - A broken badge URL would render as a broken-image icon in `readme.md` — visible immediately on GitHub.
 - A stale wiki (auto-refresh not firing) would surface to readers as out-of-date page content. Detection: spot-check after notable merges.
 
@@ -67,19 +62,17 @@ There is no silent-failure path that affects image users (the Docker images them
 
 ## Risks / Trade-offs
 
-- **[Vendor dependency on Cognition AI]** → Mitigation: integration surface is one badge URL + one JSON file. If Cognition discontinues the free tier we can either remove the badge (no functional regression beyond the wiki page itself) or point the same `.devin/wiki.json` at a self-hosted deepwiki-open deployment, which reads the same shape.
-- **[Generated content quality is outside maintainer control]** → Mitigation: `repo_notes` and the `pages` outline give substantial steering; if a page is wrong, edit the notes rather than the page. Wiki is supplementary to the README, not load-bearing for image users.
+- **[Vendor dependency on Cognition AI]** → Mitigation: integration surface is one badge URL. If Cognition discontinues the free tier we can remove the badge with no functional regression beyond the wiki page itself, or point the same badge URL at a self-hosted deepwiki-open deployment.
+- **[Generated content quality is outside maintainer control]** → Mitigation: the wiki is supplementary to the README, not load-bearing for image users. If the default outline is materially wrong, add `.devin/wiki.json` as a follow-up.
 - **[Auto-refresh cadence is undocumented]** → Mitigation: stale-by-a-few-hours is acceptable for a docs surface; no SLA is being promised to readers.
-- **[`.devin/` directory may surprise contributors]** → Mitigation: contributing.md gains a section explaining what the file is for.
 
 ## Migration Plan
 
 Single-PR rollout, no data migration:
 1. Add the badge to `docs/src/badges.mdx` and recompile docs.
-2. Add `.devin/wiki.json` with curated `repo_notes` and `pages`.
-3. Add the contributing section.
-4. Merge.
-5. Within DeepWiki's refresh window, the wiki at `deepwiki.com/gmeligio/flutter-docker-image` reflects the new outline.
+2. Add the contributing section.
+3. Merge.
+4. Within DeepWiki's refresh window, the wiki at `deepwiki.com/gmeligio/flutter-docker-image` reflects the latest `main`.
 
 Rollback: revert the PR. The wiki itself remains accessible (DeepWiki indexes public repos regardless), but auto-refresh stops and the badge disappears from the README. No image, CI, or release impact.
 
