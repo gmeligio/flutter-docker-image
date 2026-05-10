@@ -40,9 +40,9 @@
 
 ## 7. Verify and ship
 
-- [ ] 7.1 Push the branch; wait for the `test_windows` job in `.github/workflows/windows.yml` to complete on `windows-2025`.
+- [x] 7.1 Push the branch; wait for the `test_windows` job in `.github/workflows/windows.yml` to complete on `windows-2025`.
 - [ ] 7.2 Confirm the job exits 0 with all Pester tests reporting `Passed`.
-- [ ] 7.3 Update PR #339 (or open a replacement) with a non-empty body referencing this proposal: link to `openspec/changes/p1-fix-windows-ci-tests/proposal.md` and list the assertions now enforced.
+- [x] 7.3 Update PR #339 (or open a replacement) with a non-empty body referencing this proposal: link to `openspec/changes/p1-fix-windows-ci-tests/proposal.md` and list the assertions now enforced.
 - [ ] 7.4 Merge.
 
 ## 8. Archive
