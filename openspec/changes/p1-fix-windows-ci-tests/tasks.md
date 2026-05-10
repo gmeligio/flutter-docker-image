@@ -29,8 +29,8 @@
 
 ## 5. Delete the dead Go/dockertest harness
 
-- [ ] 5.1 Delete `test/windows/main.go`, `test/windows/main_test.go`, `test/windows/go.mod`, `test/windows/go.sum`.
-- [ ] 5.2 Confirm that no workflow under `.github/workflows/` still references Go or `dockertest` (`grep -r "dockertest\|go test\|go mod" .github/workflows/`).
+- [x] 5.1 Delete `test/windows/main.go`, `test/windows/main_test.go`, `test/windows/go.mod`, `test/windows/go.sum`.
+- [x] 5.2 Confirm that no workflow under `.github/workflows/` still references Go or `dockertest` (`grep -r "dockertest\|go test\|go mod" .github/workflows/`).
 
 ## 6. Clean up commented-out workflow blocks
 
