@@ -52,9 +52,13 @@ The experience context is the CI engineer pulling `flutter-windows:<tag>` and ex
 - **WHEN** the Flutter version Pester test runs
 - **THEN** the test fails with a message naming both versions
 
-### Requirement: Tests assert `flutter doctor` reports no errors
+### Requirement: Tests assert `flutter doctor` reports a healthy Windows toolchain
 
-The Pester suite SHALL include a test that runs `flutter doctor` inside the container and fails when doctor reports any line classified as an error. Warnings on platform-specific tooling that is intentionally not installed (e.g., Android, iOS, macOS, Linux desktop, Chrome) SHALL NOT fail the test.
+The Pester suite SHALL include a test that runs `flutter doctor` inside the container and applies a per-line rule based on the platform header:
+
+- Lines whose header is `Android`, `iOS`, `macOS`, `Linux`, `Web`, or `Chrome` SHALL be skipped (these platforms are explicitly disabled by `flutter config --no-enable-*` in `windows.Dockerfile`).
+- Lines whose header starts with `Windows Version` or `Visual Studio` SHALL fail the test unless the marker is `[✓]`. Both `[!]` (partial) and `[✗]` (missing) on these two lines indicate a real toolchain regression — `WindowsVersionValidator` and `VisualStudioValidator` in `flutter/flutter` emit `[!]` for conditions such as Topaz OFD interference, missing required VS components, missing Windows 10 SDK, incomplete install, or VS too old.
+- All other lines (e.g., `Flutter`, `Connected device`, `Network resources`) SHALL fail only on `[✗]`. `[!]` on these is informational in a CI container.
 
 The experience context is the developer who runs `docker run flutter-windows flutter doctor` after pulling the image and expects a clean report for the Windows desktop toolchain — Pester catches regressions before the image is published.
 
@@ -65,13 +69,28 @@ The experience context is the developer who runs `docker run flutter-windows flu
 - **THEN** `flutter doctor` reports `[✓] Windows Version` and `[✓] Visual Studio - develop Windows apps`
 - **AND** the test passes
 
-#### Scenario: Doctor reports a Windows-toolchain error
+#### Scenario: Doctor reports a Windows-toolchain hard error
 
 - **GIVEN** a PR that removes the `Microsoft.VisualStudio.Workload.VCTools` line from `windows.Dockerfile`
 - **AND** the image still builds (the workload removal does not break the build itself)
 - **WHEN** the doctor Pester test runs
-- **THEN** `flutter doctor` reports `[✗] Visual Studio` (or equivalent error marker)
+- **THEN** `flutter doctor` reports `[✗] Visual Studio` (or equivalent missing-toolchain marker)
 - **AND** the test fails
+
+#### Scenario: Doctor reports a Windows-toolchain partial install
+
+- **GIVEN** a PR that removes the `Microsoft.VisualStudio.Component.Windows11SDK.22621` line from `windows.Dockerfile`
+- **AND** the image still builds and Visual Studio itself is still present
+- **WHEN** the doctor Pester test runs
+- **THEN** `flutter doctor` reports `[!] Visual Studio - develop Windows apps` (partial: missing required component)
+- **AND** the test fails
+
+#### Scenario: Doctor warning on a non-toolchain line is tolerated
+
+- **GIVEN** the image was built successfully and `flutter doctor` reports `[!] Connected device` (no devices connected — expected in CI)
+- **WHEN** the doctor Pester test runs
+- **THEN** the `Connected device` line is classified as informational
+- **AND** the test passes
 
 ### Requirement: Tests assert presence of pinned Visual Studio components
 
