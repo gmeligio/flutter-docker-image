@@ -6,7 +6,7 @@ runs:
     - name: Show disk usage before cleaning
       run: Get-PSDrive -PSProvider FileSystem | Format-Table -AutoSize
       shell: pwsh
-    - name: Top-level directories on C: before cleaning
+    - name: 'Top-level directories on C: before cleaning'
       run: |
         Get-ChildItem -Path C:\ -Directory -Force -ErrorAction SilentlyContinue |
           ForEach-Object {
@@ -54,7 +54,7 @@ runs:
     - name: Show disk usage after cleaning
       run: Get-PSDrive -PSProvider FileSystem | Format-Table -AutoSize
       shell: pwsh
-    - name: Top-level directories on C: after cleaning
+    - name: 'Top-level directories on C: after cleaning'
       run: |
         Get-ChildItem -Path C:\ -Directory -Force -ErrorAction SilentlyContinue |
           ForEach-Object {
