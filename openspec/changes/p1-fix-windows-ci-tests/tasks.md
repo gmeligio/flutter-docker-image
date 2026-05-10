@@ -1,16 +1,16 @@
 ## 1. Fix the broken Dockerfile copy and Pester typo
 
-- [ ] 1.1 In `windows.Dockerfile`, change the `COPY ./test/Windows.Tests.ps1` line to source `./test/windows/Windows.Tests.ps1`; keep the destination `.\test\Windows.Tests.ps1`.
-- [ ] 1.2 In `test/windows/Windows.Tests.ps1`, change the CMake assertion pattern from `,versiona*` to `,version=*`. Apply the same `,version=*` form to the Win11SDK and VCTools assertions for consistency.
+- [x] 1.1 In `windows.Dockerfile`, change the `COPY ./test/Windows.Tests.ps1` line to source `./test/windows/Windows.Tests.ps1`; keep the destination `.\test\Windows.Tests.ps1`.
+- [x] 1.2 In `test/windows/Windows.Tests.ps1`, change the CMake assertion pattern from `,versiona*` to `,version=*`. Apply the same `,version=*` form to the Win11SDK and VCTools assertions for consistency.
 
 ## 2. Make the test stage self-running
 
-- [ ] 2.1 In `windows.Dockerfile`, replace the trailing `# CMD Invoke-Pester ...` comment in the `test` stage with `CMD ["powershell", "-NoLogo", "-NoProfile", "-File", ".\\script\\RunPester.ps1"]` (or equivalent that invokes `RunPester.ps1`).
-- [ ] 2.2 Verify locally that `docker compose run --rm windows-test` runs Pester and exits with the Pester exit code. (Skip if no Windows host available; rely on the CI run for confirmation.)
+- [x] 2.1 In `windows.Dockerfile`, replace the trailing `# CMD Invoke-Pester ...` comment in the `test` stage with `CMD ["powershell", "-NoLogo", "-NoProfile", "-File", ".\\script\\RunPester.ps1"]` (or equivalent that invokes `RunPester.ps1`).
+- [x] 2.2 Verify locally that `docker compose run --rm windows-test` runs Pester and exits with the Pester exit code. (Skip if no Windows host available; rely on the CI run for confirmation.)
 
 ## 3. Add the Flutter version Pester test
 
-- [ ] 3.1 In `windows.Dockerfile`'s `test` stage, add `COPY ./config/version.json .\config\version.json` so the manifest is available at test time.
+- [x] 3.1 In `windows.Dockerfile`'s `test` stage, add `COPY ./config/version.json .\config\version.json` so the manifest is available at test time.
 - [ ] 3.2 In `test/windows/Windows.Tests.ps1`, add a new `Describe "Flutter version"` block with a test that:
   - reads `config\version.json` via `Get-Content | ConvertFrom-Json`;
   - extracts `flutter.version`;
@@ -19,9 +19,13 @@
 
 ## 4. Add the `flutter doctor` smoke test
 
-- [ ] 4.1 In `test/windows/Windows.Tests.ps1`, add a `Describe "Flutter doctor"` block that runs `flutter doctor` and captures stdout.
-- [ ] 4.2 Implement a parser that fails the test on any line starting with `[✗]`, except where the platform header is one of: `Android`, `iOS`, `macOS`, `Linux`, `Web`, `Chrome` (these platforms are intentionally disabled in `flutter config`).
-- [ ] 4.3 The test passes when at least the `Windows Version` and `Visual Studio - develop Windows apps` lines are tagged `[✓]`.
+- [ ] 4.1 In `test/windows/Windows.Tests.ps1`, add a `Describe "Flutter doctor"` block that runs `flutter doctor` and captures stdout. At the top of `script/RunPester.ps1` (or in a `BeforeAll` for this Describe), force `[Console]::OutputEncoding = [System.Text.Encoding]::UTF8` so the `[✓]`/`[!]`/`[✗]` glyphs survive PowerShell's default OEM encoding on `windows-2025`.
+- [ ] 4.2 Implement a parser that classifies each line by its platform header and applies the per-line rule from the `flutter doctor` failure-mode decision in `design.md`:
+  - **Skip** lines whose header is one of `Android`, `iOS`, `macOS`, `Linux`, `Web`, `Chrome` (intentionally disabled via `flutter config --no-enable-*`).
+  - **Fail unless `[✓]`** for headers that start with `Windows Version` or `Visual Studio` (any `[!]` or `[✗]` here is a real toolchain regression — see the Flutter validator sources cited in `design.md`).
+  - **Fail only on `[✗]`** for any other header (e.g., `Flutter`, `Connected device`, `Network resources`); `[!]` on these is informational in a CI container.
+  - To survive encoding edge cases, match markers by character class (e.g., `^\[(✓|✔|!|✗|✘|x|X)\]`) rather than literal codepoints, mapping `✓/✔` → pass, `!` → partial, `✗/✘/x/X` → fail.
+- [ ] 4.3 The test passes when at least the `Windows Version` and `Visual Studio - develop Windows apps` lines are tagged `[✓]` and no other non-skipped line is tagged `[✗]`.
 
 ## 5. Delete the dead Go/dockertest harness
 

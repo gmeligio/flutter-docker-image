@@ -112,7 +112,9 @@ RUN ".\InstallPester.ps1"; `
 USER ContainerUser
 
 # Run the tests
-COPY ./test/Windows.Tests.ps1 ".\test\Windows.Tests.ps1"
+COPY ./config/version.json ".\config\version.json"
+COPY ./test/windows/Windows.Tests.ps1 ".\test\Windows.Tests.ps1"
 COPY ./script/RunPester.ps1 ".\script\RunPester.ps1"
 
-# CMD Invoke-Pester -Configuration @{Run=@{Path='.\\test'; Exit=$true}; Output=@{Verbosity='Detailed'}}
+# hadolint ignore=DL3025
+CMD ["powershell", "-NoLogo", "-NoProfile", "-File", ".\\script\\RunPester.ps1"]
