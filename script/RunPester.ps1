@@ -1,3 +1,5 @@
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+
 $pesterConfig = New-PesterConfiguration;
 $pesterConfig.Output.Verbosity = 'Detailed';
 $pesterConfig.Run.Exit = $true;
