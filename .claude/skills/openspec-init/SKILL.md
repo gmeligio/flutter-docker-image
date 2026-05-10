@@ -15,7 +15,9 @@ Generate, refresh, or review `openspec/config.yaml` for the current project.
 
 If `openspec/config.yaml` already exists, decide intent from the invocation argument:
 
-- Argument contains `review` (or no argument and the file exists) → **review mode**: read the file, judge whether it is well-tailored to the project, report strengths/observations, and stop. Do not propose a regeneration; do not flatten a project-tailored config back to generic template wording. Skip Steps 1–3 and Step 5.
+- Argument contains `review` (or no argument and the file exists) → **review mode**: read the file, judge whether it is well-tailored to the project, report strengths/observations, and stop. Do not propose a regeneration; do not flatten a project-tailored config back to generic template wording. Skip Steps 1, 2, and 5.
+
+  Even in review mode, validate the file against the structural constraints defined in Step 3 (field shape, length limits, what belongs in which section) and flag any violation with a targeted fix rather than a full regeneration.
 - Argument contains `refresh`, `regenerate`, `rewrite`, or the file is missing → **generate mode**: continue with Step 1.
 
 ---
