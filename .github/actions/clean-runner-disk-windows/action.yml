@@ -1,0 +1,68 @@
+name: 'Clean Runner Disk (Windows)'
+description: 'Cleans the GitHub Actions Windows runner disk by removing unused toolchains and SDKs to free up space on C:.'
+runs:
+  using: composite
+  steps:
+    - name: Show disk usage before cleaning
+      run: Get-PSDrive -PSProvider FileSystem | Format-Table -AutoSize
+      shell: pwsh
+    - name: Top-level directories on C: before cleaning
+      run: |
+        Get-ChildItem -Path C:\ -Directory -Force -ErrorAction SilentlyContinue |
+          ForEach-Object {
+            $size = (Get-ChildItem -Path $_.FullName -Recurse -Force -ErrorAction SilentlyContinue |
+                     Measure-Object -Property Length -Sum).Sum
+            [PSCustomObject]@{
+              Path = $_.FullName
+              SizeGB = [math]::Round($size / 1GB, 2)
+            }
+          } | Sort-Object SizeGB -Descending | Format-Table -AutoSize
+      shell: pwsh
+    - name: Clean runner disk
+      run: |
+        $paths = @(
+          'C:\Android',
+          'C:\hostedtoolcache',
+          'C:\Program Files\dotnet',
+          'C:\Program Files (x86)\dotnet',
+          'C:\ghcup',
+          'C:\Program Files\Haskell',
+          'C:\Program Files\Haskell Platform',
+          'C:\Strawberry',
+          'C:\msys64',
+          'C:\Miniconda',
+          'C:\Program Files\MongoDB',
+          'C:\Program Files\PostgreSQL',
+          'C:\PostgreSQL',
+          'C:\Program Files\Google\Chrome',
+          'C:\Program Files (x86)\Google\Chrome',
+          'C:\Program Files\Mozilla Firefox',
+          'C:\selenium',
+          'C:\SeleniumWebDrivers',
+          'C:\vcpkg',
+          'C:\tools'
+        )
+        foreach ($p in $paths) {
+          if (Test-Path -LiteralPath $p) {
+            Write-Host "Removing $p"
+            Remove-Item -LiteralPath $p -Recurse -Force -ErrorAction Continue
+          } else {
+            Write-Host "Skipping $p (not found)"
+          }
+        }
+      shell: pwsh
+    - name: Show disk usage after cleaning
+      run: Get-PSDrive -PSProvider FileSystem | Format-Table -AutoSize
+      shell: pwsh
+    - name: Top-level directories on C: after cleaning
+      run: |
+        Get-ChildItem -Path C:\ -Directory -Force -ErrorAction SilentlyContinue |
+          ForEach-Object {
+            $size = (Get-ChildItem -Path $_.FullName -Recurse -Force -ErrorAction SilentlyContinue |
+                     Measure-Object -Property Length -Sum).Sum
+            [PSCustomObject]@{
+              Path = $_.FullName
+              SizeGB = [math]::Round($size / 1GB, 2)
+            }
+          } | Sort-Object SizeGB -Descending | Format-Table -AutoSize
+      shell: pwsh
