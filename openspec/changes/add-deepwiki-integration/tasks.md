@@ -6,9 +6,9 @@
 
 ## 2. Contributing docs
 
-- [ ] 2.1 Add a "Repository wiki" section to `docs/src/contributing.mdx` that names DeepWiki, links to `https://deepwiki.com/gmeligio/flutter-docker-image`, and explains that the README badge is what enables auto-refresh
-- [ ] 2.2 Run `npm run contributing` to regenerate `docs/contributing.md`
-- [ ] 2.3 Commit `docs/src/contributing.mdx` and `docs/contributing.md` together
+- [x] 2.1 Add a "Repository wiki" section to `docs/src/contributing.mdx` that names DeepWiki, links to `https://deepwiki.com/gmeligio/flutter-docker-image`, and explains that the README badge is what enables auto-refresh
+- [x] 2.2 Run `npm run contributing` to regenerate `docs/contributing.md`
+- [x] 2.3 Commit `docs/src/contributing.mdx` and `docs/contributing.md` together
 
 ## 3. Verification
 
