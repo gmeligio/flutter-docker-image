@@ -50,15 +50,31 @@ The Pester test computes the expected version by parsing `config/version.json` (
 
 ### Decision: `flutter doctor` failure mode
 
-`flutter doctor` produces lines like `[✓]`, `[!]`, `[✗]`. The test fails only on `[✗]` lines. Lines tagged `[!]` are warnings (e.g., "Android Studio not installed") and are expected on this image since most platforms are explicitly disabled by `flutter config`. Lines for disabled platforms (`Android`, `iOS`, `macOS`, `Linux`, `Web`, `Chrome`) are skipped entirely by parsing the platform header.
+`flutter doctor` produces lines like `[✓]`, `[!]`, `[✗]` (mapped from `ValidationType.success/partial/missing` in `packages/flutter_tools/lib/src/doctor_validator.dart`). The test applies a per-line rule based on the platform header:
+
+- **Disabled platforms** (`Android`, `iOS`, `macOS`, `Linux`, `Web`, `Chrome`): skipped entirely. These are explicitly turned off by `flutter config --no-enable-*` so any marker on them is irrelevant.
+- **Owned-toolchain lines** (`Windows Version`, `Visual Studio - develop Windows apps`): fail unless the marker is `[✓]`. Both `[!]` and `[✗]` fail here. This is intentional: `WindowsVersionValidator` emits `[!]` when the Topaz OFD security module is detected (real build interference), and `VisualStudioValidator` emits `[!]` when VS is too old, needs reboot, has an incomplete install, is not launchable, is missing required components, or is missing the Windows 10 SDK — every one of which is a regression class this image must not ship. Sources: `packages/flutter_tools/lib/src/windows/{windows_version_validator,visual_studio_validator}.dart` in `flutter/flutter`.
+- **Other lines** (`Flutter`, `Connected device`, `Network resources`, etc.): fail only on `[✗]`. `[!]` here is informational (e.g., no devices connected), expected in a CI container.
+
+The leaner "fail on `[✗]` only" rule was rejected: it would let a PR that drops `Microsoft.VisualStudio.Workload.VCTools` or `Windows11SDK.22621` from the Dockerfile pass with a `[!] Visual Studio` line, defeating the point of the smoke test.
 
 ### Decision: VS component pattern fix uses `,version=*`
 
 The on-disk format for VS package directories is `<ComponentId>,version=<X.Y.Z.W>`. The current pattern `,versiona*` is a typo. The pattern `,version=*` is the minimum specific match that distinguishes a real install directory from any other coincident directory. Using `*` alone (no `,version=` anchor) would accept directories like `Microsoft.VisualStudio.Component.VC.CMake.Project_alt,…` which is too loose.
 
-### Decision: `CMD` in the test stage points at `RunPester.ps1`
+### Decision: `ENTRYPOINT` and `CMD` in the test stage both target `RunPester.ps1`
 
-`CMD` is added so `docker run <test-image>` runs the suite without arguments. The CI workflow continues to pass `.\script\RunPester.ps1` as an explicit argument; this is redundant but harmless. The reason for keeping the explicit argument in CI is that some Windows image base layers reset `CMD`, and the explicit invocation is robust to that.
+The `test` stage **resets** `ENTRYPOINT` to exec-form `["powershell", "-NoLogo", "-NoProfile", "-File"]` and sets `CMD` to `[".\\script\\RunPester.ps1"]`. This is required because the parent `flutter` stage uses a **shell-form** `ENTRYPOINT "C:\Users\ContainerUser\docker_entrypoint.ps1"` (the analytics-toggle script). Per Docker's documented `ENTRYPOINT`/`CMD` interaction, a shell-form `ENTRYPOINT` runs under PowerShell `-Command` and does **not** append `CMD` args — Docker emits the warning "Shell-form ENTRYPOINT and exec-form CMD may have unexpected results", and `docker run <image> .\script\RunPester.ps1` fails with `hcs::System::CreateProcess … 0x2 file not found` because the workflow's argument is treated as a separate executable.
+
+With exec-form `ENTRYPOINT` in the test stage:
+
+- `docker run <test-image>` invokes `powershell -NoLogo -NoProfile -File .\script\RunPester.ps1` (uses `CMD`).
+- `docker run <test-image> .\test\OtherTest.ps1` swaps in a different script (overrides `CMD`).
+- The CI workflow runs `docker run --rm <image>` with no explicit script argument; the `CMD` is the source of truth.
+
+The analytics-toggle entrypoint inherited from the `flutter` stage is intentionally not preserved here — the test image doesn't need runtime analytics control, and the inherited shell-form is the bug source.
+
+An earlier draft of this proposal kept the workflow's explicit `.\script\RunPester.ps1` arg "as redundant but harmless." That was wrong: it was the failure trigger when combined with the inherited shell-form `ENTRYPOINT`. The arg has been removed from the workflow.
 
 ## Risks / Trade-offs
 
@@ -90,6 +106,11 @@ There is no unit-test layer below the Pester suite because the assertions are in
 3. Delete the Go module files in the same commit as the Dockerfile fix; rerun the workflow to confirm no path now references `test/windows/main*.go`.
 4. Squash-merge PR #339 with a non-empty body referencing this proposal.
 5. No rollback is needed because every change is additive to the test surface or is a deletion of unused code; if the new Pester tests are wrong, they fail loudly and a follow-up fix applies — there is no production behavior to revert.
+
+## Resolved Questions
+
+- **Doctor `[!]` semantics on Windows-toolchain lines.** *Resolved 2026-05-10:* `[!]` on `Windows Version` and `Visual Studio - develop Windows apps` fails the test, same as `[✗]`. Captured in the "`flutter doctor` failure mode" decision above. Source: `WindowsVersionValidator` and `VisualStudioValidator` in `flutter/flutter`.
+- **`dart-flutter-telemetry.config` path resolution under `ContainerUser`.** *Resolved 2026-05-10:* The existing assertion path `$env:APPDATA\.dart-tool\dart-flutter-telemetry.config` is correct. `package:unified_analytics` (used by both `flutter` and `dart` CLIs) reads `Platform.environment['AppData']` on Windows and joins `.dart-tool/dart-flutter-telemetry.config`. The Dockerfile runs the disable-analytics commands as `ContainerUser` and the test runs as `ContainerUser`, so `$env:APPDATA` resolves to the same path in both phases. Sources: `pkgs/unified_analytics/lib/src/{utils,initializer,constants}.dart` in `dart-lang/tools`. No change needed.
 
 ## Open Questions
 

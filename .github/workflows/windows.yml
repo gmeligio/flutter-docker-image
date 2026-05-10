@@ -53,5 +53,5 @@ jobs:
         run: |
           docker build . -f windows.Dockerfile --build-arg flutter_version=${{ env.FLUTTER_VERSION }} -t ${{ fromJson(steps.metadata.outputs.json).tags[0] }} --target test
 
-          docker run --rm ${{ fromJson(steps.metadata.outputs.json).tags[0] }} ".\script\RunPester.ps1"
+          docker run --rm ${{ fromJson(steps.metadata.outputs.json).tags[0] }}
 

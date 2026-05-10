@@ -116,5 +116,9 @@ COPY ./config/version.json ".\config\version.json"
 COPY ./test/windows/Windows.Tests.ps1 ".\test\Windows.Tests.ps1"
 COPY ./script/RunPester.ps1 ".\script\RunPester.ps1"
 
-# hadolint ignore=DL3025
-CMD ["powershell", "-NoLogo", "-NoProfile", "-File", ".\\script\\RunPester.ps1"]
+# Reset the inherited shell-form ENTRYPOINT from the flutter stage. The test image runs Pester,
+# not the analytics-toggle entrypoint, and shell-form ENTRYPOINT prevents CMD args from being
+# appended cleanly (Docker emits "Shell-form ENTRYPOINT and exec-form CMD may have unexpected
+# results" otherwise).
+ENTRYPOINT ["powershell", "-NoLogo", "-NoProfile", "-File"]
+CMD [".\\script\\RunPester.ps1"]
