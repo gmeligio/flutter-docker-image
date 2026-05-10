@@ -34,5 +34,13 @@ services:
   windows:
     build:
       dockerfile: ./windows.Dockerfile
+      target: flutter
+      args:
+        flutter_version: $FLUTTER_VERSION
+
+  windows-test:
+    build:
+      dockerfile: ./windows.Dockerfile
+      target: test
       args:
         flutter_version: $FLUTTER_VERSION

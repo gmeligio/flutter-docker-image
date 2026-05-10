@@ -83,6 +83,42 @@ RUN flutter build windows;
 WORKDIR "$USERPROFILE"
 COPY ./script/docker_windows_entrypoint.ps1 "docker_entrypoint.ps1"
 
+# hadolint ignore=DL3025
 ENTRYPOINT "C:\Users\ContainerUser\docker_entrypoint.ps1"
 
 RUN Remove-Item -Recurse build_app;
+
+#-----------------------------------------------
+#-----------------------------------------------
+#-----------------------------------------------
+
+FROM flutter as test
+
+SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
+
+# TODO: Find a way to pass $env:USERPROFILE instead of hardcoding C:\Users\ContainerUser. It's hardcoded because  environment variables in Windows container works by setting for the Machine scope and that will have $env:USERPROFILE as C:\Users\ContainerAdministrator instead.
+ENV USERPROFILE="C:\Users\ContainerUser"
+
+WORKDIR "$USERPROFILE"
+
+# Install Pester
+COPY ./script/InstallPester.ps1 ".\InstallPester.ps1"
+
+# Administrator rights are required to install modules in 'C:\Program Files\WindowsPowerShell\Modules'
+USER ContainerAdministrator
+RUN ".\InstallPester.ps1"; `
+    Remove-Item ".\InstallPester.ps1"; `
+    Import-Module Pester;
+USER ContainerUser
+
+# Run the tests
+COPY ./config/version.json ".\config\version.json"
+COPY ./test/windows/Windows.Tests.ps1 ".\test\Windows.Tests.ps1"
+COPY ./script/RunPester.ps1 ".\script\RunPester.ps1"
+
+# Reset the inherited shell-form ENTRYPOINT from the flutter stage. The test image runs Pester,
+# not the analytics-toggle entrypoint, and shell-form ENTRYPOINT prevents CMD args from being
+# appended cleanly (Docker emits "Shell-form ENTRYPOINT and exec-form CMD may have unexpected
+# results" otherwise).
+ENTRYPOINT ["powershell", "-NoLogo", "-NoProfile", "-File"]
+CMD [".\\script\\RunPester.ps1"]

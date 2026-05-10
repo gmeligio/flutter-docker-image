@@ -25,6 +25,12 @@ version = "v3.6.0"
 [resolutions."docker/metadata-action"."^5"]
 version = "v5.10.0"
 
+[resolutions."docker/metadata-action"."~5.10.0"]
+version = "v5.10.0"
+
+[resolutions."docker/metadata-action"."~5.7.0"]
+version = "v5.7.0"
+
 [resolutions."docker/scout-action"."^1"]
 version = "v1.18.2"
 
@@ -105,6 +111,12 @@ sha = "c299e40c65443455700f0fdfc63efafe5b349051"
 repository = "docker/metadata-action"
 ref_type = "tag"
 date = "2025-11-27T12:36:24Z"
+
+[actions."docker/metadata-action"."v5.7.0"]
+sha = "902fa8ec7d6ecbf8d84d538b9b233a880e428804"
+repository = "docker/metadata-action"
+ref_type = "release"
+date = "2025-02-26T15:31:35Z"
 
 [actions."docker/scout-action"."v1.18.2"]
 sha = "f8c776824083494ab0d56b8105ba2ca85c86e4de"

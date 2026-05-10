@@ -5,8 +5,9 @@
     "main": "index.js",
     "type": "module",
     "scripts": {
-        "build": "npm run readme && npm run contributing && npm run license",
+        "build": "npm run readme && npm run windows && npm run contributing && npm run license",
         "readme": "cross-env NODE_ENV=production node compile.js readme.mdx ../../readme.md",
+        "windows": "cross-env NODE_ENV=production node compile.js windows.mdx ../windows.md",
         "license": "cross-env NODE_ENV=production node compile.js license.mdx ../../LICENSE.md",
         "contributing": "cross-env NODE_ENV=production node compile.js contributing.mdx ../contributing.md",
         "test": "echo \"Error: no test specified\" && exit 1"
