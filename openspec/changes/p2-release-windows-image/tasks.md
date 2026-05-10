@@ -21,22 +21,24 @@
 
 - [ ] 4.1 Verify the new job has no `needs:` line and no `if:` line keying on `release_android` outcome — it must run in parallel.
 - [ ] 4.2 Verify the existing `update_description`, `record_image`, `set_bootstrap_image`, and `create_github_release` jobs still `needs: release_android` only, not `release_windows`.
+- [ ] 4.3 Add `if: github.event_name == 'push'` to `release_android` so that `workflow_dispatch` runs `release_windows` in isolation. The four Android-side downstream jobs auto-skip via their existing `needs: release_android` (GitHub Actions skips dependents when their `needs` job is skipped), so no `if:` clause is added to them.
 
 ## 5. Confirm gx pinning compliance
 
 - [ ] 5.1 Confirm every `uses:` action in the new job is already entered in `.github/gx.toml` (it should be, since they all appear in `release_android`).
-- [ ] 5.2 Run `gx tidy` locally; the diff should be empty. If it isn't, commit the gx-managed updates with the change.
-- [ ] 5.3 Run `gx lint` locally to confirm SHA pinning is correct.
+- [ ] 5.2 Add a new entry to `[actions.overrides]."docker/metadata-action"` in `.github/gx.toml` for the new `release_windows` step, pinned at `~5.10.0` for parity with `release_android` (the existing `~5.7.0` entry for `windows.yml::test_windows` is unrelated and is left untouched in this change).
+- [ ] 5.3 Run `gx tidy` locally; the diff should be empty after 5.2 lands. If it isn't, commit the gx-managed updates with the change.
+- [ ] 5.4 Run `gx lint` locally to confirm SHA pinning is correct.
 
 ## 6. Pre-merge dry run
 
 - [ ] 6.1 Push the branch and open a PR. The `pull_request` checks do not exercise `release.yml`, so the PR is evaluated on YAML review only.
-- [ ] 6.2 After merge, use `workflow_dispatch` to trigger `release.yml` against the most recent stable Flutter tag.
+- [ ] 6.2 After merge, use `workflow_dispatch` to trigger `release.yml` against the most recent stable Flutter tag. The run SHALL report `release_windows` as success and `release_android`, `update_description`, `record_image`, `set_bootstrap_image`, and `create_github_release` all as `skipped`. A green workflow run is the success criterion.
 - [ ] 6.3 Confirm `release_windows` exits 0 and the three published manifests exist:
   - `docker manifest inspect docker.io/<org>/flutter-windows:<version>`
   - `docker manifest inspect ghcr.io/<org>/flutter-windows:<version>`
   - `docker manifest inspect quay.io/<org>/flutter-windows:<version>`
-- [ ] 6.4 Confirm `docker.io/<org>/flutter-android:<version>` is unaffected by the workflow_dispatch run (its digest matches what was published at the original tag time).
+- [ ] 6.4 Confirm `docker.io/<org>/flutter-android:<version>` digest is unchanged from the original tag-time publish. This is structurally guaranteed by the `if:` guard on `release_android` (task 4.3), but verify once on the first dry-run.
 
 ## 7. Confirm OCI labels and version match
 
