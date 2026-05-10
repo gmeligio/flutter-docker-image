@@ -12,13 +12,6 @@ concurrency:
 
 jobs:
   test_windows:
-    permissions:
-      # Allow to write packages for the docker/scout-action to write a comment
-      packages: write
-      # Allow to write pull requests for the docker/scout-action to write a comment
-      pull-requests: write
-      # Allow to write security events for github/codeql-action/upload-sarif to upload SARIF results
-      security-events: write 
     runs-on: windows-2025
     env:
       IMAGE_REPOSITORY_NAME: flutter-windows
@@ -62,45 +55,3 @@ jobs:
 
           docker run --rm ${{ fromJson(steps.metadata.outputs.json).tags[0] }} ".\script\RunPester.ps1"
 
-      # - name: Scan with Docker Scout
-      #   id: docker-scout
-      #   uses: docker/scout-action@381b657c498a4d287752e7f2cfb2b41823f566d9 # v1.17.1
-      #   with:
-      #     command: compare, recommendations
-      #     # Use the Docker Hub image that is the first tag in the metadata
-      #     image: local://${{ fromJson(steps.metadata.outputs.json).tags[0] }}
-      #     # github-token is needed to be able to write the PR comment
-      #     github-token: ${{ github.token }}
-      #     only-fixed: true
-      #     organization: ${{ secrets.DOCKER_HUB_USERNAME }}
-      #     # sarif-file: output.sarif.json
-      #     to-env: prod
-      #     # Enable debug logging when needed
-      #     # debug: true
-          # verbose-debug: true
-
-      # Add a step to push to registries if this is a release (when triggered by workflow_dispatch)
-      # - name: Push to Docker Hub
-      #   if: ${{ github.event_name == 'workflow_dispatch' }}
-      #   shell: powershell
-      #   run: |
-      #     # Tag and push to Docker Hub
-      #     docker push ${{ fromJson(steps.metadata.outputs.json).tags[0] }}
-
-  # validate_version:
-  #   runs-on: ubuntu-24.04
-  #   steps:
-  #     - name: Checkout repository
-  #       uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
-
-  #     - name: Setup CUE
-  #       uses: jaxxstorm/action-install-gh-release@6096f2a2bbfee498ced520b6922ac2c06e990ed2 # v2.1.0
-  #       with:
-  #         repo: cue-lang/cue
-  #         tag: v0.12.0
-  #         digest: e55cd5abd98a592c110f87a7da9ef15bc72515200aecfe1bed04bf86311f5ba1
-
-  #     - name: Validate version.json and flutter_version.json with CUE
-  #       run: |
-  #         cue vet config/version.cue -d '#FlutterVersion' config/flutter_version.json
-  #         cue vet config/version.cue -d '#Version' config/version.json

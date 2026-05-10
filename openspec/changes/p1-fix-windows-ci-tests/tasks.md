@@ -34,9 +34,9 @@
 
 ## 6. Clean up commented-out workflow blocks
 
-- [ ] 6.1 In `.github/workflows/windows.yml`, delete the commented-out `Scan with Docker Scout` step block.
-- [ ] 6.2 In `.github/workflows/windows.yml`, delete the commented-out `Push to Docker Hub` step block (release path is the subject of `p2-release-windows-image`).
-- [ ] 6.3 In `.github/workflows/windows.yml`, delete the commented-out `validate_version` job block (it references the deleted `config/version.cue`).
+- [x] 6.1 In `.github/workflows/windows.yml`, delete the commented-out `Scan with Docker Scout` step block.
+- [x] 6.2 In `.github/workflows/windows.yml`, delete the commented-out `Push to Docker Hub` step block (release path is the subject of `p2-release-windows-image`).
+- [x] 6.3 In `.github/workflows/windows.yml`, delete the commented-out `validate_version` job block (it references the deleted `config/version.cue`).
 
 ## 7. Verify and ship
 
