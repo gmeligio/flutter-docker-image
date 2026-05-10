@@ -1,8 +1,8 @@
 ## 1. README badge
 
-- [ ] 1.1 Add a DeepWiki badge to `docs/src/badges.mdx` linking to `https://deepwiki.com/gmeligio/flutter-docker-image`, using the same Shields-style markup as the surrounding badges
-- [ ] 1.2 Run `npm run readme` (or `npm run build`) inside `docs/src/` to regenerate `readme.md`
-- [ ] 1.3 Confirm the regenerated `readme.md` carries the DeepWiki badge in the header badge row and commit both files
+- [x] 1.1 Add a DeepWiki badge to `docs/src/badges.mdx` linking to `https://deepwiki.com/gmeligio/flutter-docker-image`, using the same Shields-style markup as the surrounding badges
+- [x] 1.2 Run `npm run readme` (or `npm run build`) inside `docs/src/` to regenerate `readme.md`
+- [x] 1.3 Confirm the regenerated `readme.md` carries the DeepWiki badge in the header badge row and commit both files
 
 ## 2. Contributing docs
 
