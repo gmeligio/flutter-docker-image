@@ -19,4 +19,4 @@
 "plexsystems/container-structure-test-action" = "~0.3.0"
 
 [actions.overrides]
-"docker/metadata-action" = [{ workflow = ".github/workflows/build.yml", job = "test_image", step = 5, version = "~5.10.0" }, { workflow = ".github/workflows/ci.yml", job = "test_image", step = 5, version = "~5.10.0" }, { workflow = ".github/workflows/release.yml", job = "release_android", step = 2, version = "~5.10.0" }, { workflow = ".github/workflows/release.yml", job = "release_windows", step = 2, version = "~5.10.0" }, { workflow = ".github/workflows/windows.yml", job = "test_windows", step = 3, version = "~5.7.0" }]
+"docker/metadata-action" = [{ workflow = ".github/workflows/build.yml", job = "test_image", step = 5, version = "~5.10.0" }, { workflow = ".github/workflows/ci.yml", job = "test_image", step = 5, version = "~5.10.0" }, { workflow = ".github/workflows/release.yml", job = "release_android", step = 2, version = "~5.10.0" }, { workflow = ".github/workflows/windows.yml", job = "test_windows", step = 3, version = "~5.7.0" }, { workflow = ".github/workflows/windows.yml", job = "test_windows", step = 4, version = "~5.7.0" }]
