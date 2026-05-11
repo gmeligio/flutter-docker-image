@@ -1,5 +1,11 @@
 # Contributing
 
+## Repository wiki
+
+An AI-generated wiki for this repository is available at [deepwiki.com/gmeligio/flutter-docker-image](https://deepwiki.com/gmeligio/flutter-docker-image). It covers architecture, Dockerfile stages, the CI/release pipeline, and more.
+
+The wiki is kept current automatically: DeepWiki re-indexes the repository whenever it detects the DeepWiki badge in `readme.md`. No manual action is required after merging to `main`.
+
 ## Editing GitHub Actions workflows
 
 GitHub Actions versions are tracked with [`gx`](https://github.com/gmeligio/gx). The manifest at `.github/gx.toml` is the source of truth for version constraints, and `.github/gx.lock` records the resolved SHAs. Workflows must use SHA pins with a `# vX.Y.Z` comment.
