@@ -5,7 +5,7 @@
 Constraints:
 
 - Docker Buildx and `docker/build-push-action` cache features do not work for Windows containers (already noted in `windows.yml`'s comment "Docker Buildx is not supported for Windows containers"). The release job must use `docker build` + `docker push` directly, like `windows.yml` does.
-- The `gx`-managed pinning regime (spec `actions-version-tracking`) requires every new `uses:` to be SHA-pinned via `.github/gx.toml`. This change reuses actions already pinned by `release_android` (`actions/checkout`, `docker/metadata-action`, `docker/login-action`, `actions/github-script`), so no `gx.toml` edit is needed.
+- The `gx`-managed pinning regime (spec `actions-version-tracking`) requires every new `uses:` to be SHA-pinned via `.github/gx.toml`. The actions themselves (`actions/checkout`, `docker/metadata-action`, `docker/login-action`, `actions/github-script`) are already pinned by `release_android`, so no new top-level `[actions]` entry is needed. However, `[actions.overrides]."docker/metadata-action"` is keyed per `(workflow, job, step)` and gains one new entry for the `release_windows` step, pinned at `~5.10.0` for parity with `release_android` (the `~5.7.0` entry for `windows.yml::test_windows` is unrelated and stays).
 - The three-registry fan-out (Docker Hub + GHCR + Quay) is not negotiable — it's the pre-existing distribution promise from `release_android`.
 - `windows-2025` runner cost: each release run adds 30–60 minutes of `windows-2025` minutes. The repository already pays for this in the PR-test workflow per `p1`, so this is incremental cost on tag pushes only.
 
@@ -38,9 +38,9 @@ Alternatives considered:
 
 ### Decision: No Buildx on the Windows job; use plain `docker build` + per-registry `docker push`
 
-`docker/build-push-action` does support Windows containers in some configurations, but the `cache-from: type=gha` / `cache-to: type=gha,mode=max` pattern used by `release_android` is Linux-only. Trying to use the action without GHA cache offers no benefit over plain `docker build`. The Windows job builds with `docker build` and pushes to each registry with three explicit `docker push` calls (or one `docker push --all-tags`).
+`docker/build-push-action` does **not** support Windows containers — the action runs through buildx/buildkit, and Windows-container support there has been an open feature request since 2020 (https://github.com/docker/build-push-action/issues/18). Buildkit's experimental WCOW worker (since v0.13.0, Nov 2024) requires manual containerd 1.7.7+, CNI, and admin-elevated setup that is not available out of the box on hosted `windows-2025` runners. Third-party alternatives (e.g., `mr-smithers-excellent/docker-build-push@v6`) work but consume `docker/metadata-action` outputs in a comma-delimited format that conflicts with OCI label values containing commas, and add a non-Docker-OSS dependency to the gx-managed supply chain.
 
-Tags are produced by `docker/metadata-action` exactly as in the Android job; the script then `docker tag`s the local build to each registry-prefixed name and pushes.
+The Windows job therefore uses plain `docker build` (multiple `-t` flags from `${{ steps.metadata.outputs.tags }}`, multiple `--label` flags from `${{ steps.metadata.outputs.labels }}`) followed by `docker push` per tag. This matches what `windows.yml::test_windows` already does on the same runner image. GHA cache (`type=gha`) is Linux-only and is not used here regardless.
 
 ### Decision: Three registry logins, all reusing existing secrets
 
@@ -60,7 +60,7 @@ Alternative considered:
 
 ## Risks / Trade-offs
 
-- **[Risk] Windows runner is flaky and tags ship with no Windows image.** → Mitigation: `workflow_dispatch` re-run lets a maintainer recover without re-tagging. The release notes are tag-scoped (Android already publishes), so a delayed Windows publish is observable but not a failed release.
+- **[Risk] Windows runner is flaky and tags ship with no Windows image.** → Mitigation: `workflow_dispatch` is the supported Windows-only recovery path. The `if: github.event_name == 'push'` guard on `release_android` makes `workflow_dispatch` re-run only `release_windows`, so recovery does not re-publish Android, re-push the Docker Hub readme, or re-attempt `gh release create` (which would fail on an already-existing release). Android recovery remains fix-forward + re-tag, consistent with the established 35-run history of `release.yml`. The release notes are tag-scoped (Android already publishes), so a delayed Windows publish is observable but not a failed release.
 - **[Risk] Quay or GHCR push fails after Docker Hub push succeeds.** → Mitigation: `docker push` per-registry is idempotent; a re-run of the `release_windows` job pushes any missing tags. Document that the job is safe to re-run.
 - **[Risk] `windows-2025` minutes cost grows by 30–60 min per tag.** → Acceptable: tag cadence is roughly monthly (`flutter-version-update` PRs land on stable bumps). Annualized cost is bounded.
 - **[Trade-off] No Docker Hub description update for the Windows image.** → Acceptable: users discover the Windows variant via the GitHub README, which already documents both. A separate Docker Hub repo (`flutter-windows`) will appear bare for now.
@@ -69,8 +69,8 @@ Alternative considered:
 ## Automated Test Strategy
 
 - **Pre-merge verification (the only level that matters here):** the `release.yml` workflow itself does not run on `pull_request`; it runs on `push: tags: *` and `workflow_dispatch`. Therefore this change cannot be verified by a normal PR check. The verification path is:
-  1. Land the PR with the new `release_windows` job.
-  2. Use `workflow_dispatch` against an existing tag (e.g., the most recent stable Flutter tag) to trigger a one-shot run before the next stable bump.
+  1. Land the PR with the new `release_windows` job and the `if: github.event_name == 'push'` guard on `release_android`.
+  2. Use `workflow_dispatch` against an existing tag (e.g., the most recent stable Flutter tag) to trigger a one-shot run before the next stable bump. Expect `release_windows` to execute and the five Android-side jobs (`release_android`, `update_description`, `record_image`, `set_bootstrap_image`, `create_github_release`) to all be reported as `skipped`. A green workflow run is the success criterion.
   3. Confirm the three pushed images exist via `docker manifest inspect`.
 - **Post-merge ongoing verification:** every monthly tag exercises the path. The `flutter-version-update` PR pipeline (spec: `flutter-version-update`) already gates that the Android image is healthy before tagging; once `p1-fix-windows-ci-tests` is in, the Windows image is also gated by its `test_windows` PR check on the upgrade PR. So the release-time signal is "PR was green and merged → tag was cut → release builds against a verified image."
 - **No new test infrastructure**: the change is GitHub Actions YAML. The `metadata-action` and `login-action` are battle-tested in `release_android`.
@@ -93,5 +93,4 @@ Alternative considered:
 
 ## Open Questions
 
-- Should `release_windows` `needs: release_android` after all, to gate Windows publication on Android publication and reduce the chance of a half-released tag visible to users? *Tentative answer: no* (per the parallel-jobs decision above). Reopen if maintainers see frequent partial releases in practice.
 - Should the `update_description` job on Docker Hub gain a parallel `update_description_windows` step pointing at a `readme-windows.md`? *Out of scope here* — split if/when there's a Windows-specific readme worth maintaining.

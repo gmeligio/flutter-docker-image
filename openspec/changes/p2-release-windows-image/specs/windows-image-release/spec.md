@@ -37,7 +37,7 @@ The experience context is the maintainer cutting a release: they accept that one
 
 ### Requirement: Windows release uses the same metadata conventions as Android release
 
-The `release_windows` job SHALL use `docker/metadata-action` with the `images` input set to the same three registry namespaces and the `tags` input set to `type=raw,value=${{ env.FLUTTER_VERSION }}`, mirroring the Android job. The image labels (`org.opencontainers.image.*`) produced by `metadata-action` SHALL be applied to the built image via `docker/build-push-action`'s `labels` input.
+The `release_windows` job SHALL use `docker/metadata-action` with the `images` input set to the same three registry namespaces and the `tags` input set to `type=raw,value=${{ env.FLUTTER_VERSION }}`, mirroring the Android job. The image labels (`org.opencontainers.image.*`) produced by `metadata-action` SHALL be applied to the built image (e.g., as `--label` arguments to `docker build`), so that `docker inspect` reports the same OCI label set as the Android image. `docker/build-push-action` is not a viable mechanism here because it does not support Windows containers (tracked at https://github.com/docker/build-push-action/issues/18).
 
 The experience context is the operator inspecting `docker inspect <org>/flutter-windows:X.Y.Z` and `docker inspect <org>/flutter-android:X.Y.Z` and finding the same set of OCI labels (description, source, revision, version) populated with the same values.
 
@@ -49,16 +49,25 @@ The experience context is the operator inspecting `docker inspect <org>/flutter-
 - **AND** `org.opencontainers.image.version` equals `X.Y.Z`
 - **AND** `org.opencontainers.image.revision` equals the commit SHA of the tag
 
-### Requirement: Manual `workflow_dispatch` rebuild remains available for Windows
+### Requirement: Manual `workflow_dispatch` rebuild is Windows-only
 
-The `release.yml` workflow SHALL continue to declare `workflow_dispatch:`, and the `release_windows` job SHALL be runnable via `workflow_dispatch` with the `FLUTTER_VERSION` env var set from `github.ref_name`, so that a maintainer can rebuild a single tag's Windows image without re-cutting the Git tag.
+The `release.yml` workflow SHALL continue to declare `workflow_dispatch:`. On `workflow_dispatch`, only the `release_windows` job SHALL execute; `release_android` and its downstream jobs (`update_description`, `record_image`, `set_bootstrap_image`, `create_github_release`) SHALL be skipped via an `if: github.event_name == 'push'` guard on `release_android` (the four downstream jobs auto-skip via their existing `needs: release_android`). The `FLUTTER_VERSION` env var SHALL be set from `github.ref_name`, so that a maintainer can rebuild a single tag's Windows image without re-cutting the Git tag and without re-publishing the Android image, re-pushing the Docker Hub readme, or re-attempting `gh release create` (which would fail because the release already exists).
 
-The experience context is the maintainer recovering from a transient Windows runner failure: they re-run the workflow on the existing tag instead of force-pushing a new one.
+The experience context is the maintainer recovering from a transient Windows runner failure: they re-run the workflow on the existing tag instead of force-pushing a new one. Android recovery, by contrast, is the established fix-forward + re-tag pattern (see `release.yml` run history) and does not need a `workflow_dispatch` path.
 
-#### Scenario: Manual rebuild produces a fresh image
+#### Scenario: Manual rebuild produces a fresh Windows image
 
 - **GIVEN** a tag `X.Y.Z` exists in the repository
 - **AND** the prior `release_windows` run for that tag failed
 - **WHEN** a maintainer triggers `release.yml` via `workflow_dispatch` selecting ref `X.Y.Z`
 - **THEN** `release_windows` builds and pushes `flutter-windows:X.Y.Z` to all three registries
-- **AND** the existing image digests at those tags are overwritten by the new digests
+- **AND** the existing Windows image digests at those tags are overwritten by the new digests
+
+#### Scenario: Manual rebuild leaves the Android digest untouched
+
+- **GIVEN** a tag `X.Y.Z` exists and was previously published with Android digest `D_a`
+- **WHEN** a maintainer triggers `release.yml` via `workflow_dispatch` selecting ref `X.Y.Z`
+- **THEN** `release_android` is reported as `skipped`
+- **AND** `update_description`, `record_image`, `set_bootstrap_image`, and `create_github_release` are reported as `skipped`
+- **AND** the digest at `docker.io/<org>/flutter-android:X.Y.Z` remains `D_a`
+- **AND** the run is reported as success (no failed jobs)
