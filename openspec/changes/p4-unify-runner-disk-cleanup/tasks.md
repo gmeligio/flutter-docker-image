@@ -10,14 +10,14 @@
 
 ## 2. Switch workflows to the unified action
 
-- [ ] 2.1 Update `.github/workflows/ci.yml:50-51` to reference the unified action (path unchanged; behavior unchanged on Linux).
-- [ ] 2.2 Update `.github/workflows/build.yml:41-42` to reference the unified action.
-- [ ] 2.3 Update `.github/workflows/windows.yml:23-24` to reference `./.github/actions/clean-runner-disk` (was `clean-runner-disk-windows`).
+- [x] 2.1 Update `.github/workflows/ci.yml:50-51` to reference the unified action (path unchanged; behavior unchanged on Linux). _No-op: reference already `./.github/actions/clean-runner-disk`._
+- [x] 2.2 Update `.github/workflows/build.yml:41-42` to reference the unified action. _No-op: reference already `./.github/actions/clean-runner-disk`._
+- [x] 2.3 Update `.github/workflows/windows.yml:23-24` to reference `./.github/actions/clean-runner-disk` (was `clean-runner-disk-windows`).
 
 ## 3. Remove the old Windows-only action
 
-- [ ] 3.1 Delete `.github/actions/clean-runner-disk-windows/action.yml` and its parent directory.
-- [ ] 3.2 Grep the repo for any other references to `clean-runner-disk-windows` (docs, READMEs, scripts). Update or remove them.
+- [x] 3.1 Delete `.github/actions/clean-runner-disk-windows/action.yml` and its parent directory.
+- [x] 3.2 Grep the repo for any other references to `clean-runner-disk-windows` (docs, READMEs, scripts). Update or remove them. _No other references outside OpenSpec artifacts describing this change._
 
 ## 4. Verify on a real PR before merge
 
