@@ -1,4 +1,25 @@
-## [3.41.9] - 2026-05-01
+## [3.41.9] - 2026-05-12
+
+### 🚀 Features
+
+- *(ci)* Adopt gx for GitHub Actions version tracking (#439)
+- *(renovate)* Manage GitHub Actions through gx.toml (#441)
+- *(release)* Publish flutter-windows image; archive p1 (#443)
+
+### 📚 Documentation
+
+- Add openspec config (#440)
+- Update windows docs (#442)
+- Add DeepWiki integration (#444)
+
+### ⚙️ Miscellaneous Tasks
+
+- Add openspec Claude Code skills and commands (#438)
+- Update version.json from a single place (#375)
+- Test windows image (#339)
+- Skip secret-dependent steps on fork PRs (#446)
+- Update fastlane version to 2.234.0 (#445)
+## [3.41.9] - 2026-05-12
 
 ### ⚙️ Miscellaneous Tasks
 
