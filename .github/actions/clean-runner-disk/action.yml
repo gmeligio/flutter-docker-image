@@ -1,32 +1,58 @@
 name: 'Clean Runner Disk'
-description: 'Cleans the GitHub Actions runner disk by removing unused packages and toolchains to free up space.'
+description: >-
+  Frees disk space on the GitHub-hosted runner by removing unused toolchains
+  and SDKs. Dispatches by runner.os to the appropriate native fast-delete path
+  (apt-get + rm on Linux, robocopy /MIR /MT:128 with PowerShell fallback on
+  Windows). Asserts a minimum free space threshold after cleanup and emits a
+  one-line job summary.
+
 runs:
   using: composite
   steps:
-    - name: Show disk usage before cleaning
-      run: df -h
+    # ----- Guard: only Linux and Windows runners are supported -----
+    - name: Reject unsupported runner OS
+      if: runner.os != 'Linux' && runner.os != 'Windows'
       shell: bash
-    - name: List installed packages before cleaning
+      run: |
+        echo "::error::clean-runner-disk: unsupported runner.os '${{ runner.os }}'. Supported: Linux, Windows."
+        exit 1
+
+    # =========================================================================
+    # Linux path
+    # =========================================================================
+    - name: '[Linux] Show disk usage before cleaning'
+      if: runner.os == 'Linux'
+      shell: bash
+      run: |
+        df -h
+        echo "__CLEAN_RUNNER_DISK_FREE_BEFORE_KB=$(df --output=avail / | tail -1 | tr -d ' ')" >> $GITHUB_ENV
+        echo "__CLEAN_RUNNER_DISK_STARTED_AT=$(date +%s)" >> $GITHUB_ENV
+
+    - name: '[Linux] List installed packages before cleaning'
+      if: runner.os == 'Linux'
+      shell: bash
       run: dpkg --get-selections | grep -v deinstall
+
+    - name: '[Linux] Clean runner disk'
+      if: runner.os == 'Linux'
       shell: bash
-    - name: Clean runner disk
       run: |
         # Remove PHP
-        sudo apt-get remove -y 'php.*' --fix-missing || echo "::warning::The command [sudo apt-get remove -y 'php.*' --fix-missing] failed to complete successfully. Proceeding..."
+        sudo apt-get remove -y 'php.*' --fix-missing || echo "::warning::apt-get remove php.* failed"
         # Remove databases
-        sudo apt-get remove -y '^mongodb-.*' --fix-missing || echo "::warning::The command [sudo apt-get remove -y '^mongodb-.*' --fix-missing] failed to complete successfully. Proceeding..."
-        sudo apt-get remove -y '^mysql-.*' --fix-missing || echo "::warning::The command [sudo apt-get remove -y '^mysql-.*' --fix-missing] failed to complete successfully. Proceeding..."
+        sudo apt-get remove -y '^mongodb-.*' --fix-missing || echo "::warning::apt-get remove mongodb failed"
+        sudo apt-get remove -y '^mysql-.*' --fix-missing || echo "::warning::apt-get remove mysql failed"
         # Remove apt packages
-        sudo apt-get autoremove -y || echo "::warning::The command [sudo apt-get autoremove -y] failed to complete successfully. Proceeding..."
-        sudo apt-get clean || echo "::warning::The command [sudo apt-get clean] failed to complete successfully. Proceeding..."
+        sudo apt-get autoremove -y || echo "::warning::apt-get autoremove failed"
+        sudo apt-get clean || echo "::warning::apt-get clean failed"
         # Remove Java (JDKs)
         sudo rm -rf /usr/lib/jvm
         # Remove .NET SDKs
         sudo rm -rf /usr/share/dotnet
-        sudo apt-get remove -y '^aspnetcore-.*' || echo "::warning::The command [sudo apt-get remove -y '^aspnetcore-.*'] failed to complete successfully. Proceeding..."
-        sudo apt-get remove -y '^dotnet-.*' --fix-missing || echo "::warning::The command [sudo apt-get remove -y '^dotnet-.*' --fix-missing] failed to complete successfully. Proceeding..."
+        sudo apt-get remove -y '^aspnetcore-.*' || echo "::warning::apt-get remove aspnetcore failed"
+        sudo apt-get remove -y '^dotnet-.*' --fix-missing || echo "::warning::apt-get remove dotnet failed"
         # Remove Swift toolchain
-        sudo apt-get remove -y '^llvm-.*' --fix-missing || echo "::warning::The command [sudo apt-get remove -y '^llvm-.*' --fix-missing] failed to complete successfully. Proceeding..."
+        sudo apt-get remove -y '^llvm-.*' --fix-missing || echo "::warning::apt-get remove llvm failed"
         sudo rm -rf /usr/share/swift
         # Remove Haskell (GHC)
         sudo rm -rf /usr/local/.ghcup
@@ -35,15 +61,15 @@ runs:
         # Remove Android SDKs
         sudo rm -rf /usr/local/lib/android
         # Remove browsers
-        sudo apt-get remove -y google-chrome-stable firefox --fix-missing || echo "::warning::The command [sudo apt-get remove -y azure-cli google-chrome-stable firefox powershell mono-devel libgl1-mesa-dri --fix-missing] failed to complete successfully. Proceeding..."
+        sudo apt-get remove -y google-chrome-stable firefox --fix-missing || echo "::warning::apt-get remove chrome/firefox failed"
         sudo rm -rf /usr/local/share/chromium /opt/microsoft /opt/google
         # Remove cloud tools
         sudo rm -rf /opt/az
-        sudo apt-get remove -y azure-cli mono-devel libgl1-mesa-dri --fix-missing || echo "::warning::The command [sudo apt-get remove -y azure-cli google-chrome-stable firefox powershell mono-devel libgl1-mesa-dri --fix-missing] failed to complete successfully. Proceeding..."
-        sudo apt-get remove -y google-cloud-sdk --fix-missing || echo "::debug::The command [sudo apt-get remove -y google-cloud-sdk --fix-missing] failed to complete successfully. Proceeding..."
-        sudo apt-get remove -y google-cloud-cli --fix-missing || echo "::debug::The command [sudo apt-get remove -y google-cloud-cli --fix-missing] failed to complete successfully. Proceeding..."
+        sudo apt-get remove -y azure-cli mono-devel libgl1-mesa-dri --fix-missing || echo "::warning::apt-get remove azure-cli/mono failed"
+        sudo apt-get remove -y google-cloud-sdk --fix-missing || echo "::debug::apt-get remove google-cloud-sdk failed"
+        sudo apt-get remove -y google-cloud-cli --fix-missing || echo "::debug::apt-get remove google-cloud-cli failed"
         # Remove PowerShell
-        sudo apt-get remove -y powershell --fix-missing || echo "::warning::The command [sudo apt-get remove -y azure-cli google-chrome-stable firefox powershell mono-devel libgl1-mesa-dri --fix-missing] failed to complete successfully. Proceeding..."
+        sudo apt-get remove -y powershell --fix-missing || echo "::warning::apt-get remove powershell failed"
         sudo rm -rf /usr/local/share/powershell
         # Remove CodeQL and other toolcaches
         sudo rm -rf /opt/hostedtoolcache
@@ -51,16 +77,156 @@ runs:
         sudo rm -rf /usr/local/bin/minikube
         # Remove Rust
         sudo rm -rf /home/runner/.rustup /etc/skel/.rustup
+
+    - name: '[Linux] Show disk usage after cleaning'
+      if: runner.os == 'Linux'
       shell: bash
-    - name: Show disk usage after cleaning
-      run: df -h
+      run: |
+        df -h
+        echo "Top-level directories by size:"
+        sudo du -h -d1 / 2>/dev/null | sort -hr | head -n 20 || true
+
+    - name: '[Linux] Assert free space and emit summary'
+      if: runner.os == 'Linux' && always()
       shell: bash
-    - name: Top-level directories after cleaning
-      run: du -h -d1 / | sort -hr | head -n 20 || true
-      shell: bash
-    - name: Detailed file sizes after cleaning
-      run: find / -type f -exec du -h {} + 2>/dev/null | sort -hr | head -n 1000 || true
-      shell: bash
-    - name: List installed packages after cleaning
-      run: dpkg --get-selections | grep -v deinstall
-      shell: bash
+      run: |
+        free_kb=$(df --output=avail / | tail -1 | tr -d ' ')
+        free_gb=$(awk "BEGIN{printf \"%.2f\", $free_kb/1024/1024}")
+        before_kb=${__CLEAN_RUNNER_DISK_FREE_BEFORE_KB:-0}
+        freed_gb=$(awk "BEGIN{printf \"%.2f\", ($free_kb-$before_kb)/1024/1024}")
+        started_at=${__CLEAN_RUNNER_DISK_STARTED_AT:-$(date +%s)}
+        elapsed=$(( $(date +%s) - started_at ))
+        em=$((elapsed/60)); es=$((elapsed%60))
+        echo "clean-runner-disk: freed ${freed_gb} GB in ${em}m ${es}s on Linux" >> $GITHUB_STEP_SUMMARY
+        threshold_kb=$((20*1024*1024))
+        if [ "$free_kb" -lt "$threshold_kb" ]; then
+          echo "Top 5 directories by size:"
+          sudo du -h -d1 / 2>/dev/null | sort -hr | head -n 5 || true
+          echo "::error::clean-runner-disk: only ${free_gb} GB free on /, expected >= 20 GB."
+          exit 1
+        fi
+        echo "clean-runner-disk: ${free_gb} GB free on / (threshold 20 GB) — OK"
+
+    # =========================================================================
+    # Windows path
+    # =========================================================================
+    - name: '[Windows] Show disk usage before cleaning'
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        Get-PSDrive -PSProvider FileSystem | Format-Table -AutoSize
+        $freeBytes = (Get-PSDrive C).Free
+        "__CLEAN_RUNNER_DISK_FREE_BEFORE_BYTES=$freeBytes" | Out-File -FilePath $env:GITHUB_ENV -Append
+        "__CLEAN_RUNNER_DISK_STARTED_AT=$([DateTimeOffset]::UtcNow.ToUnixTimeSeconds())" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+    - name: '[Windows] Top-level directories on C: before cleaning'
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        Get-ChildItem -Path C:\ -Directory -Force -ErrorAction SilentlyContinue |
+          ForEach-Object {
+            $size = (Get-ChildItem -Path $_.FullName -Recurse -Force -ErrorAction SilentlyContinue |
+                     Measure-Object -Property Length -Sum).Sum
+            [PSCustomObject]@{
+              Path = $_.FullName
+              SizeGB = [math]::Round($size / 1GB, 2)
+            }
+          } | Sort-Object SizeGB -Descending | Format-Table -AutoSize
+
+    - name: '[Windows] Clean runner disk (robocopy /MIR with PS fallback)'
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        $paths = @(
+          'C:\Android',
+          'C:\hostedtoolcache',
+          'C:\Program Files\dotnet',
+          'C:\Program Files (x86)\dotnet',
+          'C:\ghcup',
+          'C:\Program Files\Haskell',
+          'C:\Program Files\Haskell Platform',
+          'C:\Strawberry',
+          'C:\msys64',
+          'C:\Miniconda',
+          'C:\Program Files\MongoDB',
+          'C:\Program Files\PostgreSQL',
+          'C:\PostgreSQL',
+          'C:\Program Files\Google\Chrome',
+          'C:\Program Files (x86)\Google\Chrome',
+          'C:\Program Files\Mozilla Firefox',
+          'C:\selenium',
+          'C:\SeleniumWebDrivers',
+          'C:\vcpkg',
+          'C:\tools'
+        )
+
+        $empty = Join-Path $env:RUNNER_TEMP 'clean-runner-disk-empty'
+        if (Test-Path -LiteralPath $empty) { Remove-Item -LiteralPath $empty -Recurse -Force -ErrorAction SilentlyContinue }
+        New-Item -ItemType Directory -Path $empty -Force | Out-Null
+
+        foreach ($p in $paths) {
+          if (-not (Test-Path -LiteralPath $p)) {
+            Write-Host "Skipping $p (not found)"
+            continue
+          }
+          Write-Host "Draining $p with robocopy /MIR /MT:128"
+          # Robocopy exit codes: 0=nothing, 1=copied, 2=purged, 3=copied+purged, 4-7=warnings, >=8=error
+          robocopy $empty $p /MIR /MT:128 /R:1 /W:1 /NFL /NDL /NJH /NJS /NP | Out-Null
+          $rc = $LASTEXITCODE
+          if ($rc -ge 8) {
+            Write-Host "::warning::robocopy returned $rc for $p — falling back to Remove-Item"
+            Remove-Item -LiteralPath $p -Recurse -Force -ErrorAction Continue
+          } else {
+            # Robocopy /MIR drained the contents but leaves the target dir itself.
+            # Use -Recurse so any reparse-point/mismatch stragglers (robocopy rc 1-7) still go.
+            Remove-Item -LiteralPath $p -Recurse -Force -ErrorAction Continue
+          }
+          if (Test-Path -LiteralPath $p) {
+            Write-Host "::warning::$p still present after cleanup attempt"
+          }
+        }
+
+        Remove-Item -LiteralPath $empty -Recurse -Force -ErrorAction SilentlyContinue
+        # Reset for downstream steps so a non-zero robocopy code does not fail the job
+        $global:LASTEXITCODE = 0
+
+    - name: '[Windows] Show disk usage after cleaning'
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        Get-PSDrive -PSProvider FileSystem | Format-Table -AutoSize
+        Get-ChildItem -Path C:\ -Directory -Force -ErrorAction SilentlyContinue |
+          ForEach-Object {
+            $size = (Get-ChildItem -Path $_.FullName -Recurse -Force -ErrorAction SilentlyContinue |
+                     Measure-Object -Property Length -Sum).Sum
+            [PSCustomObject]@{
+              Path = $_.FullName
+              SizeGB = [math]::Round($size / 1GB, 2)
+            }
+          } | Sort-Object SizeGB -Descending | Format-Table -AutoSize
+
+    - name: '[Windows] Assert free space and emit summary'
+      if: runner.os == 'Windows' && always()
+      shell: pwsh
+      run: |
+        $freeBytes = (Get-PSDrive C).Free
+        $freeGb = [math]::Round($freeBytes / 1GB, 2)
+        $beforeBytes = [int64]($env:__CLEAN_RUNNER_DISK_FREE_BEFORE_BYTES ?? '0')
+        $freedGb = [math]::Round(($freeBytes - $beforeBytes) / 1GB, 2)
+        $startedAt = [int64]($env:__CLEAN_RUNNER_DISK_STARTED_AT ?? [DateTimeOffset]::UtcNow.ToUnixTimeSeconds())
+        $elapsed = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds() - $startedAt
+        $em = [math]::Floor($elapsed / 60); $es = $elapsed % 60
+        "clean-runner-disk: freed $freedGb GB in ${em}m ${es}s on Windows" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
+        $thresholdGb = 40
+        if ($freeGb -lt $thresholdGb) {
+          Write-Host "Top 5 remaining directories on C: by size:"
+          Get-ChildItem -Path C:\ -Directory -Force -ErrorAction SilentlyContinue |
+            ForEach-Object {
+              $size = (Get-ChildItem -Path $_.FullName -Recurse -Force -ErrorAction SilentlyContinue |
+                       Measure-Object -Property Length -Sum).Sum
+              [PSCustomObject]@{ Path = $_.FullName; SizeGB = [math]::Round($size / 1GB, 2) }
+            } | Sort-Object SizeGB -Descending | Select-Object -First 5 | Format-Table -AutoSize
+          Write-Host "::error::clean-runner-disk: only $freeGb GB free on C:, expected >= $thresholdGb GB."
+          exit 1
+        }
+        Write-Host "clean-runner-disk: $freeGb GB free on C: (threshold $thresholdGb GB) — OK"
