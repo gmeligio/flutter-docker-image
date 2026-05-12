@@ -1,0 +1,101 @@
+## ADDED Requirements
+
+### Requirement: Single action reference works on both supported runner OSes
+
+`.github/actions/clean-runner-disk` SHALL be a single composite action invocable from any workflow job running on either `ubuntu-24.04` or `windows-2025` with the same `uses: ./.github/actions/clean-runner-disk` reference. The action SHALL dispatch its cleanup logic by `runner.os` internally; workflow YAML SHALL NOT branch on OS to choose between action paths.
+
+The experience context is the CI engineer reviewing a workflow that needs runner disk space — they reference one action, see one diff in PRs that touch cleanup behavior, and do not need to remember a separate path for the Windows job.
+
+#### Scenario: Linux job invokes the action
+
+- **GIVEN** a workflow job with `runs-on: ubuntu-24.04` that calls `uses: ./.github/actions/clean-runner-disk`
+- **WHEN** the action runs
+- **THEN** only the Linux cleanup steps execute (Windows-gated steps are skipped)
+- **AND** the job continues normally after cleanup
+
+#### Scenario: Windows job invokes the action
+
+- **GIVEN** a workflow job with `runs-on: windows-2025` that calls `uses: ./.github/actions/clean-runner-disk`
+- **WHEN** the action runs
+- **THEN** only the Windows cleanup steps execute (Linux-gated steps are skipped)
+- **AND** the job continues normally after cleanup
+
+#### Scenario: Unsupported runner OS is rejected loudly
+
+- **GIVEN** a future workflow job with `runs-on: macos-14` that calls `uses: ./.github/actions/clean-runner-disk`
+- **WHEN** the action runs
+- **THEN** the action fails the job with a message naming the unsupported `runner.os`
+- **AND** the job does not silently no-op (which would hide the misconfiguration until a downstream OOM)
+
+### Requirement: Windows cleanup completes within a 4-minute wall-clock budget
+
+The Windows cleanup path SHALL complete in ≤ 4 minutes wall-clock at the 95th percentile across the rolling 30-day window of `windows.yml` runs. Implementation SHALL use the fastest native deletion tool available on `windows-2025` (currently `cmd /c rmdir /s /q`) and SHALL fall back to PowerShell `Remove-Item` only for paths that the fast path could not remove.
+
+The experience context is the maintainer watching the PR check page — the Windows job dropping by ~6 minutes is the user-visible payoff of this capability, and a regression back toward 10 minutes is a real complaint.
+
+#### Scenario: Typical Windows runner image, fast path succeeds for every target
+
+- **GIVEN** a `windows-2025` runner with the standard set of pre-installed toolchains (Android SDK, hostedtoolcache, dotnet, msys64, Strawberry Perl, Miniconda, Chrome, Firefox, vcpkg, etc.)
+- **WHEN** the cleanup action runs and the fast path removes every target directory on the first attempt
+- **THEN** the action completes in ≤ 4 minutes
+- **AND** every target directory is gone from disk
+
+#### Scenario: A target directory resists the fast path and triggers fallback
+
+- **GIVEN** one target directory contains a long path (>260 chars) or a locked file that `cmd /c rmdir /s /q` cannot remove
+- **WHEN** the cleanup action runs
+- **THEN** the action falls back to PowerShell `Remove-Item -Recurse -Force` for that specific directory
+- **AND** the action continues past the failure rather than aborting
+- **AND** the overall run still completes within the 4-minute budget at the 95th percentile
+
+### Requirement: Linux cleanup retains its current ~3-minute budget
+
+The Linux cleanup path SHALL complete in ≤ 4 minutes wall-clock at the 95th percentile across the rolling 30-day window of `ci.yml` and `build.yml` runs. The behavior of unifying the action SHALL NOT regress Linux performance relative to the pre-change baseline.
+
+The experience context is the same maintainer comparing today's CI duration to yesterday's after the action is unified — Linux numbers must not move in the wrong direction as a side-effect of the Windows work.
+
+#### Scenario: Linux cleanup runs under the unified action
+
+- **GIVEN** an `ubuntu-24.04` runner with the standard pre-installed toolchains (JVM, .NET, Swift/LLVM, Haskell GHC, Julia, Android SDK, Chrome, Firefox, Azure CLI, PowerShell, hostedtoolcache, Rust, etc.)
+- **WHEN** the cleanup action runs
+- **THEN** the action completes in ≤ 4 minutes
+- **AND** the set of removed paths is at least the same as the pre-change `.github/actions/clean-runner-disk/action.yml` removed
+
+### Requirement: Action asserts minimum post-clean free space and fails loudly on regression
+
+After cleanup, the action SHALL check free space on the build drive (`/` on Linux, `C:` on Windows) and SHALL fail the step with a message naming the actual free space and the threshold when free space is below 20 GB on Linux or 40 GB on Windows.
+
+The experience context is the maintainer whose runner image GitHub silently updated overnight to add a new 15 GB tool — without the assertion they would wait 25 minutes for `docker build` to fail with "no space left on device"; with the assertion the job fails at the cleanup step with a typed message that names what is full.
+
+#### Scenario: Cleanup achieves enough free space
+
+- **GIVEN** the runner has ≥ 20 GB free on `/` after Linux cleanup, or ≥ 40 GB free on `C:` after Windows cleanup
+- **WHEN** the post-clean assertion runs
+- **THEN** the assertion passes
+- **AND** the job continues to the Docker build
+
+#### Scenario: Cleanup did not free enough space
+
+- **GIVEN** an underlying change (script bug, runner image update introducing a new large toolchain not in the removal list) leaves < 20 GB free on Linux or < 40 GB free on Windows
+- **WHEN** the post-clean assertion runs
+- **THEN** the assertion fails the step with `core.setFailed`
+- **AND** the failure message names the actual free space, the threshold, and the top 5 remaining directories by size
+- **AND** the Docker build does not run
+
+### Requirement: Action emits a one-line job summary
+
+The action SHALL append a single line to `$GITHUB_STEP_SUMMARY` (or the PowerShell-equivalent file path on Windows) in the form `clean-runner-disk: freed <X> GB in <Y>m <Z>s on <os>`. The line SHALL be emitted once per invocation and SHALL NOT require expanding the step logs to read.
+
+The experience context is the maintainer scanning the PR check page for slow steps — the summary line surfaces the cleanup cost without log-scraping, which is how the bottleneck was discovered in the first place.
+
+#### Scenario: Summary appears on the run page after success
+
+- **GIVEN** any successful invocation of the action on any supported runner
+- **WHEN** the run completes
+- **THEN** the run summary on the PR check page contains a single line matching `^clean-runner-disk: freed [0-9.]+ GB in [0-9]+m [0-9]+s on (Linux|Windows)$`
+
+#### Scenario: Summary appears even when the assertion fails
+
+- **GIVEN** an invocation where the post-clean assertion fails (free space below threshold)
+- **WHEN** the run completes (with the step marked failed)
+- **THEN** the summary still contains the line so a maintainer can compare the freed-bytes number against historical values
