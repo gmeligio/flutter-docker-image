@@ -11,6 +11,25 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Resolves the bootstrap container tag — the latest published release tag.
+  # Reading from the releases API (instead of vars.FLUTTER_VERSION) makes
+  # fork PRs work, and reading from releases (instead of main's version.json)
+  # avoids the window between merging a version-bump PR and publishing its
+  # image during which main's version.json points to a tag that doesn't
+  # exist in GHCR yet.
+  setup:
+    runs-on: ubuntu-24.04
+    outputs:
+      flutter_version: ${{ steps.read.outputs.version }}
+    steps:
+      - name: Read latest release tag
+        id: read
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version=$(gh api "repos/${{ github.repository }}/releases/latest" --jq '.tag_name')
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
   test_image:
     permissions:
       # Allow to write packages for the docker/scout-action to write a comment
@@ -152,8 +171,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
-        with:
-          ref: ${{ github.head_ref }}
 
       - name: Setup NodeJS
         uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
@@ -162,40 +179,34 @@ jobs:
           cache-dependency-path: docs/src/package-lock.json
           node-version: lts/*
 
-      # The GitHub App token and the commit/push step are not available to
-      # fork PRs. Still run the doc build to verify it compiles.
-      - name: Generate authentication token with GitHub App to trigger Actions
-        if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
-        uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1
-        id: app-token
-        with:
-          app-id: ${{ secrets.VERIFIED_COMMIT_ID }}
-          private-key: ${{ secrets.VERIFIED_COMMIT_KEY }}
-          repositories: ${{ github.event.repository.name }}
-          owner: ${{ github.repository_owner }}
-
-      - name: Update documentation
+      - name: Build documentation
         working-directory: docs/src
         run: |
           npm ci --prefer-offline
           npm run build
 
-      - name: Commit and push documentation
-        if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
-        uses: grafana/github-api-commit-action@b1d81091e8480dd11fcea8bc1f0ab977a0376ca5 # v1.0.0
+      # Upload generated docs so reviewers can inspect them. Commit-back is
+      # handled by update_docs.yml on push to main — pushing to fork PR
+      # branches is not possible with base-repo credentials.
+      - name: Upload built docs
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         with:
-          commit-message: 'docs: generate documentation files'
-          success-if-no-changes: true
-          stage-all-files: true
-          token: ${{ steps.app-token.outputs.token }}
+          name: docs-${{ github.event.pull_request.number || github.sha }}
+          path: |
+            readme.md
+            LICENSE.md
+            docs/contributing.md
+            docs/windows.md
+          retention-days: 14
 
   test_gradle:
+    needs: setup
     permissions:
       # Allow to read packages to pull the container image from GitHub Container Registry
       packages: read
     runs-on: ubuntu-24.04
     container:
-      image: ghcr.io/${{ github.repository_owner }}/flutter-android:${{ vars.FLUTTER_VERSION }}
+      image: ghcr.io/${{ github.repository_owner }}/flutter-android:${{ needs.setup.outputs.flutter_version }}
       credentials:
         username: ${{ github.actor }}
         password: ${{ github.token }}

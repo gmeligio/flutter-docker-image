@@ -39,7 +39,6 @@ jobs:
       - name: Create Tag for a New Flutter Version
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         env:
-          OLD_FLUTTER_VERSION: ${{ vars.FLUTTER_VERSION }}
           NEW_FLUTTER_VERSION: ${{ env.FLUTTER_VERSION }}
         with:
           github-token: ${{ steps.app-token.outputs.token }}

@@ -235,28 +235,6 @@ jobs:
         with:
           sarif_file: sarif.json
 
-  set_bootstrap_image:
-    runs-on: ubuntu-24.04
-    needs: release_android
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
-
-      - name: Generate authentication token with GitHub App to trigger Actions
-        uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1
-        id: app-token
-        with:
-          app-id: ${{ secrets.VERIFIED_COMMIT_ID }}
-          private-key: ${{ secrets.VERIFIED_COMMIT_KEY }}
-          repositories: ${{ github.event.repository.name }}
-          owner: ${{ github.repository_owner }}
-
-      - name: Update bootstrap image tag in environment variable
-        run: gh variable set FLUTTER_VERSION --body "${{ env.FLUTTER_VERSION }}"
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-
   create_github_release:
     permissions:
       # Allow to create releases and upload assets to them
