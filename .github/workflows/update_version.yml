@@ -11,6 +11,20 @@ env:
   FLUTTER_VERSION_PATH: config/flutter_version.json
 
 jobs:
+  # Resolves the bootstrap container tag — the latest published release tag.
+  setup:
+    runs-on: ubuntu-24.04
+    outputs:
+      flutter_version: ${{ steps.read.outputs.version }}
+    steps:
+      - name: Read latest release tag
+        id: read
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version=$(gh api "repos/${{ github.repository }}/releases/latest" --jq '.tag_name')
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
   update_flutter_version:
     permissions:
       # Allow to write contents to push commits
@@ -77,14 +91,14 @@ jobs:
       packages: read
       # Allow to write pull requests to create a pull request
       pull-requests: write
-    needs: update_flutter_version
+    needs: [setup, update_flutter_version]
     if: ${{ needs.update_flutter_version.outputs.new_version == 'true' }}
     outputs:
       version_artifact_id: ${{ steps.upload-version.outputs.artifact-id }}
       android_test_artifact_id: ${{ steps.upload-android-test.outputs.artifact-id }}
     runs-on: ubuntu-24.04
     container:
-      image: ghcr.io/${{ github.repository_owner }}/flutter-android:${{ vars.FLUTTER_VERSION }}
+      image: ghcr.io/${{ github.repository_owner }}/flutter-android:${{ needs.setup.outputs.flutter_version }}
       credentials:
         username: ${{ github.actor }}
         password: ${{ github.token }}
