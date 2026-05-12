@@ -1,0 +1,47 @@
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - docs/src/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  update_docs:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Setup NodeJS
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        with:
+          cache: npm
+          cache-dependency-path: docs/src/package-lock.json
+          node-version: lts/*
+
+      - name: Build documentation
+        working-directory: docs/src
+        run: |
+          npm ci --prefer-offline
+          npm run build
+
+      - name: Generate authentication token with GitHub App to trigger Actions
+        uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1
+        id: app-token
+        with:
+          app-id: ${{ secrets.VERIFIED_COMMIT_ID }}
+          private-key: ${{ secrets.VERIFIED_COMMIT_KEY }}
+          repositories: ${{ github.event.repository.name }}
+          owner: ${{ github.repository_owner }}
+
+      - name: Commit and push regenerated documentation
+        uses: grafana/github-api-commit-action@b1d81091e8480dd11fcea8bc1f0ab977a0376ca5 # v1.0.0
+        with:
+          commit-message: 'docs: regenerate documentation files'
+          success-if-no-changes: true
+          stage-all-files: true
+          token: ${{ steps.app-token.outputs.token }}
