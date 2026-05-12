@@ -1,6 +1,6 @@
 ## 1. Benchmark the fast-delete path before committing to it
 
-- [ ] 1.1 Open a throwaway PR with a temporary `workflow_dispatch` job on `windows-2025` that runs both paths against a copy of one large target directory (`C:\hostedtoolcache`) — `Remove-Item -Recurse -Force` on one side, `cmd /c rmdir /s /q` on the other. Record wall-clock for each.
+- [x] 1.1 Open a throwaway PR with a temporary `workflow_dispatch` job on `windows-2025` that runs both paths against a copy of one large target directory (`C:\hostedtoolcache`) — `Remove-Item -Recurse -Force` on one side, `cmd /c rmdir /s /q` on the other. Record wall-clock for each.
 - [ ] 1.2 If `rmdir` is < 3 minutes faster than the PS baseline across two runs, drop the implementation back to design Open Question 1 and try `robocopy /MIR <empty> <target> /MT:128 /NFL /NDL /NJH /NJS`. Otherwise proceed with `rmdir` (D2).
 - [ ] 1.3 Delete the benchmark workflow job; keep the measured numbers in the PR description for future regression comparison.
 

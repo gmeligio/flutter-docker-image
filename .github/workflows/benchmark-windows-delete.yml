@@ -1,0 +1,72 @@
+on:
+  workflow_dispatch:
+
+# Throwaway benchmark — DELETE after measuring. See tasks.md §1.
+# Measures wall-clock of Remove-Item vs rmdir /s /q on equal-sized trees.
+permissions:
+  contents: read
+
+jobs:
+  benchmark_delete:
+    runs-on: windows-2025
+    steps:
+      - name: Clone hostedtoolcache into two benchmark copies
+        shell: pwsh
+        run: |
+          # hostedtoolcache is the largest deletable dir (~10-20 GB).
+          # We clone it twice so each deletion method gets an equal tree.
+          Write-Host "Cloning C:\hostedtoolcache to benchmarks..."
+          $sw = [Diagnostics.Stopwatch]::StartNew()
+          robocopy C:\hostedtoolcache C:\bench-psrem /E /NP /NFL /NDL /NJH /NJS /MT:16 | Out-Null
+          robocopy C:\hostedtoolcache C:\bench-rmdir /E /NP /NFL /NDL /NJH /NJS /MT:16 | Out-Null
+          $sw.Stop()
+          $cloneGb = [math]::Round((Get-ChildItem C:\bench-psrem -Recurse -Force -ErrorAction SilentlyContinue | Measure-Object -Property Length -Sum).Sum / 1GB, 2)
+          Write-Host "Clone done in $($sw.Elapsed). Each tree: $cloneGb GB."
+
+      - name: "[A] Remove-Item -Recurse -Force"
+        id: psrem
+        shell: pwsh
+        run: |
+          $sw = [Diagnostics.Stopwatch]::StartNew()
+          Remove-Item -LiteralPath 'C:\bench-psrem' -Recurse -Force -ErrorAction Continue
+          $sw.Stop()
+          $secA = [int]$sw.Elapsed.TotalSeconds
+          Write-Host "Remove-Item elapsed: $($sw.Elapsed) ($secA s)"
+          "elapsed_sec=$secA" >> $env:GITHUB_OUTPUT
+          "clean-runner-disk benchmark [A] Remove-Item: ${secA}s" >> $env:GITHUB_STEP_SUMMARY
+
+      - name: "[B] cmd rmdir /s /q"
+        id: rmdir
+        shell: pwsh
+        run: |
+          $sw = [Diagnostics.Stopwatch]::StartNew()
+          cmd /c rmdir /s /q C:\bench-rmdir
+          if (Test-Path C:\bench-rmdir) {
+            Write-Host "rmdir left remnants — falling back to Remove-Item"
+            Remove-Item -LiteralPath 'C:\bench-rmdir' -Recurse -Force -ErrorAction Continue
+          }
+          $sw.Stop()
+          $secB = [int]$sw.Elapsed.TotalSeconds
+          Write-Host "rmdir elapsed: $($sw.Elapsed) ($secB s)"
+          "elapsed_sec=$secB" >> $env:GITHUB_OUTPUT
+          "clean-runner-disk benchmark [B] rmdir /s /q: ${secB}s" >> $env:GITHUB_STEP_SUMMARY
+
+      - name: Compare and recommend
+        shell: pwsh
+        run: |
+          $secA = ${{ steps.psrem.outputs.elapsed_sec }}
+          $secB = ${{ steps.rmdir.outputs.elapsed_sec }}
+          $delta = $secA - $secB
+          Write-Host "Remove-Item: ${secA}s | rmdir: ${secB}s | delta: ${delta}s"
+          if ($delta -ge 180) {
+            Write-Host "RESULT: rmdir is >=$([math]::Round($delta/60,1)) min faster. Use rmdir (D2)."
+          } else {
+            Write-Host "RESULT: delta only $([math]::Round($delta/60,1)) min. Consider robocopy /MIR /MT:128 (design Open Q1)."
+          }
+          @"
+          | Method | Time |
+          |--------|------|
+          | Remove-Item -Recurse -Force | ${secA}s |
+          | cmd rmdir /s /q             | ${secB}s |
+          | Delta (A - B)               | ${delta}s |
+          "@ >> $env:GITHUB_STEP_SUMMARY
