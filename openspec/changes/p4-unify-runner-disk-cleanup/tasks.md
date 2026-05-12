@@ -21,9 +21,9 @@
 
 ## 4. Verify on a real PR before merge
 
-- [x] 4.1 Push the change as a draft PR. Confirm `windows.yml/test_windows` completes successfully and the summary line appears on the run page. _Run 25760891151: success. Cleanup 1036 s (regression — fixed in next commit by switching from robocopy serial to ForEach-Object -Parallel)._
-- [x] 4.2 Confirm `build.yml/test_image` and `ci.yml/test_image` complete successfully and the summary line appears. _Run 25760891166: success. Cleanup 274 s (within variance of 185 s baseline)._
-- [x] 4.3 Record the duration of each cleanup step from the PR run in the PR description as the pre-merge baseline for post-merge comparison. _Recorded in PR #448 comment: windows 1036 s vs 640 s baseline (+396 s), build.yml 274 s vs 185 s baseline._
+- [x] 4.1 Push the change as a draft PR. Confirm `windows.yml/test_windows` completes successfully and the summary line appears on the run page. _Run 25763257213 (post-fix): success. Cleanup 301 s (5.0 min) vs 640 s baseline = -53%. Total job 29.5 min vs 35.8 min baseline. First PR run 25760891151 measured 1036 s cleanup (regression) and motivated the switch from robocopy to ForEach-Object -Parallel._
+- [x] 4.2 Confirm `build.yml/test_image` and `ci.yml/test_image` complete successfully and the summary line appears. _Run 25763257210: cleanup 368 s (success), image built + tested. Job failed at "Scan with Docker Scout" with FORBIDDEN team-auth error — unrelated to this PR. ci.yml only runs on push to main; verification deferred to post-merge._
+- [x] 4.3 Record the duration of each cleanup step from the PR run in the PR description as the pre-merge baseline for post-merge comparison. _Recorded in PR #448 comments (https://github.com/gmeligio/flutter-docker-image/pull/448#issuecomment-4435176986 has the final numbers)._
 
 ## 5. Post-merge closure check
 
