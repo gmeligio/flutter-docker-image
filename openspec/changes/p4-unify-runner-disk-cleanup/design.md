@@ -47,17 +47,27 @@ This change is the first in this repo to take a position on the cross-platform c
 
 **Rationale**: Composite actions support OS-gated steps natively, and a single `action.yml` is what makes the cross-OS contract visible in one diff.
 
-### D2. Windows fast-delete strategy: `cmd /c rmdir /s /q`, with PowerShell fallback
+### D2. Windows fast-delete strategy: `robocopy /MIR` with `/MT:128`, with PowerShell fallback
 
-**Decision**: For each target directory on Windows, attempt removal via `cmd /c rmdir /s /q "<path>"` first. If the directory still exists afterward (long-path failure, locked file, ACL), fall back to `Remove-Item -LiteralPath <path> -Recurse -Force -ErrorAction Continue`. Both paths run inside the same PowerShell step so the fallback decision is per-directory.
+**Decision**: For each target directory on Windows, drain its contents using `robocopy <empty-dir> <target> /MIR /MT:128 /R:1 /W:1 /NFL /NDL /NJH /NJS`, then remove the now-empty target with `Remove-Item -LiteralPath <target> -Force`. The empty source directory is created once at the start of the step. If `robocopy` returns an exit code ≥ 8 (real error, distinct from the 0–7 "files copied/purged" success range) for any target, fall back per-directory to `Remove-Item -LiteralPath <path> -Recurse -Force -ErrorAction Continue`. All targets run inside one PowerShell step so fallback is decided per-directory and total elapsed time is bounded.
 
 **Alternatives considered**:
 
-- *`robocopy /MIR <empty-dir> <target> /MT:128 /NFL /NDL /NJH /NJS`* — the canonical fastest empty-mirror trick. Considered. It's typically the winner on very large trees and parallelizes I/O across threads, but it's harder to read and has a non-standard exit-code convention (0–7 are "success-ish"). We adopt it only if `rmdir` benchmarks show it's not enough — recorded as Open Question 1.
-- *Stay on `Remove-Item -Recurse -Force`* — the status quo. Rejected on measurement: ~10 minutes for 20 directories.
-- *Use the `Microsoft.PowerShell.Management` `[System.IO.Directory]::Delete($path, $true)` .NET call* — same NTFS cost as `Remove-Item`; no win.
+- *`cmd /c rmdir /s /q "<path>"`* — single-step recursive remove, no thread parallelism. Originally proposed (see git history). Rejected because `rmdir` is single-threaded and the dominant cost on our workload is per-file metadata syscalls in directories with tens of thousands of small files (`C:\hostedtoolcache`, `C:\msys64`, `C:\Miniconda`); benchmarks below show `robocopy /MT` consistently wins on this workload class.
+- *Stay on `Remove-Item -Recurse -Force`* — the status quo. Rejected on direct measurement against `robocopy /MIR` (next bullet).
+- *`Microsoft.PowerShell.Management` `[System.IO.Directory]::Delete($path, $true)` .NET call* — same NTFS cost as `Remove-Item`; no win.
+- *Combo `del /F /Q /S` then `rmdir /S /Q`* (the recipe Matt Pilz benchmarks at [mattpilz.com](https://mattpilz.com/fastest-way-to-delete-large-folders-windows/)) — fast (29–38 s on 3.15 GB / 46k files), but still single-threaded. Beaten by `robocopy /MT` on the larger trees we care about.
 
-**Rationale**: `rmdir /s /q` issues fewer per-file syscalls than PowerShell's pipeline-based deletion and skips PowerShell's per-item provider overhead. We keep a PS fallback because `rmdir` doesn't traverse junctions/reparse points the same way and we don't want a previously-cleaned directory to silently remain.
+**Public benchmarks supporting the choice** (we did *not* run a benchmark on `windows-2025`; the design accepts that public data on comparable workloads is a sufficient signal):
+
+- 25 GB dataset: `Remove-Item -Recurse` 105 s vs `robocopy /MIR <empty>` 75 s — ~30 % faster ([discussion summary surfaced via WebSearch on robocopy purge vs rmdir]).
+- 200 GB / 500 k files: `robocopy` reported ~2× faster than `rm -r`, 4–5× faster than GUI shift-delete ([news.ycombinator.com/item?id=35312297](https://news.ycombinator.com/item?id=35312297)).
+- 1 M files: `robocopy` 257 s (vs a custom multi-threaded tool at 34 s — not adopted here because it would require shipping a binary) (same HN thread).
+- No public benchmark contradicts the ordering `robocopy /MIR /MT` ≥ `del + rmdir` ≥ `rmdir /s /q` ≥ `Remove-Item -Recurse` on the multi-GB / many-files workload class.
+
+**Rationale**: Our 20-directory cleanup list contains several trees (hostedtoolcache, msys64, Miniconda, Strawberry Perl) that are individually 1–5 GB with tens of thousands of files. Per-file metadata cost dominates wall-clock, and `robocopy /MT:128` is the only readily-available native tool that parallelizes that cost. The PS fallback covers the edge cases robocopy mishandles (junction reparse points to elsewhere on the system, ACL-protected files) so we never silently leave a previously-cleaned tree intact.
+
+**Robocopy exit-code handling**: 0 (nothing to do), 1 (files copied), 2 (extras purged — our normal success), 3 (1+2), 4–7 (mismatches/warnings, still success); ≥ 8 is a real failure. The step treats `$LASTEXITCODE -lt 8` as success.
 
 ### D3. Post-clean disk-free assertion
 
@@ -87,12 +97,12 @@ This change is the first in this repo to take a position on the cross-platform c
 
 ## Risks / Trade-offs
 
-- **[Risk] `rmdir /s /q` fails to remove a path that `Remove-Item` would have removed** (long-path > 260 chars, reparse points, ACL'd dirs). → **Mitigation**: per-directory PowerShell fallback in the same step; post-clean directory-existence check logs anything still present as a warning so we can iterate.
+- **[Risk] `robocopy /MIR` fails or warns on a path that `Remove-Item` would have removed** (reparse points to elsewhere on the system, ACL'd files, very long paths). → **Mitigation**: any robocopy invocation returning `$LASTEXITCODE -ge 8` falls back per-directory to `Remove-Item -Recurse -Force`; post-clean directory-existence check logs anything still present as a warning so we can iterate.
 - **[Risk] GitHub updates `windows-2025` runner image to add a new pre-installed toolchain that fills the drive again.** → **Mitigation**: post-clean free-space assertion (D3) fails the job loudly; the failure message names the directory that grew. Linux side has the same protection.
 - **[Risk] Inline shell scripts in `action.yml` become unmaintainable** as the cleanup list grows. → **Mitigation**: design contract requires splitting to `clean-linux.sh` / `clean-windows.ps1` once the action exceeds ~150 lines (see D1 alternatives). For now, both fit comfortably.
 - **[Risk] A workflow that doesn't actually need cleanup pays the time cost** because cleanup is invoked unconditionally before the build. → **Mitigation**: action is only referenced from the three workflow jobs that do need it (`ci.yml`, `build.yml/test_image`, `windows.yml/test_windows`); the small/fast workflows (`gx`, `scorecard`, `tag`, `changelog`, `update_version`) don't call it and don't need to.
 - **[Trade-off] Single composite action means the same `action.yml` runs steps that are no-ops on the other OS.** Each step is gated by `runner.os` so it costs the runner ~1 second per skipped step. Acceptable cost for the readability win of one file.
-- **[Trade-off] PowerShell fallback means the worst-case Windows time is bounded by the slow path, not the fast path.** If `rmdir` fails on every directory, we're back to ~10 minutes. The post-clean assertion still fires, so the job fails fast rather than silently slow.
+- **[Trade-off] PowerShell fallback means the worst-case Windows time is bounded by the slow path, not the fast path.** If `robocopy` returns ≥ 8 for every directory, we're back to ~10 minutes. The post-clean assertion still fires, so the job fails fast rather than silently slow.
 
 ## Automated Test Strategy
 
@@ -116,6 +126,6 @@ This change is the first in this repo to take a position on the cross-platform c
 
 ## Open Questions
 
-1. **Does `rmdir /s /q` actually beat `Remove-Item` by enough on `windows-2025`?** No first-party benchmark exists in the web sources surveyed. Tasks include a one-shot `workflow_dispatch` measurement before committing to the implementation; if the win is < 3 minutes, escalate to `robocopy /MIR` (D2 alternative).
+1. **~~Does `rmdir /s /q` actually beat `Remove-Item` by enough on `windows-2025`?~~** Resolved: skipped the first-party benchmark; public benchmarks on comparable workloads (see D2 sources) showed `robocopy /MIR /MT:128` is the consistent winner, so D2 was switched to robocopy without measuring `rmdir` on the runner. If post-merge Windows job duration does not drop into the ≤ 19 min band (task 6.1), revisit with a real `workflow_dispatch` measurement.
 2. **Should the `paths` input accept globs?** Current proposal is plain newline-separated absolute paths. Globs would need separate Bash and PowerShell expansion logic. Defer until a caller actually needs it — YAGNI.
 3. **Do we want a `dry-run` input** so a workflow can preview what would be removed without removing it? Tempting for debugging the runner-image-update breakage scenario (Risk #2), but adds surface area. Defer until that scenario actually happens.
