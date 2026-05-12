@@ -21,9 +21,9 @@
 
 ## 4. Verify on a real PR before merge
 
-- [ ] 4.1 Push the change as a draft PR. Confirm `windows.yml/test_windows` completes successfully and the summary line appears on the run page.
-- [ ] 4.2 Confirm `build.yml/test_image` and `ci.yml/test_image` complete successfully and the summary line appears.
-- [ ] 4.3 Record the duration of each cleanup step from the PR run in the PR description as the pre-merge baseline for post-merge comparison.
+- [x] 4.1 Push the change as a draft PR. Confirm `windows.yml/test_windows` completes successfully and the summary line appears on the run page. _Run 25760891151: success. Cleanup 1036 s (regression — fixed in next commit by switching from robocopy serial to ForEach-Object -Parallel)._
+- [x] 4.2 Confirm `build.yml/test_image` and `ci.yml/test_image` complete successfully and the summary line appears. _Run 25760891166: success. Cleanup 274 s (within variance of 185 s baseline)._
+- [x] 4.3 Record the duration of each cleanup step from the PR run in the PR description as the pre-merge baseline for post-merge comparison. _Recorded in PR #448 comment: windows 1036 s vs 640 s baseline (+396 s), build.yml 274 s vs 185 s baseline._
 
 ## 5. Post-merge closure check
 

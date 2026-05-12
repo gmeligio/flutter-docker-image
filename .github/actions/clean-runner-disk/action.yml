@@ -118,22 +118,11 @@ runs:
         $freeBytes = (Get-PSDrive C).Free
         "__CLEAN_RUNNER_DISK_FREE_BEFORE_BYTES=$freeBytes" | Out-File -FilePath $env:GITHUB_ENV -Append
         "__CLEAN_RUNNER_DISK_STARTED_AT=$([DateTimeOffset]::UtcNow.ToUnixTimeSeconds())" | Out-File -FilePath $env:GITHUB_ENV -Append
-
-    - name: '[Windows] Top-level directories on C: before cleaning'
-      if: runner.os == 'Windows'
-      shell: pwsh
-      run: |
+        # Flat listing only — recursive size scan before cleanup takes ~5 min on a loaded runner
         Get-ChildItem -Path C:\ -Directory -Force -ErrorAction SilentlyContinue |
-          ForEach-Object {
-            $size = (Get-ChildItem -Path $_.FullName -Recurse -Force -ErrorAction SilentlyContinue |
-                     Measure-Object -Property Length -Sum).Sum
-            [PSCustomObject]@{
-              Path = $_.FullName
-              SizeGB = [math]::Round($size / 1GB, 2)
-            }
-          } | Sort-Object SizeGB -Descending | Format-Table -AutoSize
+          Select-Object Name, LastWriteTime | Format-Table -AutoSize
 
-    - name: '[Windows] Clean runner disk (robocopy /MIR with PS fallback)'
+    - name: '[Windows] Clean runner disk (parallel Remove-Item)'
       if: runner.os == 'Windows'
       shell: pwsh
       run: |
@@ -160,50 +149,22 @@ runs:
           'C:\tools'
         )
 
-        $empty = Join-Path $env:RUNNER_TEMP 'clean-runner-disk-empty'
-        if (Test-Path -LiteralPath $empty) { Remove-Item -LiteralPath $empty -Recurse -Force -ErrorAction SilentlyContinue }
-        New-Item -ItemType Directory -Path $empty -Force | Out-Null
-
-        foreach ($p in $paths) {
-          if (-not (Test-Path -LiteralPath $p)) {
-            Write-Host "Skipping $p (not found)"
-            continue
-          }
-          Write-Host "Draining $p with robocopy /MIR /MT:128"
-          # Robocopy exit codes: 0=nothing, 1=copied, 2=purged, 3=copied+purged, 4-7=warnings, >=8=error
-          robocopy $empty $p /MIR /MT:128 /R:1 /W:1 /NFL /NDL /NJH /NJS /NP | Out-Null
-          $rc = $LASTEXITCODE
-          if ($rc -ge 8) {
-            Write-Host "::warning::robocopy returned $rc for $p — falling back to Remove-Item"
-            Remove-Item -LiteralPath $p -Recurse -Force -ErrorAction Continue
-          } else {
-            # Robocopy /MIR drained the contents but leaves the target dir itself.
-            # Use -Recurse so any reparse-point/mismatch stragglers (robocopy rc 1-7) still go.
-            Remove-Item -LiteralPath $p -Recurse -Force -ErrorAction Continue
-          }
+        # ForEach-Object -Parallel (PS7) removes directories concurrently without
+        # subprocess overhead. ThrottleLimit 8 keeps I/O pressure reasonable.
+        $paths | Where-Object { Test-Path -LiteralPath $_ } | ForEach-Object -Parallel {
+          $p = $_
+          Write-Host "Removing $p"
+          Remove-Item -LiteralPath $p -Recurse -Force -ErrorAction Continue
           if (Test-Path -LiteralPath $p) {
-            Write-Host "::warning::$p still present after cleanup attempt"
+            Write-Host "::warning::$p still present after removal"
           }
-        }
-
-        Remove-Item -LiteralPath $empty -Recurse -Force -ErrorAction SilentlyContinue
-        # Reset for downstream steps so a non-zero robocopy code does not fail the job
-        $global:LASTEXITCODE = 0
+        } -ThrottleLimit 8
 
     - name: '[Windows] Show disk usage after cleaning'
       if: runner.os == 'Windows'
       shell: pwsh
       run: |
         Get-PSDrive -PSProvider FileSystem | Format-Table -AutoSize
-        Get-ChildItem -Path C:\ -Directory -Force -ErrorAction SilentlyContinue |
-          ForEach-Object {
-            $size = (Get-ChildItem -Path $_.FullName -Recurse -Force -ErrorAction SilentlyContinue |
-                     Measure-Object -Property Length -Sum).Sum
-            [PSCustomObject]@{
-              Path = $_.FullName
-              SizeGB = [math]::Round($size / 1GB, 2)
-            }
-          } | Sort-Object SizeGB -Descending | Format-Table -AutoSize
 
     - name: '[Windows] Assert free space and emit summary'
       if: runner.os == 'Windows' && always()
