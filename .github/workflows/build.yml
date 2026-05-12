@@ -44,7 +44,10 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
 
+      # Secrets are not available to PRs from forks, so skip the Docker Hub
+      # login for those runs. The build still works against public base images.
       - name: Login to Docker Hub
+        if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
         uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
@@ -84,8 +87,11 @@ jobs:
           config: test/android.yml
 
       # TODO: Parallelize testing and vulnerability scanning
+      # Scout needs the Docker Hub org secret and writes a PR comment, neither
+      # of which is available to fork PRs.
       - name: Scan with Docker Scout
         id: docker-scout
+        if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
         uses: docker/scout-action@f8c776824083494ab0d56b8105ba2ca85c86e4de # v1.18.2
         with:
           command: compare, recommendations
@@ -156,7 +162,10 @@ jobs:
           cache-dependency-path: docs/src/package-lock.json
           node-version: lts/*
 
+      # The GitHub App token and the commit/push step are not available to
+      # fork PRs. Still run the doc build to verify it compiles.
       - name: Generate authentication token with GitHub App to trigger Actions
+        if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
         uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1
         id: app-token
         with:
@@ -172,6 +181,7 @@ jobs:
           npm run build
 
       - name: Commit and push documentation
+        if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
         uses: grafana/github-api-commit-action@b1d81091e8480dd11fcea8bc1f0ab977a0376ca5 # v1.0.0
         with:
           commit-message: 'docs: generate documentation files'
