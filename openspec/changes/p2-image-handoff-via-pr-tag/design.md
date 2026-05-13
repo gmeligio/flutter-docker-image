@@ -27,14 +27,23 @@ Only (1) and (2) are viable. The contract has to handle both because the repo ac
 
 ### D1. Push and load from the same buildx run
 
-**Decision**: Change the existing `docker/build-push-action` step from `load: true` to `outputs: type=image,push=true,name=ghcr.io/<owner>/flutter-android:pr-N` + `load: true` (buildx supports multi-output in one invocation when using the docker-container driver). If buildkit's multi-output gives trouble, fall back to two sequential `build-push-action` invocations both backed by the cache from p1 — the second is near-instant.
+**Decision**: Change the existing `docker/build-push-action` step from `load: true` to a multi-line `outputs:` that emits both a local docker image and a registry push:
+
+```yaml
+outputs: |
+  type=docker,name=<local-tag>
+  type=registry,push=true,name=ghcr.io/<owner>/flutter-android:<handoff-tag>
+```
+
+`load: true` and `push: true` are mutually exclusive shorthands for single-output `--output=type=docker` / `--output=type=registry` respectively, so the `outputs:` form is required when emitting both. Multi-output is a stable feature in buildx and BuildKit ≥ 0.13.0 (released Feb 2024) and is documented as first-class behavior. Order matters in one edge case (digest-pushed manifests, [discussion #1318](https://github.com/docker/build-push-action/discussions/1318)); place `type=docker` first to stay clear of it.
 
 **Alternatives considered**:
 
 - *Build with `push: true` only, then `docker pull` for the test step.* Rejected — adds a registry round-trip in the same job that already has the bits locally.
-- *Build with `load: true`, then `docker tag` + `docker push` in a separate step.* Works, simpler to read, but does two cache materializations. Acceptable fallback if multi-output is flaky.
+- *Two sequential `build-push-action` invocations* (first `load: true`, second `push: true`), both backed by the registry cache from p1. The second is a near-full cache hit (~5-10s of buildkit overhead). Marginally simpler YAML, marginally more wall-clock. Equally acceptable; pick if multi-output ever misbehaves for this image.
+- *Build with `load: true`, then `docker tag` + `docker push` in a separate `run:` step.* Works but breaks the manifest-digest contract for any future multi-platform extension. Reject for that reason alone.
 
-**Rationale**: The cheapest is one buildkit run that emits both a local image (for the current serial test/scout) and a registry tag (for p3 consumers).
+**Rationale**: One buildkit run emits both the local image (for the current serial test/scout) and the registry tag (for p3 consumers). Multi-output is no longer new (2+ years stable); the only nuance is exporter ordering.
 
 ### D2. Tag format: `pr-<number>` for PRs, `branch-<branch>` for `workflow_dispatch`
 
@@ -78,4 +87,4 @@ Consumers (p3) branch on which is non-empty.
 
 - **R1**: GHCR rate-limiting on the push. Unlikely at this volume but documented as a future watch-item.
 - **R2**: Artifact storage cost for fork PRs. Retention 1 day caps total storage at ~2 GB × (active fork PRs in the last 24 h), well within free-tier limits for a public repo.
-- **R3**: Multi-output buildx mode is newer; if it misbehaves we fall back to a sequential build + push, accepting a ~10s rebuild on top of the cache.
+- **R3**: Multi-output buildx is stable as of BuildKit 0.13.0 (Feb 2024) and is the documented way to combine `type=docker` and `type=registry`. Known edge case: ordering matters for digest-pushed manifests (place `type=docker` first). If multi-output ever misbehaves for this image, the documented fallback is two sequential build-push-action steps, accepting ~5-10s of buildkit overhead on the second (cached) run.
