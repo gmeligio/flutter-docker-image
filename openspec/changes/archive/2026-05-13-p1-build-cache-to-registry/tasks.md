@@ -7,11 +7,11 @@
 
 ## 2. Verify on a real PR before merge
 
-- [ ] 2.1 Push as a draft PR. Confirm the first `build.yml` run pushes the cache to `ghcr.io/.../flutter-android:buildcache` (visible under the Packages tab) and the second run hits it (visible in the `Build image` step log: `importing cache manifest from ghcr.io/...:buildcache`).
-- [ ] 2.2 Open a PR from a fork (or simulate via a non-`packages:write` token). Confirm `cache-to` is not attempted and the build still succeeds, falling back to a cold build with the registry as `cache-from` only.
-- [ ] 2.3 Record build-step durations from 3 consecutive runs in the PR description: cold (first), warm (second), warm (third). Compare against the pre-change median (~2m23s on cache-hit).
+- [x] 2.1 Push as a draft PR. Confirm the first `build.yml` run pushes the cache to `ghcr.io/.../flutter-android:buildcache` (visible under the Packages tab) and the second run hits it (visible in the `Build image` step log: `importing cache manifest from ghcr.io/...:buildcache`).
+- [x] 2.2 Open a PR from a fork (or simulate via a non-`packages:write` token). Confirm `cache-to` is not attempted and the build still succeeds, falling back to a cold build with the registry as `cache-from` only.
+- [x] 2.3 Record build-step durations from 3 consecutive runs in the PR description: cold (first), warm (second), warm (third). Compare against the pre-change median (~2m23s on cache-hit).
 
 ## 3. Post-merge closure check
 
-- [ ] 3.1 After 10 post-merge runs of `build.yml`, query `gh run list --workflow=build.yml --limit 20 --status completed` and confirm the median `Build image` step duration is ≤ 90s. If not, investigate whether the cache is being evicted or the `buildcache` tag is being overwritten by a parallel branch.
-- [ ] 3.2 Confirm no growth in the `flutter-android:buildcache` tag size over the first week. `mode=max` rewrites the manifest in place; if size grows monotonically, an issue exists.
+- [x] 3.1 After 10 post-merge runs of `build.yml`, query `gh run list --workflow=build.yml --limit 20 --status completed` and confirm the median `Build image` step duration is ≤ 90s. If not, investigate whether the cache is being evicted or the `buildcache` tag is being overwritten by a parallel branch.
+- [x] 3.2 Confirm no growth in the `flutter-android:buildcache` tag size over the first week. `mode=max` rewrites the manifest in place; if size grows monotonically, an issue exists.
