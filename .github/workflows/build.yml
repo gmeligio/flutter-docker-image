@@ -109,13 +109,15 @@ jobs:
           tags: |
             type=raw,value=${{ env.FLUTTER_VERSION }}
 
+      # outputs is just `type=docker` (load into local daemon). The GHCR
+      # handoff push is done by an explicit `docker push` step below — when
+      # combined with `type=docker`, buildkit silently ignores a `type=registry`
+      # output and pushes only via --tag (which points at docker.io, not GHCR).
       - name: Build image and push to local Docker daemon
         uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
         with:
           file: android.Dockerfile
-          outputs: |
-            type=docker
-            ${{ steps.handoff.outputs.is_fork != 'true' && format('type=registry,push=true,name=ghcr.io/{0}/flutter-android:{1}', github.repository_owner, steps.handoff.outputs.tag) || '' }}
+          outputs: type=docker
           cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/flutter-android:buildcache
           cache-to: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && format('type=registry,ref=ghcr.io/{0}/flutter-android:buildcache,mode=max', github.repository_owner) || '' }}
           labels: ${{ steps.metadata.outputs.labels }}
@@ -140,6 +142,13 @@ jobs:
           DEST="flutter-android:${{ env.FLUTTER_VERSION }}"
           docker tag "${{ fromJSON(steps.metadata.outputs.json).tags[0] }}" "$DEST"
           echo "ref=$DEST" >> "$GITHUB_OUTPUT"
+
+      - name: Push image to GHCR
+        if: steps.handoff.outputs.is_fork != 'true'
+        run: |
+          GHCR_REF="ghcr.io/${{ github.repository_owner }}/flutter-android:${{ steps.handoff.outputs.tag }}"
+          docker tag "${{ fromJSON(steps.metadata.outputs.json).tags[0] }}" "$GHCR_REF"
+          docker push "$GHCR_REF"
 
       - name: Save image as artifact
         if: steps.handoff.outputs.is_fork == 'true'
@@ -214,6 +223,14 @@ jobs:
       - name: Load image from artifact
         if: needs.build_image.outputs.image_artifact != ''
         run: gunzip -c image.tar.gz | docker load
+
+      # Docker Hub login is required by Scout — it authenticates against the
+      # Docker Hub identity tied to the org secret, not the GHCR identity.
+      - name: Login to Docker Hub
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
       - name: Login to GHCR
         if: needs.build_image.outputs.image_artifact == ''
