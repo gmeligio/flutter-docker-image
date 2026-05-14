@@ -28,9 +28,9 @@
 
 ## 4. Branch-protection migration
 
-- [ ] 4.1 Verify the new consumer job key is exactly `test_image` (same as today's monolithic job). The existing required-check named `test_image` continues to be produced — satisfies spec scenario "Renamed consumer preserves the existing required-check name".
-- [ ] 4.2 Inspect current required checks: `gh api repos/<owner>/<repo>/branches/main/protection --jq '.required_status_checks.contexts'`. Confirm `test_image` is present; document any other required check that would be affected.
-- [ ] 4.3 After this PR merges and produces 3 successful runs on `main`, request a repo admin to add `build_image` and `scan_image` as additional required status checks via `gh api -X PATCH repos/<owner>/<repo>/branches/main/protection`. Document the transient scan-merge-gap (see design D3) in the merge commit so the admin treats it as a follow-up rather than discovering it later.
+- [x] 4.1 Verify the new consumer job key is exactly `test_image` (same as today's monolithic job). The existing required-check named `test_image` continues to be produced — satisfies spec scenario "Renamed consumer preserves the existing required-check name".
+- [x] 4.2 Inspect current required checks: `gh api repos/gmeligio/flutter-docker-image/branches/main/protection` → 404 "Branch not protected". No required checks are configured on `main` — no migration needed.
+- [ ] 4.3 After this PR merges and produces 3 successful runs on `main`, add `build_image`, `test_image`, and `scan_image` as required status checks. Since no protection exists today, this sets up protection from scratch rather than migrating existing rules.
 
 ## 5. Verify on a real PR before merge
 
