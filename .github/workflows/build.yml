@@ -43,7 +43,7 @@ jobs:
       image_ref: ${{ steps.handoff.outputs.is_fork != 'true' && format('ghcr.io/{0}/flutter-android:{1}', github.repository_owner, steps.handoff.outputs.tag) || '' }}
       image_tag: ${{ steps.handoff.outputs.is_fork != 'true' && steps.handoff.outputs.tag || '' }}
       image_artifact: ${{ steps.handoff.outputs.is_fork == 'true' && format('image-{0}', github.run_id) || '' }}
-      image_local_tag: ${{ fromJSON(steps.metadata.outputs.json).tags[0] }}
+      image_local_tag: ${{ steps.local_tag.outputs.ref }}
     env:
       IMAGE_REPOSITORY_NAME: flutter-android
       VERSION_MANIFEST: config/version.json
@@ -100,17 +100,12 @@ jobs:
             echo "tag=branch-${REF_NAME//\//-}" >> "$GITHUB_OUTPUT"
           fi
 
-      # images: is just `flutter-android` (no owner prefix) so the resulting
-      # local tag — exposed via image_local_tag — does not contain a value
-      # that matches the DOCKER_HUB_USERNAME secret. Matching a secret would
-      # cause GitHub Actions to suppress the output. The GHCR push target is
-      # set independently via `outputs:` on the build-push step below.
       - name: Load image metadata
         uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5.10.0
         id: metadata
         with:
           images: |
-            ${{ env.IMAGE_REPOSITORY_NAME }}
+            ${{ env.IMAGE_REPOSITORY_PATH }}
           tags: |
             type=raw,value=${{ env.FLUTTER_VERSION }}
 
@@ -134,9 +129,21 @@ jobs:
             android_ndk_version=${{ env.ANDROID_NDK_VERSION }}
             cmake_version=${{ env.CMAKE_VERSION }}
 
+      # Re-tag the loaded image to a name that does NOT contain the owner.
+      # `image_local_tag` is exposed as a job output; GitHub Actions drops
+      # outputs whose value contains a registered secret (DOCKER_HUB_USERNAME
+      # == github.repository_owner on this repo), so the metadata tag
+      # `<owner>/flutter-android:<version>` cannot be passed through.
+      - name: Re-tag image for local handoff
+        id: local_tag
+        run: |
+          DEST="flutter-android:${{ env.FLUTTER_VERSION }}"
+          docker tag "${{ fromJSON(steps.metadata.outputs.json).tags[0] }}" "$DEST"
+          echo "ref=$DEST" >> "$GITHUB_OUTPUT"
+
       - name: Save image as artifact
         if: steps.handoff.outputs.is_fork == 'true'
-        run: docker save ${{ fromJSON(steps.metadata.outputs.json).tags[0] }} | gzip > image.tar.gz
+        run: docker save "${{ steps.local_tag.outputs.ref }}" | gzip > image.tar.gz
 
       - name: Upload image artifact
         if: steps.handoff.outputs.is_fork == 'true'
