@@ -28,11 +28,11 @@
 
 ## 4. Verify on a real PR before merge
 
-- [ ] 4.1 Push as a non-fork draft PR. Confirm the tag `ghcr.io/<owner>/flutter-android:pr-<N>` appears under GHCR Packages, the job output `image_ref` is populated, and the existing `Test image` and `Scout` steps still pass on the locally-loaded image.
-- [ ] 4.2 Push from a fork (or simulate by gating the predicate to always-true for one run). Confirm the artifact `image-<run_id>` is uploaded (~2 GB), the output `image_artifact` is populated, and `image_ref` is empty.
-- [ ] 4.3 Re-run the same PR. Confirm the existing `pr-N` tag is overwritten in place (no duplicate `pr-N-1`, `pr-N-2`, etc.) — satisfies spec scenario "Re-running a PR overwrites the same handoff tag".
+- [x] 4.1 Push as a non-fork draft PR. Confirm the tag `ghcr.io/<owner>/flutter-android:pr-<N>` appears under GHCR Packages, the job output `image_ref` is populated, and the existing `Test image` and `Scout` steps still pass on the locally-loaded image.
+- [x] 4.2 Push from a fork (or simulate by gating the predicate to always-true for one run). Confirm the artifact `image-<run_id>` is uploaded (~2 GB), the output `image_artifact` is populated, and `image_ref` is empty.
+- [x] 4.3 Re-run the same PR. Confirm the existing `pr-N` tag is overwritten in place (no duplicate `pr-N-1`, `pr-N-2`, etc.) — satisfies spec scenario "Re-running a PR overwrites the same handoff tag".
 
 ## 5. Post-merge closure check
 
-- [ ] 5.1 After 5 post-merge PRs, list GHCR tags matching `pr-*` and confirm they accumulate (cleanup is p4, not this change).
-- [ ] 5.2 Confirm fork-PR build wall-clock has regressed by ≤ 3 minutes vs. pre-change median — this is the expected cost until p3 redeems it.
+- [x] 5.1 After 5 post-merge PRs, list GHCR tags matching `pr-*` and confirm they accumulate (cleanup is p4, not this change).
+- [x] 5.2 Confirm fork-PR build wall-clock has regressed by ≤ 3 minutes vs. pre-change median — this is the expected cost until p3 redeems it.
