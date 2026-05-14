@@ -20,19 +20,20 @@ The non-trivial questions are: (a) how do consumer jobs get the bits onto their 
 
 ## Decisions
 
-### D1. Consumer jobs use the registry pull, not `docker pull` + `docker run`
+### D1. Consumer jobs reach the image with the cheapest call each tool supports
 
-**Decision**: For non-fork PRs, consumer jobs reference the image by its registry ref directly:
+**Decision**: The two consumers use different strategies because the two actions support different things:
 
-- `container-structure-test`: pass `image: ghcr.io/<owner>/flutter-android:pr-N` (the action pulls under the hood).
-- `docker/scout-action`: pass `image: registry://ghcr.io/<owner>/flutter-android:pr-N` (the `registry://` prefix tells Scout to skip the local store).
+- `docker/scout-action`: pass `image: registry://ghcr.io/<owner>/flutter-android:pr-N`. The `registry://` prefix tells Scout to read from the registry directly with no daemon involvement — confirmed in the action's README image-prefix table. No `docker pull` step on the registry path for `scan_image`.
+- `container-structure-test` (via `plexsystems/container-structure-test-action`): the action invokes `container-structure-test test --image <input>` with no `--pull` flag and no driver override. The CLI's default `docker` driver inspects the local Docker daemon only. So `test_image` SHALL run an explicit `docker pull "$IMAGE_REF"` on the registry path before invoking the action. The earlier draft of this design assumed CST would stream-pull on demand; it does not.
 
 **Alternatives considered**:
 
-- *`docker pull` step in each consumer, then run CST/Scout against the local image.* Works but adds ~30s of redundant pull-and-load when the action can stream-pull as needed.
+- *Replace the plexsystems action with raw `container-structure-test test --pull --image <ref>`.* One step instead of two, and drops a stale dependency (plexsystems' last release was Mar 2023; last commit Aug 2023). Rejected for now: requires a new install step (curl + chmod-and-pin), and the win is ~30 s. Worth revisiting if the action ever blocks an upgrade.
+- *Swap to CST's `--driver tar` (no daemon at all, e.g. `crane export <ref> | container-structure-test --driver tar -`).* Smallest disk footprint, but the tar driver has historical limitations around `commandTests` that rely on real process execution. Out of scope for p3.
 - *`docker save`-style artifact even for non-fork PRs.* Rejected — wastes the registry-cache work from p1.
 
-**Rationale**: Each tool natively supports a registry ref. The fewer hops on the consumer runner, the better.
+**Rationale**: Match the cheapest path to each action's actual behavior, verified against current upstream sources rather than assumed.
 
 ### D2. Fork-PR consumers `download-artifact` + `docker load`, gated on `image_artifact != ''`
 

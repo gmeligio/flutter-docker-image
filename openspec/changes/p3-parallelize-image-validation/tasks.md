@@ -1,27 +1,30 @@
 ## 1. Rename `test_image` → `build_image` and strip the validation steps
 
-- [ ] 1.1 Rename the `test_image` job key in `build.yml` to `build_image`. Update any references in the workflow.
-- [ ] 1.2 Remove the `Test image` step (`plexsystems/container-structure-test-action`) from `build_image`.
-- [ ] 1.3 Remove the `Scan with Docker Scout` step from `build_image`.
-- [ ] 1.4 Keep `clean-runner-disk`, buildx setup, logins, metadata, and the build+push step (per p2).
-- [ ] 1.5 Drop `permissions.security-events: write` and `permissions.pull-requests: write` from `build_image` — they belong to `scan_image` now.
+- [x] 1.1 Rename the `test_image` job key in `build.yml` to `build_image`. Update any references in the workflow.
+- [x] 1.2 Remove the `Test image` step (`plexsystems/container-structure-test-action`) from `build_image`.
+- [x] 1.3 Remove the `Scan with Docker Scout` step from `build_image`.
+- [x] 1.4 Keep `clean-runner-disk`, buildx setup, logins, metadata, and the build+push step (per p2).
+- [x] 1.5 Drop `permissions.security-events: write` and `permissions.pull-requests: write` from `build_image` — they belong to `scan_image` now.
 
 ## 2. Add the new `test_image` consumer job
 
-- [ ] 2.1 Add a job `test_image` with `needs: build_image`, `runs-on: ubuntu-24.04`, `permissions.contents: read` and `permissions.packages: read`.
-- [ ] 2.2 Checkout the repo (CST needs `test/android.yml`).
-- [ ] 2.3 Branch on `needs.build_image.outputs.image_artifact`:
-  - Non-empty (fork PR): run `clean-runner-disk`, `download-artifact`, `gunzip`, `docker load`, then invoke CST against the loaded local tag.
-  - Empty (non-fork): GHCR login (read) + invoke CST against `needs.build_image.outputs.image_ref` directly (CST pulls under the hood).
-- [ ] 2.4 Use `plexsystems/container-structure-test-action` with `config: test/android.yml` and `image: <ref-or-loaded-tag>` — satisfies spec scenario "Test job runs in parallel with scan job".
+- [x] 2.1 Add a job `test_image` with `needs: build_image`, `runs-on: ubuntu-24.04`, `permissions.contents: read` and `permissions.packages: read`. Do NOT add `setup-buildx-action` — the job does not build.
+- [x] 2.2 Checkout the repo (CST needs `test/android.yml`).
+- [x] 2.3 Branch on `needs.build_image.outputs.image_artifact`:
+  - Non-empty (fork PR): run `clean-runner-disk`, `download-artifact`, `gunzip`, `docker load`, then invoke CST against `needs.build_image.outputs.image_local_tag`.
+  - Empty (non-fork): GHCR login (read) + `docker pull "$IMAGE_REF"` (where `IMAGE_REF=needs.build_image.outputs.image_ref`), then invoke CST against `IMAGE_REF`. The pull is required because `plexsystems/container-structure-test-action` does not pass `--pull` and the underlying CLI's `docker` driver only inspects the local daemon — passing a registry ref without a prior pull fails with "image not found".
+- [x] 2.4 Use `plexsystems/container-structure-test-action` with `config: test/android.yml` and `image: <ref-or-loaded-tag>` — satisfies spec scenario "Test job runs in parallel with scan job".
 
 ## 3. Add the new `scan_image` consumer job
 
-- [ ] 3.1 Add a job `scan_image` with `needs: build_image`, `runs-on: ubuntu-24.04`, `permissions.packages: read`, `permissions.pull-requests: write`, `permissions.security-events: write`.
-- [ ] 3.2 Gate the entire job: `if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository` (Scout's existing fork gate).
-- [ ] 3.3 Branch on `image_artifact` like the test job. For the registry path, pass `image: registry://<image_ref>` to `docker/scout-action`. For the artifact path, pass `image: local://<loaded-tag>`.
-- [ ] 3.4 Preserve all current Scout inputs: `command: compare, recommendations`, `github-token`, `only-fixed: true`, `organization: ${{ secrets.DOCKER_HUB_USERNAME }}`, `to-env: prod`.
-- [ ] 3.5 Remove the inline TODO `# TODO: Parallelize testing and vulnerability scanning` — this change resolves it. Satisfies spec scenario "Scout scan runs in parallel with CST".
+- [x] 3.1 Add a job `scan_image` with `needs: build_image`, `runs-on: ubuntu-24.04`, `permissions.packages: read`, `permissions.pull-requests: write`, `permissions.security-events: write`. Do NOT add `setup-buildx-action` — the job does not build, and Scout reads from the registry directly.
+- [x] 3.2 Gate the entire job: `if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository` (Scout's existing fork gate).
+- [x] 3.3 Branch on `image_artifact`:
+  - Non-empty (artifact path): `clean-runner-disk`, `download-artifact`, `gunzip`, `docker load`, then pass `image: local://<image_local_tag>` to `docker/scout-action`.
+  - Empty (registry path): GHCR login (read), then pass `image: registry://<image_ref>` to `docker/scout-action` — no `docker pull` needed (the `registry://` prefix tells Scout to bypass the local image store).
+- [x] 3.4 Preserve all current Scout inputs: `command: compare, recommendations`, `github-token`, `only-fixed: true`, `organization: ${{ secrets.DOCKER_HUB_USERNAME }}`, `to-env: prod`.
+- [x] 3.5 Bump the `docker/scout-action` pin from v1.18.2 → **v1.20.4** (current as of Apr 2026) while rewriting the step. Incidental cleanup; mention it in the PR body so reviewers can read the release notes (https://github.com/docker/scout-action/releases) and grant approval consciously.
+- [x] 3.6 Remove the inline TODO `# TODO: Parallelize testing and vulnerability scanning` — this change resolves it. Satisfies spec scenario "Scout scan runs in parallel with CST".
 
 ## 4. Branch-protection migration
 

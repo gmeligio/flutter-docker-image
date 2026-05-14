@@ -30,14 +30,9 @@ jobs:
           version=$(gh api "repos/${{ github.repository }}/releases/latest" --jq '.tag_name')
           echo "version=$version" >> "$GITHUB_OUTPUT"
 
-  test_image:
+  build_image:
     permissions:
-      # Allow to write packages for GHCR cache push and docker/scout-action
       packages: write
-      # Allow to write pull requests for the docker/scout-action to write a comment
-      pull-requests: write
-      # Allow to write security events for github/codeql-action/upload-sarif to upload SARIF results
-      security-events: write
     runs-on: ubuntu-24.04
     outputs:
       image_ref: ${{ steps.handoff.outputs.is_fork != 'true' && format('ghcr.io/{0}/flutter-android:{1}', github.repository_owner, steps.handoff.outputs.tag) || '' }}
@@ -141,32 +136,85 @@ jobs:
           retention-days: 1
           compression-level: 0
 
+  test_image:
+    needs: build_image
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Clean runner disk
+        if: needs.build_image.outputs.image_artifact != ''
+        uses: ./.github/actions/clean-runner-disk
+
+      - name: Download image artifact
+        if: needs.build_image.outputs.image_artifact != ''
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: ${{ needs.build_image.outputs.image_artifact }}
+
+      - name: Load image from artifact
+        if: needs.build_image.outputs.image_artifact != ''
+        run: gunzip -c image.tar.gz | docker load
+
+      - name: Login to GHCR
+        if: needs.build_image.outputs.image_artifact == ''
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull image from registry
+        if: needs.build_image.outputs.image_artifact == ''
+        run: docker pull "${{ needs.build_image.outputs.image_ref }}"
+
       - name: Test image
         uses: plexsystems/container-structure-test-action@c0a028aa96e8e82ae35be556040340cbb3e280ca # v0.3.0
         with:
-          image: ${{ fromJSON(steps.metadata.outputs.json).tags[0] }}
+          image: ${{ needs.build_image.outputs.image_artifact != '' && needs.build_image.outputs.image_local_tag || needs.build_image.outputs.image_ref }}
           config: test/android.yml
 
-      # TODO: Parallelize testing and vulnerability scanning
-      # Scout needs the Docker Hub org secret and writes a PR comment, neither
-      # of which is available to fork PRs.
+  scan_image:
+    needs: build_image
+    runs-on: ubuntu-24.04
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    permissions:
+      packages: read
+      pull-requests: write
+      security-events: write
+    steps:
+      - name: Download image artifact
+        if: needs.build_image.outputs.image_artifact != ''
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: ${{ needs.build_image.outputs.image_artifact }}
+
+      - name: Load image from artifact
+        if: needs.build_image.outputs.image_artifact != ''
+        run: gunzip -c image.tar.gz | docker load
+
+      - name: Login to GHCR
+        if: needs.build_image.outputs.image_artifact == ''
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Scan with Docker Scout
         id: docker-scout
-        if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
-        uses: docker/scout-action@f8c776824083494ab0d56b8105ba2ca85c86e4de # v1.18.2
+        uses: docker/scout-action@bacf462e8d090c09660de30a6ccc718035f961e3 # v1.20.4
         with:
           command: compare, recommendations
-          # Use the Docker Hub image that is the first tag in the metadata
-          image: local://${{ fromJson(steps.metadata.outputs.json).tags[0] }}
-          # github-token is needed to be able to write the PR comment
+          image: ${{ needs.build_image.outputs.image_artifact != '' && format('local://{0}', needs.build_image.outputs.image_local_tag) || format('registry://{0}', needs.build_image.outputs.image_ref) }}
           github-token: ${{ github.token }}
           only-fixed: true
           organization: ${{ secrets.DOCKER_HUB_USERNAME }}
-          # sarif-file: output.sarif.json
           to-env: prod
-          # Enable debug logging when needed
-          # debug: true
-          # verbose-debug: true
 
   validate_version_files:
     runs-on: ubuntu-24.04
