@@ -35,7 +35,13 @@ jobs:
       packages: write
     runs-on: ubuntu-24.04
     outputs:
+      # image_ref is set per the p2 contract but GitHub Actions suppresses
+      # any job output whose value contains a registered secret. When
+      # github.repository_owner equals DOCKER_HUB_USERNAME (as on this repo),
+      # image_ref is masked-and-dropped. Consumers MUST use image_tag and
+      # reconstruct ghcr.io/${{ github.repository_owner }}/flutter-android:<tag>.
       image_ref: ${{ steps.handoff.outputs.is_fork != 'true' && format('ghcr.io/{0}/flutter-android:{1}', github.repository_owner, steps.handoff.outputs.tag) || '' }}
+      image_tag: ${{ steps.handoff.outputs.is_fork != 'true' && steps.handoff.outputs.tag || '' }}
       image_artifact: ${{ steps.handoff.outputs.is_fork == 'true' && format('image-{0}', github.run_id) || '' }}
       image_local_tag: ${{ fromJSON(steps.metadata.outputs.json).tags[0] }}
     env:
@@ -94,12 +100,17 @@ jobs:
             echo "tag=branch-${REF_NAME//\//-}" >> "$GITHUB_OUTPUT"
           fi
 
+      # images: is just `flutter-android` (no owner prefix) so the resulting
+      # local tag — exposed via image_local_tag — does not contain a value
+      # that matches the DOCKER_HUB_USERNAME secret. Matching a secret would
+      # cause GitHub Actions to suppress the output. The GHCR push target is
+      # set independently via `outputs:` on the build-push step below.
       - name: Load image metadata
         uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5.10.0
         id: metadata
         with:
           images: |
-            ${{ env.IMAGE_REPOSITORY_PATH }}
+            ${{ env.IMAGE_REPOSITORY_NAME }}
           tags: |
             type=raw,value=${{ env.FLUTTER_VERSION }}
 
@@ -170,12 +181,12 @@ jobs:
 
       - name: Pull image from registry
         if: needs.build_image.outputs.image_artifact == ''
-        run: docker pull "${{ needs.build_image.outputs.image_ref }}"
+        run: docker pull "ghcr.io/${{ github.repository_owner }}/flutter-android:${{ needs.build_image.outputs.image_tag }}"
 
       - name: Test image
         uses: plexsystems/container-structure-test-action@c0a028aa96e8e82ae35be556040340cbb3e280ca # v0.3.0
         with:
-          image: ${{ needs.build_image.outputs.image_artifact != '' && needs.build_image.outputs.image_local_tag || needs.build_image.outputs.image_ref }}
+          image: ${{ needs.build_image.outputs.image_artifact != '' && needs.build_image.outputs.image_local_tag || format('ghcr.io/{0}/flutter-android:{1}', github.repository_owner, needs.build_image.outputs.image_tag) }}
           config: test/android.yml
 
   scan_image:
@@ -210,7 +221,7 @@ jobs:
         uses: docker/scout-action@bacf462e8d090c09660de30a6ccc718035f961e3 # v1.20.4
         with:
           command: compare, recommendations
-          image: ${{ needs.build_image.outputs.image_artifact != '' && format('local://{0}', needs.build_image.outputs.image_local_tag) || format('registry://{0}', needs.build_image.outputs.image_ref) }}
+          image: ${{ needs.build_image.outputs.image_artifact != '' && format('local://{0}', needs.build_image.outputs.image_local_tag) || format('registry://ghcr.io/{0}/flutter-android:{1}', github.repository_owner, needs.build_image.outputs.image_tag) }}
           github-token: ${{ github.token }}
           only-fixed: true
           organization: ${{ secrets.DOCKER_HUB_USERNAME }}
