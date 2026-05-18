@@ -30,19 +30,21 @@ jobs:
           version=$(gh api "repos/${{ github.repository }}/releases/latest" --jq '.tag_name')
           echo "version=$version" >> "$GITHUB_OUTPUT"
 
-  test_image:
+  build_image:
     permissions:
-      # Allow to write packages for GHCR cache push and docker/scout-action
       packages: write
-      # Allow to write pull requests for the docker/scout-action to write a comment
-      pull-requests: write
-      # Allow to write security events for github/codeql-action/upload-sarif to upload SARIF results
-      security-events: write
     runs-on: ubuntu-24.04
     outputs:
+      # image_ref is set per the p2 contract but GitHub Actions suppresses
+      # any job output whose value contains a registered secret. When
+      # github.repository_owner equals DOCKER_HUB_USERNAME (as on this repo),
+      # image_ref is masked-and-dropped. Consumers MUST use image_tag and
+      # reconstruct ghcr.io/${{ github.repository_owner }}/flutter-android:<tag>.
       image_ref: ${{ steps.handoff.outputs.is_fork != 'true' && format('ghcr.io/{0}/flutter-android:{1}', github.repository_owner, steps.handoff.outputs.tag) || '' }}
+      image_tag: ${{ steps.handoff.outputs.is_fork != 'true' && steps.handoff.outputs.tag || '' }}
       image_artifact: ${{ steps.handoff.outputs.is_fork == 'true' && format('image-{0}', github.run_id) || '' }}
-      image_local_tag: ${{ fromJSON(steps.metadata.outputs.json).tags[0] }}
+      image_local_tag: ${{ steps.local_tag.outputs.ref }}
+      flutter_version: ${{ env.FLUTTER_VERSION }}
     env:
       IMAGE_REPOSITORY_NAME: flutter-android
       VERSION_MANIFEST: config/version.json
@@ -108,13 +110,15 @@ jobs:
           tags: |
             type=raw,value=${{ env.FLUTTER_VERSION }}
 
+      # outputs is just `type=docker` (load into local daemon). The GHCR
+      # handoff push is done by an explicit `docker push` step below — when
+      # combined with `type=docker`, buildkit silently ignores a `type=registry`
+      # output and pushes only via --tag (which points at docker.io, not GHCR).
       - name: Build image and push to local Docker daemon
         uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
         with:
           file: android.Dockerfile
-          outputs: |
-            type=docker
-            ${{ steps.handoff.outputs.is_fork != 'true' && format('type=registry,push=true,name=ghcr.io/{0}/flutter-android:{1}', github.repository_owner, steps.handoff.outputs.tag) || '' }}
+          outputs: type=docker
           cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/flutter-android:buildcache
           cache-to: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && format('type=registry,ref=ghcr.io/{0}/flutter-android:buildcache,mode=max', github.repository_owner) || '' }}
           labels: ${{ steps.metadata.outputs.labels }}
@@ -128,9 +132,28 @@ jobs:
             android_ndk_version=${{ env.ANDROID_NDK_VERSION }}
             cmake_version=${{ env.CMAKE_VERSION }}
 
+      # Re-tag the loaded image to a name that does NOT contain the owner.
+      # `image_local_tag` is exposed as a job output; GitHub Actions drops
+      # outputs whose value contains a registered secret (DOCKER_HUB_USERNAME
+      # == github.repository_owner on this repo), so the metadata tag
+      # `<owner>/flutter-android:<version>` cannot be passed through.
+      - name: Re-tag image for local handoff
+        id: local_tag
+        run: |
+          DEST="flutter-android:${{ env.FLUTTER_VERSION }}"
+          docker tag "${{ fromJSON(steps.metadata.outputs.json).tags[0] }}" "$DEST"
+          echo "ref=$DEST" >> "$GITHUB_OUTPUT"
+
+      - name: Push image to GHCR
+        if: steps.handoff.outputs.is_fork != 'true'
+        run: |
+          GHCR_REF="ghcr.io/${{ github.repository_owner }}/flutter-android:${{ steps.handoff.outputs.tag }}"
+          docker tag "${{ fromJSON(steps.metadata.outputs.json).tags[0] }}" "$GHCR_REF"
+          docker push "$GHCR_REF"
+
       - name: Save image as artifact
         if: steps.handoff.outputs.is_fork == 'true'
-        run: docker save ${{ fromJSON(steps.metadata.outputs.json).tags[0] }} | gzip > image.tar.gz
+        run: docker save "${{ steps.local_tag.outputs.ref }}" | gzip > image.tar.gz
 
       - name: Upload image artifact
         if: steps.handoff.outputs.is_fork == 'true'
@@ -141,32 +164,106 @@ jobs:
           retention-days: 1
           compression-level: 0
 
+  test_image:
+    needs: build_image
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Clean runner disk
+        if: needs.build_image.outputs.image_artifact != ''
+        uses: ./.github/actions/clean-runner-disk
+
+      - name: Download image artifact
+        if: needs.build_image.outputs.image_artifact != ''
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: ${{ needs.build_image.outputs.image_artifact }}
+
+      - name: Load image from artifact
+        if: needs.build_image.outputs.image_artifact != ''
+        run: gunzip -c image.tar.gz | docker load
+
+      - name: Login to GHCR
+        if: needs.build_image.outputs.image_artifact == ''
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull image from registry
+        if: needs.build_image.outputs.image_artifact == ''
+        run: docker pull "ghcr.io/${{ github.repository_owner }}/flutter-android:${{ needs.build_image.outputs.image_tag }}"
+
       - name: Test image
         uses: plexsystems/container-structure-test-action@c0a028aa96e8e82ae35be556040340cbb3e280ca # v0.3.0
         with:
-          image: ${{ fromJSON(steps.metadata.outputs.json).tags[0] }}
+          image: ${{ needs.build_image.outputs.image_artifact != '' && needs.build_image.outputs.image_local_tag || format('ghcr.io/{0}/flutter-android:{1}', github.repository_owner, needs.build_image.outputs.image_tag) }}
           config: test/android.yml
 
-      # TODO: Parallelize testing and vulnerability scanning
-      # Scout needs the Docker Hub org secret and writes a PR comment, neither
-      # of which is available to fork PRs.
+  scan_image:
+    needs: build_image
+    runs-on: ubuntu-24.04
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    permissions:
+      packages: read
+      pull-requests: write
+      security-events: write
+    steps:
+      - name: Download image artifact
+        if: needs.build_image.outputs.image_artifact != ''
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: ${{ needs.build_image.outputs.image_artifact }}
+
+      - name: Load image from artifact
+        if: needs.build_image.outputs.image_artifact != ''
+        run: gunzip -c image.tar.gz | docker load
+
+      # Docker Hub login is required by Scout — it authenticates against the
+      # Docker Hub identity tied to the org secret, not the GHCR identity.
+      - name: Login to Docker Hub
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+      - name: Login to GHCR
+        if: needs.build_image.outputs.image_artifact == ''
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Pull the PR-tagged GHCR image and re-tag it with the Docker Hub repo
+      # identity (<owner>/flutter-android:<version>). Scout's `compare` looks
+      # up the image's repo in its environment records — those records exist
+      # for the Docker Hub repo, not for `ghcr.io/<owner>/flutter-android`.
+      # Without this re-tag, Scout fails with "not in stream environment:prod".
+      - name: Pull image and re-tag for Scout
+        if: needs.build_image.outputs.image_artifact == ''
+        run: |
+          GHCR_REF="ghcr.io/${{ github.repository_owner }}/flutter-android:${{ needs.build_image.outputs.image_tag }}"
+          SCOUT_REF="${{ github.repository_owner }}/flutter-android:${{ needs.build_image.outputs.flutter_version }}"
+          docker pull "$GHCR_REF"
+          docker tag "$GHCR_REF" "$SCOUT_REF"
+
       - name: Scan with Docker Scout
         id: docker-scout
-        if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
-        uses: docker/scout-action@f8c776824083494ab0d56b8105ba2ca85c86e4de # v1.18.2
+        uses: docker/scout-action@bacf462e8d090c09660de30a6ccc718035f961e3 # v1.20.4
         with:
           command: compare, recommendations
-          # Use the Docker Hub image that is the first tag in the metadata
-          image: local://${{ fromJson(steps.metadata.outputs.json).tags[0] }}
-          # github-token is needed to be able to write the PR comment
+          image: local://${{ github.repository_owner }}/flutter-android:${{ needs.build_image.outputs.flutter_version }}
           github-token: ${{ github.token }}
           only-fixed: true
           organization: ${{ secrets.DOCKER_HUB_USERNAME }}
-          # sarif-file: output.sarif.json
           to-env: prod
-          # Enable debug logging when needed
-          # debug: true
-          # verbose-debug: true
 
   validate_version_files:
     runs-on: ubuntu-24.04
