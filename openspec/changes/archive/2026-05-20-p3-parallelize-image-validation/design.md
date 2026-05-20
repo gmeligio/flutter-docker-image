@@ -24,7 +24,7 @@ The non-trivial questions are: (a) how do consumer jobs get the bits onto their 
 
 **Decision**: The two consumers use different strategies because the two actions support different things:
 
-- `docker/scout-action`: pass `image: registry://ghcr.io/<owner>/flutter-android:pr-N`. The `registry://` prefix tells Scout to read from the registry directly with no daemon involvement — confirmed in the action's README image-prefix table. No `docker pull` step on the registry path for `scan_image`.
+- `docker/scout-action`: SHALL `docker pull` the GHCR image, re-tag it as `<owner>/flutter-android:<flutter_version>` (the Docker Hub repo path), and pass `image: local://<owner>/flutter-android:<flutter_version>`. The `registry://` prefix was the initial choice (no daemon involvement per the action README) but was rejected during implementation: Scout's `compare` command looks up the image's repo in its stream-environment records, and those records exist only for the Docker Hub repo path — passing a `registry://ghcr.io/...` ref fails with "not in stream environment:prod". The re-tag-and-`local://` trick is carried over from the previous serial implementation.
 - `container-structure-test` (via `plexsystems/container-structure-test-action`): the action invokes `container-structure-test test --image <input>` with no `--pull` flag and no driver override. The CLI's default `docker` driver inspects the local Docker daemon only. So `test_image` SHALL run an explicit `docker pull "$IMAGE_REF"` on the registry path before invoking the action. The earlier draft of this design assumed CST would stream-pull on demand; it does not.
 
 **Alternatives considered**:
