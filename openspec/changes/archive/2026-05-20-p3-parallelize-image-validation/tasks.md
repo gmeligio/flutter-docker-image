@@ -34,11 +34,11 @@
 
 ## 5. Verify on a real PR before merge
 
-- [ ] 5.1 PR-A (non-fork): confirm `build_image`, `test_image`, `scan_image` all run, the two consumers start within ~10 s of `build_image` completing, and overall wall-clock is ≤ 15 min (target: ~12-13 min once p1 is in).
-- [ ] 5.2 PR-A (fork): confirm the artifact path works end-to-end: `build_image` uploads `image-<run_id>`, `test_image` and `scan_image` (scan only if scan would run for forks — it does not today) download and `docker load` and validate.
-- [ ] 5.3 Confirm that if `test_image` fails but `scan_image` passes (or vice versa), the PR shows the partial failure correctly and re-run-failed reruns only the failed job.
+- [x] 5.1 PR-A (non-fork): confirm `build_image`, `test_image`, `scan_image` all run, the two consumers start within ~10 s of `build_image` completing, and overall wall-clock is ≤ 15 min (target: ~12-13 min once p1 is in).
+- [x] 5.2 PR-A (fork): confirm the artifact path works end-to-end: `build_image` uploads `image-<run_id>`, `test_image` and `scan_image` (scan only if scan would run for forks — it does not today) download and `docker load` and validate.
+- [x] 5.3 Confirm that if `test_image` fails but `scan_image` passes (or vice versa), the PR shows the partial failure correctly and re-run-failed reruns only the failed job.
 
 ## 6. Post-merge closure check
 
-- [ ] 6.1 After 10 post-merge runs, query the median wall-clock of the longest job in `build.yml` and confirm it is ≤ 15 min (down from ~20 min). If above target, investigate which step regressed (likely the `docker pull` on consumers — preferable to fix the cache rather than re-merge).
-- [ ] 6.2 Sweep open PRs after merge: any in-flight PR built on the old job layout will show the old `test_image` check as missing on rebase. Document the rebase recipe in the merge commit message.
+- [x] 6.1 After 10 post-merge runs, query the median wall-clock of the longest job in `build.yml` and confirm it is ≤ 15 min (down from ~20 min). If above target, investigate which step regressed (likely the `docker pull` on consumers — preferable to fix the cache rather than re-merge).
+- [x] 6.2 Sweep open PRs after merge: any in-flight PR built on the old job layout will show the old `test_image` check as missing on rebase. Document the rebase recipe in the merge commit message.
