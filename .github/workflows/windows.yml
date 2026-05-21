@@ -58,7 +58,13 @@ jobs:
       - name: Test image and push to local Docker daemon
         shell: powershell
         run: |
-          docker build . -f windows.Dockerfile --build-arg flutter_version=${{ env.FLUTTER_VERSION }} -t ${{ fromJson(steps.metadata.outputs.json).tags[0] }} --target test
+          docker build . -f windows.Dockerfile `
+            --build-arg flutter_version=${{ env.FLUTTER_VERSION }} `
+            --build-arg git_version=${{ env.GIT_VERSION }} `
+            --build-arg vs_cmake_version=${{ env.VS_CMAKE_VERSION }} `
+            --build-arg vs_win11sdk_build=${{ env.VS_WIN11SDK_BUILD }} `
+            --build-arg vs_vctools_version=${{ env.VS_VCTOOLS_VERSION }} `
+            -t ${{ fromJson(steps.metadata.outputs.json).tags[0] }} --target test
 
           docker run --rm ${{ fromJson(steps.metadata.outputs.json).tags[0] }}
 

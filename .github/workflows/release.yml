@@ -159,6 +159,10 @@ jobs:
 
           $buildArgs = $tagArgs + $labelArgs + @(
             '--build-arg', "flutter_version=${{ env.FLUTTER_VERSION }}",
+            '--build-arg', "git_version=${{ env.GIT_VERSION }}",
+            '--build-arg', "vs_cmake_version=${{ env.VS_CMAKE_VERSION }}",
+            '--build-arg', "vs_win11sdk_build=${{ env.VS_WIN11SDK_BUILD }}",
+            '--build-arg', "vs_vctools_version=${{ env.VS_VCTOOLS_VERSION }}",
             '--target', 'flutter',
             '--file', 'windows.Dockerfile',
             '.'

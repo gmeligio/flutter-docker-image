@@ -26,8 +26,8 @@
 
 ## 5. Wire build args into the workflows
 
-- [ ] 5.1 In `.github/workflows/windows.yml`, update the `docker build` invocation in the `Test image and push to local Docker daemon` step to pass `--build-arg git_version=${{ env.GIT_VERSION }}`, `--build-arg vs_cmake_version=${{ env.VS_CMAKE_VERSION }}`, `--build-arg vs_win11sdk_build=${{ env.VS_WIN11SDK_BUILD }}`, `--build-arg vs_vctools_version=${{ env.VS_VCTOOLS_VERSION }}`.
-- [ ] 5.2 If `p2-release-windows-image` is already merged, apply the same `--build-arg` changes to the `release_windows` job in `.github/workflows/release.yml`.
+- [x] 5.1 In `.github/workflows/windows.yml`, update the `docker build` invocation in the `Test image and push to local Docker daemon` step to pass `--build-arg git_version=${{ env.GIT_VERSION }}`, `--build-arg vs_cmake_version=${{ env.VS_CMAKE_VERSION }}`, `--build-arg vs_win11sdk_build=${{ env.VS_WIN11SDK_BUILD }}`, `--build-arg vs_vctools_version=${{ env.VS_VCTOOLS_VERSION }}`.
+- [x] 5.2 If `p2-release-windows-image` is already merged, apply the same `--build-arg` changes to the `release_windows` job in `.github/workflows/release.yml`.
 
 ## 6. Tighten the Pester assertions
 
