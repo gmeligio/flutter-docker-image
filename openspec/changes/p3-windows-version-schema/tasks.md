@@ -7,9 +7,9 @@
 
 ## 2. Backfill `config/version.json`
 
-- [ ] 2.1 Read the current values from `windows.Dockerfile`: Git `2.46.0`, Win11SDK build `22621`. Source the four-part component versions from `VisualStudio.vsman` (fetched via `aka.ms/vs/17/release/channel` → `Microsoft.VisualStudio.Manifests.VisualStudio` payload URL; see Decision in design.md). As of 2026-05-21: `Microsoft.VisualStudio.Component.VC.CMake.Project` = `17.14.36510.44`, `Microsoft.VisualStudio.Workload.VCTools` = `17.14.36331.10`. Rerun the query close to merge time so backfilled values match what `windows.yml` will actually install.
-- [ ] 2.2 Add the `windows` block to `config/version.json` with those four values.
-- [ ] 2.3 Run `cue vet config/schema.cue -d '#Version' config/version.json`; it should now exit 0.
+- [x] 2.1 Read the current values from `windows.Dockerfile`: Git `2.46.0`, Win11SDK build `22621`. Source the four-part component versions from `VisualStudio.vsman` (fetched via `aka.ms/vs/17/release/channel` → `Microsoft.VisualStudio.Manifests.VisualStudio` payload URL; see Decision in design.md). As of 2026-05-21: `Microsoft.VisualStudio.Component.VC.CMake.Project` = `17.14.36510.44`, `Microsoft.VisualStudio.Workload.VCTools` = `17.14.36331.10`. Rerun the query close to merge time so backfilled values match what `windows.yml` will actually install.
+- [x] 2.2 Add the `windows` block to `config/version.json` with those four values.
+- [x] 2.3 Run `cue vet config/schema.cue -d '#Version' config/version.json`; it should now exit 0.
 
 ## 3. Remove version literals from `windows.Dockerfile`
 

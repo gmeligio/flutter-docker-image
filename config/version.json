@@ -28,5 +28,21 @@
     },
     "fastlane": {
         "version": "2.234.0"
+    },
+    "windows": {
+        "git": {
+            "version": "2.46.0"
+        },
+        "vsBuildTools": {
+            "cmakeProject": {
+                "version": "17.14.36510.44"
+            },
+            "windows11Sdk": {
+                "build": 22621
+            },
+            "vcTools": {
+                "version": "17.14.36331.10"
+            }
+        }
     }
 }
