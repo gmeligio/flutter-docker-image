@@ -61,8 +61,8 @@
 
 ## 9. Documentation
 
-- [ ] 9.1 Update `docs/src/windows.mdx` (and the auto-generated `docs/windows.md`) to note that the Windows toolchain versions are pinned in `config/version.json` and refreshed by the monthly upgrade PR.
-- [ ] 9.2 Remove now-completed TODO items in `docs/windows.md` referring to "test where is installed" and "snapshot of flutter config" — those are covered by the Pester suite now.
+- [x] 9.1 Update `docs/src/windows.mdx` (and the auto-generated `docs/windows.md`) to note that the Windows toolchain versions are pinned in `config/version.json` and refreshed by the monthly upgrade PR.
+- [x] 9.2 Remove now-completed TODO items in `docs/windows.md` referring to "test where is installed" and "snapshot of flutter config" — those are covered by the Pester suite now.
 
 ## 10. Archive
 
