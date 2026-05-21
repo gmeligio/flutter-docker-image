@@ -13,6 +13,21 @@ import "list"
 	version!: =~ "^\\d+.\\d+.\\d+$"
 }
 
+#SemverQuad: {
+	version!: =~ "^\\d+\\.\\d+\\.\\d+\\.\\d+$"
+}
+
+#WindowsToolchain: {
+	git: #SemverPatch
+	vsBuildTools: {
+		cmakeProject: #SemverQuad
+		windows11Sdk: {
+			build!: int
+		}
+		vcTools: #SemverQuad
+	}
+}
+
 #FlutterVersion: {
 	flutter: {
 		channel!: "stable"
@@ -36,4 +51,6 @@ import "list"
 	}
 
 	fastlane!: #SemverPatch
+
+	windows!: #WindowsToolchain
 }

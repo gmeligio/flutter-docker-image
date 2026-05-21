@@ -1,13 +1,13 @@
 ## 1. Extend the CUE schema
 
-- [ ] 1.1 Add `#SemverQuad: { version!: =~ "^\\d+\\.\\d+\\.\\d+\\.\\d+$" }` to `config/schema.cue` alongside the existing `#SemverPatch`.
-- [ ] 1.2 Add a `#WindowsToolchain` definition with sub-fields `git: #SemverPatch`, `vsBuildTools.cmakeProject: #SemverQuad`, `vsBuildTools.windows11Sdk.build!: int`, `vsBuildTools.vcTools: #SemverQuad`.
-- [ ] 1.3 Extend `#Version` to require `windows: #WindowsToolchain`.
-- [ ] 1.4 Run `cue vet config/schema.cue -d '#Version' config/version.json` and confirm it fails (because `version.json` doesn't yet have the `windows` block — the next group fixes this).
+- [x] 1.1 Add `#SemverQuad: { version!: =~ "^\\d+\\.\\d+\\.\\d+\\.\\d+$" }` to `config/schema.cue` alongside the existing `#SemverPatch`.
+- [x] 1.2 Add a `#WindowsToolchain` definition with sub-fields `git: #SemverPatch`, `vsBuildTools.cmakeProject: #SemverQuad`, `vsBuildTools.windows11Sdk.build!: int`, `vsBuildTools.vcTools: #SemverQuad`.
+- [x] 1.3 Extend `#Version` to require `windows: #WindowsToolchain`.
+- [x] 1.4 Run `cue vet config/schema.cue -d '#Version' config/version.json` and confirm it fails (because `version.json` doesn't yet have the `windows` block — the next group fixes this).
 
 ## 2. Backfill `config/version.json`
 
-- [ ] 2.1 Read the current values from `windows.Dockerfile`: Git `2.46.0`, Win11SDK build `22621`. Run `vs_BuildTools.exe` introspection (or look at a successful `windows-2025` build's package directory listing in a recent CI run) to find the four-part versions actually installed for `Microsoft.VisualStudio.Component.VC.CMake.Project` and `Microsoft.VisualStudio.Workload.VCTools`.
+- [ ] 2.1 Read the current values from `windows.Dockerfile`: Git `2.46.0`, Win11SDK build `22621`. Source the four-part component versions from `VisualStudio.vsman` (fetched via `aka.ms/vs/17/release/channel` → `Microsoft.VisualStudio.Manifests.VisualStudio` payload URL; see Decision in design.md). As of 2026-05-21: `Microsoft.VisualStudio.Component.VC.CMake.Project` = `17.14.36510.44`, `Microsoft.VisualStudio.Workload.VCTools` = `17.14.36331.10`. Rerun the query close to merge time so backfilled values match what `windows.yml` will actually install.
 - [ ] 2.2 Add the `windows` block to `config/version.json` with those four values.
 - [ ] 2.3 Run `cue vet config/schema.cue -d '#Version' config/version.json`; it should now exit 0.
 
@@ -42,7 +42,13 @@
 - [ ] 7.1 Add a job `update_windows_version` after `update_flutter_version`. Set `runs-on: ubuntu-24.04`, `needs: update_flutter_version`, `if: ${{ needs.update_flutter_version.outputs.new_version == 'true' }}`. Note: this job runs in parallel with `update_android_version`.
 - [ ] 7.2 Job step: download the `flutter_version.json` artifact (parallel pattern with `update_android_version`).
 - [ ] 7.3 Job step: `curl -fsSL https://api.github.com/repos/git-for-windows/git/releases/latest | jq -r '.tag_name'`; strip leading `v` and trailing `.windows.N`; export as `GIT_VERSION_NEW`.
-- [ ] 7.4 Job step: `curl -fsSL https://aka.ms/vs/17/release/channel | jq …` to extract the `Microsoft.VisualStudio.Component.VC.CMake.Project` and `Microsoft.VisualStudio.Workload.VCTools` component versions. Document the jq path in a comment so future maintainers can update it if the channel manifest restructures.
+- [ ] 7.4 Job steps to resolve VS component versions (two-step fetch — the channel manifest alone does NOT contain per-component versions; they live in `vsman`):
+  - [ ] 7.4a `curl -fsSL https://aka.ms/vs/17/release/channel -o channel.json`
+  - [ ] 7.4b Extract the catalog URL and SHA: ``vsman_url=$(jq -r '.channelItems[] | select(.id=="Microsoft.VisualStudio.Manifests.VisualStudio") | .payloads[0].url' channel.json)`` and ``vsman_sha=$(jq -r '.channelItems[] | select(.id=="Microsoft.VisualStudio.Manifests.VisualStudio") | .payloads[0].sha256' channel.json)``
+  - [ ] 7.4c `curl -fsSL "$vsman_url" -o vsman.json` (~17 MB)
+  - [ ] 7.4d Verify SHA-256: `echo "$vsman_sha  vsman.json" | sha256sum -c -`. Fail the job on mismatch.
+  - [ ] 7.4e Extract versions: `jq -r '.packages[] | select(.id=="Microsoft.VisualStudio.Component.VC.CMake.Project") | .version' vsman.json` (and analogously for `Microsoft.VisualStudio.Workload.VCTools`). Document the jq paths in comments so future maintainers can update them if the catalog manifest restructures.
+  - [ ] 7.4f Upload both `channel.json` and `vsman.json` as workflow artifacts (90-day retention) for forensic record. This is the mitigation that lets us skip committing the manifest into git (see resolved question in design.md).
 - [ ] 7.5 Job step: write the four resolved values into `config/version.json` using `jq` (preserving existing keys).
 - [ ] 7.6 Job step: validate with `cue vet config/schema.cue -d '#Version' config/version.json`. Fail the job on non-zero exit.
 - [ ] 7.7 Job step: upload `config/version.json` as an artifact named `version.json.windows` (so it doesn't collide with the Android artifact).

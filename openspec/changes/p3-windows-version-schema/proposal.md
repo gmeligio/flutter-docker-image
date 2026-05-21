@@ -17,7 +17,7 @@
 - In the Pester suite (added by `p1`), tighten the VS component assertions from `*,version=*` to `*,version=<exact-version>*`, and assert Git's reported `git --version` matches `windows.git.version`.
 - Add a new `update_windows_version` job to `update_version.yml`, parallel to `update_android_version` (both gated by `update_flutter_version`'s `result == 'true'` output). The job:
   - reads upstream Git for Windows latest release from `https://api.github.com/repos/git-for-windows/git/releases/latest`,
-  - reads VS BuildTools component versions from the channel manifest (or pins them; see design),
+  - reads VS BuildTools component versions from the VS catalog manifest `VisualStudio.vsman` (fetched via `aka.ms/vs/17/release/channel` → `Microsoft.VisualStudio.Manifests.VisualStudio` payload, SHA-256-verified; see design for two-step fetch),
   - writes the new fields into `config/version.json` and uploads the artifact for the `validate_config_version` and `update_docs_and_create_pr` jobs to consume.
 - The Windows-relevant fields fall under the existing `flutter-version-update` PR cadence — same upgrade PR carries both Android and Windows updates.
 
@@ -38,5 +38,5 @@
 - Cross-cutting: this is the largest of the three changes. Touches schema, manifest, dockerfile, two workflows, the version-update node script, and the test suite.
 - Depends on: `p1-fix-windows-ci-tests` landed (Pester tests exist to tighten); `p2-release-windows-image` ideally landed (so the build args also flow through release).
 - Does not depend on the Renovate-via-`gx` integration (`actions-version-tracking`) since Windows toolchain versions are tracked in `config/version.json` like Android, not in `gx.toml`. Renovate is unaffected.
-- Risk: VS BuildTools component versioning is provided by Microsoft via the channel manifest; the source of truth and the update API have less stability than Flutter's `releases_linux.json`. Mitigation in design.
+- Risk: VS BuildTools component versioning is provided by Microsoft via the VS catalog manifest (`vsman`, ~17 MB, referenced and SHA-pinned by the channel manifest); the source of truth and the update API have less stability than Flutter's `releases_linux.json`. Mitigation in design.
 - Risk: tightening Pester assertions to exact versions means a Microsoft-side patch bump to a VS component will fail CI even though the image still works. Mitigation: track at the build-id level for Win11SDK (already coarse), at the publisher's `version=` for the others, accept that an upgrade PR is required when Microsoft ships a patch.
