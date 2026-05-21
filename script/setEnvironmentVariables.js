@@ -34,6 +34,19 @@ module.exports = async ({ core }) => {
   core.exportVariable('ANDROID_PLATFORM_VERSIONS', platforms)
   core.exportVariable('ANDROID_NDK_VERSION', data.android.ndk.version)
   core.exportVariable('CMAKE_VERSION', data.android.cmake.version)
+  core.exportVariable('GIT_VERSION', data.windows.git.version)
+  core.exportVariable(
+    'VS_CMAKE_VERSION',
+    data.windows.vsBuildTools.cmakeProject.version
+  )
+  core.exportVariable(
+    'VS_WIN11SDK_BUILD',
+    data.windows.vsBuildTools.windows11Sdk.build
+  )
+  core.exportVariable(
+    'VS_VCTOOLS_VERSION',
+    data.windows.vsBuildTools.vcTools.version
+  )
   core.exportVariable(
     'IMAGE_REPOSITORY_PATH',
     `${GITHUB_REPOSITORY_OWNER}/${IMAGE_REPOSITORY_NAME}`

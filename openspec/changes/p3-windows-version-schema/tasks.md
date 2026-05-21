@@ -20,9 +20,9 @@
 
 ## 4. Surface the new fields via `setEnvironmentVariables.js`
 
-- [ ] 4.1 Open `script/setEnvironmentVariables.js`. Add reads for `windows.git.version`, `windows.vsBuildTools.cmakeProject.version`, `windows.vsBuildTools.windows11Sdk.build`, `windows.vsBuildTools.vcTools.version`.
-- [ ] 4.2 Export each via `core.exportVariable` as `GIT_VERSION`, `VS_CMAKE_VERSION`, `VS_WIN11SDK_BUILD`, `VS_VCTOOLS_VERSION`.
-- [ ] 4.3 Confirm existing exported variables are unchanged.
+- [x] 4.1 Open `script/setEnvironmentVariables.js`. Add reads for `windows.git.version`, `windows.vsBuildTools.cmakeProject.version`, `windows.vsBuildTools.windows11Sdk.build`, `windows.vsBuildTools.vcTools.version`.
+- [x] 4.2 Export each via `core.exportVariable` as `GIT_VERSION`, `VS_CMAKE_VERSION`, `VS_WIN11SDK_BUILD`, `VS_VCTOOLS_VERSION`.
+- [x] 4.3 Confirm existing exported variables are unchanged.
 
 ## 5. Wire build args into the workflows
 
