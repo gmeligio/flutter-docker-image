@@ -13,10 +13,10 @@
 
 ## 3. Remove version literals from `windows.Dockerfile`
 
-- [ ] 3.1 Replace `ARG git_version=2.46.0` with `ARG git_version` (no default).
-- [ ] 3.2 Add `ARG vs_cmake_version`, `ARG vs_win11sdk_build`, `ARG vs_vctools_version` (no defaults) before the `vs_BuildTools.exe` invocation.
-- [ ] 3.3 Replace the literal `--add Microsoft.VisualStudio.Component.Windows11SDK.22621` with `--add Microsoft.VisualStudio.Component.Windows11SDK.${env:vs_win11sdk_build}` (or the correct PowerShell expansion syntax inside the RUN command).
-- [ ] 3.4 The CMake and VCTools `--add` lines do not embed versions in the component id — versions are picked up from the channel and asserted later by Pester. Leave the `--add` lines alone for these.
+- [x] 3.1 Replace `ARG git_version=2.46.0` with `ARG git_version` (no default).
+- [x] 3.2 Add `ARG vs_cmake_version`, `ARG vs_win11sdk_build`, `ARG vs_vctools_version` (no defaults) before the `vs_BuildTools.exe` invocation.
+- [x] 3.3 Replace the literal `--add Microsoft.VisualStudio.Component.Windows11SDK.22621` with `--add Microsoft.VisualStudio.Component.Windows11SDK.${env:vs_win11sdk_build}` (or the correct PowerShell expansion syntax inside the RUN command).
+- [x] 3.4 The CMake and VCTools `--add` lines do not embed versions in the component id — versions are picked up from the channel and asserted later by Pester. Leave the `--add` lines alone for these.
 
 ## 4. Surface the new fields via `setEnvironmentVariables.js`
 

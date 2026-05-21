@@ -4,7 +4,7 @@ FROM mcr.microsoft.com/windows/servercore:ltsc2025@sha256:83374b6927f7945bb0933d
 
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 
-ARG git_version=2.46.0
+ARG git_version
 ARG git_installation_path="C:\Program Files\Git"
 
 # TODO: Find a way to pass $env:USERPROFILE instead of hardcoding C:\Users\ContainerUser. It's hardcoded because  environment variables in Windows container works by setting for the Machine scope and that will have $env:USERPROFILE as C:\Users\ContainerAdministrator instead.
@@ -64,15 +64,19 @@ RUN git clone `
     flutter create build_app;
 
 
+ARG vs_cmake_version
+ARG vs_win11sdk_build
+ARG vs_vctools_version
+
 # The user ContainerAdministrator must be used because is the one that has permissions to install with vs_BuildTools
 USER ContainerAdministrator
 # Download the Build Tools bootstrapper
 # See https://learn.microsoft.com/en-us/visualstudio/install/build-tools-container?view=vs-2022
 RUN Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vs_buildtools.exe -OutFile vs_BuildTools.exe; `
-    Start-Process vs_BuildTools.exe -ArgumentList '--quiet --wait --norestart --nocache `
+    Start-Process vs_BuildTools.exe -ArgumentList \"--quiet --wait --norestart --nocache `
     --add Microsoft.VisualStudio.Component.VC.CMake.Project `
-    --add Microsoft.VisualStudio.Component.Windows11SDK.22621 `
-    --add Microsoft.VisualStudio.Workload.VCTools' `
+    --add Microsoft.VisualStudio.Component.Windows11SDK.${env:vs_win11sdk_build} `
+    --add Microsoft.VisualStudio.Workload.VCTools\" `
     -Wait; `
     Remove-Item vs_BuildTools.exe;
 USER ContainerUser
