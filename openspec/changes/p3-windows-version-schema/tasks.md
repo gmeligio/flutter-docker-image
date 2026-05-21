@@ -31,11 +31,11 @@
 
 ## 6. Tighten the Pester assertions
 
-- [ ] 6.1 In `test/windows/Windows.Tests.ps1`, add a `BeforeAll` block that reads `config\version.json` via `Get-Content -Raw | ConvertFrom-Json` into `$manifest`.
-- [ ] 6.2 Add a Git version test that runs `git --version`, parses the leading three-part semver (`X.Y.Z` from `git version X.Y.Z.windows.N`), and asserts equality with `$manifest.windows.git.version`.
-- [ ] 6.3 Tighten the existing CMake assertion: change pattern from `,version=*` to `,version=$($manifest.windows.vsBuildTools.cmakeProject.version)*`.
-- [ ] 6.4 Tighten the existing Win11SDK assertion: change to match `Microsoft.VisualStudio.Component.Windows11SDK.$($manifest.windows.vsBuildTools.windows11Sdk.build),version*`.
-- [ ] 6.5 Tighten the existing VCTools assertion: change pattern from `,version=*` to `,version=$($manifest.windows.vsBuildTools.vcTools.version)*`.
+- [x] 6.1 In `test/windows/Windows.Tests.ps1`, add a `BeforeAll` block that reads `config\version.json` via `Get-Content -Raw | ConvertFrom-Json` into `$manifest`.
+- [x] 6.2 Add a Git version test that runs `git --version`, parses the leading three-part semver (`X.Y.Z` from `git version X.Y.Z.windows.N`), and asserts equality with `$manifest.windows.git.version`.
+- [x] 6.3 Tighten the existing CMake assertion: change pattern from `,version=*` to `,version=$($manifest.windows.vsBuildTools.cmakeProject.version)*`.
+- [x] 6.4 Tighten the existing Win11SDK assertion: change to match `Microsoft.VisualStudio.Component.Windows11SDK.$($manifest.windows.vsBuildTools.windows11Sdk.build),version*`.
+- [x] 6.5 Tighten the existing VCTools assertion: change pattern from `,version=*` to `,version=$($manifest.windows.vsBuildTools.vcTools.version)*`.
 
 ## 7. Add `update_windows_version` to `update_version.yml`
 

@@ -1,7 +1,10 @@
+BeforeAll {
+    $script:manifest = Get-Content -Raw "config\version.json" | ConvertFrom-Json
+}
+
 Describe "Flutter version" {
     It "Should match the version in config/version.json" {
-        $manifest = Get-Content "config\version.json" | ConvertFrom-Json
-        $expectedVersion = $manifest.flutter.version
+        $expectedVersion = $script:manifest.flutter.version
 
         $firstLine = flutter --version 2>&1 | Select-Object -First 1
         $firstLine -match 'Flutter (\S+)' | Out-Null
@@ -54,6 +57,18 @@ Describe "Flutter doctor" {
     }
 }
 
+Describe "Git version" {
+    It "Should match windows.git.version in config/version.json" {
+        $expectedVersion = $script:manifest.windows.git.version
+
+        $firstLine = git --version 2>&1 | Select-Object -First 1
+        $firstLine -match 'git version (\d+\.\d+\.\d+)' | Out-Null
+        $actualVersion = $Matches[1]
+
+        $actualVersion | Should -Be $expectedVersion -Because "git --version reported '$actualVersion' but config/version.json specifies '$expectedVersion'"
+    }
+}
+
 Describe "Windows file structure tests" {
     It "Should have specific file content in dart telemetry config" {
         "$env:APPDATA\.dart-tool\dart-flutter-telemetry.config" | Should -FileContentMatchExactly "reporting=0"
@@ -65,18 +80,21 @@ Describe "Windows file structure tests" {
         }    
 
         It "CMake version matches" {
+            $expectedVersion = $script:manifest.windows.vsBuildTools.cmakeProject.version
             $directoryName = $visualStudioPackages | Select-String -CaseSensitive Microsoft.VisualStudio.Component.VC.CMake.Project
-            $directoryName | Should -BeLikeExactly "Microsoft.VisualStudio.Component.VC.CMake.Project,version=*"
+            $directoryName | Should -BeLikeExactly "Microsoft.VisualStudio.Component.VC.CMake.Project,version=$expectedVersion*"
         }
 
         It "Windows11SDK version matches" {
+            $expectedBuild = $script:manifest.windows.vsBuildTools.windows11Sdk.build
             $directoryName = $visualStudioPackages | Select-String -CaseSensitive Microsoft.VisualStudio.Component.Windows11SDK
-            $directoryName | Should -BeLikeExactly "Microsoft.VisualStudio.Component.Windows11SDK.22621,version=*"
+            $directoryName | Should -BeLikeExactly "Microsoft.VisualStudio.Component.Windows11SDK.$expectedBuild,version=*"
         }
 
         It "VCTools version matches" {
+            $expectedVersion = $script:manifest.windows.vsBuildTools.vcTools.version
             $directoryName = $visualStudioPackages | Select-String -CaseSensitive Microsoft.VisualStudio.Workload.VCTools
-            $directoryName | Should -BeLikeExactly "Microsoft.VisualStudio.Workload.VCTools,version=*"
+            $directoryName | Should -BeLikeExactly "Microsoft.VisualStudio.Workload.VCTools,version=$expectedVersion*"
         }
     }
 }
