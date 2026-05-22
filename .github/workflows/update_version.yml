@@ -83,6 +83,119 @@ jobs:
           name: flutter_version.json
           path: ${{ env.FLUTTER_VERSION_PATH }}
 
+  update_windows_version:
+    permissions:
+      contents: write
+    needs: update_flutter_version
+    if: ${{ needs.update_flutter_version.outputs.new_version == 'true' }}
+    outputs:
+      version_artifact_id: ${{ steps.upload-version.outputs.artifact-id }}
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Setup CUE
+        uses: jaxxstorm/action-install-gh-release@6096f2a2bbfee498ced520b6922ac2c06e990ed2 # v2.1.0
+        with:
+          repo: cue-lang/cue
+          tag: v0.15.0
+          digest: 06925fc1e5174591cef0b1e42ac32cff4271804742cd20893de1793b6d82d460
+
+      # Parallel pattern with update_android_version: the artifact is downloaded
+      # to keep job structure symmetric, even though windows fields are not
+      # currently tied to a specific Flutter tag.
+      - name: Delete flutter_version.json
+        run: rm ${{ env.FLUTTER_VERSION_PATH }}
+
+      - name: Download artifact with the new Flutter version
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        with:
+          artifact-ids: ${{ needs.update_flutter_version.outputs.flutter_version_artifact_id }}
+          path: config
+
+      - name: Resolve latest Git for Windows version
+        id: git_version
+        run: |
+          tag=$(curl -fsSL https://api.github.com/repos/git-for-windows/git/releases/latest | jq -r '.tag_name')
+          version=${tag#v}
+          version=${version%.windows.*}
+          echo "git_version=$version" >> "$GITHUB_OUTPUT"
+          echo "Resolved Git for Windows version: $version"
+
+      - name: Fetch VS channel manifest
+        run: curl -fsSL https://aka.ms/vs/17/release/channel -o channel.json
+
+      # The channel manifest only contains product-level entries; per-component
+      # versions live in VisualStudio.vsman, referenced and SHA-256 pinned from
+      # the channel via the Microsoft.VisualStudio.Manifests.VisualStudio item.
+      - name: Resolve VS catalog manifest payload
+        id: vsman_payload
+        run: |
+          url=$(jq -r '.channelItems[] | select(.id=="Microsoft.VisualStudio.Manifests.VisualStudio") | .payloads[0].url' channel.json)
+          sha=$(jq -r '.channelItems[] | select(.id=="Microsoft.VisualStudio.Manifests.VisualStudio") | .payloads[0].sha256' channel.json)
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+
+      - name: Download and verify VS catalog manifest
+        run: |
+          curl -fsSL "${{ steps.vsman_payload.outputs.url }}" -o vsman.json
+          echo "${{ steps.vsman_payload.outputs.sha }}  vsman.json" | sha256sum -c -
+
+      - name: Resolve VS BuildTools component versions
+        id: vs_versions
+        run: |
+          cmake=$(jq -r '.packages[] | select(.id=="Microsoft.VisualStudio.Component.VC.CMake.Project") | .version' vsman.json)
+          vctools=$(jq -r '.packages[] | select(.id=="Microsoft.VisualStudio.Workload.VCTools") | .version' vsman.json)
+          echo "cmake=$cmake" >> "$GITHUB_OUTPUT"
+          echo "vctools=$vctools" >> "$GITHUB_OUTPUT"
+          echo "CMake: $cmake; VCTools: $vctools"
+
+      - name: Write windows block into config/version.json
+        env:
+          GIT_VERSION: ${{ steps.git_version.outputs.git_version }}
+          VS_CMAKE_VERSION: ${{ steps.vs_versions.outputs.cmake }}
+          VS_VCTOOLS_VERSION: ${{ steps.vs_versions.outputs.vctools }}
+        run: |
+          # Win11SDK build id is human-pinned (changes infrequently; tied to OS branding).
+          win11sdk_build=$(jq -r '.windows.vsBuildTools.windows11Sdk.build' config/version.json)
+          jq --arg git "$GIT_VERSION" \
+             --arg cmake "$VS_CMAKE_VERSION" \
+             --arg vctools "$VS_VCTOOLS_VERSION" \
+             --argjson sdkbuild "$win11sdk_build" \
+             '.windows = {
+                git: {version: $git},
+                vsBuildTools: {
+                  cmakeProject: {version: $cmake},
+                  windows11Sdk: {build: $sdkbuild},
+                  vcTools: {version: $vctools}
+                }
+              }' config/version.json > config/version.json.tmp
+          mv config/version.json.tmp config/version.json
+
+      - name: Validate version.json with CUE
+        run: cue vet config/schema.cue -d '#Version' config/version.json
+
+      # The artifact's file is renamed so it doesn't collide with the Android
+      # artifact's version.json in update_docs_and_create_pr's merge step.
+      - name: Stage windows-only artifact
+        run: cp config/version.json "${RUNNER_TEMP}/version.json.windows"
+
+      - name: Upload artifact with the updated windows block
+        id: upload-version
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        with:
+          name: version.json.windows
+          path: ${{ runner.temp }}/version.json.windows
+
+      - name: Upload VS manifest artifacts for forensics
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        with:
+          name: vs-manifests
+          path: |
+            channel.json
+            vsman.json
+
   update_android_version:
     permissions:
       # Allow to write contents to push commits
@@ -223,6 +336,7 @@ jobs:
     needs:
       - update_flutter_version
       - update_android_version
+      - update_windows_version
       - validate_config_version
     runs-on: ubuntu-24.04
     env:
@@ -243,10 +357,32 @@ jobs:
       - name: Download configuration artifacts
         uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         with:
-          artifact-ids: ${{ needs.update_flutter_version.outputs.flutter_version_artifact_id }},${{ needs.update_android_version.outputs.version_artifact_id }}
+          artifact-ids: ${{ needs.update_flutter_version.outputs.flutter_version_artifact_id }},${{ needs.update_android_version.outputs.version_artifact_id }},${{ needs.update_windows_version.outputs.version_artifact_id }}
           path: config
-          # Download to the configured path instead of separated directories by artifact id
+          # Download to the configured path instead of separated directories by artifact id.
+          # Artifacts contain distinct filenames (flutter_version.json, version.json,
+          # version.json.windows) so merge-multiple is safe.
           merge-multiple: true
+
+      # Merge order: the Android artifact's version.json is the base (it carries
+      # the new flutter and android blocks). The Windows artifact's windows block
+      # overlays the windows field. This keeps each producer authoritative over
+      # its own block.
+      - name: Merge windows block into version.json
+        run: |
+          jq -s '.[0] + {windows: .[1].windows}' config/version.json config/version.json.windows > config/version.json.merged
+          mv config/version.json.merged config/version.json
+          rm config/version.json.windows
+
+      - name: Setup CUE
+        uses: jaxxstorm/action-install-gh-release@6096f2a2bbfee498ced520b6922ac2c06e990ed2 # v2.1.0
+        with:
+          repo: cue-lang/cue
+          tag: v0.15.0
+          digest: 06925fc1e5174591cef0b1e42ac32cff4271804742cd20893de1793b6d82d460
+
+      - name: Validate merged version.json with CUE
+        run: cue vet config/schema.cue -d '#Version' config/version.json
 
       - name: Download test artifacts
         uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0

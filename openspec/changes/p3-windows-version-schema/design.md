@@ -4,7 +4,7 @@ The repository already has a strong "manifest is source of truth" discipline for
 
 Constraints:
 
-- Microsoft does not publish a clean, programmatic, monotonic API for VS BuildTools component versions. The closest source is the channel manifest at `https://aka.ms/vs/17/release/channel` (JSON), which is used by Microsoft's own VS installers but has nondeterministic ordering and changes structure occasionally.
+- Microsoft does not publish a clean, programmatic, monotonic API for VS BuildTools component versions. The closest source is a two-step fetch: the channel manifest at `https://aka.ms/vs/17/release/channel` (JSON, ~90 KB) lists 13 product-level entries all stamped with the overall release version (e.g., `17.14.37314.3`) and references the catalog manifest `VisualStudio.vsman` (JSON, ~17 MB, SHA-256 pinned by the channel) via the `Microsoft.VisualStudio.Manifests.VisualStudio` channel item. `vsman.packages[]` is where per-component versions live (verified 2026-05-21: `VC.CMake.Project` → `17.14.36510.44`, `Windows11SDK.22621` → `17.14.36510.44`, `Workload.VCTools` → `17.14.36331.10`). The channel manifest alone is insufficient.
 - The Windows 11 SDK build number (`22621`) is essentially a Microsoft branding choice; it changes infrequently (Win11 22H2, 23H2 etc.) and is not strictly tied to VS BuildTools versions.
 - Git for Windows publishes clean GitHub releases at `git-for-windows/git`, but the tag naming is `vM.m.p.windows.N` — the `.windows.N` suffix needs to be stripped before storing as a clean semver.
 - `cue` already vendors well in this repo; adding `#SemverQuad` is a one-line addition.
@@ -29,9 +29,11 @@ Constraints:
 
 ## Decisions
 
-### Decision: VS BuildTools component versions are pinned in `config/version.json`, refreshed manually from the channel manifest
+### Decision: VS BuildTools component versions are pinned in `config/version.json`, refreshed from the VS catalog manifest (`vsman`) via a two-step fetch
 
-The `update_windows_version` job reads `https://aka.ms/vs/17/release/channel` and writes the resolved component versions into `config/version.json`. However, the channel manifest occasionally drops or renames components, so this is treated as a *suggestion* not a *truth*: the PR is opened with the new values, but the Pester suite then verifies that those values actually install. If they don't, the PR fails and a human pins by hand.
+The `update_windows_version` job (1) fetches `https://aka.ms/vs/17/release/channel`, (2) extracts the `Microsoft.VisualStudio.Manifests.VisualStudio` payload URL + SHA-256, (3) downloads that `VisualStudio.vsman` (~17 MB), (4) verifies the SHA, (5) `jq`s `.packages[] | select(.id == <component>) | .version` for each tracked component, and writes the resolved versions into `config/version.json`. The catalog occasionally drops or renames components, so this is treated as a *suggestion* not a *truth*: the PR is opened with the new values, but the Pester suite then verifies that those values actually install. If they don't, the PR fails and a human pins by hand.
+
+The SHA-pinning of `vsman` by the channel is a free integrity property — the job can trust the catalog without committing it. Also note: `Microsoft.VisualStudio.Component.Windows11SDK.22621` carries the build id (`22621`) in the component **id**, not the version field; the `version` is the VS release stamp. This matches the design's decision to model the SDK build as a bare `int` separate from the `#SemverQuad` version fields.
 
 Alternatives considered:
 
@@ -74,7 +76,9 @@ This means the test compares the leading three parts of `git --version` output t
 - **[Risk] Microsoft yanks a VS component version (it has happened) and the image cannot be rebuilt for a tag that pinned the yanked version.** → Mitigation: the existing tag's image is already pushed and immutable. Future tags use new versions. Old-tag rebuilds (`workflow_dispatch` per `p2`) might fail until the manifest is updated; document this as a known limitation.
 - **[Risk] Tightening Pester to exact versions makes the test brittle.** → Acceptable: that's the point. Drift detection is a feature.
 - **[Trade-off] More fields in `version.json` mean more review surface for upgrade PRs.** → Acceptable: the alternative is hidden state in the Dockerfile, which has no review surface at all.
-- **[Trade-off] `update_windows_version` adds a runtime dependency on `aka.ms/vs/17/release/channel` and `api.github.com/repos/git-for-windows/git`.** → Acceptable: the workflow already depends on `storage.googleapis.com/flutter_infra_release` and `raw.githubusercontent.com/flutter/flutter`. Two more upstreams is incremental.
+- **[Trade-off] `update_windows_version` adds a runtime dependency on `aka.ms/vs/17/release/channel`, `download.visualstudio.microsoft.com` (for `vsman`), and `api.github.com/repos/git-for-windows/git`.** → Acceptable: the workflow already depends on `storage.googleapis.com/flutter_infra_release` and `raw.githubusercontent.com/flutter/flutter`. Three more upstreams is incremental.
+- **[Trade-off] `update_windows_version` downloads ~17 MB (`VisualStudio.vsman`) per run.** → Acceptable. `update_version.yml` is scheduled `0 0 * * MON-FRI`, but `update_windows_version` is gated on `update_flutter_version.outputs.new_version == 'true'` (same gating pattern as `update_android_version`), so the fetch only fires when Flutter actually bumped — empirically about once a month. On quiet weekdays the job is skipped and nothing is downloaded. No cross-run caching: the catalog would have to be invalidated against the channel anyway, and at ~once-a-month firing the savings don't justify the cache plumbing.
+- **[Forensic mitigation] The job uploads the raw `VisualStudio.vsman` (and the channel JSON) as workflow artifacts.** → 90-day retention is enough to diagnose any "why did this PR pick these versions" question without committing the manifest into git. Avoids the noisy-history tradeoff while preserving the forensic record.
 
 ## Automated Test Strategy
 
@@ -109,8 +113,12 @@ This means the test compares the leading three parts of `git --version` output t
 6. Wait for the next scheduled `update_version.yml` run; it should produce a PR that includes a `windows` block diff. Review and merge as usual.
 7. Rollback strategy: if `update_windows_version` produces consistently-bad PRs, mark it `if: false` in a follow-up PR. The schema and Dockerfile changes do not need rolling back; they are stable.
 
+## Resolved Questions
+
+- **`#SemverQuad` placement:** lives alongside `#SemverPatch` in `schema.cue`. `schema.cue` is 39 lines today; all five existing version primitives share the file, and there's no per-OS/per-domain split precedent. Splitting on Windows alone would invite drift (someone adds `#SemverQuint` to one file and forgets the other).
+- **`vs_BuildTools.exe` URL as build arg:** no. The URL `https://aka.ms/vs/17/release/vs_buildtools.exe` embeds a single version token (`17` = VS 2022). A VS major-version bump (to `/vs/18/…`) is an out-of-band migration — component IDs change, the Pester assertions need rewriting, and `update_version.yml` cannot meaningfully automate it. Adding it as a build arg would be ceremony, not capability. A separate change handles VS 2025 if/when needed.
+- **Commit `vsman` / channel manifest into the repo:** no. The channel manifest already SHA-256-pins `vsman`, so reproducibility-from-a-snapshot is built into Microsoft's design — committing it duplicates state Microsoft already authenticates. Forensic access is preserved by uploading both JSONs as workflow artifacts (90-day retention), which avoids polluting git history with vsman's frequent unrelated churn.
+
 ## Open Questions
 
-- Should `#SemverQuad` live alongside `#SemverPatch` in `schema.cue` or in a separate `windows.cue`? *Tentative: same file.* `schema.cue` is small and the cohesion is high.
-- Should the `windows.Dockerfile`'s `vs_BuildTools.exe` URL be a build arg too? *Tentative: no.* The URL is `https://aka.ms/vs/17/release/vs_buildtools.exe` which Microsoft promises to keep stable per major VS version. If that promise breaks, this is a separate change.
-- Should the channel manifest be cached in the repo (committed) so the update job is reproducible offline? *Tentative: no.* That would mean tracking churn that doesn't affect us. The runtime dependency is acceptable.
+- None blocking. The three above are resolved; the original "channel manifest as source" assumption was corrected during research (see Constraints: per-component versions live in `vsman`, not the channel — verified 2026-05-21).

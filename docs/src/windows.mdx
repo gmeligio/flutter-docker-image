@@ -4,6 +4,10 @@
 
 & $Env:ProgramFiles\Docker\Docker\DockerCli.exe -SwitchDaemon
 
+## Toolchain versions
+
+Windows toolchain versions (Git for Windows, Visual Studio BuildTools components, Windows 11 SDK build) are pinned in `config/version.json` under the `windows` block and validated by `config/schema.cue`. The `update_version.yml` workflow refreshes these alongside Flutter and Android in the monthly upgrade PR, and the Pester suite asserts the installed image matches the manifest on every CI run.
+
 ## TODO
 
 1. Install tools
@@ -32,9 +36,7 @@ RUN Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vs_buildtools.exe -OutFi
 1. Read dependencies from [flutter_tools](https://github.com/flutter/flutter/blob/master/packages/flutter_tools/lib/src/windows/visual_studio.dart).
 1. Check how it can be run in Github actions.
 1. Check how it can be run in Gitlab CI/CD.
-1. Test where is installed.
 1. Test that path to powershell.exe exists.
-1. Test with a snapshot of flutter config to determine if new feature flags should be enabled or disabled.
 1. Test that Build Tools were installed in C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\msbuild\current\bin
 1. Check [Windows installation requirements for Flutter](https://docs.flutter.dev/get-started/install/windows/desktop)
 1. Add docs explaining to use `$VerbosePreference = 'Continue';` in the SHELL to debug unexpected pwsh problems.
