@@ -1,16 +1,22 @@
-## [3.41.9] - 2026-05-12
+## [3.41.9] - 2026-05-22
 
 ### 🚀 Features
 
 - *(ci)* Adopt gx for GitHub Actions version tracking (#439)
 - *(renovate)* Manage GitHub Actions through gx.toml (#441)
 - *(release)* Publish flutter-windows image; archive p1 (#443)
+- Implement p2 image handoff (#451)
+- Pin Windows toolchain versions in config/version.json (#456)
 
 ### 📚 Documentation
 
 - Add openspec config (#440)
 - Update windows docs (#442)
 - Add DeepWiki integration (#444)
+- *(openspec)* Add p2-p5 CI speedup proposals (#450)
+- Archive p2-image-handoff-via-pr-tag (#452)
+- Archive p2-release-windows-image (#455)
+- Archive p3-parallelize-image-validation (#454)
 
 ### ⚙️ Miscellaneous Tasks
 
@@ -19,7 +25,11 @@
 - Test windows image (#339)
 - Skip secret-dependent steps on fork PRs (#446)
 - Update fastlane version to 2.234.0 (#445)
-## [3.41.9] - 2026-05-12
+- Make workflows fork-PR friendly by removing vars.FLUTTER_VERSION (#447)
+- Unify runner disk cleanup across Linux and Windows (#448)
+- Switch build cache to GHCR registry backend (#449)
+- Parallelize image validation (#453)
+## [3.41.9] - 2026-05-22
 
 ### ⚙️ Miscellaneous Tasks
 
