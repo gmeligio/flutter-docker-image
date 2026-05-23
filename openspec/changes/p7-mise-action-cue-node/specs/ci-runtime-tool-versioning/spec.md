@@ -2,9 +2,9 @@
 
 ### Requirement: Single-source version manifest for CI runtime tools
 
-The repository SHALL pin every CI runtime tool version (currently `cue` and `node`) in `mise.toml` at the repository root. No workflow under `.github/workflows/` or composite action under `.github/actions/` may install `cue` or `node` by any other mechanism (e.g., `jaxxstorm/action-install-gh-release`, `actions/setup-node`, hand-rolled `curl | tar`).
+The repository SHALL pin every CI runtime tool version (currently `cue`, `node`, and `gx`) in `mise.toml` at the repository root. No workflow under `.github/workflows/` or composite action under `.github/actions/` may install these tools by any other mechanism (e.g., `jaxxstorm/action-install-gh-release`, `actions/setup-node`, hand-rolled `curl | tar`).
 
-**Experience context:** A CI engineer or maintainer asking *"what version of cue does CI run with?"* (or `node`) reads exactly one file — `mise.toml` — and gets a single, authoritative answer. Today the answer is duplicated across 9 CUE-install steps and 3 Node-install steps, which has produced version drift and made point-fixes fragile.
+**Experience context:** A CI engineer or maintainer asking *"what version of cue does CI run with?"* (or `node`, or `gx`) reads exactly one file — `mise.toml` — and gets a single, authoritative answer. Today the answer is duplicated across 9 CUE-install steps, 3 Node-install steps, and 2 gx-install steps, which has produced version drift and made point-fixes fragile.
 
 #### Scenario: Maintainer looks up the pinned CUE version
 
@@ -20,16 +20,23 @@ The repository SHALL pin every CI runtime tool version (currently `cue` and `nod
 - **THEN** exactly one entry is returned (e.g., `node = "lts"` or a concrete major)
 - **AND** no workflow file contains a `node-version:` input or hand-rolled Node install
 
+#### Scenario: Maintainer looks up the pinned gx version
+
+- **GIVEN** a maintainer wants to know which `gx` version CI uses
+- **WHEN** they `grep gx mise.toml`
+- **THEN** exactly one entry is returned (e.g., `"github:gmeligio/gx" = "0.7.1"`)
+- **AND** no workflow file contains a literal `gx` version, release tag, or release digest
+
 #### Scenario: Drift attempt is blocked at review
 
-- **GIVEN** a PR adds a step `uses: actions/setup-node@<sha>` to any workflow
+- **GIVEN** a PR adds a step `uses: actions/setup-node@<sha>` or `uses: jaxxstorm/action-install-gh-release@<sha>` (with `repo: cue-lang/cue` or `repo: gmeligio/gx`) to any workflow
 - **WHEN** the PR is reviewed
 - **THEN** the change is rejected and re-implemented using `jdx/mise-action@v4` plus the appropriate `mise.toml` pin
 - **AND** the rationale references this requirement
 
 ### Requirement: Workflows bootstrap tools via `jdx/mise-action`
 
-Every job that needs `cue` or `node` on `$PATH` SHALL bootstrap them with a single step `uses: jdx/mise-action@<pinned-major>` placed before any step that invokes those tools. The step SHALL rely on `mise.toml` for version resolution and SHALL NOT pass an explicit `tools:` input that contradicts `mise.toml`.
+Every job that needs `cue`, `node`, or `gx` on `$PATH` SHALL bootstrap them with a single step `uses: jdx/mise-action@<pinned-major>` placed before any step that invokes those tools. The step SHALL rely on `mise.toml` for version resolution and SHALL NOT pass an explicit `tools:` input that contradicts `mise.toml`.
 
 **Experience context:** A maintainer adding a new CI job that needs `cue` or `node` writes one boilerplate step (the same step every other job uses) and gets the project-pinned version. They never re-derive a download URL or copy a SHA digest.
 
@@ -46,6 +53,13 @@ Every job that needs `cue` or `node` on `$PATH` SHALL bootstrap them with a sing
 - **WHEN** the job is authored
 - **THEN** it contains exactly one `uses: jdx/mise-action@v4` step before any `npm` invocation
 - **AND** `node` is not separately installed via `actions/setup-node` or other means
+
+#### Scenario: New job needing gx
+
+- **GIVEN** a new workflow job needs to run `gx lint` or `gx tidy`
+- **WHEN** the job is authored
+- **THEN** it contains exactly one `uses: jdx/mise-action@v4` step before any `gx` invocation
+- **AND** `gx` is not separately installed via `jaxxstorm/action-install-gh-release` or other means
 
 #### Scenario: mise-action runs without explicit token configuration
 

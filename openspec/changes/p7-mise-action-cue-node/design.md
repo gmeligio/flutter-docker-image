@@ -1,9 +1,10 @@
 ## Context
 
-Two CI tools — `cue` and `node` — are currently installed by per-step third-party actions:
+Three CI tools — `cue`, `node`, and `gx` — are currently installed by per-step third-party actions:
 
 - `cue` v0.15.0 via `jaxxstorm/action-install-gh-release` in 9 jobs across `ci.yml`, `build.yml`, `update_version.yml`. Each step duplicates the same `repo`, `tag`, and `digest` inputs.
 - `node` LTS via `actions/setup-node@v6` (with `cache: npm`, lockfile at `docs/src/package-lock.json`) in 3 jobs across `build.yml`, `update_docs.yml`, `update_version.yml`.
+- `gx` v0.7.1 via `jaxxstorm/action-install-gh-release` in 2 jobs of `gx.yml` (the `lint` and `tidy` jobs that enforce the action manifest itself).
 
 A `mise.toml` already exists at the repo root pinning `cue = "0.15.0"`, but no workflow consumes it. CI run 26333167642 hit `401 Bad credentials` from the jaxxstorm action's call to `GET /repos/cue-lang/cue/releases/tags/v0.15.0`, exposing the fragility of the per-step installer pattern.
 
@@ -14,33 +15,40 @@ The `actions-version-tracking` capability already mandates that `.github/gx.toml
 
    mise.toml (cue = "0.15.0")  ── ignored       mise.toml ── single source of truth
                                                  ├── cue = "0.15.0"
-   Workflow step ×9:                             └── node = "lts"
-     jaxxstorm/action-install-gh-release         
-       repo: cue-lang/cue                        Workflow step ×12:
-       tag: v0.15.0                                jdx/mise-action@v4
-       digest: 06925fc1…d460                       (no inputs)
-
-   Workflow step ×3:
+   Workflow step ×9 (cue):                       ├── node = "lts"
+     jaxxstorm/action-install-gh-release         └── "github:gmeligio/gx" = "0.7.1"
+       repo: cue-lang/cue
+       tag: v0.15.0                              Workflow step ×14:
+       digest: 06925fc1…d460                       jdx/mise-action@v4
+                                                   (no inputs)
+   Workflow step ×3 (node):
      actions/setup-node@v6
        node-version: lts/*
        cache: npm
+
+   Workflow step ×2 (gx):
+     jaxxstorm/action-install-gh-release
+       repo: gmeligio/gx
+       tag: v0.7.1
+       digest: 66328434…ecd9
 ```
 
 ## Goals / Non-Goals
 
 **Goals:**
 
-- Single source of truth for `cue` and `node` versions: `mise.toml`.
-- Eliminate the 9× CUE-install duplication and 3× node-install duplication in workflow files.
+- Single source of truth for `cue`, `node`, and `gx` versions: `mise.toml`.
+- Eliminate the 9× CUE-install duplication, 3× node-install duplication, and 2× gx-install duplication in workflow files.
 - Fix the failing `Setup CUE` step by adopting an action that defaults `github_token` to `${{ github.token }}`.
+- Fully remove `jaxxstorm/action-install-gh-release` and `actions/setup-node` from `.github/gx.toml` (no remaining workflow references after this change).
 - Keep `.github/gx.toml`, `.github/gx.lock`, and workflow `uses:` SHAs mutually consistent on the migrating PR.
 
 **Non-Goals:**
 
 - Re-introducing npm package caching. The previous `cache: npm` on `actions/setup-node` is intentionally dropped for now; a follow-up may add an `actions/cache` step keyed on `docs/src/package-lock.json` if cold `npm ci` cost becomes a problem.
 - Absorbing other tooling into `mise.toml` (Docker buildx, gradle, gh CLI, etc.). Out of scope.
-- Changing CUE or Node *versions*. `cue` stays at `0.15.0`; `node` stays at LTS.
-- Changing what `cue vet` / `cue export` / `cue eval` / `npm ci && npm run …` do.
+- Changing tool *versions*. `cue` stays at `0.15.0`; `node` stays at LTS; `gx` stays at `0.7.1`.
+- Changing what `cue vet` / `cue export` / `cue eval` / `npm ci && npm run …` / `gx lint` / `gx tidy` do.
 
 ## Decisions
 
@@ -60,23 +68,35 @@ The `actions-version-tracking` capability already mandates that `.github/gx.toml
 
 **Rationale:** Matches the existing `node-version: lts/*` behavior in `actions/setup-node`. Zero behavior change for docs builds. A future change can pin a specific LTS if reproducibility issues surface.
 
-### Decision 3: Drop npm package caching for now
+### Decision 3: Install `gx` via mise using the `github:` backend
+
+**Choice:** Add `"github:gmeligio/gx" = "0.7.1"` to `mise.toml` and bootstrap it in `gx.yml` via `jdx/mise-action@v4`.
+
+**Rationale:** `gmeligio/gx` is not in the mise registry, but mise's `github:` backend handles arbitrary GitHub releases. This is needed so we can fully remove `jaxxstorm/action-install-gh-release` from `.github/gx.toml` — it was kept alive only by the two `gx` install steps inside `gx.yml`. Without migrating `gx`, the spec's "fully remove" requirement could not hold.
+
+**Alternatives considered:**
+- `ubi:gmeligio/gx@0.7.1` — works today but mise marks the `ubi` backend as deprecated for removal in mise 2027.1.0. Skipped.
+- Keep `jaxxstorm/action-install-gh-release` only for `gx`. Rejected: leaves a one-consumer surface in `.github/gx.toml` that confuses the spec invariant.
+
+**Chicken-and-egg:** `gx.yml` is the workflow that validates `.github/gx.toml`/`.github/gx.lock` itself. After this change, that workflow bootstraps `gx` via `mise-action` (an action that is itself pinned by SHA in `.github/gx.toml`). This is acceptable: if `mise-action` is ever yanked or compromised, the standard checkout-time SHA pin protects us — but `gx tidy` cannot self-heal in that scenario. The risk is the same as today (where `gx.yml` already depends on `jaxxstorm/action-install-gh-release` via SHA).
+
+### Decision 4: Drop npm package caching for now
 
 **Choice:** No npm cache step in the migrated workflows.
 
 **Rationale:** User-confirmed acceptable trade-off. Keeps the diff small and avoids a separate `actions/cache` step in three workflows. Re-adding it is a one-step follow-up if cold `npm ci` (~10–20 s) becomes painful.
 
-### Decision 4: Treat manifest sync as part of the same PR
+### Decision 5: Treat manifest sync as part of the same PR
 
 **Choice:** Add `jdx/mise-action = "^4"` to `.github/gx.toml`, remove `jaxxstorm/action-install-gh-release` and `actions/setup-node` from it, and reconcile `.github/gx.lock` in the same PR that edits the workflow files.
 
 **Rationale:** The `actions-version-tracking` spec explicitly requires manifest, lock, and workflow `uses:` SHAs to be mutually consistent on merge. Splitting this across PRs would temporarily violate the invariant.
 
-### Decision 5: No new behavioral spec
+### Decision 6: No delta on `actions-version-tracking`
 
-**Choice:** Do not author a new `specs/<capability>/spec.md` or a delta against `actions-version-tracking`.
+**Choice:** Do not author a delta against `actions-version-tracking`. The new capability `ci-runtime-tool-versioning` (see `specs/`) is the only spec change.
 
-**Rationale:** Per the project relevance gate ("Reject if spec has no traceable impact on the desktop user's experience"), the desktop user of the published `flutter-android` (and Windows) Docker images sees no difference. The change is internal CI plumbing; the existing `actions-version-tracking` requirement still governs the manifest invariant unchanged.
+**Rationale:** The `actions-version-tracking` requirement text — "the manifest declares the version constraint for every distinct GitHub Action referenced by `uses:`" — is unchanged. The set of referenced actions shifts (gain `jdx/mise-action`, drop two others), but that is an *instance* of the requirement, not a modification of it.
 
 ## Risks / Trade-offs
 
