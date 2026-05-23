@@ -1,2 +1,4 @@
 [tools]
 cue = "0.15.0"
+node = "lts"
+"github:gmeligio/gx" = "0.7.1"

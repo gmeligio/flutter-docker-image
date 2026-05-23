@@ -1,7 +1,7 @@
 ## 1. Manifest updates
 
-- [ ] 1.1 Add `node = "lts"` and `"github:gmeligio/gx" = "0.7.1"` to `mise.toml` (keep the existing `cue = "0.15.0"` entry).
-- [ ] 1.2 Verify locally with `mise install` that `cue` 0.15.0, the current Node LTS, and `gx` 0.7.1 resolve and install on Linux.
+- [x] 1.1 Add `node = "lts"` and `"github:gmeligio/gx" = "0.7.1"` to `mise.toml` (keep the existing `cue = "0.15.0"` entry).
+- [x] 1.2 Verify locally with `mise install` that `cue` 0.15.0, the current Node LTS, and `gx` 0.7.1 resolve and install on Linux.
 
 ## 2. Action manifest: add `jdx/mise-action`
 
