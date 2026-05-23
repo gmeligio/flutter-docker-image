@@ -93,6 +93,7 @@ Archive a completed change in the experimental workflow.
    mv openspec/changes/<name> openspec/changes/archive/YYYY-MM-DD-<name>
    ```
 
+
 <!-- opsx-git-commit-patch -->
 
 7. **Git: Commit, push, and create PR**
@@ -130,8 +131,6 @@ Archive a completed change in the experimental workflow.
    **If all checks pass:** notify the user and continue to summary.
 
 9. **Display summary**
-   ```
-
 
    Show archive completion summary including:
    - Change name
@@ -208,11 +207,3 @@ Target archive directory already exists.
 - Show clear summary of what happened
 - If sync is requested, use the Skill tool to invoke `openspec-sync-specs` (agent-driven)
 - If delta specs exist, always run the sync assessment and show the combined summary before prompting
-
-<!-- patch:model-sonnet -->
-
-<!-- patch:verify-scoring -->
-
-<!-- patch:always-sync-specs -->
-
-<!-- patch:git-commit-archive -->
