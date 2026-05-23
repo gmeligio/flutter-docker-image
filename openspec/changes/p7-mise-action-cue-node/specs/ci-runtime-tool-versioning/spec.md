@@ -2,9 +2,9 @@
 
 ### Requirement: Single-source version manifest for CI runtime tools
 
-The repository SHALL pin every CI runtime tool version (currently `cue`, `node`, and `gx`) in `mise.toml` at the repository root. No workflow under `.github/workflows/` or composite action under `.github/actions/` may install these tools by any other mechanism (e.g., `jaxxstorm/action-install-gh-release`, `actions/setup-node`, hand-rolled `curl | tar`).
+The repository SHALL pin every CI runtime tool version (currently `cue`, `node`, `gx`, and `git-cliff`) in `mise.toml` at the repository root. No workflow under `.github/workflows/` or composite action under `.github/actions/` may install these tools by any other mechanism (e.g., `jaxxstorm/action-install-gh-release`, `actions/setup-node`, hand-rolled `curl | tar`).
 
-**Experience context:** A CI engineer or maintainer asking *"what version of cue does CI run with?"* (or `node`, or `gx`) reads exactly one file — `mise.toml` — and gets a single, authoritative answer. Today the answer is duplicated across 9 CUE-install steps, 3 Node-install steps, and 2 gx-install steps, which has produced version drift and made point-fixes fragile.
+**Experience context:** A CI engineer or maintainer asking *"what version of cue does CI run with?"* (or `node`, `gx`, `git-cliff`) reads exactly one file — `mise.toml` — and gets a single, authoritative answer. Before this change the answer was duplicated across 9 CUE-install steps, 3 Node-install steps, 2 gx-install steps, and 2 git-cliff-install steps, which had produced version drift and made point-fixes fragile.
 
 #### Scenario: Maintainer looks up the pinned CUE version
 

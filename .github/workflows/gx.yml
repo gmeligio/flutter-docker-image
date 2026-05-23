@@ -22,12 +22,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
-      - name: Install gx
-        uses: jaxxstorm/action-install-gh-release@6096f2a2bbfee498ced520b6922ac2c06e990ed2 # v2.1.0
-        with:
-          repo: gmeligio/gx
-          tag: v0.7.1
-          digest: 6632843410c877c43aa8936eb757d8b0ddcb5940402203914543ef8a9cf8ecd9
+      - name: Setup mise tools
+        uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
 
       - name: Lint pinned GitHub Actions
         env:
@@ -57,12 +53,8 @@ jobs:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           token: ${{ steps.app-token.outputs.token }}
 
-      - name: Install gx
-        uses: jaxxstorm/action-install-gh-release@6096f2a2bbfee498ced520b6922ac2c06e990ed2 # v2.1.0
-        with:
-          repo: gmeligio/gx
-          tag: v0.7.1
-          digest: 6632843410c877c43aa8936eb757d8b0ddcb5940402203914543ef8a9cf8ecd9
+      - name: Setup mise tools
+        uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
 
       - name: Run gx tidy
         env:

@@ -1,10 +1,11 @@
 ## Context
 
-Three CI tools — `cue`, `node`, and `gx` — are currently installed by per-step third-party actions:
+Four CI tools — `cue`, `node`, `gx`, and `git-cliff` — are currently installed by per-step third-party actions:
 
 - `cue` v0.15.0 via `jaxxstorm/action-install-gh-release` in 9 jobs across `ci.yml`, `build.yml`, `update_version.yml`. Each step duplicates the same `repo`, `tag`, and `digest` inputs.
 - `node` LTS via `actions/setup-node@v6` (with `cache: npm`, lockfile at `docs/src/package-lock.json`) in 3 jobs across `build.yml`, `update_docs.yml`, `update_version.yml`.
 - `gx` v0.7.1 via `jaxxstorm/action-install-gh-release` in 2 jobs of `gx.yml` (the `lint` and `tidy` jobs that enforce the action manifest itself).
+- `git-cliff` v2.10.1 via `jaxxstorm/action-install-gh-release` in 2 jobs across `changelog.yml` and `release.yml` (changelog generation).
 
 A `mise.toml` already exists at the repo root pinning `cue = "0.15.0"`, but no workflow consumes it. CI run 26333167642 hit `401 Bad credentials` from the jaxxstorm action's call to `GET /repos/cue-lang/cue/releases/tags/v0.15.0`, exposing the fragility of the per-step installer pattern.
 
