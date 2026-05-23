@@ -58,4 +58,4 @@ PR: https://github.com/gmeligio/flutter-docker-image/pull/458
 
 ## 9. Archive
 
-- [ ] 9.1 After PR merges to `main`, run `openspec archive p7-mise-action-cue-node` to move the change to `openspec/changes/archive/<date>-p7-mise-action-cue-node/` and sync the new `specs/ci-runtime-tool-versioning/spec.md` into `openspec/specs/`.
+- [x] 9.1 Archive bundled into PR #458 (Option C): change moved to `openspec/changes/archive/2026-05-23-p7-mise-action-cue-node/` and `specs/ci-runtime-tool-versioning/spec.md` synced into `openspec/specs/` in the same PR as the implementation.
