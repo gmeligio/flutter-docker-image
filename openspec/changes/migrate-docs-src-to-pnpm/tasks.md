@@ -22,9 +22,9 @@
 
 ## 4. Update contributor documentation
 
-- [ ] 4.1 Edit `docs/src/contributing.mdx` to mention that the local docs build uses `pnpm install && pnpm run build` (under a new "Building the docs" section or appended to the existing structure, kept short)
-- [ ] 4.2 Run `pnpm run contributing` (or `pnpm run build`) so `docs/contributing.md` is regenerated and matches the MDX source
-- [ ] 4.3 Confirm `readme.md`, `LICENSE.md`, and `docs/windows.md` are unchanged from `main` (only `docs/contributing.md` should change)
+- [x] 4.1 Edit `docs/src/contributing.mdx` to mention that the local docs build uses `pnpm install && pnpm run build` (under a new "Building the docs" section or appended to the existing structure, kept short)
+- [x] 4.2 Run `pnpm run contributing` (or `pnpm run build`) so `docs/contributing.md` is regenerated and matches the MDX source
+- [x] 4.3 Confirm `readme.md`, `LICENSE.md`, and `docs/windows.md` are unchanged from `main` (only `docs/contributing.md` should change) — `readme.md` was already committed in task group 2 with the unrelated Fastlane-version refresh; `LICENSE.md` and `docs/windows.md` are clean
 
 ## 5. Verify and commit
 
