@@ -15,10 +15,10 @@
 
 ## 3. Update CI workflows
 
-- [ ] 3.1 In `.github/workflows/build.yml`, replace `npm ci --prefer-offline` with `pnpm install --frozen-lockfile` and `npm run build` with `pnpm run build` in the `working-directory: docs/src` step
-- [ ] 3.2 Apply the same substitution in `.github/workflows/update_docs.yml`
-- [ ] 3.3 Apply the same substitution in `.github/workflows/update_version.yml`
-- [ ] 3.4 Confirm none of the three workflows introduce `corepack`, `pnpm/action-setup`, `actions/setup-node`, or `npm i -g pnpm` — the only tool-bootstrap step in each affected job remains the existing `jdx/mise-action` step
+- [x] 3.1 In `.github/workflows/build.yml`, replace `npm ci --prefer-offline` with `pnpm install --frozen-lockfile` and `npm run build` with `pnpm run build` in the `working-directory: docs/src` step
+- [x] 3.2 Apply the same substitution in `.github/workflows/update_docs.yml`
+- [x] 3.3 Apply the same substitution in `.github/workflows/update_version.yml`
+- [x] 3.4 Confirm none of the three workflows introduce `corepack`, `pnpm/action-setup`, `actions/setup-node`, or `npm i -g pnpm` — the only tool-bootstrap step in each affected job remains the existing `jdx/mise-action` step (also reordered `mise.toml` so `pnpm` is declared before `node`: mise lays the install dirs onto `$PATH` in mise.toml order, and Node ships a corepack-backed `pnpm` shim in `node/lts/bin/` that otherwise wins over the mise-pinned binary and errors on `devEngines.packageManager` without a version field)
 
 ## 4. Update contributor documentation
 
