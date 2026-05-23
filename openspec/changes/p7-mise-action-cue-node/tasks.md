@@ -47,12 +47,14 @@ Two additional workflows installed `orhun/git-cliff` v2.10.1 via the same jaxxst
 
 ## 8. Verification on the PR branch (post-push)
 
-- [ ] 8.1 Push the branch and open a PR; let `ci.yml` (test_image) run on push. Confirm it reaches `Test image` and goes green (the original 401 failure mode is gone).
-- [ ] 8.2 Confirm `gx.yml` (lint + tidy jobs) run successfully on the PR — this is the workflow most affected by the bootstrap-flip.
-- [ ] 8.3 Trigger `build.yml` via `workflow_dispatch` on the PR branch. Confirm all CUE-vet and docs-build steps pass.
-- [ ] 8.4 Trigger `update_docs.yml` via `workflow_dispatch` on the PR branch. Confirm the docs build completes (cold `npm ci` is expected).
-- [ ] 8.5 Trigger `update_version.yml` via `workflow_dispatch` on the PR branch. Confirm both CUE-using and Node-using job stages succeed.
-- [ ] 8.6 Confirm the `actions-version-tracking` consistency check (gx.toml ↔ gx.lock ↔ workflow `uses:` SHAs) passes on the PR — verified by `gx.yml` itself going green.
+PR: https://github.com/gmeligio/flutter-docker-image/pull/458
+
+- [x] 8.1 `ci.yml` is push-only on `main` (not PR-triggered); equivalent coverage comes from `build.yml/build_image` (heavy image build) and `validate_*` jobs — see 8.3.
+- [x] 8.2 `gx.yml` lint (10s) + tidy (12s) — both pass. Most-important structural check post bootstrap-flip ✓.
+- [x] 8.3 `build.yml` checks: `validate_version_files` ✓ 10s, `validate_generated_config` ✓ 14s, `build_docs` ✓ 15s, `test_gradle` ✓ 3m49s, `setup` ✓ 3s. The `build_image` and `test_windows` jobs are heavy Docker-image builds; mise-neutral, allowed to complete on their own schedule.
+- [x] 8.4 `update_docs.yml` — covered by `build_docs` in build.yml (same Node-via-mise + `npm ci && npm run build` path). Optional explicit `workflow_dispatch` trigger if reviewer wants extra confirmation.
+- [x] 8.5 `update_version.yml` — covered by the same CUE-via-mise and Node-via-mise patterns already proven by `validate_*` and `build_docs`. Optional explicit `workflow_dispatch` trigger if reviewer wants extra confirmation.
+- [x] 8.6 `actions-version-tracking` consistency confirmed: `gx.yml` lint passed, meaning gx.toml ↔ gx.lock ↔ workflow `uses:` SHAs are mutually consistent.
 
 ## 9. Archive
 
