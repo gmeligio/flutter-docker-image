@@ -1,0 +1,90 @@
+name: Cleanup PR image tag
+
+on:
+  pull_request:
+    types: [closed]
+  delete:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cleanup-pr-image-${{ github.event.pull_request.number || github.event.ref }}
+  cancel-in-progress: false
+
+jobs:
+  cleanup:
+    # On `delete` events, only act on branch deletions (not tag deletions).
+    # `pull_request: closed` is always in scope.
+    if: ${{ github.event_name == 'pull_request' || github.event.ref_type == 'branch' }}
+    runs-on: ubuntu-24.04
+    permissions:
+      packages: write
+      contents: read
+    env:
+      PACKAGE_NAME: flutter-android
+    steps:
+      - name: Compute target tag
+        id: tag
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REF_NAME: ${{ github.event.ref }}
+        run: |
+          set -euo pipefail
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            target="pr-${PR_NUMBER}"
+          else
+            target="branch-${REF_NAME//\//-}"
+          fi
+          # Defense in depth: fail closed if the computed tag does not match
+          # the documented handoff-tag regex. Release tags (`<version>`) and
+          # `buildcache` MUST be unreachable from this code path.
+          if [[ ! "$target" =~ ^pr-[0-9]+$ ]] && [[ ! "$target" =~ ^branch-[A-Za-z0-9._-]+$ ]]; then
+            echo "::error::computed tag '$target' does not match handoff-tag regex; refusing to proceed"
+            exit 1
+          fi
+          echo "target=$target" >> "$GITHUB_OUTPUT"
+          echo "Computed target tag: $target"
+
+      - name: Resolve and delete GHCR version
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TARGET_TAG: ${{ steps.tag.outputs.target }}
+        run: |
+          set -euo pipefail
+          # The package is user-owned (gmeligio); /user/packages/... is the
+          # authenticated-user endpoint. The workflow GITHUB_TOKEN can delete
+          # because the package -> repo Actions Access role is Admin.
+          version_id=$(gh api \
+            "/user/packages/container/${PACKAGE_NAME}/versions" \
+            --paginate \
+            --jq ".[] | select(.metadata.container.tags[]? == \"${TARGET_TAG}\") | .id" \
+            | head -n 1)
+
+          if [[ -z "$version_id" ]]; then
+            echo "tag not found, nothing to delete (tag='${TARGET_TAG}')"
+            exit 0
+          fi
+
+          echo "Deleting version_id=${version_id} tag=${TARGET_TAG}"
+          status=$(curl -sS -o /tmp/delete-body -w '%{http_code}' \
+            -X DELETE \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/user/packages/container/${PACKAGE_NAME}/versions/${version_id}")
+
+          case "$status" in
+            204)
+              echo "Deleted ${TARGET_TAG} (version_id=${version_id})"
+              ;;
+            404)
+              echo "Version ${version_id} already gone (404); treating as idempotent success"
+              ;;
+            *)
+              echo "::error::DELETE returned HTTP ${status} for version_id=${version_id}"
+              cat /tmp/delete-body
+              exit 1
+              ;;
+          esac
