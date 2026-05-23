@@ -62,6 +62,22 @@ The repository recently consolidated all CI runtime tools behind a single `mise.
 
 **Why**: The gate is what produces a clear "you are using the wrong package manager" error for local contributors. Flipping it to pnpm preserves that signal. Loosening to `onFail: "warn"` would silently let `npm install` run and produce a stray `package-lock.json` next to `pnpm-lock.yaml`, which is worse than the status quo.
 
+### Decision 6: Approve `esbuild`'s native postinstall via `docs/src/pnpm-workspace.yaml`
+
+**Choice**: Commit a small `docs/src/pnpm-workspace.yaml` containing `allowBuilds.esbuild: true`. No actual workspace is declared — the file exists only to carry pnpm's per-package build-script allowlist.
+
+**Why**: pnpm 11 refuses to run dependency postinstalls unless they appear in an explicit allowlist. `mdx-to-md` transitively depends on `esbuild`, which compiles a native binary in its postinstall; without approval, `pnpm install --frozen-lockfile` exits 0 but `pnpm run build` fails because the esbuild binary is missing. pnpm 11 deliberately moved this setting out of `package.json#pnpm` and ignores it in `.npmrc`, so `pnpm-workspace.yaml` is the only home that works.
+
+**Alternatives considered:** keep the setting in `package.json#pnpm` (silently ignored in pnpm 11 with a warning), or pin a lower pnpm major that still honors the old location. Both were rejected because they trade today's clean error for tomorrow's drift — every new pnpm-11-or-later contributor would hit the silent ignore, and downgrading the pnpm major contradicts Decision 2.
+
+### Decision 7: List `pnpm` before `node` in `mise.toml`
+
+**Choice**: Declare tools in this order: `cue`, `git-cliff`, `pnpm`, `node`, `gx`.
+
+**Why**: `mise` lays each tool's install directory onto `$PATH` in the order they appear in `mise.toml`. Node ships a corepack-backed `pnpm` shim at `node/lts/bin/pnpm`. If `node` is declared before `pnpm`, the corepack shim wins over the mise-pinned binary. Corepack then reads `devEngines.packageManager` and errors because we deliberately do not pin a version there (Decision 1 — single source of truth in `mise.toml`). Reordering puts the mise-pinned `pnpm/<version>/pnpm` first.
+
+**Alternative considered:** add `version` to `devEngines.packageManager` so corepack accepts the spec. Rejected because it creates a second source of truth for the pnpm version (Renovate manages `pnpm-lock.yaml` but not `devEngines.packageManager.version`, so drift would be inevitable).
+
 ## Risks / Trade-offs
 
 - **Risk**: Compiled Markdown drift after the swap. → **Mitigation**: Run `pnpm import` (Decision 3) so the resolved tree is byte-identical; `pnpm run build` locally before pushing; the `update_docs.yml` commit-back diff will be empty on push-to-main if outputs are stable. Reviewer must verify zero changes to `readme.md`, `LICENSE.md`, `docs/contributing.md`, `docs/windows.md` aside from the new "use pnpm" mention.
