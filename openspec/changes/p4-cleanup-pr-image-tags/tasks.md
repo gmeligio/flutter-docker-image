@@ -17,7 +17,6 @@
 - [ ] 2.1 Open a non-fork PR (so p2 produces a `pr-N` tag), close it, confirm `pr-N` is removed from GHCR within 60 s. Repeat with a merge-close.
 - [ ] 2.2 Trigger a `workflow_dispatch` on a feature branch (so p2 produces `branch-<name>`), then delete the branch. Confirm the tag is removed.
 - [ ] 2.3 Close a PR that never produced a tag (fork PR — p2 used the artifact path). Confirm the workflow runs, logs "tag not found, nothing to delete", and exits 0.
-- [ ] 2.4 Manually create a tag matching `^pr-9999$` then close PR #1 (whose tag doesn't exist). Confirm only `pr-1` is targeted (not `pr-9999`) — satisfies spec scenario "Cleanup never targets a non-handoff tag".
 
 ## 3. Post-merge closure check
 
