@@ -241,7 +241,7 @@ jobs:
       - name: Update Android SDK build tools version
         id: build_tools
         run: |
-          build_tools_version=$(curl -fsSL https://raw.githubusercontent.com/flutter/flutter/refs/tags/${{ env.FLUTTER_VERSION }}/engine/src/flutter/tools/android_sdk/packages.txt | grep 'build-tools' | awk -F'[;:]' '{print $2}')
+          build_tools_version=$(curl -fsSL https://raw.githubusercontent.com/flutter/flutter/refs/tags/${{ env.FLUTTER_VERSION }}/engine/src/flutter/tools/android_sdk/packages.txt | grep '^build-tools' | awk -F'[;,:]' '{print $2}')
           echo "build_tools_version=$build_tools_version" >>"$GITHUB_OUTPUT"
           echo "Build tools version: $build_tools_version"
 
@@ -275,6 +275,9 @@ jobs:
       - name: Generate test files with CUE
         run: |
           ./script/update_test.sh
+
+      - name: Validate version.json with CUE
+        run: cue vet config/schema.cue -d '#Version' config/version.json
 
       - name: Upload artifact with the updated version.json
         id: upload-version
