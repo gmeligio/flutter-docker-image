@@ -28,7 +28,7 @@
 
 ## 5. Verify and commit
 
-- [ ] 5.1 Run `openspec validate migrate-docs-src-to-pnpm` and confirm it reports valid
-- [ ] 5.2 Run `git status` and confirm the diff is limited to: `mise.toml`, `docs/src/package.json`, `docs/src/package-lock.json` (deleted), `docs/src/pnpm-lock.yaml` (added), `docs/src/contributing.mdx`, `docs/contributing.md`, `.github/workflows/build.yml`, `.github/workflows/update_docs.yml`, `.github/workflows/update_version.yml`
+- [x] 5.1 Run `openspec validate migrate-docs-src-to-pnpm` and confirm it reports valid
+- [x] 5.2 Run `git status` and confirm the diff is limited to: `mise.toml`, `docs/src/package.json`, `docs/src/package-lock.json` (deleted), `docs/src/pnpm-lock.yaml` (added), `docs/src/contributing.mdx`, `docs/contributing.md`, `.github/workflows/build.yml`, `.github/workflows/update_docs.yml`, `.github/workflows/update_version.yml` — plus the planned extras: `docs/src/pnpm-workspace.yaml` (added; `allowBuilds.esbuild: true` for pnpm 11's build-script gate) and `readme.md` (unrelated stale-Fastlane refresh surfaced by the rebuild)
 - [ ] 5.3 Push the branch and open the PR; confirm `build.yml`'s docs job runs `pnpm install --frozen-lockfile` and `pnpm run build` successfully, and that the uploaded `docs-*` artifact byte-matches the committed Markdown
 - [ ] 5.4 After merge to main, confirm `update_docs.yml` produces an empty commit-back (no compiled-output drift)
