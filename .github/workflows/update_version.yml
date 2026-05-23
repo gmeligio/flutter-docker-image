@@ -39,12 +39,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
-      - name: Setup CUE
-        uses: jaxxstorm/action-install-gh-release@6096f2a2bbfee498ced520b6922ac2c06e990ed2 # v2.1.0
-        with:
-          repo: cue-lang/cue
-          tag: v0.15.0
-          digest: 06925fc1e5174591cef0b1e42ac32cff4271804742cd20893de1793b6d82d460
+      - name: Setup mise tools
+        uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
 
       - name: Fetch and update latest Flutter version
         id: update_flutter_version
@@ -95,12 +91,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
-      - name: Setup CUE
-        uses: jaxxstorm/action-install-gh-release@6096f2a2bbfee498ced520b6922ac2c06e990ed2 # v2.1.0
-        with:
-          repo: cue-lang/cue
-          tag: v0.15.0
-          digest: 06925fc1e5174591cef0b1e42ac32cff4271804742cd20893de1793b6d82d460
+      - name: Setup mise tools
+        uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
 
       # Parallel pattern with update_android_version: the artifact is downloaded
       # to keep job structure symmetric, even though windows fields are not
@@ -277,12 +269,8 @@ jobs:
         run: |
           rm -rf test_app
 
-      - name: Setup CUE
-        uses: jaxxstorm/action-install-gh-release@6096f2a2bbfee498ced520b6922ac2c06e990ed2 # v2.1.0
-        with:
-          repo: cue-lang/cue
-          tag: v0.15.0
-          digest: 06925fc1e5174591cef0b1e42ac32cff4271804742cd20893de1793b6d82d460
+      - name: Setup mise tools
+        uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
 
       - name: Generate test files with CUE
         run: |
@@ -322,12 +310,8 @@ jobs:
           artifact-ids: ${{ needs.update_android_version.outputs.version_artifact_id }}
           path: config
 
-      - name: Setup CUE
-        uses: jaxxstorm/action-install-gh-release@6096f2a2bbfee498ced520b6922ac2c06e990ed2 # v2.1.0
-        with:
-          repo: cue-lang/cue
-          tag: v0.15.0
-          digest: 06925fc1e5174591cef0b1e42ac32cff4271804742cd20893de1793b6d82d460
+      - name: Setup mise tools
+        uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
 
       - name: Validate version.json with CUE
         run: cue vet config/schema.cue -d '#Version' config/version.json
@@ -374,12 +358,8 @@ jobs:
           mv config/version.json.merged config/version.json
           rm config/version.json.windows
 
-      - name: Setup CUE
-        uses: jaxxstorm/action-install-gh-release@6096f2a2bbfee498ced520b6922ac2c06e990ed2 # v2.1.0
-        with:
-          repo: cue-lang/cue
-          tag: v0.15.0
-          digest: 06925fc1e5174591cef0b1e42ac32cff4271804742cd20893de1793b6d82d460
+      - name: Setup mise tools
+        uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
 
       - name: Validate merged version.json with CUE
         run: cue vet config/schema.cue -d '#Version' config/version.json
@@ -390,12 +370,8 @@ jobs:
           artifact-ids: ${{ needs.update_android_version.outputs.android_test_artifact_id }}
           path: test
 
-      - name: Setup NodeJS
-        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
-        with:
-          cache: npm
-          cache-dependency-path: docs/src/package-lock.json
-          node-version: lts/*
+      - name: Setup mise tools
+        uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
 
       - name: Update documentation
         working-directory: docs/src
