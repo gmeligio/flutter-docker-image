@@ -56,8 +56,8 @@
 
 ## 8. Validate end-to-end
 
-- [ ] 8.1 Push the branch; the `windows.yml` PR check builds the image with the new build args and runs the tightened Pester suite. Confirm green.
-- [ ] 8.2 Run `update_version.yml` via `workflow_dispatch` (which runs unconditionally on the dispatch branch); confirm a draft PR is opened with a non-empty `windows` block diff. (If Flutter is not changing, the dispatch will be a no-op; force a dispatch on a test branch where `flutter_version.json` has been hand-edited.)
+- [x] 8.1 Push the branch; the `windows.yml` PR check builds the image with the new build args and runs the tightened Pester suite. Confirm green.
+- [x] 8.2 Run `update_version.yml` via `workflow_dispatch` (which runs unconditionally on the dispatch branch); confirm a draft PR is opened with a non-empty `windows` block diff. (If Flutter is not changing, the dispatch will be a no-op; force a dispatch on a test branch where `flutter_version.json` has been hand-edited.)
 
 ## 9. Documentation
 
@@ -66,4 +66,4 @@
 
 ## 10. Archive
 
-- [ ] 10.1 After merge and confirmation that the next scheduled `update_version.yml` produces a sensible Windows-bumping PR, archive this change so the `windows-version-tracking` spec is promoted to `openspec/specs/` and the `flutter-version-update` delta is applied to the existing spec there.
+- [x] 10.1 After merge and confirmation that the next scheduled `update_version.yml` produces a sensible Windows-bumping PR, archive this change so the `windows-version-tracking` spec is promoted to `openspec/specs/` and the `flutter-version-update` delta is applied to the existing spec there.
