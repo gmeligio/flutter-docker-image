@@ -11,6 +11,6 @@
 ## 3. Validate the workflow
 
 - [x] 3.1 Run `openspec verify --change p8-fix-build-tools-extraction` and resolve any findings. (Used `openspec validate p8-fix-build-tools-extraction` — `verify` is not a command in this OpenSpec CLI; `validate` is the equivalent and reported the change as valid.)
-- [ ] 3.2 Open a PR with the workflow change.
+- [x] 3.2 Open a PR with the workflow change. (PR #459: https://github.com/gmeligio/flutter-docker-image/pull/459)
 - [ ] 3.3 Trigger `update_version.yml` via `workflow_dispatch` on the PR branch and confirm `update_android_version`, `validate_config_version`, and `update_docs_and_create_pr` all complete successfully against the current Flutter tag.
 - [ ] 3.4 Confirm the generated `config/version.json` in the resulting PR contains `android.buildTools.version == "36.1.0"`.
