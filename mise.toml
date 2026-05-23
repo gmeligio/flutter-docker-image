@@ -2,4 +2,5 @@
 cue = "0.15.0"
 git-cliff = "2.10.1"
 node = "lts"
+pnpm = "11.2.2"
 "github:gmeligio/gx" = "0.7.1"

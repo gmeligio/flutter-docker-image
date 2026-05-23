@@ -1,8 +1,8 @@
 ## 1. Pin pnpm in the mise manifest
 
-- [ ] 1.1 Pick the latest stable `pnpm` version (`pnpm view pnpm version` or https://github.com/pnpm/pnpm/releases) and record the choice in the PR description
-- [ ] 1.2 Add `pnpm = "<pinned-version>"` to `mise.toml` next to the existing `node = "lts"` entry
-- [ ] 1.3 Run `mise install` locally to confirm the pin resolves and the `pnpm` binary is available on `$PATH`
+- [x] 1.1 Pick the latest stable `pnpm` version (`pnpm view pnpm version` or https://github.com/pnpm/pnpm/releases) and record the choice in the PR description
+- [x] 1.2 Add `pnpm = "<pinned-version>"` to `mise.toml` next to the existing `node = "lts"` entry
+- [x] 1.3 Run `mise install` locally to confirm the pin resolves and the `pnpm` binary is available on `$PATH`
 
 ## 2. Convert `docs/src` to pnpm
 
