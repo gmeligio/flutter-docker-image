@@ -6,12 +6,12 @@
 
 ## 2. Convert `docs/src` to pnpm
 
-- [ ] 2.1 From `docs/src/`, run `pnpm import` to seed `pnpm-lock.yaml` from the existing `package-lock.json` (preserves the resolved transitive-dependency tree)
-- [ ] 2.2 Delete `docs/src/package-lock.json`
-- [ ] 2.3 Edit `docs/src/package.json` so `devEngines.packageManager.name` is `"pnpm"` (keep `onFail: "error"`); do NOT add a top-level `packageManager` field (corepack must not pick up an override)
-- [ ] 2.4 Verify `docs/src/.gitignore` still ignores `node_modules` (pnpm uses the same path); no change expected
-- [ ] 2.5 Run `pnpm install --frozen-lockfile` in `docs/src/` and confirm it exits 0
-- [ ] 2.6 Run `pnpm run build` in `docs/src/` and confirm the four output files (`../../readme.md`, `../../LICENSE.md`, `../contributing.md`, `../windows.md`) regenerate without diff aside from the contributing-section update from task 4
+- [x] 2.1 From `docs/src/`, run `pnpm import` to seed `pnpm-lock.yaml` from the existing `package-lock.json` (preserves the resolved transitive-dependency tree)
+- [x] 2.2 Delete `docs/src/package-lock.json`
+- [x] 2.3 Edit `docs/src/package.json` so `devEngines.packageManager.name` is `"pnpm"` (keep `onFail: "error"`); do NOT add a top-level `packageManager` field (corepack must not pick up an override)
+- [x] 2.4 Verify `docs/src/.gitignore` still ignores `node_modules` (pnpm uses the same path); no change expected
+- [x] 2.5 Run `pnpm install --frozen-lockfile` in `docs/src/` and confirm it exits 0 (required adding `docs/src/pnpm-workspace.yaml` with `allowBuilds.esbuild: true` to satisfy pnpm 11's strict-build-script gate)
+- [x] 2.6 Run `pnpm run build` in `docs/src/` and confirm the four output files (`../../readme.md`, `../../LICENSE.md`, `../contributing.md`, `../windows.md`) regenerate without diff aside from the contributing-section update from task 4 (required rewriting the `build` script to chain `node compile.js …` calls directly instead of `pnpm run …`, because nested `pnpm` invocations resolved to the Node-bundled corepack shim which errors on `devEngines.packageManager` without a version field; `readme.md` also picked up an unrelated stale-Fastlane drift correction: 2.233.1 → 2.234.0 from `config/version.json`)
 
 ## 3. Update CI workflows
 
