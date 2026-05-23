@@ -18,14 +18,17 @@ function mdxOptions(options) {
 }
 
 const args = process.argv.slice(2)
-const sourceRelativePath = args[0]
-const outputRelativePath = args[1]
-const markdown = await mdxToMd(resolve(sourceRelativePath), {
-  mdxOptions,
-})
-const banner = `This markdown file was auto-generated from "${sourceRelativePath}"`
-const readme = `<!--- ${banner} -->\n\n${markdown}`
+if (args.length === 0 || args.length % 2 !== 0) {
+  console.error('Usage: node compile.js <src.mdx> <dst.md> [<src.mdx> <dst.md> ...]')
+  process.exit(1)
+}
 
-await writeFile(outputRelativePath, readme)
-
-console.log(`📝 Converted ${sourceRelativePath} -> ${outputRelativePath}`)
+for (let i = 0; i < args.length; i += 2) {
+  const sourceRelativePath = args[i]
+  const outputRelativePath = args[i + 1]
+  const markdown = await mdxToMd(resolve(sourceRelativePath), { mdxOptions })
+  const banner = `This markdown file was auto-generated from "${sourceRelativePath}"`
+  const output = `<!--- ${banner} -->\n\n${markdown}`
+  await writeFile(outputRelativePath, output)
+  console.log(`📝 Converted ${sourceRelativePath} -> ${outputRelativePath}`)
+}
