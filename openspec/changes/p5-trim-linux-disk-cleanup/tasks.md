@@ -1,14 +1,14 @@
 ## 1. Trim the Linux cleanup script
 
-- [ ] 1.1 In `.github/actions/clean-runner-disk/action.yml`, in the `[Linux] Clean runner disk` step, remove every `apt-get remove ...` line for browsers, .NET, aspnetcore, Swift/LLVM, Azure CLI, mono, Google Cloud SDK / CLI, PowerShell.
-- [ ] 1.2 Keep `apt-get autoremove -y` and `apt-get clean` as a single trailing pair.
-- [ ] 1.3 Add `rm -rf` lines covering the package install dirs that the removed `apt-get` calls used to handle (paths listed in proposal "What Changes").
+- [x] 1.1 In `.github/actions/clean-runner-disk/action.yml`, in the `[Linux] Clean runner disk` step, remove every `apt-get remove ...` line for browsers, .NET, aspnetcore, Swift/LLVM, Azure CLI, mono, Google Cloud SDK / CLI, PowerShell.
+- [x] 1.2 Keep `apt-get autoremove -y` and `apt-get clean` as a single trailing pair.
+- [x] 1.3 Add `rm -rf` lines covering the package install dirs that the removed `apt-get` calls used to handle (paths listed in proposal "What Changes").
 - [ ] 1.4 Run the step manually inside a `workflow_dispatch` PR and time it. Confirm ≤ 2 minutes wall-clock — satisfies the modified spec requirement.
 
 ## 2. Update the capability spec
 
-- [ ] 2.1 Verify `p4-unify-runner-disk-cleanup` is archived (its specs are now under `openspec/specs/ci-runner-disk-cleanup/spec.md`). If not, this change SHALL block until it is.
-- [ ] 2.2 The MODIFIED Requirements in this change's spec delta replace the existing "Linux cleanup retains its current ~3-minute budget" requirement with a 2-minute budget and a freed-bytes-not-tactics contract.
+- [x] 2.1 Verify `p4-unify-runner-disk-cleanup` is archived (its specs are now under `openspec/specs/ci-runner-disk-cleanup/spec.md`). _Confirmed: p4 archived at commit 7672004; `openspec/specs/ci-runner-disk-cleanup/spec.md` exists._
+- [x] 2.2 The MODIFIED Requirements in this change's spec delta replace the existing "Linux cleanup retains its current ~3-minute budget" requirement with a 2-minute budget and a freed-bytes-not-tactics contract.
 
 ## 3. Verify on a real PR before merge
 

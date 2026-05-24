@@ -37,46 +37,35 @@ runs:
       if: runner.os == 'Linux'
       shell: bash
       run: |
-        # Remove PHP
-        sudo apt-get remove -y 'php.*' --fix-missing || echo "::warning::apt-get remove php.* failed"
-        # Remove databases
-        sudo apt-get remove -y '^mongodb-.*' --fix-missing || echo "::warning::apt-get remove mongodb failed"
-        sudo apt-get remove -y '^mysql-.*' --fix-missing || echo "::warning::apt-get remove mysql failed"
-        # Remove apt packages
+        # Toolchains (JDK, .NET + aspnetcore, Swift, LLVM, Haskell, Julia, Android, Rust)
+        sudo rm -rf /usr/lib/jvm
+        sudo rm -rf /usr/share/dotnet
+        sudo rm -rf /usr/share/swift
+        sudo rm -rf /usr/lib/llvm-16 /usr/lib/llvm-17 /usr/lib/llvm-18
+        sudo rm -rf /usr/local/.ghcup
+        sudo rm -rf /usr/local/julia*
+        sudo rm -rf /usr/local/lib/android
+        sudo rm -rf /home/runner/.rustup /etc/skel/.rustup
+        # Browsers (Chrome under /opt/google, Firefox under /usr/lib/firefox)
+        sudo rm -rf /usr/local/share/chromium
+        sudo rm -rf /usr/lib/firefox /usr/bin/firefox*
+        sudo rm -rf /usr/bin/google-chrome*
+        # Cloud tools (Chrome and PowerShell live under these top-level dirs)
+        sudo rm -rf /opt/microsoft /opt/google
+        sudo rm -rf /opt/az /usr/share/az_*
+        sudo rm -rf /usr/lib/google-cloud-sdk /opt/google-cloud-sdk /usr/bin/gcloud*
+        # Databases (MySQL; MongoDB is not installed on ubuntu-24.04)
+        sudo rm -rf /var/lib/mysql /etc/mysql /usr/sbin/mysqld
+        # Other apt-managed packages now removed by rm -rf only
+        sudo rm -rf /usr/lib/php /etc/php
+        sudo rm -rf /usr/lib/mono /etc/mono
+        sudo rm -rf /usr/lib/x86_64-linux-gnu/dri
+        # Toolcaches and Kubernetes
+        sudo rm -rf /opt/hostedtoolcache
+        sudo rm -rf /usr/local/bin/minikube
+        # Trailing apt cleanup: handles dangling deps and clears /var/cache/apt
         sudo apt-get autoremove -y || echo "::warning::apt-get autoremove failed"
         sudo apt-get clean || echo "::warning::apt-get clean failed"
-        # Remove Java (JDKs)
-        sudo rm -rf /usr/lib/jvm
-        # Remove .NET SDKs
-        sudo rm -rf /usr/share/dotnet
-        sudo apt-get remove -y '^aspnetcore-.*' || echo "::warning::apt-get remove aspnetcore failed"
-        sudo apt-get remove -y '^dotnet-.*' --fix-missing || echo "::warning::apt-get remove dotnet failed"
-        # Remove Swift toolchain
-        sudo apt-get remove -y '^llvm-.*' --fix-missing || echo "::warning::apt-get remove llvm failed"
-        sudo rm -rf /usr/share/swift
-        # Remove Haskell (GHC)
-        sudo rm -rf /usr/local/.ghcup
-        # Remove Julia
-        sudo rm -rf /usr/local/julia*
-        # Remove Android SDKs
-        sudo rm -rf /usr/local/lib/android
-        # Remove browsers
-        sudo apt-get remove -y google-chrome-stable firefox --fix-missing || echo "::warning::apt-get remove chrome/firefox failed"
-        sudo rm -rf /usr/local/share/chromium /opt/microsoft /opt/google
-        # Remove cloud tools
-        sudo rm -rf /opt/az
-        sudo apt-get remove -y azure-cli mono-devel libgl1-mesa-dri --fix-missing || echo "::warning::apt-get remove azure-cli/mono failed"
-        sudo apt-get remove -y google-cloud-sdk --fix-missing || echo "::debug::apt-get remove google-cloud-sdk failed"
-        sudo apt-get remove -y google-cloud-cli --fix-missing || echo "::debug::apt-get remove google-cloud-cli failed"
-        # Remove PowerShell
-        sudo apt-get remove -y powershell --fix-missing || echo "::warning::apt-get remove powershell failed"
-        sudo rm -rf /usr/local/share/powershell
-        # Remove CodeQL and other toolcaches
-        sudo rm -rf /opt/hostedtoolcache
-        # Remove Kubernetes
-        sudo rm -rf /usr/local/bin/minikube
-        # Remove Rust
-        sudo rm -rf /home/runner/.rustup /etc/skel/.rustup
 
     - name: '[Linux] Show disk usage after cleaning'
       if: runner.os == 'Linux'

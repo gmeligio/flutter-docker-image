@@ -11,12 +11,18 @@ This change replaces the `apt-get remove` calls with direct `rm -rf` of the same
 - In `.github/actions/clean-runner-disk/action.yml` Linux path:
   - **Remove**: all `apt-get remove -y '...'` lines for browsers, .NET, Swift/LLVM, Azure CLI, Google Cloud, PowerShell, mono.
   - **Keep**: `apt-get autoremove -y` + `apt-get clean` once at the end (cleans up dependency cruft from packages already removed and clears `/var/cache/apt`).
-  - **Add**: explicit `rm -rf` of the package install dirs that `apt-get remove` previously handled:
-    - `/usr/lib/google-cloud-sdk`, `/opt/google-cloud-sdk`, `/usr/bin/gcloud*`
-    - `/opt/microsoft/powershell`, `/usr/local/share/powershell`
-    - `/opt/microsoft`, `/opt/google` (already present)
-    - `/usr/lib/google`, `/usr/bin/google-chrome*`, `/usr/bin/firefox*`
-    - `/opt/az`, `/usr/share/az_*`
+  - **Add**: explicit `rm -rf` of the package install dirs that `apt-get remove` previously handled. Paths cross-referenced against the `actions/runner-images` `install-*.sh` scripts for ubuntu-24.04:
+    - Google Cloud SDK/CLI: `/usr/lib/google-cloud-sdk`, `/opt/google-cloud-sdk`, `/usr/bin/gcloud*`
+    - PowerShell: `/opt/microsoft/powershell` (already covered by existing `/opt/microsoft` rm; do **not** add `/usr/local/share/powershell` — it does not exist on ubuntu-24.04)
+    - `/opt/microsoft`, `/opt/google` (already present — covers PowerShell and Chrome respectively)
+    - Chrome: `/usr/bin/google-chrome*` (symlink only; `/opt/google/chrome` is under existing `/opt/google`)
+    - Firefox: `/usr/lib/firefox` (Mozilla PPA install dir — proposal's `/usr/bin/firefox*` is only the symlink), `/usr/bin/firefox*`
+    - Azure CLI: `/opt/az`, `/usr/share/az_*`
+    - LLVM: `/usr/lib/llvm-16`, `/usr/lib/llvm-17`, `/usr/lib/llvm-18` (the apt removal of `^llvm-.*` handled these; `/usr/share/swift` stays in the existing rm block)
+    - Mono: `/usr/lib/mono`, `/etc/mono`
+    - PHP: `/usr/lib/php`, `/etc/php`
+    - MySQL: `/var/lib/mysql`, `/etc/mysql`, `/usr/sbin/mysqld`
+    - libgl1-mesa-dri (~150 MB): `/usr/lib/x86_64-linux-gnu/dri`
   - **Keep**: the existing `rm -rf` block for `/usr/lib/jvm`, `/usr/share/dotnet`, `/usr/share/swift`, `/usr/local/.ghcup`, `/usr/local/julia*`, `/usr/local/lib/android`, `/usr/local/share/chromium`, `/opt/microsoft`, `/opt/google`, `/opt/hostedtoolcache`, `/usr/local/bin/minikube`, `/home/runner/.rustup`, `/etc/skel/.rustup`.
 - Keep the post-clean disk-free assertion (`≥ 20 GB on /`) — this is the actual safety contract; the spec already requires it.
 - Keep the job-summary line.
@@ -37,7 +43,7 @@ _None._
 
 - **Affected files**: `.github/actions/clean-runner-disk/action.yml` (Linux step only). No workflow YAML changes.
 - **Behavioral change**: `clean-runner-disk` Linux wall-clock drops from ~3m06s to ≤ 2m. Saves ~1-2 min on every PR build (`build.yml/test_image` or, after p3 lands, `build.yml/build_image`) and every `ci.yml` push run.
-- **Risk**: a package's files might live in a path not covered by the `rm -rf` list, in which case the disk gain regresses. Mitigation: the post-clean assertion (`≥ 20 GB free`) catches this immediately on the first run, before merge.
+- **Risk**: a package's files might live in a path not covered by the `rm -rf` list, in which case the disk gain regresses. Mitigation: the `rm -rf` set was cross-referenced against the `actions/runner-images` install scripts on ubuntu-24.04 (`install-firefox.sh`, `install-google-chrome.sh`, `install-powershell.sh`, `install-google-cloud-cli.sh`, etc.) and `Ubuntu2404-Readme.md`; the post-clean assertion (`≥ 20 GB free`) catches anything missed immediately on the first run, before merge.
 - **Risk**: a future package install that depends on apt's view of dpkg state could be broken by the removal of `apt-get remove`. Mitigation: the runner image is freshly provisioned each job, and the only `apt-get install` users in the affected workflows are `clean-runner-disk` itself (no others). The `apt-get autoremove` we keep handles dangling deps.
 - **Depends on**: `p4-unify-runner-disk-cleanup` archived. Per the user's assumption, this has happened.
 - **Out of scope**: Windows cleanup (separate concern), self-hosted runners.
