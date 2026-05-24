@@ -1,3 +1,8 @@
+## RENAMED Requirements
+
+- FROM: `### Requirement: Linux cleanup retains its current ~3-minute budget`
+- TO: `### Requirement: Linux cleanup completes within a 2-minute wall-clock budget`
+
 ## MODIFIED Requirements
 
 ### Requirement: Linux cleanup completes within a 2-minute wall-clock budget

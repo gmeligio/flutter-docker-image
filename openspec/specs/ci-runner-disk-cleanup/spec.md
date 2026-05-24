@@ -3,9 +3,7 @@
 ## Purpose
 
 Define what `.github/actions/clean-runner-disk` SHALL achieve on the GitHub-hosted runners used by this repo (`ubuntu-24.04` and `windows-2025`) — minimum disk freed, maximum wall-clock spent, observability of the result, and the contract that both runner OSes are invoked via the same action reference from any workflow that needs cleanup.
-
 ## Requirements
-
 ### Requirement: Single action reference works on both supported runner OSes
 
 `.github/actions/clean-runner-disk` SHALL be a single composite action invocable from any workflow job running on either `ubuntu-24.04` or `windows-2025` with the same `uses: ./.github/actions/clean-runner-disk` reference. The action SHALL dispatch its cleanup logic by `runner.os` internally; workflow YAML SHALL NOT branch on OS to choose between action paths.
@@ -54,19 +52,6 @@ The experience context is the maintainer watching the PR check page — the Wind
 - **AND** the action emits `::warning::<path> still present after removal` so the surviving directory is named in the log
 - **AND** the post-clean free-space assertion (see "Action asserts minimum post-clean free space") catches any case where enough survived to threaten the downstream `docker build`
 
-### Requirement: Linux cleanup retains its current ~3-minute budget
-
-The Linux cleanup path SHALL complete in ≤ 4 minutes wall-clock at the 95th percentile across the rolling 30-day window of `ci.yml` and `build.yml` runs. The behavior of unifying the action SHALL NOT regress Linux performance relative to the pre-change baseline.
-
-The experience context is the same maintainer comparing today's CI duration to yesterday's after the action is unified — Linux numbers must not move in the wrong direction as a side-effect of the Windows work.
-
-#### Scenario: Linux cleanup runs under the unified action
-
-- **GIVEN** an `ubuntu-24.04` runner with the standard pre-installed toolchains (JVM, .NET, Swift/LLVM, Haskell GHC, Julia, Android SDK, Chrome, Firefox, Azure CLI, PowerShell, hostedtoolcache, Rust, etc.)
-- **WHEN** the cleanup action runs
-- **THEN** the action completes in ≤ 4 minutes
-- **AND** the set of removed paths is at least the same as the pre-change `.github/actions/clean-runner-disk/action.yml` removed
-
 ### Requirement: Action asserts minimum post-clean free space and fails loudly on regression
 
 After cleanup, the action SHALL check free space on the build drive (`/` on Linux, `C:` on Windows) and SHALL fail the step with a message naming the actual free space and the threshold when free space is below 20 GB on Linux or 40 GB on Windows.
@@ -105,3 +90,34 @@ The experience context is the maintainer scanning the PR check page for slow ste
 - **GIVEN** an invocation where the post-clean assertion fails (free space below threshold)
 - **WHEN** the run completes (with the step marked failed)
 - **THEN** the summary still contains the line so a maintainer can compare the freed-bytes number against historical values
+
+### Requirement: Linux cleanup completes within a 2-minute wall-clock budget
+
+The Linux cleanup path SHALL complete in ≤ 2 minutes wall-clock at the 95th percentile across the rolling 30-day window of `ci.yml` and `build.yml` runs. The implementation SHALL favor direct `rm -rf` of large directories over `apt-get remove`, which is slow due to dpkg-lock contention and maintainer-script execution per package set. `apt-get autoremove` and `apt-get clean` MAY be retained as a trailing pair to handle dangling dependencies and clear `/var/cache/apt`.
+
+The contract this requirement defends is "freed bytes" (measured by the existing post-clean assertion), NOT "set of removed paths". An implementation that frees ≥ 20 GB on `/` via any tactic SHALL satisfy this requirement, even if it removes fewer packages than a prior implementation.
+
+The experience context is the maintainer measuring CI wall-clock — the previous 3-minute budget assumed `apt-get` was necessary; profiling showed it was the dominant cost without a corresponding safety benefit, since the post-clean assertion is the real safety net.
+
+#### Scenario: Linux cleanup runs within budget on a standard runner
+
+- **GIVEN** an `ubuntu-24.04` runner with the standard pre-installed toolchains
+- **WHEN** the cleanup action runs
+- **THEN** the action completes in ≤ 2 minutes at the median across 5 runs
+- **AND** the post-clean assertion (`≥ 20 GB free on /`) passes
+
+#### Scenario: Cleanup tactic may differ as long as freed-bytes contract holds
+
+- **GIVEN** an implementation that uses only `rm -rf` (no `apt-get remove`)
+- **WHEN** the cleanup action runs
+- **THEN** the post-clean assertion passes (`≥ 20 GB free on /`)
+- **AND** the requirement is satisfied even though apt's package metadata still references files that no longer exist on disk
+- **AND** no downstream step in `build.yml` or `ci.yml` queries apt-database consistency for those packages
+
+#### Scenario: Cleanup tactic regression is detected by the assertion, not by path inventory
+
+- **GIVEN** a future edit removes an `rm -rf` line, leaving < 20 GB free
+- **WHEN** the cleanup action runs
+- **THEN** the post-clean assertion fails the step with the actual free-space number
+- **AND** the regression is caught at the cleanup step rather than at a downstream `docker build` "no space left on device"
+
