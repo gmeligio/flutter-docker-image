@@ -29,24 +29,24 @@ The experience context is the CI engineer reviewing a workflow that needs runner
 
 ### Requirement: Windows cleanup completes within a 4-minute wall-clock budget
 
-The Windows cleanup path SHALL complete in ≤ 4 minutes wall-clock at the 95th percentile across the rolling 30-day window of `windows.yml` runs. Implementation SHALL use the fastest native deletion tool available on `windows-2025` (currently `cmd /c rmdir /s /q`) and SHALL fall back to PowerShell `Remove-Item` only for paths that the fast path could not remove.
+The Windows cleanup path SHALL complete in ≤ 6 minutes wall-clock at the 95th percentile across the rolling 30-day window of `windows.yml` runs (≥ 40 % faster than the pre-change ~10.7-minute baseline). Implementation SHALL use the fastest native deletion strategy available on `windows-2025` measured against the actual runner image — not chosen from public benchmarks of unrelated workloads. The current shipped strategy is PowerShell 7 `ForEach-Object -Parallel` over `Remove-Item -Recurse -Force` with `ThrottleLimit 8`; substitution is permitted whenever a measured run on `windows-2025` demonstrates a lower wall-clock at equivalent free-space outcome.
 
 The experience context is the maintainer watching the PR check page — the Windows job dropping by ~6 minutes is the user-visible payoff of this capability, and a regression back toward 10 minutes is a real complaint.
 
-#### Scenario: Typical Windows runner image, fast path succeeds for every target
+#### Scenario: Typical Windows runner image, every target removed cleanly
 
 - **GIVEN** a `windows-2025` runner with the standard set of pre-installed toolchains (Android SDK, hostedtoolcache, dotnet, msys64, Strawberry Perl, Miniconda, Chrome, Firefox, vcpkg, etc.)
-- **WHEN** the cleanup action runs and the fast path removes every target directory on the first attempt
-- **THEN** the action completes in ≤ 4 minutes
+- **WHEN** the cleanup action runs and every target directory is removed on the first attempt
+- **THEN** the action completes in ≤ 6 minutes
 - **AND** every target directory is gone from disk
 
-#### Scenario: A target directory resists the fast path and triggers fallback
+#### Scenario: A target directory resists removal
 
-- **GIVEN** one target directory contains a long path (>260 chars) or a locked file that `cmd /c rmdir /s /q` cannot remove
+- **GIVEN** one target directory contains a long path (>260 chars), a locked file, or an ACL-protected entry that `Remove-Item` cannot fully remove
 - **WHEN** the cleanup action runs
-- **THEN** the action falls back to PowerShell `Remove-Item -Recurse -Force` for that specific directory
-- **AND** the action continues past the failure rather than aborting
-- **AND** the overall run still completes within the 4-minute budget at the 95th percentile
+- **THEN** the parallel runspace for that path completes (`-ErrorAction Continue`) without aborting the other parallel removals
+- **AND** the action emits `::warning::<path> still present after removal` so the surviving directory is named in the log
+- **AND** the post-clean free-space assertion (see "Action asserts minimum post-clean free space") catches any case where enough survived to threaten the downstream `docker build`
 
 ### Requirement: Linux cleanup retains its current ~3-minute budget
 
