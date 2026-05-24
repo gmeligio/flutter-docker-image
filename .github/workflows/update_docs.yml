@@ -22,8 +22,8 @@ jobs:
       - name: Build documentation
         working-directory: docs/src
         run: |
-          npm ci --prefer-offline
-          npm run build
+          pnpm install --frozen-lockfile
+          pnpm run build
 
       - name: Generate authentication token with GitHub App to trigger Actions
         uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1

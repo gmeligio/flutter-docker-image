@@ -309,8 +309,8 @@ jobs:
       - name: Build documentation
         working-directory: docs/src
         run: |
-          npm ci --prefer-offline
-          npm run build
+          pnpm install --frozen-lockfile
+          pnpm run build
 
       # Upload generated docs so reviewers can inspect them. Commit-back is
       # handled by update_docs.yml on push to main — pushing to fork PR

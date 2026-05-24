@@ -1,5 +1,6 @@
 [tools]
 cue = "0.15.0"
 git-cliff = "2.10.1"
+pnpm = "11.2.2"
 node = "lts"
 "github:gmeligio/gx" = "0.7.1"
