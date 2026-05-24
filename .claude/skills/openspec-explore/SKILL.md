@@ -147,11 +147,7 @@ If a related change exists, read its artifacts (`proposal.md`, `design.md`, `tas
 ## Guardrails
 
 - **No implementation** — Never write application code. Creating OpenSpec artifacts is fine if the user approves.
-- **No premature questions** — Exhaust web search and codebase investigation before asking anything. If you ask, state what you tried.
+- **No premature questions** — Whether asking the user or writing an "Open Question" in the report, exhaust the codebase and web first. If you can name a concrete next step (grep, file read, fetch) that would answer it, take that step instead.
 - **Cite sources** — Every finding must reference where it came from (URL for web, `file:line` for code). No unsourced claims.
 - **Stay grounded** — Prefer concrete evidence (code, docs, examples) over speculation. Label uncertain findings as such.
 - **Offer next steps, don't auto-proceed** — End with a recommendation for what to do next, but let the user decide.
-
-<!-- patch:explore-research -->
-
-<!-- patch:model-opus -->

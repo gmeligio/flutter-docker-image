@@ -131,9 +131,3 @@ git diff --cached --quiet || git commit -m "docs(openspec): propose <n>"
 - If context is critically unclear, ask the user - but prefer making reasonable decisions to keep momentum
 - If a change with that name already exists, ask if user wants to continue it or create a new one
 - Verify each artifact file exists after writing before proceeding to next
-
-<!-- patch:model-opus -->
-
-<!-- patch:design-guidance -->
-
-<!-- patch:git-commit-propose -->
