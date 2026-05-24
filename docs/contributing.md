@@ -8,6 +8,18 @@ An AI-generated wiki for this repository is available at [deepwiki.com/gmeligio/
 
 The wiki is kept current automatically: DeepWiki re-indexes the repository whenever it detects the DeepWiki badge in `readme.md`. No manual action is required after merging to `main`.
 
+## Building the docs locally
+
+The Markdown files at the repository root (`readme.md`, `LICENSE.md`, `docs/contributing.md`, `docs/windows.md`) are generated from the MDX sources under `docs/src/`. The build uses `pnpm`, pinned in `mise.toml` alongside the other CI tools. From `docs/src/`:
+
+```bash
+pnpm install --frozen-lockfile
+pnpm run build
+
+```
+
+`devEngines.packageManager` in `docs/src/package.json` is set to `pnpm` with `onFail: "error"`, so `npm install` will refuse to run.
+
 ## Editing GitHub Actions workflows
 
 GitHub Actions versions are tracked with [gx](https://github.com/gmeligio/gx). The manifest at `.github/gx.toml` is the source of truth for version constraints, and `.github/gx.lock` records the resolved SHAs. Workflows must use SHA pins with a `# vX.Y.Z` comment.
