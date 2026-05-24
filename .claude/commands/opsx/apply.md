@@ -1,5 +1,5 @@
 ---
-model: sonnet
+model: claude-sonnet-4-6
 name: "OPSX: Apply"
 description: Implement tasks from an OpenSpec change (Experimental)
 category: Workflow
@@ -158,7 +158,3 @@ This skill supports the "actions on a change" model:
 
 - **Can be invoked anytime**: Before all artifacts are done (if tasks exist), after partial implementation, interleaved with other actions
 - **Allows artifact updates**: If implementation reveals design issues, suggest updating artifacts - not phase-locked, work fluidly
-
-<!-- patch:model-sonnet -->
-
-<!-- patch:git-commit-apply -->
