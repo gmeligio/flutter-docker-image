@@ -27,9 +27,11 @@ The experience context is the CI engineer who watches this repository for upgrad
 
 ### Requirement: Upgrade PR contains a coherent, validated `version.json`
 
-When the workflow opens an upgrade PR, the included `config/version.json` SHALL satisfy `cue vet config/schema.cue -d '#Version'` and SHALL contain the Android `buildTools.version` listed for that exact Flutter tag in `engine/src/flutter/tools/android_sdk/packages.txt` upstream. When that file lists multiple `build-tools;X.Y.Z` entries on a single comma-joined line, the workflow SHALL select the first (highest) version. The same `version.json` SHALL also contain a `windows.git.version` equal to the latest non-prerelease tag at `https://api.github.com/repos/git-for-windows/git/releases/latest` (with any `.windows.N` suffix stripped) and the VS BuildTools component versions sourced from the deterministic source documented in `p3-windows-version-schema`'s design.
+When the workflow opens an upgrade PR, the included `config/version.json` SHALL satisfy `cue vet config/schema.cue -d '#Version'` and SHALL contain the Android `buildTools.version` listed for that exact Flutter tag in `engine/src/flutter/tools/android_sdk/packages.txt` upstream. When that file lists multiple `build-tools;X.Y.Z` entries on a single comma-joined line, the workflow SHALL select the first (highest) version. The same `version.json` SHALL also contain a `windows.git.version` equal to the latest non-prerelease tag at `https://api.github.com/repos/git-for-windows/git/releases/latest` (with any `.windows.N` suffix stripped) and the VS BuildTools component versions sourced from the deterministic source documented in `p3-windows-version-schema`'s design, as refined by `p11-resilient-windows-update`'s design (release-identity check against Microsoft's `channel.json` and `vsman.json`).
 
-The experience context is the CI engineer reviewing or merging the upgrade PR — they observe that downstream image builds will not silently regress on Android tooling *or* on Windows tooling, and that an extractor bug cannot quietly produce a malformed `buildTools.version` that only surfaces as a confusing schema error.
+When the `update_windows_version` job has skipped its update for this cycle (because Microsoft's `channel.json` and `vsman.json` disagree on release identity), the PR SHALL still open with the Flutter and Android updates merged into `config/version.json` and the existing committed `windows` block carried forward unchanged. The PR body SHALL include a one-line annotation explaining that the Windows toolchain was unchanged this cycle. The carried-forward `windows` block SHALL pass `cue vet` against `#Version` because it was already valid on the base branch.
+
+The experience context is the CI engineer reviewing or merging the upgrade PR — they observe that downstream image builds will not silently regress on Android tooling *or* on Windows tooling, that an extractor bug cannot quietly produce a malformed `buildTools.version` that only surfaces as a confusing schema error, and that a transient inconsistency in Microsoft's VS manifest publishing does not block the Flutter+Android portion of the monthly upgrade.
 
 #### Scenario: Build-tools version tracks the new Flutter tag
 
@@ -63,6 +65,16 @@ The experience context is the CI engineer reviewing or merging the upgrade PR �
 - **GIVEN** the workflow has produced a candidate `config/version.json` containing the new `windows` block
 - **WHEN** the `validate_config_version` job runs
 - **THEN** `cue vet` passes against the `windows` block as well as the existing `flutter` and `android` blocks
+
+#### Scenario: PR opens with Windows toolchain unchanged when upstream is inconsistent
+
+- **GIVEN** the `update_windows_version` job skipped its update this cycle because Microsoft's `channel.json` and `vsman.json` disagreed on release identity
+- **AND** the `update_flutter_version` and `update_android_version` jobs produced fresh artifacts
+- **WHEN** the upgrade PR is composed
+- **THEN** the PR opens with Flutter and Android updates merged into `config/version.json`
+- **AND** the `windows` block in the PR's `config/version.json` is byte-for-byte identical to the `windows` block on the base branch
+- **AND** the PR body contains an annotation indicating the Windows toolchain was unchanged this cycle
+- **AND** `cue vet config/schema.cue -d '#Version'` passes on the resulting `config/version.json`
 
 ### Requirement: Producer jobs validate their own `version.json` before upload
 

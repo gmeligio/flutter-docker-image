@@ -35,6 +35,8 @@ The `update_windows_version` job (1) fetches `https://aka.ms/vs/17/release/chann
 
 The SHA-pinning of `vsman` by the channel is a free integrity property — the job can trust the catalog without committing it. Also note: `Microsoft.VisualStudio.Component.Windows11SDK.22621` carries the build id (`22621`) in the component **id**, not the version field; the `version` is the VS release stamp. This matches the design's decision to model the SDK build as a bare `int` separate from the `#SemverQuad` version fields.
 
+> **Superseded by `p11-resilient-windows-update` (2026-05-25).** The "free integrity property" assumption was wrong: Microsoft generates `channel.json` against a pretty-printed `vsman` and serves a minified `vsman` from the CDN, so byte equality is not preserved upstream. The byte-level SHA check was replaced with a semantic release-identity check (`channel.json.info.productSemanticVersion == vsman.json.info.productSemanticVersion`) that matches how the data is actually delivered. See `openspec/changes/p11-resilient-windows-update/design.md`.
+
 Alternatives considered:
 
 - **Pin the four versions in the schema (in `schema.cue`) and require a human edit to bump.** Rejected: same review burden, but no automation. The channel-manifest read is cheap and 99% of the time correct.

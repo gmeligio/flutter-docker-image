@@ -101,6 +101,7 @@ jobs:
     if: ${{ needs.update_flutter_version.outputs.new_version == 'true' }}
     outputs:
       version_artifact_id: ${{ steps.upload-version.outputs.artifact-id }}
+      windows_skipped: ${{ steps.release_identity.outputs.matched != 'true' && 'true' || 'false' }}
     runs-on: ubuntu-24.04
     steps:
       - name: Harden runner
@@ -138,23 +139,38 @@ jobs:
       - name: Fetch VS channel manifest
         run: curl -fsSL https://aka.ms/vs/17/release/channel -o channel.json
 
-      # The channel manifest only contains product-level entries; per-component
-      # versions live in VisualStudio.vsman, referenced and SHA-256 pinned from
-      # the channel via the Microsoft.VisualStudio.Manifests.VisualStudio item.
-      - name: Resolve VS catalog manifest payload
-        id: vsman_payload
+      # channel.json is a discovery document — it points to vsman.json (which
+      # holds per-component versions). We do not byte-pin against channel.json's
+      # sha256: Microsoft generates channel.json against a pretty-printed vsman
+      # and serves a minified vsman, so byte equality is not preserved upstream.
+      # Integrity is enforced semantically by the release-identity check below.
+      # See openspec/changes/p11-resilient-windows-update/design.md.
+      - name: Download VS catalog manifest
         run: |
           url=$(jq -r '.channelItems[] | select(.id=="Microsoft.VisualStudio.Manifests.VisualStudio") | .payloads[0].url' channel.json)
-          sha=$(jq -r '.channelItems[] | select(.id=="Microsoft.VisualStudio.Manifests.VisualStudio") | .payloads[0].sha256' channel.json)
-          echo "url=$url" >> "$GITHUB_OUTPUT"
-          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          curl -fsSL "$url" -o vsman.json
 
-      - name: Download and verify VS catalog manifest
+      # channel.json describes Microsoft's *intent* (the current release);
+      # vsman.json is the actual data. When the two agree on
+      # info.productSemanticVersion, Microsoft's release pipeline is consistent
+      # and the extracted versions are safe to use. When they disagree (mid-
+      # publish, etc.), skip the Windows update for this cycle — the PR job
+      # carries forward the existing committed windows block unchanged.
+      - name: Verify channel and vsman describe the same release
+        id: release_identity
         run: |
-          curl -fsSL "${{ steps.vsman_payload.outputs.url }}" -o vsman.json
-          echo "${{ steps.vsman_payload.outputs.sha }}  vsman.json" | sha256sum -c -
+          channel_ver=$(jq -r '.info.productSemanticVersion' channel.json)
+          vsman_ver=$(jq -r '.info.productSemanticVersion' vsman.json)
+          if [ "$channel_ver" = "$vsman_ver" ]; then
+            echo "matched=true" >> "$GITHUB_OUTPUT"
+            echo "Release identity matches: $channel_ver"
+          else
+            echo "matched=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::release identity mismatch — skipping Windows update this cycle (channel=$channel_ver vsman=$vsman_ver)"
+          fi
 
       - name: Resolve VS BuildTools component versions
+        if: steps.release_identity.outputs.matched == 'true'
         id: vs_versions
         run: |
           cmake=$(jq -r '.packages[] | select(.id=="Microsoft.VisualStudio.Component.VC.CMake.Project") | .version' vsman.json)
@@ -164,6 +180,7 @@ jobs:
           echo "CMake: $cmake; VCTools: $vctools"
 
       - name: Write windows block into config/version.json
+        if: steps.release_identity.outputs.matched == 'true'
         env:
           GIT_VERSION: ${{ steps.git_version.outputs.git_version }}
           VS_CMAKE_VERSION: ${{ steps.vs_versions.outputs.cmake }}
@@ -186,21 +203,29 @@ jobs:
           mv config/version.json.tmp config/version.json
 
       - name: Validate version.json with CUE
+        if: steps.release_identity.outputs.matched == 'true'
         run: cue vet config/schema.cue -d '#Version' config/version.json
 
       # The artifact's file is renamed so it doesn't collide with the Android
       # artifact's version.json in update_docs_and_create_pr's merge step.
       - name: Stage windows-only artifact
+        if: steps.release_identity.outputs.matched == 'true'
         run: cp config/version.json "${RUNNER_TEMP}/version.json.windows"
 
       - name: Upload artifact with the updated windows block
+        if: steps.release_identity.outputs.matched == 'true'
         id: upload-version
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         with:
           name: version.json.windows
           path: ${{ runner.temp }}/version.json.windows
 
+      # Forensic upload runs on every outcome (matched/skipped/job-error) so the
+      # exact channel.json and vsman.json that drove the decision are preserved
+      # for retroactive inspection. Only runs if both files exist on disk (they
+      # do whenever the download steps completed before this step is reached).
       - name: Upload VS manifest artifacts for forensics
+        if: always() && hashFiles('channel.json', 'vsman.json') != ''
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         with:
           name: vs-manifests
@@ -355,6 +380,15 @@ jobs:
       - update_android_version
       - update_windows_version
       - validate_config_version
+    # Open the PR even when update_windows_version skipped or failed: the
+    # Android artifact's version.json already carries a valid windows block
+    # (from the base-branch checkout), so a missing windows artifact just
+    # means the committed windows block is carried forward unchanged.
+    if: |
+      !cancelled() &&
+      needs.update_flutter_version.result == 'success' &&
+      needs.update_android_version.result == 'success' &&
+      needs.validate_config_version.result == 'success'
     runs-on: ubuntu-24.04
     env:
       IMAGE_REPOSITORY_NAME: flutter-android
@@ -376,21 +410,38 @@ jobs:
         run: |-
           rm ${{ env.FLUTTER_VERSION_PATH }} config/version.json test/android.yml
 
+      # Compose the artifact-ids list with the Windows artifact id appended
+      # only when update_windows_version actually produced one. When the
+      # Windows job skipped its update, its version_artifact_id output is
+      # empty and we omit it from the list (download-artifact rejects empty
+      # entries).
+      - name: Compose artifact id list
+        id: artifact_ids
+        env:
+          FLUTTER_ID: ${{ needs.update_flutter_version.outputs.flutter_version_artifact_id }}
+          ANDROID_ID: ${{ needs.update_android_version.outputs.version_artifact_id }}
+          WINDOWS_ID: ${{ needs.update_windows_version.outputs.version_artifact_id }}
+        run: |
+          ids="${FLUTTER_ID},${ANDROID_ID}"
+          if [ -n "${WINDOWS_ID}" ]; then
+            ids="${ids},${WINDOWS_ID}"
+          fi
+          echo "ids=${ids}" >> "$GITHUB_OUTPUT"
+
       - name: Download configuration artifacts
         uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         with:
-          artifact-ids: ${{ needs.update_flutter_version.outputs.flutter_version_artifact_id }},${{ needs.update_android_version.outputs.version_artifact_id }},${{ needs.update_windows_version.outputs.version_artifact_id }}
+          artifact-ids: ${{ steps.artifact_ids.outputs.ids }}
           path: config
           # Download to the configured path instead of separated directories by artifact id.
           # Artifacts contain distinct filenames (flutter_version.json, version.json,
           # version.json.windows) so merge-multiple is safe.
           merge-multiple: true
 
-      # Merge order: the Android artifact's version.json is the base (it carries
-      # the new flutter and android blocks). The Windows artifact's windows block
-      # overlays the windows field. This keeps each producer authoritative over
-      # its own block.
+      # Android's version.json is the base (carries new flutter+android, plus
+      # the base-branch windows block); Windows artifact overlays the windows field.
       - name: Merge windows block into version.json
+        if: needs.update_windows_version.outputs.version_artifact_id != ''
         run: |
           jq -s '.[0] + {windows: .[1].windows}' config/version.json config/version.json.windows > config/version.json.merged
           mv config/version.json.merged config/version.json
@@ -435,6 +486,27 @@ jobs:
           echo "commit_message=$commit_message" >> "$GITHUB_OUTPUT"
           echo "Commit message: $commit_message"
 
+      # When update_windows_version skipped its update (release-identity
+      # mismatch upstream, or any other non-success outcome), surface that
+      # in the PR description so the reviewer doesn't have to dig through
+      # job logs to learn why the windows block is unchanged this cycle.
+      - name: Compose PR body
+        id: pr_body
+        env:
+          WINDOWS_SKIPPED: ${{ needs.update_windows_version.outputs.windows_skipped }}
+          WINDOWS_RESULT: ${{ needs.update_windows_version.result }}
+          WINDOWS_JOB_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          {
+            echo "body<<PR_BODY_EOF"
+            echo "Automated upgrade PR opened by \`update_version.yml\`."
+            if [ "${WINDOWS_SKIPPED}" = "true" ] || [ "${WINDOWS_RESULT}" != "success" ]; then
+              echo ""
+              echo "**Windows toolchain unchanged this cycle.** See [\`update_windows_version\` job log](${WINDOWS_JOB_URL}) — the committed \`windows\` block in \`config/version.json\` is carried forward unchanged."
+            fi
+            echo "PR_BODY_EOF"
+          } >> "$GITHUB_OUTPUT"
+
       - name: Generate authentication token with GitHub App to trigger Actions
         uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1
         id: app-token
@@ -452,4 +524,5 @@ jobs:
           branch: update-flutter-dependencies/${{ env.FLUTTER_VERSION }}
           sign-commits: true
           title: ${{ steps.create_commit_message.outputs.commit_message }}
+          body: ${{ steps.pr_body.outputs.body }}
           token: ${{ steps.app-token.outputs.token }}
