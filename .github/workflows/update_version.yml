@@ -438,12 +438,8 @@ jobs:
           # version.json.windows) so merge-multiple is safe.
           merge-multiple: true
 
-      # Merge order: the Android artifact's version.json is the base (it carries
-      # the new flutter and android blocks, plus the windows block inherited
-      # from the base-branch checkout). The Windows artifact's windows block
-      # overlays the windows field. When the Windows job skipped its update,
-      # the merge is skipped too and the base-branch windows block carries
-      # forward unchanged.
+      # Android's version.json is the base (carries new flutter+android, plus
+      # the base-branch windows block); Windows artifact overlays the windows field.
       - name: Merge windows block into version.json
         if: needs.update_windows_version.outputs.version_artifact_id != ''
         run: |
