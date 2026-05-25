@@ -1,7 +1,7 @@
 ## 1. Build the reusable image-build workflow
 
 - [ ] 1.1 Create `.github/workflows/build-image.yml` with `on: workflow_call` and inputs: `runner-os`, `dockerfile`, `image-name`, `push-to-registries` (boolean), `cache-mode` (`gha`|`registry`), `tag-prefix`. Declare `secrets:` for Docker Hub and Quay credentials with `required: false`.
-- [ ] 1.2 Body: harden-runner → `setup-build-context` → `docker-registry-login` (gated on caller passing secrets) → `docker/metadata-action` → `docker/build-push-action` → `container-structure-test-action` → conditional `docker/scout-action`.
+- [ ] 1.2 Body (inlined, no composite indirection): harden-runner → `actions/checkout` (SHA-pinned) → `jdx/mise-action` (SHA-pinned) → `actions/github-script` invoking `script/setEnvironmentVariables.js` → conditional `docker/login-action` calls per registry (GHCR always; Docker Hub and Quay gated on caller-passed `secrets:` and on the caller's fork-PR `if:` guard) → `docker/metadata-action` → `docker/build-push-action` → `container-structure-test-action` → conditional `docker/scout-action`. SHAs match those already pinned in the current standalone workflows so `gx tidy` shows no drift.
 - [ ] 1.3 Emit outputs: `image-digest`, `image-tag`, `metadata-json`. Document each in a header comment.
 - [ ] 1.4 Add `permissions:` at workflow level (`contents: read`); per-job escalation only where needed (`packages: write` for the push step).
 

@@ -36,7 +36,7 @@ The experience context is a contributor adding a new caller — they read the fi
 
 - **GIVEN** a fork PR caller does not pass `dockerhub-token`
 - **WHEN** `build-image.yml` runs
-- **THEN** the Docker Hub login step is skipped (the inner `docker-registry-login` composite respects the omitted secret)
+- **THEN** the inline Docker Hub `docker/login-action` step is skipped via its `if: inputs.dockerhub-token != ''` guard
 - **AND** the image build still completes for GHCR-only consumers
 
 ### Requirement: The reusable workflow emits image identifiers as outputs
