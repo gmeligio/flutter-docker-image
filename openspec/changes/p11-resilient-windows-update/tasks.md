@@ -20,10 +20,10 @@
 
 ## 4. Local validation against today's broken upstream
 
-- [ ] 4.1 Run `openspec validate p11-resilient-windows-update --strict` and confirm no errors.
-- [ ] 4.2 Verify the workflow YAML parses without errors via `act --dryrun -W .github/workflows/update_version.yml` or equivalent (or by inspection if `act` is not available).
-- [ ] 4.3 In the implementation PR description, document the manual verification plan: trigger `update_version.yml` via `workflow_dispatch` on the PR branch after merge to main; confirm (a) `update_windows_version` ends with `windows_skipped=true` against Microsoft's currently-inconsistent upstream, (b) `update_docs_and_create_pr` produces a PR with unchanged `windows` block, (c) the `vs-manifests` artifact is present.
+- [x] 4.1 Run `openspec validate p11-resilient-windows-update --strict` and confirm no errors.
+- [x] 4.2 Verify the workflow YAML parses without errors via `act --dryrun -W .github/workflows/update_version.yml` or equivalent (or by inspection if `act` is not available).
+- [x] 4.3 In the implementation PR description, document the manual verification plan: trigger `update_version.yml` via `workflow_dispatch` on the PR branch after merge to main; confirm (a) `update_windows_version` ends with `windows_skipped=true` against Microsoft's currently-inconsistent upstream, (b) `update_docs_and_create_pr` produces a PR with unchanged `windows` block, (c) the `vs-manifests` artifact is present.
 
 ## 5. Archive cleanup
 
-- [ ] 5.1 Add a short note in `p3-windows-version-schema`'s archived design (or a forward-pointer in this change's design.md, whichever is acceptable to the archive convention) flagging that the "free integrity property" decision was superseded by `p11-resilient-windows-update`. Reference: design.md "Decision: Replace byte-level SHA check with semantic release-identity check".
+- [x] 5.1 Add a short note in `p3-windows-version-schema`'s archived design (or a forward-pointer in this change's design.md, whichever is acceptable to the archive convention) flagging that the "free integrity property" decision was superseded by `p11-resilient-windows-update`. Reference: design.md "Decision: Replace byte-level SHA check with semantic release-identity check".
