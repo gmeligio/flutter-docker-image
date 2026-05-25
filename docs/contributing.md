@@ -42,6 +42,8 @@ Adding a new action looks like adding a single line under `[actions]` in `.githu
 
 The `lint` job in `.github/workflows/gx.yml` fails any pull request that introduces an unpinned `uses:` reference or a lock that disagrees with the workflows. The sibling `tidy` job runs `gx tidy` and pushes a fixup commit on PRs from this repository if the lock is stale (forks must run `gx tidy` locally).
 
+Workflow authoring rules — `pull_request_target` policy, SHA pinning, App tokens over PATs, `harden-runner` on every job, minimum-scope `permissions:`, `concurrency:` on push-triggered workflows — live in [.github/workflows/SECURITY.md](https://github.com/gmeligio/flutter-docker-image/blob/main/.github/workflows/SECURITY.md). Read it before adding or editing a workflow.
+
 ## Adding new Github Actions
 
 When adding new Github Actions the `.github\renovate.json` needs to be checked and add the new action to:

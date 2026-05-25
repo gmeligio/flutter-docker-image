@@ -4,13 +4,7 @@ version = "v6.0.1"
 [resolutions."actions/create-github-app-token"."^2"]
 version = "v2.2.1"
 
-[resolutions."actions/download-artifact"."^4"]
-version = "v4"
-
 [resolutions."actions/download-artifact"."^6"]
-version = "v6.0.0"
-
-[resolutions."actions/download-artifact"."~6.0.0"]
 version = "v6.0.0"
 
 [resolutions."actions/github-script"."^8"]
@@ -28,20 +22,8 @@ version = "v3.6.0"
 [resolutions."docker/metadata-action"."^5"]
 version = "v5.10.0"
 
-[resolutions."docker/metadata-action"."~5.10.0"]
-version = "v5.10.0"
-
-[resolutions."docker/metadata-action"."~5.7.0"]
-version = "v5.7.0"
-
 [resolutions."docker/scout-action"."^1"]
 version = "v1.18.2"
-
-[resolutions."docker/scout-action"."~1.18.2"]
-version = "v1.18.2"
-
-[resolutions."docker/scout-action"."~1.20.4"]
-version = "v1.20.4"
 
 [resolutions."docker/setup-buildx-action"."^3"]
 version = "v3.11.1"
@@ -67,6 +49,9 @@ version = "v5.0.0"
 [resolutions."plexsystems/container-structure-test-action"."~0.3.0"]
 version = "v0.3.0"
 
+[resolutions."step-security/harden-runner"."^2"]
+version = "v2.19.4"
+
 [actions."actions/checkout"."v6.0.1"]
 sha = "8e8c483db84b4bee98b60c0593521ed34d9990e8"
 repository = "actions/checkout"
@@ -78,12 +63,6 @@ sha = "29824e69f54612133e76f7eaac726eef6c875baf"
 repository = "actions/create-github-app-token"
 ref_type = "tag"
 date = "2025-12-05T22:53:03Z"
-
-[actions."actions/download-artifact".v4]
-sha = "d3f86a106a0bac45b974a628896c90dbdf5c8093"
-repository = "actions/download-artifact"
-ref_type = "tag"
-date = "2025-04-24T16:25:03Z"
 
 [actions."actions/download-artifact"."v6.0.0"]
 sha = "018cc2cf5baa6db3ef3c5f8a56943fffe632ef53"
@@ -121,23 +100,11 @@ repository = "docker/metadata-action"
 ref_type = "tag"
 date = "2025-11-27T12:36:24Z"
 
-[actions."docker/metadata-action"."v5.7.0"]
-sha = "902fa8ec7d6ecbf8d84d538b9b233a880e428804"
-repository = "docker/metadata-action"
-ref_type = "release"
-date = "2025-02-26T15:31:35Z"
-
 [actions."docker/scout-action"."v1.18.2"]
 sha = "f8c776824083494ab0d56b8105ba2ca85c86e4de"
 repository = "docker/scout-action"
 ref_type = "tag"
 date = "2025-07-21T12:52:07Z"
-
-[actions."docker/scout-action"."v1.20.4"]
-sha = "bacf462e8d090c09660de30a6ccc718035f961e3"
-repository = "docker/scout-action"
-ref_type = "release"
-date = "2026-04-08T08:04:55Z"
 
 [actions."docker/setup-buildx-action"."v3.11.1"]
 sha = "e468171a9de216ec08956ac3ada2f0791b6bd435"
@@ -186,3 +153,9 @@ sha = "c0a028aa96e8e82ae35be556040340cbb3e280ca"
 repository = "plexsystems/container-structure-test-action"
 ref_type = "tag"
 date = "2023-03-30T18:19:59Z"
+
+[actions."step-security/harden-runner"."v2.19.4"]
+sha = "9af89fc71515a100421586dfdb3dc9c984fbf411"
+repository = "step-security/harden-runner"
+ref_type = "tag"
+date = "2026-05-21T16:06:08Z"
