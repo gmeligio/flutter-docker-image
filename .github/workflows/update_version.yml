@@ -7,6 +7,11 @@ on:
 permissions:
   contents: read
 
+# Mutates shared state (opens a PR to bump versions); serialize to avoid two scheduled runs racing.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 env:
   FLUTTER_VERSION_PATH: config/flutter_version.json
 
@@ -17,6 +22,11 @@ jobs:
     outputs:
       flutter_version: ${{ steps.read.outputs.version }}
     steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
       - name: Read latest release tag
         id: read
         env:
@@ -36,6 +46,11 @@ jobs:
       new_version: ${{ steps.update_flutter_version.outputs.result }}
       flutter_version_artifact_id: ${{ steps.upload-version.outputs.artifact-id }}
     steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
       - name: Checkout repository
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
@@ -88,6 +103,11 @@ jobs:
       version_artifact_id: ${{ steps.upload-version.outputs.artifact-id }}
     runs-on: ubuntu-24.04
     steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
       - name: Checkout repository
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
@@ -208,6 +228,11 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ github.token }}
     steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
       - name: Checkout repository
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
@@ -297,6 +322,11 @@ jobs:
     needs: update_android_version
     runs-on: ubuntu-24.04
     steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
       - name: Checkout repository
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
@@ -330,6 +360,11 @@ jobs:
       IMAGE_REPOSITORY_NAME: flutter-android
       VERSION_MANIFEST: config/version.json
     steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
       - name: Checkout repository
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 

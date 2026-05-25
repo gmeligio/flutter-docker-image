@@ -10,6 +10,11 @@ on:
 permissions:
   contents: read
 
+# CI on main: latest commit wins; cancel superseded runs.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   IMAGE_REPOSITORY_NAME: flutter-android
   VERSION_MANIFEST: config/version.json
@@ -20,6 +25,11 @@ jobs:
     env:
       ANDROID_BUILD_TOOLS_VERSION: 30.0.3
     steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
       - name: Checkout repository
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 

@@ -42,6 +42,19 @@ Adding a new action looks like adding a single line under `[actions]` in `.githu
 
 The `lint` job in `.github/workflows/gx.yml` fails any pull request that introduces an unpinned `uses:` reference or a lock that disagrees with the workflows. The sibling `tidy` job runs `gx tidy` and pushes a fixup commit on PRs from this repository if the lock is stale (forks must run `gx tidy` locally).
 
+### Workflow security rules
+
+Every workflow MUST satisfy:
+
+1. **No `pull_request_target`.** It runs in the base repo's context with secrets; combined with `actions/checkout` of PR HEAD it is the "pwn request" attack class. The safe default is `on: pull_request`. Adding `pull_request_target` requires an OpenSpec proposal documenting the threat model.
+2. **SHA-pinned actions** with a `# vX.Y.Z` comment. Enforced by `gx lint`.
+3. **GitHub App tokens, not PATs**, for cross-repo writes (use the `VERIFIED_COMMIT_*` secrets via `actions/create-github-app-token`).
+4. **`step-security/harden-runner` first step of every Linux job**, `egress-policy: audit`. Windows jobs are exempt — harden-runner does not support `windows-2025`.
+5. **Top-level `permissions: contents: read`**, with broader scopes declared at the job that needs them.
+6. **Top-level `concurrency:` on push-triggered shared-state workflows** — `cancel-in-progress: false` for release-path, `true` for CI.
+
+The authoritative source is [openspec/specs/ci-workflow-hardening/spec.md](https://github.com/gmeligio/flutter-docker-image/blob/main/openspec/specs/ci-workflow-hardening/spec.md).
+
 ## Adding new Github Actions
 
 When adding new Github Actions the `.github\renovate.json` needs to be checked and add the new action to:
