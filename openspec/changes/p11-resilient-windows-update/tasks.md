@@ -13,10 +13,10 @@
 
 ## 3. Decouple `update_docs_and_create_pr` from `update_windows_version` failure
 
-- [ ] 3.1 Update the "Download configuration artifacts" step in `update_docs_and_create_pr` to make the windows artifact id optional: when `needs.update_windows_version.outputs.version_artifact_id` is empty, omit it from the `artifact-ids` input.
-- [ ] 3.2 Wrap the "Merge windows block into version.json" step with a condition that runs the merge only when the windows artifact was downloaded; otherwise leave `config/version.json` as produced by the Android artifact (whose `windows` block came from the base branch checkout).
-- [ ] 3.3 Add a step that composes an additional line for the PR body when `needs.update_windows_version.outputs.windows_skipped == 'true'`, with text like "Windows toolchain unchanged this cycle — see windows job log: <url>" and a `${{ … }}` expression that interpolates the job's run URL.
-- [ ] 3.4 Ensure `update_docs_and_create_pr` continues to require `update_windows_version` in `needs:` (to preserve sequencing) but does not gate on its conclusion — the step-level conditions in 3.1–3.3 handle the skip case.
+- [x] 3.1 Update the "Download configuration artifacts" step in `update_docs_and_create_pr` to make the windows artifact id optional: when `needs.update_windows_version.outputs.version_artifact_id` is empty, omit it from the `artifact-ids` input.
+- [x] 3.2 Wrap the "Merge windows block into version.json" step with a condition that runs the merge only when the windows artifact was downloaded; otherwise leave `config/version.json` as produced by the Android artifact (whose `windows` block came from the base branch checkout).
+- [x] 3.3 Add a step that composes an additional line for the PR body when `needs.update_windows_version.outputs.windows_skipped == 'true'`, with text like "Windows toolchain unchanged this cycle — see windows job log: <url>" and a `${{ … }}` expression that interpolates the job's run URL.
+- [x] 3.4 Ensure `update_docs_and_create_pr` continues to require `update_windows_version` in `needs:` (to preserve sequencing) but does not gate on its conclusion — the step-level conditions in 3.1–3.3 handle the skip case.
 
 ## 4. Local validation against today's broken upstream
 

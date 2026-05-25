@@ -380,6 +380,15 @@ jobs:
       - update_android_version
       - update_windows_version
       - validate_config_version
+    # Open the PR even when update_windows_version skipped or failed: the
+    # Android artifact's version.json already carries a valid windows block
+    # (from the base-branch checkout), so a missing windows artifact just
+    # means the committed windows block is carried forward unchanged.
+    if: |
+      !cancelled() &&
+      needs.update_flutter_version.result == 'success' &&
+      needs.update_android_version.result == 'success' &&
+      needs.validate_config_version.result == 'success'
     runs-on: ubuntu-24.04
     env:
       IMAGE_REPOSITORY_NAME: flutter-android
@@ -401,10 +410,28 @@ jobs:
         run: |-
           rm ${{ env.FLUTTER_VERSION_PATH }} config/version.json test/android.yml
 
+      # Compose the artifact-ids list with the Windows artifact id appended
+      # only when update_windows_version actually produced one. When the
+      # Windows job skipped its update, its version_artifact_id output is
+      # empty and we omit it from the list (download-artifact rejects empty
+      # entries).
+      - name: Compose artifact id list
+        id: artifact_ids
+        env:
+          FLUTTER_ID: ${{ needs.update_flutter_version.outputs.flutter_version_artifact_id }}
+          ANDROID_ID: ${{ needs.update_android_version.outputs.version_artifact_id }}
+          WINDOWS_ID: ${{ needs.update_windows_version.outputs.version_artifact_id }}
+        run: |
+          ids="${FLUTTER_ID},${ANDROID_ID}"
+          if [ -n "${WINDOWS_ID}" ]; then
+            ids="${ids},${WINDOWS_ID}"
+          fi
+          echo "ids=${ids}" >> "$GITHUB_OUTPUT"
+
       - name: Download configuration artifacts
         uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         with:
-          artifact-ids: ${{ needs.update_flutter_version.outputs.flutter_version_artifact_id }},${{ needs.update_android_version.outputs.version_artifact_id }},${{ needs.update_windows_version.outputs.version_artifact_id }}
+          artifact-ids: ${{ steps.artifact_ids.outputs.ids }}
           path: config
           # Download to the configured path instead of separated directories by artifact id.
           # Artifacts contain distinct filenames (flutter_version.json, version.json,
@@ -412,10 +439,13 @@ jobs:
           merge-multiple: true
 
       # Merge order: the Android artifact's version.json is the base (it carries
-      # the new flutter and android blocks). The Windows artifact's windows block
-      # overlays the windows field. This keeps each producer authoritative over
-      # its own block.
+      # the new flutter and android blocks, plus the windows block inherited
+      # from the base-branch checkout). The Windows artifact's windows block
+      # overlays the windows field. When the Windows job skipped its update,
+      # the merge is skipped too and the base-branch windows block carries
+      # forward unchanged.
       - name: Merge windows block into version.json
+        if: needs.update_windows_version.outputs.version_artifact_id != ''
         run: |
           jq -s '.[0] + {windows: .[1].windows}' config/version.json config/version.json.windows > config/version.json.merged
           mv config/version.json.merged config/version.json
@@ -460,6 +490,27 @@ jobs:
           echo "commit_message=$commit_message" >> "$GITHUB_OUTPUT"
           echo "Commit message: $commit_message"
 
+      # When update_windows_version skipped its update (release-identity
+      # mismatch upstream, or any other non-success outcome), surface that
+      # in the PR description so the reviewer doesn't have to dig through
+      # job logs to learn why the windows block is unchanged this cycle.
+      - name: Compose PR body
+        id: pr_body
+        env:
+          WINDOWS_SKIPPED: ${{ needs.update_windows_version.outputs.windows_skipped }}
+          WINDOWS_RESULT: ${{ needs.update_windows_version.result }}
+          WINDOWS_JOB_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          {
+            echo "body<<PR_BODY_EOF"
+            echo "Automated upgrade PR opened by \`update_version.yml\`."
+            if [ "${WINDOWS_SKIPPED}" = "true" ] || [ "${WINDOWS_RESULT}" != "success" ]; then
+              echo ""
+              echo "**Windows toolchain unchanged this cycle.** See [\`update_windows_version\` job log](${WINDOWS_JOB_URL}) — the committed \`windows\` block in \`config/version.json\` is carried forward unchanged."
+            fi
+            echo "PR_BODY_EOF"
+          } >> "$GITHUB_OUTPUT"
+
       - name: Generate authentication token with GitHub App to trigger Actions
         uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1
         id: app-token
@@ -477,4 +528,5 @@ jobs:
           branch: update-flutter-dependencies/${{ env.FLUTTER_VERSION }}
           sign-commits: true
           title: ${{ steps.create_commit_message.outputs.commit_message }}
+          body: ${{ steps.pr_body.outputs.body }}
           token: ${{ steps.app-token.outputs.token }}
