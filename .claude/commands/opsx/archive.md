@@ -1,5 +1,5 @@
 ---
-model: claude-sonnet-4-6
+model: inherit
 name: "OPSX: Archive"
 description: Archive a completed change in the experimental workflow
 category: Workflow
