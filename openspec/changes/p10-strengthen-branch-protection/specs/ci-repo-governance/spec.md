@@ -20,6 +20,26 @@ The experience context is the maintainer auditing the rules months later, recove
 - **THEN** the diff is the only signal of the intended change
 - **AND** the PR description states whether the live ruleset has been applied yet (apply is out-of-band; not automated by GitHub)
 
+### Requirement: `gx lint` is a required status check on the default branch
+
+The active ruleset SHALL list the `gx lint` job (exposed by `.github/workflows/gx.yml`) as a required status check. The check SHALL pass before a PR is allowed to merge into the default branch. After `p8-enforce-workflow-policy-via-gx` archives, this single required check covers both action-pinning hygiene and the structural workflow properties mandated by `ci-workflow-hardening`.
+
+The experience context is the maintainer trusting that "all green = mergeable" — the structural requirements in `ci-workflow-hardening` are mechanically gated by `gx lint`, not by remembered checklists. A PR cannot merge with a missing top-level `permissions:` block, an unguarded fork-PR secret reference, an unreviewed `pull_request_target`, or an unpinned action, because the required check will fail.
+
+#### Scenario: A PR with a failing `gx lint` is opened
+
+- **GIVEN** a PR introduces a workflow that triggers any error-level `gx lint` diagnostic
+- **WHEN** CI runs
+- **THEN** the `gx lint` check reports failure on the PR
+- **AND** the ruleset blocks the merge regardless of any approvals
+
+#### Scenario: The `gx lint` job is renamed
+
+- **GIVEN** a future change renames the `gx lint` job (e.g. p9 reorganizes `gx.yml`)
+- **WHEN** the rename PR is opened
+- **THEN** `.github/rulesets/main.json` is updated in the same PR to track the new job name
+- **AND** the live ruleset is re-applied via `gh api -X PUT` as part of the rollout (recorded in the change's tasks.md)
+
 ### Requirement: The ruleset's bypass actors are explicit, justified, and minimal
 
 The `bypass_actors` array in the active ruleset SHALL contain only entries whose purpose is documented in `.github/rulesets/README.md`. Each entry SHALL use the narrowest `bypass_mode` compatible with its purpose (`pull_request` whenever the App's writes go through a PR; `always` only when the App pushes directly).

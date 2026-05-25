@@ -3,6 +3,8 @@
 - [ ] 1.1 `gh api repos/gmeligio/flutter-docker-image/rulesets/1959230 | jq '.' > .github/rulesets/main.json`. Strip API-only fields (`id`, `node_id`, `created_at`, `updated_at`, `source`, `source_type`, `_links`, `current_user_can_bypass`); the remaining shape matches what `PUT /repos/{owner}/{repo}/rulesets/{id}` accepts.
 - [ ] 1.2 Add `.github/rulesets/README.md` documenting (a) the apply command (`gh api -X PUT /repos/.../rulesets/1959230 --input main.json`), (b) the rule that ruleset edits go through PR review, (c) why GitHub does not yet auto-apply rulesets from a repo file.
 - [ ] 1.3 In the JSON, add a top-of-file comment (technically a sibling note in the README — JSON does not allow comments) recording the deliberate choice to leave `required_approving_review_count: 0` for solo-maintainer reasons, with a link to this proposal.
+- [ ] 1.4 In `.github/rulesets/main.json` under the `required_status_checks` rule's `required_status_checks` array, ensure the `gx lint` job (exposed by `.github/workflows/gx.yml`) is present as a required check. Use the exact job name string — verify against the Actions UI before applying. Apply the change via `gh api -X PUT /repos/.../rulesets/1959230 --input main.json`.
+- [ ] 1.5 In `.github/rulesets/README.md`, add a short section "Required status checks" enumerating which checks are required and why each is load-bearing. `gx lint` covers action pinning + (after p8-enforce-workflow-policy-via-gx) workflow-level structural properties.
 
 ## 2. Audit and (if safe) narrow the bypass actor
 
