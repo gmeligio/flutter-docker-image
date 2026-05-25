@@ -23,8 +23,8 @@
 
 ## 5. Write the workflow-security policy
 
-- [x] 5.1 Create `.github/workflows/SECURITY.md` documenting: (a) `pull_request_target` requires security review and is not used in this repo; (b) privileged workflows must NOT check out `${{ github.event.pull_request.head.sha }}`; (c) all third-party actions MUST be pinned to commit SHA with version comment; (d) prefer GitHub App tokens over PATs for cross-repo pushes; (e) every job MUST start with `harden-runner`. _Includes a sixth rule (minimum-scope `permissions:`) and a seventh (`concurrency:` on push-triggered shared-state workflows) since both are codified in the same change. The file references the `ci-workflow-hardening` spec as the authoritative source so this doc and the spec do not drift._
-- [x] 5.2 Link the policy from `CONTRIBUTING.md` if one exists, otherwise from `README.md`. _Added a paragraph linking `.github/workflows/SECURITY.md` from `docs/src/contributing.mdx` (the MDX source for `docs/contributing.md`) in the existing "Editing GitHub Actions workflows" section. Regenerated `docs/contributing.md` via `pnpm run build` from `docs/src/`._
+- [x] 5.1 Document the six rules: `pull_request_target` ban, SHA pinning, App tokens over PATs, `harden-runner` first step, minimum-scope `permissions:`, `concurrency:` on push-triggered shared-state workflows. _Authored as a "Workflow security rules" subsection inside `docs/src/contributing.mdx` rather than a standalone `.github/workflows/SECURITY.md`. Rationale: rules are operational guidance for contributors who already read `contributing.mdx` before editing workflows; co-locating with the existing "Editing GitHub Actions workflows" section maximizes follow-rate and avoids a second outlier file in `.github/workflows/`. The `ci-workflow-hardening` spec remains the authoritative source — `contributing.mdx` points to it._
+- [x] 5.2 Link the policy from the existing contributor docs. _The rules ARE the contributor doc now — folded into `docs/src/contributing.mdx`. Regenerated `docs/contributing.md` via `pnpm run build`._
 
 ## 6. Verify (post-merge — not actionable before PR lands)
 
