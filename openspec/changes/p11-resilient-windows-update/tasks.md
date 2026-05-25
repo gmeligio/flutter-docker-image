@@ -1,15 +1,15 @@
 ## 1. Replace SHA pin with release-identity check in `update_windows_version`
 
-- [ ] 1.1 Collapse the existing "Resolve VS catalog manifest payload" + "Download and verify VS catalog manifest" steps in `.github/workflows/update_version.yml` into a single step that fetches `vsman.json` from `channel.json.channelItems[…].payloads[0].url` without computing or comparing a SHA-256.
-- [ ] 1.2 Add a new step "Verify channel and vsman describe the same release" that extracts `channel.json.info.productSemanticVersion` and `vsman.json.info.productSemanticVersion` via `jq` and compares them; on mismatch, log a `::warning::` naming both values and proceed to step 1.3's skip branch.
-- [ ] 1.3 Wrap the existing "Resolve VS BuildTools component versions" → "Write windows block into config/version.json" → "Validate version.json with CUE" → "Stage windows-only artifact" → "Upload artifact with the updated windows block" steps with `if: steps.<release-identity-step>.outputs.matched == 'true'` so they only run when the check passes.
-- [ ] 1.4 Add a `windows_skipped` job output to `update_windows_version`, set to `'true'` when the release-identity check fails and `'false'` otherwise. Default the `version_artifact_id` output to empty string when skipped.
-- [ ] 1.5 Remove the now-unused `vsman_payload.outputs.sha` plumbing.
+- [x] 1.1 Collapse the existing "Resolve VS catalog manifest payload" + "Download and verify VS catalog manifest" steps in `.github/workflows/update_version.yml` into a single step that fetches `vsman.json` from `channel.json.channelItems[…].payloads[0].url` without computing or comparing a SHA-256.
+- [x] 1.2 Add a new step "Verify channel and vsman describe the same release" that extracts `channel.json.info.productSemanticVersion` and `vsman.json.info.productSemanticVersion` via `jq` and compares them; on mismatch, log a `::warning::` naming both values and proceed to step 1.3's skip branch.
+- [x] 1.3 Wrap the existing "Resolve VS BuildTools component versions" → "Write windows block into config/version.json" → "Validate version.json with CUE" → "Stage windows-only artifact" → "Upload artifact with the updated windows block" steps with `if: steps.<release-identity-step>.outputs.matched == 'true'` so they only run when the check passes.
+- [x] 1.4 Add a `windows_skipped` job output to `update_windows_version`, set to `'true'` when the release-identity check fails and `'false'` otherwise. Default the `version_artifact_id` output to empty string when skipped.
+- [x] 1.5 Remove the now-unused `vsman_payload.outputs.sha` plumbing.
 
 ## 2. Make `vs-manifests` forensic upload unconditional
 
-- [ ] 2.1 In `.github/workflows/update_version.yml`, change the "Upload VS manifest artifacts for forensics" step to use `if: always()` so it runs whether the release-identity check passed or failed.
-- [ ] 2.2 Verify the artifact upload step references both `channel.json` and `vsman.json` paths and that both files exist on disk by the time the step runs (they will, since both are fetched before the check).
+- [x] 2.1 In `.github/workflows/update_version.yml`, change the "Upload VS manifest artifacts for forensics" step to use `if: always()` so it runs whether the release-identity check passed or failed.
+- [x] 2.2 Verify the artifact upload step references both `channel.json` and `vsman.json` paths and that both files exist on disk by the time the step runs (they will, since both are fetched before the check).
 
 ## 3. Decouple `update_docs_and_create_pr` from `update_windows_version` failure
 

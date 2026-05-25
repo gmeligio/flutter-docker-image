@@ -101,6 +101,7 @@ jobs:
     if: ${{ needs.update_flutter_version.outputs.new_version == 'true' }}
     outputs:
       version_artifact_id: ${{ steps.upload-version.outputs.artifact-id }}
+      windows_skipped: ${{ steps.release_identity.outputs.matched != 'true' && 'true' || 'false' }}
     runs-on: ubuntu-24.04
     steps:
       - name: Harden runner
@@ -138,23 +139,38 @@ jobs:
       - name: Fetch VS channel manifest
         run: curl -fsSL https://aka.ms/vs/17/release/channel -o channel.json
 
-      # The channel manifest only contains product-level entries; per-component
-      # versions live in VisualStudio.vsman, referenced and SHA-256 pinned from
-      # the channel via the Microsoft.VisualStudio.Manifests.VisualStudio item.
-      - name: Resolve VS catalog manifest payload
-        id: vsman_payload
+      # channel.json is a discovery document — it points to vsman.json (which
+      # holds per-component versions). We do not byte-pin against channel.json's
+      # sha256: Microsoft generates channel.json against a pretty-printed vsman
+      # and serves a minified vsman, so byte equality is not preserved upstream.
+      # Integrity is enforced semantically by the release-identity check below.
+      # See openspec/changes/p11-resilient-windows-update/design.md.
+      - name: Download VS catalog manifest
         run: |
           url=$(jq -r '.channelItems[] | select(.id=="Microsoft.VisualStudio.Manifests.VisualStudio") | .payloads[0].url' channel.json)
-          sha=$(jq -r '.channelItems[] | select(.id=="Microsoft.VisualStudio.Manifests.VisualStudio") | .payloads[0].sha256' channel.json)
-          echo "url=$url" >> "$GITHUB_OUTPUT"
-          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          curl -fsSL "$url" -o vsman.json
 
-      - name: Download and verify VS catalog manifest
+      # channel.json describes Microsoft's *intent* (the current release);
+      # vsman.json is the actual data. When the two agree on
+      # info.productSemanticVersion, Microsoft's release pipeline is consistent
+      # and the extracted versions are safe to use. When they disagree (mid-
+      # publish, etc.), skip the Windows update for this cycle — the PR job
+      # carries forward the existing committed windows block unchanged.
+      - name: Verify channel and vsman describe the same release
+        id: release_identity
         run: |
-          curl -fsSL "${{ steps.vsman_payload.outputs.url }}" -o vsman.json
-          echo "${{ steps.vsman_payload.outputs.sha }}  vsman.json" | sha256sum -c -
+          channel_ver=$(jq -r '.info.productSemanticVersion' channel.json)
+          vsman_ver=$(jq -r '.info.productSemanticVersion' vsman.json)
+          if [ "$channel_ver" = "$vsman_ver" ]; then
+            echo "matched=true" >> "$GITHUB_OUTPUT"
+            echo "Release identity matches: $channel_ver"
+          else
+            echo "matched=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::release identity mismatch — skipping Windows update this cycle (channel=$channel_ver vsman=$vsman_ver)"
+          fi
 
       - name: Resolve VS BuildTools component versions
+        if: steps.release_identity.outputs.matched == 'true'
         id: vs_versions
         run: |
           cmake=$(jq -r '.packages[] | select(.id=="Microsoft.VisualStudio.Component.VC.CMake.Project") | .version' vsman.json)
@@ -164,6 +180,7 @@ jobs:
           echo "CMake: $cmake; VCTools: $vctools"
 
       - name: Write windows block into config/version.json
+        if: steps.release_identity.outputs.matched == 'true'
         env:
           GIT_VERSION: ${{ steps.git_version.outputs.git_version }}
           VS_CMAKE_VERSION: ${{ steps.vs_versions.outputs.cmake }}
@@ -186,21 +203,29 @@ jobs:
           mv config/version.json.tmp config/version.json
 
       - name: Validate version.json with CUE
+        if: steps.release_identity.outputs.matched == 'true'
         run: cue vet config/schema.cue -d '#Version' config/version.json
 
       # The artifact's file is renamed so it doesn't collide with the Android
       # artifact's version.json in update_docs_and_create_pr's merge step.
       - name: Stage windows-only artifact
+        if: steps.release_identity.outputs.matched == 'true'
         run: cp config/version.json "${RUNNER_TEMP}/version.json.windows"
 
       - name: Upload artifact with the updated windows block
+        if: steps.release_identity.outputs.matched == 'true'
         id: upload-version
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         with:
           name: version.json.windows
           path: ${{ runner.temp }}/version.json.windows
 
+      # Forensic upload runs on every outcome (matched/skipped/job-error) so the
+      # exact channel.json and vsman.json that drove the decision are preserved
+      # for retroactive inspection. Only runs if both files exist on disk (they
+      # do whenever the download steps completed before this step is reached).
       - name: Upload VS manifest artifacts for forensics
+        if: always() && hashFiles('channel.json', 'vsman.json') != ''
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         with:
           name: vs-manifests
