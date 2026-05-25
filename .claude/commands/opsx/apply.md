@@ -1,5 +1,5 @@
 ---
-model: claude-sonnet-4-6
+model: inherit
 name: "OPSX: Apply"
 description: Implement tasks from an OpenSpec change (Experimental)
 category: Workflow
