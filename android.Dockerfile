@@ -146,17 +146,15 @@ SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 # TODO: Use `dirname $(dirname $(readlink -f $(which javac)))` after the following issue is fixed
 # TODO: https://github.com/moby/moby/issues/29110
 ENV ANDROID_HOME="$SDK_ROOT/android-sdk" \
-    JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+    JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
 ENV PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$HOME/.local/bin"
 
-# openjdk-17-jdk-headless and sudo are intentionally unpinned: the bookworm-security
-# suite only keeps the latest patch, so any exact pin (e.g. 17.0.19+10-1~deb12u2)
-# rots the next time Debian ships a Java CPU. Re-pin once Renovate is configured
-# to track *.Dockerfile (see .github/renovate.json) and proposes a current value.
+# openjdk-21-jdk-headless and sudo are intentionally unpinned: trixie-security
+# only keeps the latest patch, so any exact pin rots the next time Debian ships
+# a Java CPU. Re-pin once Renovate is configured to track *.Dockerfile (see
+# .github/renovate.json) and proposes a current value.
 
 USER root
-# Add debian 12 bookworm repository alongside debian 13 trixie to install Java 17
-COPY config/debian_12_bookworm.sources /etc/apt/sources.list.d/debian_12_bookworm.sources
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
     # For Android x86 emulators
@@ -170,12 +168,11 @@ RUN apt-get update \
     # libgdk-pixbuf2.0-0=2.40.2-2build4 \
     # Android SDK dependencies
     ## JDK needs to be used instead of JRE because it provides the jlink tool used by the Android build
-    openjdk-17-jdk-headless \
+    ## JDK 21 is required by Android Gradle Plugin 9.x, which Flutter 3.44+ uses.
+    openjdk-21-jdk-headless \
     # To allow changing ownership in GitLab CI /builds
     sudo \
     && rm -rf /var/lib/apt/lists/* \
-    # Delete debian 12 bookworm repository after installing Java 17
-    && rm /etc/apt/sources.list.d/debian_12_bookworm.sources \
     # To allow changing ownership in GitLab CI /builds
     && echo "flutter ALL= NOPASSWD:/bin/chown -R flutter /builds, /bin/chown -R flutter /builds/*" >> /etc/sudoers.d/flutter
 
