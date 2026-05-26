@@ -149,10 +149,10 @@ ENV ANDROID_HOME="$SDK_ROOT/android-sdk" \
     JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 ENV PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$HOME/.local/bin"
 
-# renovate: suite=bookworm depName=openjdk-17-jdk-headless
-ARG OPENJDK_17_JDK_HEADLESS_VERSION="17.0.19+10-1~deb12u2"
-# renovate: suite=trixie depName=sudo
-ARG SUDO_VERSION="1.9.16p2-3+deb13u1"
+# openjdk-17-jdk-headless and sudo are intentionally unpinned: the bookworm-security
+# suite only keeps the latest patch, so any exact pin (e.g. 17.0.19+10-1~deb12u2)
+# rots the next time Debian ships a Java CPU. Re-pin once Renovate is configured
+# to track *.Dockerfile (see .github/renovate.json) and proposes a current value.
 
 USER root
 # Add debian 12 bookworm repository alongside debian 13 trixie to install Java 17
@@ -170,9 +170,9 @@ RUN apt-get update \
     # libgdk-pixbuf2.0-0=2.40.2-2build4 \
     # Android SDK dependencies
     ## JDK needs to be used instead of JRE because it provides the jlink tool used by the Android build
-    openjdk-17-jdk-headless="$OPENJDK_17_JDK_HEADLESS_VERSION" \
+    openjdk-17-jdk-headless \
     # To allow changing ownership in GitLab CI /builds
-    sudo="$SUDO_VERSION" \
+    sudo \
     && rm -rf /var/lib/apt/lists/* \
     # Delete debian 12 bookworm repository after installing Java 17
     && rm /etc/apt/sources.list.d/debian_12_bookworm.sources \
