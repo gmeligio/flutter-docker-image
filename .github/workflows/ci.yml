@@ -87,7 +87,4 @@ jobs:
             cmake_version=${{ env.CMAKE_VERSION }}
 
       - name: Test image
-        uses: plexsystems/container-structure-test-action@c0a028aa96e8e82ae35be556040340cbb3e280ca # v0.3.0
-        with:
-          image: ${{ fromJSON(steps.metadata.outputs.json).tags[0] }}
-          config: test/android.yml
+        run: container-structure-test test --image "${{ fromJSON(steps.metadata.outputs.json).tags[0] }}" --config test/android.yml
