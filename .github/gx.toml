@@ -15,5 +15,4 @@
 "ossf/scorecard-action" = "^2"
 "peter-evans/create-pull-request" = "^7"
 "peter-evans/dockerhub-description" = "^5"
-"plexsystems/container-structure-test-action" = "~0.3.0"
 "step-security/harden-runner" = "^2"
