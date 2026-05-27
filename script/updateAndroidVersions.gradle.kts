@@ -13,8 +13,13 @@ tasks.register<DefaultTask>("updateAndroidVersions") {
             flutter.compileSdkVersion
         ).distinct()
 
-        val buildToolsVersion = System.getenv("BUILD_TOOLS_VERSION")
-            ?: error("BUILD_TOOLS_VERSION env var is required")
+        // Read the build-tools version that AGP will request at build time
+        // (AGP's bundled default unless the Flutter template overrides it). This
+        // is the only value that's guaranteed to match what sdkmanager installs
+        // for `flutter create test_app && ./gradlew bundleRelease`.
+        val buildToolsVersion = extensions
+            .getByType(com.android.build.api.dsl.ApplicationExtension::class.java)
+            .buildToolsVersion
 
         // Create new Android version data
         val newJsonMap = mapOf(
