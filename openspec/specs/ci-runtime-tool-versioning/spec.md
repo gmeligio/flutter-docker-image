@@ -6,9 +6,9 @@ Establishes `mise.toml` as the single source of truth for CI runtime tool versio
 ## Requirements
 ### Requirement: Single-source version manifest for CI runtime tools
 
-The repository SHALL pin every CI runtime tool version (currently `cue`, `node`, `pnpm`, `gx`, and `git-cliff`) in `mise.toml` at the repository root. No workflow under `.github/workflows/` or composite action under `.github/actions/` may install these tools by any other mechanism (e.g., `jaxxstorm/action-install-gh-release`, `actions/setup-node`, `pnpm/action-setup`, `corepack enable`, hand-rolled `curl | tar`, or `npm i -g pnpm`).
+The repository SHALL pin every CI runtime tool version (currently `cue`, `node`, `pnpm`, `gx`, `git-cliff`, and `container-structure-test`) in `mise.toml` at the repository root. No workflow under `.github/workflows/` or composite action under `.github/actions/` may install these tools by any other mechanism (e.g., `jaxxstorm/action-install-gh-release`, `actions/setup-node`, `pnpm/action-setup`, `corepack enable`, hand-rolled `curl | tar`, `npm i -g pnpm`, or wrapper Actions like `plexsystems/container-structure-test-action`).
 
-**Experience context:** A CI engineer or maintainer asking *"what version of cue does CI run with?"* (or `node`, `pnpm`, `gx`, `git-cliff`) reads exactly one file — `mise.toml` — and gets a single, authoritative answer. The package manager used by the `docs/src` MDX→Markdown build is part of this answer: before this requirement was extended to cover `pnpm`, the docs build used whichever `npm` happened to ship with the resolved `node`, leaving the package-manager version effectively unpinned.
+**Experience context:** A CI engineer or maintainer asking *"what version of cue does CI run with?"* (or `node`, `pnpm`, `gx`, `git-cliff`, `container-structure-test`) reads exactly one file — `mise.toml` — and gets a single, authoritative answer. The package manager used by the `docs/src` MDX→Markdown build is part of this answer: before this requirement was extended to cover `pnpm`, the docs build used whichever `npm` happened to ship with the resolved `node`, leaving the package-manager version effectively unpinned. The Android smoke-test runner is part of this answer too: before this requirement was extended to cover `container-structure-test`, the test binary was vendored by a third-party Action whose own pinning lived in `gx.toml`/`gx.lock` — a second source of truth divergent from `mise.toml`.
 
 #### Scenario: Maintainer looks up the pinned CUE version
 
@@ -39,18 +39,26 @@ The repository SHALL pin every CI runtime tool version (currently `cue`, `node`,
 - **THEN** exactly one entry is returned (e.g., `"github:gmeligio/gx" = "0.7.1"`)
 - **AND** no workflow file contains a literal `gx` version, release tag, or release digest
 
+#### Scenario: Maintainer looks up the pinned container-structure-test version
+
+- **GIVEN** a maintainer wants to know which `container-structure-test` version CI uses
+- **WHEN** they `grep container-structure-test mise.toml`
+- **THEN** exactly one entry is returned (e.g., `"github:GoogleContainerTools/container-structure-test[exe=container-structure-test-linux-amd64]" = "1.22.1"`)
+- **AND** no workflow file contains a reference to `plexsystems/container-structure-test-action` or any other wrapper that vendors the binary
+- **AND** `.github/gx.toml` and `.github/gx.lock` do not contain a `plexsystems/container-structure-test-action` entry
+
 #### Scenario: Drift attempt is blocked at review
 
-- **GIVEN** a PR adds a step `uses: actions/setup-node@<sha>`, `uses: pnpm/action-setup@<sha>`, `uses: jaxxstorm/action-install-gh-release@<sha>`, or a `run: corepack enable` / `run: npm i -g pnpm` line to any workflow
+- **GIVEN** a PR adds a step `uses: actions/setup-node@<sha>`, `uses: pnpm/action-setup@<sha>`, `uses: jaxxstorm/action-install-gh-release@<sha>`, `uses: plexsystems/container-structure-test-action@<sha>`, or a `run: corepack enable` / `run: npm i -g pnpm` line to any workflow
 - **WHEN** the PR is reviewed
 - **THEN** the change is rejected and re-implemented using `jdx/mise-action@<pinned>` plus the appropriate `mise.toml` pin
 - **AND** the rationale references this requirement
 
 ### Requirement: Workflows bootstrap tools via `jdx/mise-action`
 
-Every job that needs `cue`, `node`, `pnpm`, or `gx` on `$PATH` SHALL bootstrap them with a single step `uses: jdx/mise-action@<pinned-major>` placed before any step that invokes those tools. The step SHALL rely on `mise.toml` for version resolution and SHALL NOT pass an explicit `tools:` input that contradicts `mise.toml`.
+Every job that needs `cue`, `node`, `pnpm`, `gx`, `git-cliff`, or `container-structure-test` on `$PATH` SHALL bootstrap them with a single step `uses: jdx/mise-action@<pinned-major>` placed before any step that invokes those tools. The step SHALL rely on `mise.toml` for version resolution and SHALL NOT pass an explicit `tools:` input that contradicts `mise.toml`.
 
-**Experience context:** A maintainer adding a new CI job that needs `cue`, `node`, or the docs-build toolchain writes one boilerplate step (the same step every other job uses) and gets the project-pinned version. They never re-derive a download URL, copy a SHA digest, or add a second tool-installer action.
+**Experience context:** A maintainer adding a new CI job that needs `cue`, `node`, the docs-build toolchain, or the image smoke-test runner writes one boilerplate step (the same step every other job uses) and gets the project-pinned version. They never re-derive a download URL, copy a SHA digest, or add a second tool-installer action.
 
 #### Scenario: New job needing CUE
 
@@ -73,12 +81,18 @@ Every job that needs `cue`, `node`, `pnpm`, or `gx` on `$PATH` SHALL bootstrap t
 - **THEN** it contains exactly one `uses: jdx/mise-action@v4` step before any `gx` invocation
 - **AND** `gx` is not separately installed via `jaxxstorm/action-install-gh-release` or other means
 
+#### Scenario: New job needing container-structure-test
+
+- **GIVEN** a new workflow job needs to run `container-structure-test test --image <ref> --config <path>` against a built image
+- **WHEN** the job is authored
+- **THEN** it contains exactly one `uses: jdx/mise-action@v4` step before the `container-structure-test` invocation
+- **AND** `container-structure-test` is not separately installed via `plexsystems/container-structure-test-action`, `jaxxstorm/action-install-gh-release`, or hand-rolled `curl | tar`
+
 #### Scenario: mise-action runs without explicit token configuration
 
 - **GIVEN** the workflow grants `permissions: contents: read` (the default in this repo)
-- **WHEN** `jdx/mise-action@v4` resolves `cue`, `node`, and `pnpm` from `mise.toml`
+- **WHEN** `jdx/mise-action@v4` resolves `cue`, `node`, `pnpm`, or `container-structure-test` from `mise.toml`
 - **THEN** the step succeeds without an explicit `github_token` input
-- **AND** the GitHub API calls used to resolve releases are authenticated by the action's default `${{ github.token }}`
 
 ### Requirement: Action manifest tracks the bootstrap action
 
