@@ -46,9 +46,6 @@ version = "v7.0.11"
 [resolutions."peter-evans/dockerhub-description"."^5"]
 version = "v5.0.0"
 
-[resolutions."plexsystems/container-structure-test-action"."~0.3.0"]
-version = "v0.3.0"
-
 [resolutions."step-security/harden-runner"."^2"]
 version = "v2.19.4"
 
@@ -147,12 +144,6 @@ sha = "1b9a80c056b620d92cedb9d9b5a223409c68ddfa"
 repository = "peter-evans/dockerhub-description"
 ref_type = "tag"
 date = "2025-10-01T13:39:49Z"
-
-[actions."plexsystems/container-structure-test-action"."v0.3.0"]
-sha = "c0a028aa96e8e82ae35be556040340cbb3e280ca"
-repository = "plexsystems/container-structure-test-action"
-ref_type = "tag"
-date = "2023-03-30T18:19:59Z"
 
 [actions."step-security/harden-runner"."v2.19.4"]
 sha = "9af89fc71515a100421586dfdb3dc9c984fbf411"
