@@ -44,6 +44,29 @@ jobs:
             const script = require('./script/setEnvironmentVariables.js')
             return await script({ core })
 
+      # Workaround for actions/runner-images#13729: Docker service does not
+      # always auto-start on windows-2022/2025 runners. Start it explicitly
+      # and wait until the daemon answers before invoking `docker build`.
+      - name: Ensure Docker daemon is running
+        shell: powershell
+        run: |
+          $svc = Get-Service docker -ErrorAction SilentlyContinue
+          if (-not $svc) {
+            Write-Error "docker service not found on runner"
+            exit 1
+          }
+          if ($svc.Status -ne 'Running') {
+            Write-Host "docker service status: $($svc.Status); starting..."
+            Start-Service docker
+          }
+          for ($i = 0; $i -lt 30; $i++) {
+            docker version --format '{{.Server.Version}}' 2>$null
+            if ($LASTEXITCODE -eq 0) { exit 0 }
+            Start-Sleep -Seconds 2
+          }
+          Write-Error "docker daemon did not become ready within 60s"
+          exit 1
+
       - name: Load image metadata
         uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5.10.0
         id: metadata
