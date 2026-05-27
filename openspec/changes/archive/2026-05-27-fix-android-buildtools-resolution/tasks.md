@@ -3,7 +3,7 @@
 - [x] 1.1 Confirm via `rg latest_android_sdk_build_tools` that `script/latest_android_sdk_build_tools.sh` has zero callers in workflows, scripts, and docs
 - [x] 1.2 Confirm via `rg BUILD_TOOLS_VERSION` that the env var injects into the Gradle script at `script/updateAndroidVersions.gradle.kts:16-17`; identify every workflow that supplies it (currently: `.github/workflows/update_version.yml:313` and `.github/workflows/build.yml:411` — both run the same Gradle task, both must drop the env mapping)
 - [x] 1.3 Locally reproduce the AGP-default resolution: run `flutter create test_app` against Flutter 3.44.0, append the (modified) `updateAndroidVersions.gradle.kts` to `app/build.gradle.kts`, run `./gradlew updateAndroidVersions`, and confirm the emitted JSON's `buildTools.version == "36.0.0"` *(verified via podman inside `ghcr.io/gmeligio/flutter-android:pr-471` — emitted `"36.0.0"` exactly)*
-- [ ] 1.4 Repeat 1.3 against Flutter 3.41.9 (current pinned version) and record the emitted value; if it differs from the committed `35.0.0`, capture the finding in the design "Open Questions" before proceeding *(deferred — Flutter not installed in implementation environment; verify before merge)*
+- [x] 1.4 Repeat 1.3 against Flutter 3.41.9 (current pinned version) and record the emitted value; if it differs from the committed `35.0.0`, capture the finding in the design "Open Questions" before proceeding *(verified via podman inside `docker.io/gmeligio/flutter-android:3.41.9` — emitted `"35.0.0"`, exactly matches the committed value; no drift, so the modified Gradle script will reproduce the committed manifest in `validate_version_files`)*
 
 ## 2. Gradle script change
 

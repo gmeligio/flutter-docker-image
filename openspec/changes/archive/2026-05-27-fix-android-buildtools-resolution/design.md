@@ -41,15 +41,26 @@ The CI engineer reviewing the PR sees a red required check on the smoke test wit
 
 ### Decision 1: Read `buildToolsVersion` from the AGP extension inside the Gradle task
 
-Inside `updateAndroidVersions.gradle.kts`, after `flutter create test_app` has produced an Android Gradle project with AGP applied, read the resolved build-tools version from AGP's DSL extension. AGP 9.x exposes this via `com.android.build.api.dsl.CommonExtension.buildToolsVersion: String`. The task already lives inside the app module's `build.gradle.kts` (it is appended via `cat ../../script/updateAndroidVersions.gradle.kts >> app/build.gradle.kts` per `.github/workflows/update_version.yml:315`), so the `android { }` extension is in scope:
+Inside `updateAndroidVersions.gradle.kts`, after `flutter create test_app` has produced an Android Gradle project with AGP applied, read the resolved build-tools version from AGP's DSL extension on the **project** (not the surrounding Task — `extensions` inside a `doLast { }` lambda resolves to the Task's extension container, which doesn't carry the `android { }` registration).
+
+AGP exposes two DSL surfaces depending on the `android.newDsl` Gradle property:
+
+- `android.newDsl=true` (AGP 9.0 default for new projects, AGP 10.x universal): the registered extension is `com.android.build.api.dsl.ApplicationExtension`.
+- `android.newDsl=false` (still used by Flutter 3.44.0's generated `gradle.properties` to keep the legacy DSL active during AGP 9 transition): the registered extension is `com.android.build.gradle.AppExtension` (legacy DSL).
+
+The script tries the new DSL first, falls back to the legacy one, and errors loudly if neither is present:
 
 ```kotlin
-val buildToolsVersion = extensions
-    .getByType(com.android.build.gradle.AppExtension::class.java)
-    .buildToolsVersion
+val buildToolsVersion: String = project.extensions
+    .findByType(com.android.build.api.dsl.ApplicationExtension::class.java)
+    ?.buildToolsVersion
+    ?: project.extensions
+        .findByType(com.android.build.gradle.AppExtension::class.java)
+        ?.buildToolsVersion
+    ?: error("Could not resolve buildToolsVersion from the AGP extension on project ${project.path}")
 ```
 
-For AGP 9.x the API is `BaseAppModuleExtension` (`com.android.build.gradle.internal.dsl.BaseAppModuleExtension`) or the public `com.android.build.api.dsl.ApplicationExtension`. The task fixture's stability is verified at apply time by spot-running the task locally against the target Flutter tag.
+The dual-surface read future-proofs against Flutter dropping `android.newDsl=false` from its generated `gradle.properties` (which AGP deprecation warnings during the test run flag as imminent).
 
 **Rationale**: AGP is the system that *acts on* this value at runtime. Asking AGP what it will request is the only source of truth that cannot drift from what AGP actually requests. Every other heuristic is, by construction, an approximation.
 
@@ -85,7 +96,7 @@ Use a single MODIFIED block that restates the full requirement (prose + all scen
 
 ## Risks / Trade-offs
 
-- **[AGP API shape varies across AGP majors]** → The Gradle task lives inside the app module of `flutter create`, so the AGP version is dictated by the target Flutter tag (currently AGP 9.0.1). The script's existing reads (`flutter.compileSdkVersion`, `flutter.ndkVersion`) demonstrate the pattern is stable across the AGP majors Flutter targets. Mitigation: pick the most public AGP API surface — `extensions.getByType(com.android.build.api.dsl.ApplicationExtension::class.java).buildToolsVersion` — which AGP commits to as the public DSL. Validate at apply time by running the task locally against Flutter 3.41.9 (current) and 3.44.0 (target) and confirming both report `36.0.0`.
+- **[AGP API shape varies across AGP majors]** → The Gradle task lives inside the app module of `flutter create`, so the AGP version is dictated by the target Flutter tag. End-to-end verification during apply revealed two API-shape facts that the implementation handles explicitly: (1) `extensions` inside `doLast { }` is the Task's extension container, not the Project's — must qualify as `project.extensions`; (2) AGP exposes either `ApplicationExtension` (newDsl=true) or `AppExtension` (newDsl=false), and Flutter 3.44.0 still pins the latter. Mitigation: try the new DSL first, fall back to the legacy DSL, error loudly if neither resolves (see Decision 1 for the snippet). Validated at apply time inside `docker.io/gmeligio/flutter-android:3.41.9` (emits `35.0.0`, matches committed value) and `ghcr.io/gmeligio/flutter-android:pr-471` for Flutter 3.44.0 (emits `36.0.0`, matches AGP-default).
 - **[`updateAndroidVersions` task runs before `bundleRelease`, so the value AGP reports is the *configured* value, not the *requested* value]** → For AGP, those are the same: AGP's `buildToolsVersion` extension property holds either the user-set override or AGP's bundled default; AGP uses exactly that string to look up the SDK package. No transformation happens later. Mitigation: the smoke test in `build.yml` is itself the end-to-end validation; the next monthly upgrade PR will surface any divergence as the same red check we're fixing today.
 - **[`packages.txt` may still be authoritative for cmake / ndk versions in some Flutter releases]** → Out of scope for this change. The script already reads ndk from `flutter.ndkVersion` and cmake is not currently resolved from `packages.txt` (it is read from upstream `version.json` directly). No change.
 - **[The Dockerfile may pin `android_build_tools_version` from `version.json`, and an unrelated workflow could install a different version]** → Grep at apply time confirms `android.Dockerfile` uses `${android_build_tools_version}` consistently and that no other workflow installs build-tools. The Dockerfile reads its value from the same `config/version.json` Decision 1 writes — single source of truth maintained.
