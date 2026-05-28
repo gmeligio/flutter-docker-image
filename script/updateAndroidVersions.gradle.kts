@@ -13,8 +13,19 @@ tasks.register<DefaultTask>("updateAndroidVersions") {
             flutter.compileSdkVersion
         ).distinct()
 
-        val buildToolsVersion = System.getenv("BUILD_TOOLS_VERSION")
-            ?: error("BUILD_TOOLS_VERSION env var is required")
+        // Read the build-tools version that AGP will request at build time
+        // (AGP's bundled default unless the Flutter template overrides it). This
+        // is the only value that's guaranteed to match what sdkmanager installs
+        // for `flutter create test_app && ./gradlew bundleRelease`.
+        // Flutter 3.44 still sets android.newDsl=false (AppExtension); future
+        // versions will flip to the new DSL (ApplicationExtension). Try both.
+        val buildToolsVersion: String = project.extensions
+            .findByType(com.android.build.api.dsl.ApplicationExtension::class.java)
+            ?.buildToolsVersion
+            ?: project.extensions
+                .findByType(com.android.build.gradle.AppExtension::class.java)
+                ?.buildToolsVersion
+            ?: error("Could not resolve buildToolsVersion from the AGP extension on project ${project.path}")
 
         // Create new Android version data
         val newJsonMap = mapOf(

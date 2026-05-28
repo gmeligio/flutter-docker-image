@@ -1,4 +1,4 @@
-## [3.41.9] - 2026-05-22
+## [3.44.0] - 2026-05-28
 
 ### 🚀 Features
 
@@ -7,6 +7,16 @@
 - *(release)* Publish flutter-windows image; archive p1 (#443)
 - Implement p2 image handoff (#451)
 - Pin Windows toolchain versions in config/version.json (#456)
+- Migrate docs/src from npm to pnpm (#460)
+- *(clean-runner-disk)* Drop apt-get remove on Linux, rely on rm -rf + freed-bytes assertion (#464)
+- *(ci)* Harden workflow permissions, concurrency, action SHAs, runner egress audit (#467)
+- *(ci)* Swap plexsystems action for mise-installed container-structure-test (#473)
+
+### 🐛 Bug Fixes
+
+- *(ci)* Handle multi-version build-tools line in packages.txt (#459)
+- *(ci)* Unblock monthly upgrade PRs when Microsoft VS manifest drifts (p11) (#470)
+- *(ci)* Resolve Android build-tools from AGP instead of packages.txt (#472)
 
 ### 📚 Documentation
 
@@ -17,6 +27,12 @@
 - Archive p2-image-handoff-via-pr-tag (#452)
 - Archive p2-release-windows-image (#455)
 - Archive p3-parallelize-image-validation (#454)
+- Update openspec skills (#461)
+- Archive p4-cleanup-pr-image-tags (#462)
+- Archive p4-unify-runner-disk-cleanup (#463)
+- Update openspec model (#466)
+- Archive p7-harden-workflow-permissions (#468)
+- *(openspec)* Replace p8 composites with gx lint policy enforcement (#469)
 
 ### ⚙️ Miscellaneous Tasks
 
@@ -29,7 +45,11 @@
 - Unify runner disk cleanup across Linux and Windows (#448)
 - Switch build cache to GHCR registry backend (#449)
 - Parallelize image validation (#453)
-## [3.41.9] - 2026-05-22
+- Archive p3, implement p4-cleanup, propose p6 (#457)
+- Migrate CUE/Node/gx/git-cliff installs to jdx/mise-action (#458)
+- Drop p6-prune-untagged-ghcr-versions proposal (#465)
+- *(release)* Upgrade flutter to 3.44.0 (#471)
+## [3.41.9] - 2026-05-01
 
 ### ⚙️ Miscellaneous Tasks
 
