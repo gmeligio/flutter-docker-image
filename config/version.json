@@ -1,48 +1,48 @@
 {
-    "flutter": {
-        "channel": "stable",
-        "commit": "00b0c91f06209d9e4a41f71b7a512d6eb3b9c694",
-        "version": "3.41.9"
+  "flutter": {
+    "channel": "stable",
+    "commit": "559ffa3f75e7402d65a8def9c28389a9b2e6fe42",
+    "version": "3.44.0"
+  },
+  "android": {
+    "platforms": [
+      {
+        "version": 36
+      }
+    ],
+    "gradle": {
+      "version": "9.1.0"
     },
-    "android": {
-        "platforms": [
-            {
-                "version": 36
-            }
-        ],
-        "gradle": {
-            "version": "8.14"
-        },
-        "buildTools": {
-            "version": "35.0.0"
-        },
-        "cmdlineTools": {
-            "version": "20.0"
-        },
-        "ndk": {
-            "version": "28.2.13676358"
-        },
-        "cmake": {
-            "version": "3.22.1"
-        }
+    "buildTools": {
+      "version": "36.0.0"
     },
-    "fastlane": {
-        "version": "2.234.0"
+    "cmdlineTools": {
+      "version": "20.0"
     },
-    "windows": {
-        "git": {
-            "version": "2.46.0"
-        },
-        "vsBuildTools": {
-            "cmakeProject": {
-                "version": "17.14.36510.44"
-            },
-            "windows11Sdk": {
-                "build": 22621
-            },
-            "vcTools": {
-                "version": "17.14.36331.10"
-            }
-        }
+    "ndk": {
+      "version": "28.2.13676358"
+    },
+    "cmake": {
+      "version": "3.22.1"
     }
+  },
+  "fastlane": {
+    "version": "2.235.0"
+  },
+  "windows": {
+    "git": {
+      "version": "2.54.0"
+    },
+    "vsBuildTools": {
+      "cmakeProject": {
+        "version": "17.14.36510.44"
+      },
+      "windows11Sdk": {
+        "build": 22621
+      },
+      "vcTools": {
+        "version": "17.14.36331.10"
+      }
+    }
+  }
 }

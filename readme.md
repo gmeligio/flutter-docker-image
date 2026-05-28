@@ -23,10 +23,10 @@ The images includes the minimum tools to run Flutter and build apps. The version
 
 ## Features
 
-* Installed Flutter SDK 3.41.9.
+* Installed Flutter SDK 3.44.0.
 * Analytics disabled by default, opt-in if `ENABLE_ANALYTICS` environment variable is passed when running the container.
 * Rootless user `flutter:flutter`, with permissions to run on Github workflows and GitLab CI.
-* Cached Fastlane gem 2.234.0.
+* Cached Fastlane gem 2.235.0.
 * Minimal image with predownloaded SDKs and tools ready to run `flutter` commands for the Android platform.
 
 Predownloaded SDKs and tools in Android:
@@ -34,21 +34,21 @@ Predownloaded SDKs and tools in Android:
 * Licenses accepted
 * Android SDK Platforms: 36
 * Android NDK: 28.2.13676358
-* Gradle: 8.14
+* Gradle: 9.1.0
 
 ## Running Containers
 
 | Registry                  | flutter-android                                                                                                            |
 | ------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| Docker Hub                | [gmeligio/flutter-android:3.41.9](https://hub.docker.com/r/gmeligio/flutter-android)                                       |
-| GitHub Container Registry | [ghcr.io/gmeligio/flutter-android:3.41.9](https://github.com/gmeligio/flutter-docker-image/pkgs/container/flutter-android) |
-| Quay                      | [quay.io/gmeligio/flutter-android:3.41.9](https://quay.io/repository/gmeligio/flutter-android)                             |
+| Docker Hub                | [gmeligio/flutter-android:3.44.0](https://hub.docker.com/r/gmeligio/flutter-android)                                       |
+| GitHub Container Registry | [ghcr.io/gmeligio/flutter-android:3.44.0](https://github.com/gmeligio/flutter-docker-image/pkgs/container/flutter-android) |
+| Quay                      | [quay.io/gmeligio/flutter-android:3.44.0](https://quay.io/repository/gmeligio/flutter-android)                             |
 
 On the terminal:
 
 ```bash
 # From GitHub Container Registry
-docker run --rm -it ghcr.io/gmeligio/flutter-android:3.41.9 bash
+docker run --rm -it ghcr.io/gmeligio/flutter-android:3.44.0 bash
 ```
 
 On a workflow in GitHub Actions:
@@ -58,7 +58,7 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/gmeligio/flutter-android:3.41.9
+      image: ghcr.io/gmeligio/flutter-android:3.44.0
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -70,7 +70,7 @@ On a `.gitlab-ci.yml` in GitLab CI:
 
 ```yaml
 build:
-  image: ghcr.io/gmeligio/flutter-android:3.41.9
+  image: ghcr.io/gmeligio/flutter-android:3.44.0
   script:
     - flutter build apk
 ```
@@ -91,20 +91,20 @@ bundle exec fastlane
 
 Every new tag on the flutter stable channel gets built. The tag is composed of the Flutter version used to build the image:
 
-* Docker image: gmeligio/flutter-android:3.41.9
-* Flutter version: 3.41.9
+* Docker image: gmeligio/flutter-android:3.44.0
+* Flutter version: 3.44.0
 
 ## Building Locally
 
 The android.Dockerfile expects a few arguments:
 
-* `flutter_version <string>`: The version of Flutter to use when building. Example: 3.41.9
-* `android_build_tools_version <string>`: The version of the Android SDK Build Tools to install. Example: 35.0.0
+* `flutter_version <string>`: The version of Flutter to use when building. Example: 3.44.0
+* `android_build_tools_version <string>`: The version of the Android SDK Build Tools to install. Example: 36.0.0
 * `android_platform_versions <list>`: The versions of the Android SDK Platforms to install, separated by spaces. Example: 36
 
 ```bash
 # Android
-docker build --target android --build-arg flutter_version=3.41.9 --build-arg fastlane_version=2.234.0 --build-arg android_build_tools_version=35.0.0 --build-arg android_platform_versions="36" -t android-test .
+docker build --target android --build-arg flutter_version=3.44.0 --build-arg fastlane_version=2.235.0 --build-arg android_build_tools_version=36.0.0 --build-arg android_platform_versions="36" -t android-test .
 ```
 
 ## Roadmap
