@@ -269,6 +269,19 @@ jobs:
         with:
           egress-policy: audit
 
+      # Scout's API enforces the Docker Hub / DSOS entitlement on every
+      # call: without an authenticated Docker Hub identity tied to the
+      # entitled org, Scout returns "user not entitled to use Docker
+      # Scout" regardless of which registry the image lives on. The
+      # Docker Hub login here is for that entitlement check, not for
+      # image transport — the source and target images are both pulled
+      # from GHCR.
+      - name: Login to Docker Hub
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
       - name: Login to GHCR
         uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
         with:

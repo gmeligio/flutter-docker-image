@@ -47,7 +47,7 @@ The release flow (`release.yml`) continues to publish stable releases to Docker 
   - `image:` is `registry://ghcr.io/<owner>/flutter-android@<digest>` — digest emitted by Step A, carries the SBOM attestation Scout consumes.
   - `to:` is `ghcr.io/<owner>/flutter-android:<latest-release-tag>` — sourced from `needs.setup.outputs.flutter_version`. Replaces `to-env: prod`.
   - Drop `organization:` (only required for env-stream and latest-indexed comparisons).
-  - Drop `Login to Docker Hub` step entirely.
+  - Keep `Login to Docker Hub` — **required for Scout's DSOS entitlement check**, not for image transport. Scout's API rejects unauthenticated calls (`could not authenticate: user <name> not entitled to use Docker Scout`) regardless of which registry the image lives on. This is by Docker's product design and isn't avoidable.
   - Add `Login to GHCR` (for Scout to pull both source and target from GHCR).
   - Add `needs: setup` to the job (was `needs: build_image` only).
 - **Delete** the `Pull image and re-tag for Scout` step and the fork artifact-load steps from `scan_image` — `registry://` reads directly from GHCR; fork-PR scan is job-level skipped.

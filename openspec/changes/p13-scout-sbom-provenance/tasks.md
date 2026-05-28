@@ -14,7 +14,7 @@
 - [x] 2.2 In the same step, `to:` is `ghcr.io/${{ github.repository_owner }}/flutter-android:${{ needs.setup.outputs.flutter_version }}` (the latest released GHCR tag, sourced from the existing `setup` job).
 - [x] 2.3 Drop `to-env: prod` and `organization:` from the step. Drop `recommendations` from `command:`. Keep `only-fixed: true`. No filter flags added (`only-severities`, `ignore-*`).
 - [x] 2.4 `scan_image.needs` is `[setup, build_image]` (was `build_image` only).
-- [x] 2.5 Drop `Login to Docker Hub` step from `scan_image`. Add a `Login to GHCR` step using `secrets.GITHUB_TOKEN` (so Scout can pull both source and target from GHCR). Add `packages: read` to `scan_image.permissions`.
+- [x] 2.5 Keep `Login to Docker Hub` in `scan_image` — required for Scout's DSOS entitlement check (not for image transport; verified empirically on run 26600820178: removing it produces `could not authenticate: user <actor> not entitled to use Docker Scout`). Add a `Login to GHCR` step using `secrets.GITHUB_TOKEN` for pulling source and target images. Add `packages: read` to `scan_image.permissions`.
 - [x] 2.6 Delete the now-unused `Pull image and re-tag for Scout` step and the fork artifact-load steps (unreachable under the job-level fork gate).
 
 ## 3. Verify on a PR
