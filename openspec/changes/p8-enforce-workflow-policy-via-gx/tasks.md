@@ -1,8 +1,8 @@
 ## 1. Bump the pinned gx version
 
-- [ ] 1.1 Update the `gx` pin in `.config/mise/config.toml` from `0.7.1` to `0.7.2` (`"github:gmeligio/gx" = "0.7.2"`).
-- [ ] 1.2 Run `mise install` locally; confirm `gx --version` reports `0.7.2`.
-- [ ] 1.3 Run `gx tidy` locally; if any workflow file or `.github/gx.lock` changes (e.g., comment formatting, re-resolution), commit the result as a separate "chore(deps): gx tidy after version bump" commit.
+- [x] 1.1 Update the `gx` pin in `mise.toml` from `0.7.1` to `0.7.2` (`"github:gmeligio/gx" = "0.7.2"`). (Pin lives in repo-root `mise.toml`, not `.config/mise/config.toml`.)
+- [x] 1.2 Run `mise install` locally; confirm `gx --version` reports `0.7.2`. (`mise exec -- gx --version` → `gx 0.7.2`.)
+- [x] 1.3 Run `gx tidy` locally; if any workflow file or `.github/gx.lock` changes (e.g., comment formatting, re-resolution), commit the result as a separate "chore(deps): gx tidy after version bump" commit. (`gx tidy` → "Up to date"; no drift, no separate commit.)
 
 ## 2. Configure the new rules in `.github/gx.toml`
 
