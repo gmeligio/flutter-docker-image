@@ -6,8 +6,8 @@
 
 ## 2. Configure the new rules in `.github/gx.toml`
 
-- [ ] 2.1 Add a `[lint.rules]` section with explicit entries for the six workflow-security rules. Set severities: `missing-permissions = { level = "error" }`, `dangerous-trigger = { level = "error" }`, `unprotected-secrets = { level = "error" }`, `pr-head-checkout` at `error` with the scoped ignore (task 2.2), `excessive-permissions = { level = "warn" }`, `missing-concurrency = { level = "warn" }`. Add a comment above each entry naming the `ci-workflow-hardening` requirement it enforces (the rule→requirement mapping lives here, NOT in any SECURITY.md).
-- [ ] 2.2 Add the one known scoped ignore for the repo's own gx workflow:
+- [x] 2.1 Add a `[lint.rules]` section with explicit entries for the six workflow-security rules. Set severities: `missing-permissions = { level = "error" }`, `dangerous-trigger = { level = "error" }`, `unprotected-secrets = { level = "error" }`, `pr-head-checkout` at `error` with the scoped ignore (task 2.2), `excessive-permissions = { level = "warn" }`, `missing-concurrency = { level = "warn" }`. Add a comment above each entry naming the `ci-workflow-hardening` requirement it enforces (the rule→requirement mapping lives here, NOT in any SECURITY.md).
+- [x] 2.2 Add the one known scoped ignore for the repo's own gx workflow:
   ```toml
   pr-head-checkout = { level = "error", ignore = [
       # gx.yml's `tidy` job checks out PR HEAD under an App token but is
@@ -17,10 +17,10 @@
   ] }
   ```
   Use the `workflow` key (and `job`/`step` if ever needed) — never `action`, which is meaningless for workflow-security rules and breaks the match.
-- [ ] 2.3 Run `gx lint` locally. Expect exit 0 (the corpus passes all six rules with the single ignore above). If any *new* diagnostic appears:
+- [x] 2.3 Run `gx lint` locally. Expect exit 0 (the corpus passes all six rules with the single ignore above). If any *new* diagnostic appears:
   - True positive → fix the workflow.
   - True-pattern-but-fork-gated → add a narrowly-scoped `ignore` with a comment naming why.
-- [ ] 2.4 Re-run `gx lint`; confirm it exits 0.
+- [x] 2.4 Re-run `gx lint`; confirm it exits 0. (Exit 0 — "No lint issues found".)
 
 ## 3. Verify the gate actually bites (negative test)
 
