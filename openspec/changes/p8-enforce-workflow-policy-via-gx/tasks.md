@@ -1,41 +1,46 @@
-## 1. Wait for the upstream gx release
+## 1. Bump the pinned gx version
 
-- [ ] 1.1 Confirm `gmeligio/gx` has shipped a release that includes the rules from `add-workflow-security-rules`. Cross-reference the `gx --version` output against the gx CHANGELOG.
-- [ ] 1.2 If the release is not yet available, pause this change — do NOT implement the items below against a pre-release build.
+- [ ] 1.1 Update the `gx` pin in `.config/mise/config.toml` from `0.7.1` to `0.7.2` (`"github:gmeligio/gx" = "0.7.2"`).
+- [ ] 1.2 Run `mise install` locally; confirm `gx --version` reports `0.7.2`.
+- [ ] 1.3 Run `gx tidy` locally; if any workflow file or `.github/gx.lock` changes (e.g., comment formatting, re-resolution), commit the result as a separate "chore(deps): gx tidy after version bump" commit.
 
-## 2. Bump the pinned gx version
+## 2. Configure the new rules in `.github/gx.toml`
 
-- [ ] 2.1 Update the `gx` pin in `.config/mise/config.toml` (or whichever file holds the mise toolchain pin — verify via `mise current`).
-- [ ] 2.2 Run `mise install` locally; confirm `gx --version` reports the new version.
-- [ ] 2.3 Run `gx tidy` locally; if any workflow file changes (e.g., updated comment formatting), commit the result as a separate "chore(deps): gx tidy after version bump" commit.
+- [ ] 2.1 Add a `[lint.rules]` section with explicit entries for the six workflow-security rules. Set severities: `missing-permissions = { level = "error" }`, `dangerous-trigger = { level = "error" }`, `unprotected-secrets = { level = "error" }`, `pr-head-checkout` at `error` with the scoped ignore (task 2.2), `excessive-permissions = { level = "warn" }`, `missing-concurrency = { level = "warn" }`. Add a comment above each entry naming the `ci-workflow-hardening` requirement it enforces (the rule→requirement mapping lives here, NOT in any SECURITY.md).
+- [ ] 2.2 Add the one known scoped ignore for the repo's own gx workflow:
+  ```toml
+  pr-head-checkout = { level = "error", ignore = [
+      # gx.yml's `tidy` job checks out PR HEAD under an App token but is
+      # fork-gated (head.repo.full_name == github.repository), so the
+      # "pwn request" pattern is not reachable from forks.
+      { workflow = ".github/workflows/gx.yml" },
+  ] }
+  ```
+  Use the `workflow` key (and `job`/`step` if ever needed) — never `action`, which is meaningless for workflow-security rules and breaks the match.
+- [ ] 2.3 Run `gx lint` locally. Expect exit 0 (the corpus passes all six rules with the single ignore above). If any *new* diagnostic appears:
+  - True positive → fix the workflow.
+  - True-pattern-but-fork-gated → add a narrowly-scoped `ignore` with a comment naming why.
+- [ ] 2.4 Re-run `gx lint`; confirm it exits 0.
 
-## 3. Configure the new rules in `.github/gx.toml`
+## 3. Verify the gate actually bites (negative test)
 
-- [ ] 3.1 Add a `[lint.rules]` section with explicit entries for each of the six new rules. Set severities to match `ci-workflow-hardening`: `missing-permissions = { level = "error" }`, `dangerous-trigger = { level = "error" }`, `pr-head-checkout = { level = "error" }`, `unprotected-secrets = { level = "error" }`, `excessive-permissions = { level = "warn" }`, `missing-concurrency = { level = "warn" }`.
-- [ ] 3.2 Run `gx lint` locally against the current workflow corpus. Triage every diagnostic:
-  - True positives → fix the workflow (out of scope here only if the fix is non-trivial; record as a follow-up).
-  - False positives → add a narrowly-scoped `ignore` entry with a comment naming why.
-- [ ] 3.3 Re-run `gx lint`; confirm it exits 0 (errors silenced, warnings acceptable).
+- [ ] 3.1 On a throwaway local branch, introduce a deliberate violation (e.g., remove the top-level `permissions:` block from one workflow).
+- [ ] 3.2 Run `gx lint`; confirm it exits non-zero with the expected diagnostic (`missing-permissions`). Discard the branch — this proves the rules fire, not just that the corpus happens to pass.
 
-## 4. Extend `.github/workflows/SECURITY.md`
+## 4. Update the spec
 
-- [ ] 4.1 Add a section "Mechanical enforcement" listing each `ci-workflow-hardening` structural requirement and the gx rule that enforces it. Format as a small table.
-- [ ] 4.2 State the rule: "If `gx lint` passes, the structural properties in `ci-workflow-hardening` hold."
-- [ ] 4.3 Link to `.github/gx.toml` and to the gx project for the rule reference docs.
+- [ ] 4.1 Confirm the spec delta (`specs/ci-workflow-hardening/spec.md`) reflects mechanical enforcement with the rule→requirement mapping in `gx.toml` (no SECURITY.md). The archive flow applies this delta to the main spec.
 
-## 5. Wire `gx lint` as a required status check
+## 5. Verify in CI
 
-- [ ] 5.1 Confirm `.github/workflows/gx.yml`'s `gx lint` job has a stable `name:` field. Note the job name (it will become the required-check ID in the ruleset).
-- [ ] 5.2 If p10 has archived: add the job name to `.github/rulesets/main.json` under `required_status_checks`; apply via `gh api -X PUT`. If p10 has not yet archived: record this as a follow-up task on p10's tracker so the check gets wired when the ruleset-as-code file is created.
-- [ ] 5.3 Open a draft PR that intentionally introduces a violation (e.g., remove the top-level `permissions:` block from a sandbox workflow); confirm the PR is blocked by the failing `gx lint` check.
+- [ ] 5.1 Open a real PR with the gx bump + `gx.toml` config. Confirm CI runs `gx lint` (`.github/workflows/gx.yml`'s `lint` job) and it passes against the corpus.
+- [ ] 5.2 After merge, confirm Scorecard does not regress on `TokenPermissionsID` or `BinaryArtifacts` on the next cycle.
 
-## 6. Update the spec
+## 6. Hand off the cross-change follow-ups
 
-- [ ] 6.1 Apply this change's spec delta (`specs/ci-workflow-hardening/spec.md`) to the archived spec via `openspec apply p8-enforce-workflow-policy-via-gx`.
-- [ ] 6.2 Confirm `openspec list --json` reports zero unarchived changes that conflict.
+- [ ] 6.1 Record on p10's tracker: when `.github/rulesets/main.json` is created, add the `gx lint` job name to `required_status_checks` so the gate becomes a *required* check (it is advisory until then).
+- [ ] 6.2 Record on p10's tracker: `auto-approve-bots.yml` (p10's `pull_request_target` workflow) MUST get its own scoped `dangerous-trigger` ignore in `.github/gx.toml` when p10 lands, with a comment naming the reviewed threat model (the workflow does no `actions/checkout` of PR contents).
 
-## 7. Verify
+## 7. Archive
 
-- [ ] 7.1 Open a real PR with the gx bump + config + SECURITY.md edits. Confirm CI runs `gx lint` and it passes against the post-fix workflow corpus.
-- [ ] 7.2 After merge, wait for the next Renovate / Scorecard cycle. Confirm Scorecard does not regress on `TokenPermissionsID` or `BinaryArtifacts`.
-- [ ] 7.3 Archive this change via `openspec archive p8-enforce-workflow-policy-via-gx` once verified.
+- [ ] 7.1 Archive this change via `/opsx:archive p8-enforce-workflow-policy-via-gx` once CI is green.
