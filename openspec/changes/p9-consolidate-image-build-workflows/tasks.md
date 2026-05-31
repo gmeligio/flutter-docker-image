@@ -1,40 +1,41 @@
-## 1. Build the reusable image-build workflow
+## 1. Add workflow and job display names (Commit A — no id changes)
 
-- [ ] 1.1 Create `.github/workflows/build-image.yml` with `on: workflow_call` and inputs: `runner-os`, `dockerfile`, `image-name`, `push-to-registries` (boolean), `cache-mode` (`gha`|`registry`), `tag-prefix`. Declare `secrets:` for Docker Hub and Quay credentials with `required: false`.
-- [ ] 1.2 Body (inlined, no composite indirection): harden-runner → `actions/checkout` (SHA-pinned) → `jdx/mise-action` (SHA-pinned) → `actions/github-script` invoking `script/setEnvironmentVariables.js` → conditional `docker/login-action` calls per registry (GHCR always; Docker Hub and Quay gated on caller-passed `secrets:` and on the caller's fork-PR `if:` guard) → `docker/metadata-action` → `docker/build-push-action` → `container-structure-test-action` → conditional `docker/scout-action`. SHAs match those already pinned in the current standalone workflows so `gx tidy` shows no drift.
-- [ ] 1.3 Emit outputs: `image-digest`, `image-tag`, `metadata-json`. Document each in a header comment.
-- [ ] 1.4 Add `permissions:` at workflow level (`contents: read`); per-job escalation only where needed (`packages: write` for the push step).
+- [ ] 1.1 For every file in `.github/workflows/`, add a top-level `name:` in Title Case if absent (e.g. `Build image`, `CI`, `Windows`, `Release`, `Scorecard`, `gx`). Leave files that already have one.
+- [ ] 1.2 For every job in every workflow, add a `name:` key as a kebab-case verb phrase (e.g. `setup` → `name: read-latest-release`, `build_image` → `name: build-and-push-image`, `test_image` → `name: test-image`, `scan_image` → `name: scan-image`, `validate_version_files` → `name: validate-version-files`, `release_android` → `name: release-android`, `update_description` → `name: update-dockerhub-description`, `record_image` → `name: record-image-in-scout`, `create_github_release` → `name: create-github-release`).
+- [ ] 1.3 This commit changes only display names — no `jobs.<id>:` key changes, so no pinned check breaks yet. Confirm CI parses every file.
 
-## 2. Rewrite caller workflows as thin shims
+## 2. Rename job ids to kebab-case (Commit B)
 
-- [ ] 2.1 Rewrite `build.yml` (PR/dispatch trigger) as a caller of `build-image.yml` with `runner-os: ubuntu-24.04`, `push-to-registries: false` for fork PRs (gated by the caller-side `if:`), cache mode `gha`. Preserve the existing handoff-tag computation by moving it to a small script under `script/` if it does not fit cleanly into the reusable inputs.
-- [ ] 2.2 Rewrite `ci.yml` (push main) as a caller with `push-to-registries: true`, cache mode `registry`.
-- [ ] 2.3 Rewrite `windows.yml` as a caller with `runner-os: windows-2025`.
-- [ ] 2.4 Rewrite `release.yml`'s image-build job as a caller with `push-to-registries: true`, full tag set. Preserve `release.yml`'s non-image jobs (release notes, Docker Hub description sync, etc.).
+- [ ] 2.1 Enumerate every job id across all workflows (e.g. `build_image`, `test_image`, `scan_image`, `test_gradle`, `validate_version_files`, `validate_generated_config`, `build_docs`, `release_android`, `release_windows`, `update_description`, `record_image`, `create_github_release`, `create_git_tag`, `changelog`). Map each to its kebab-case form.
+- [ ] 2.2 Rename each `jobs.<id>:` key to kebab-case.
+- [ ] 2.3 Update every `needs:` list and every `${{ needs.<id>.outputs.* }}` expression to the new ids, in the same commit.
+- [ ] 2.4 Grep all of `.github/workflows/` and `script/` for `github.job` and `needs\.`; confirm no reference points to an old id.
 
-## 3. Merge changelog+tag into prepare-release
+## 3. Merge changelog + tag into prepare-release (Commit C)
 
-- [ ] 3.1 Create `.github/workflows/prepare-release.yml` with `on: push` to `main` for paths `config/version.json`, plus `workflow_dispatch`. Two jobs: `update-changelog` → `create-tag` (with `needs: update-changelog`).
-- [ ] 3.2 Job `update-changelog`: lift the steps from current `changelog.yml`.
-- [ ] 3.3 Job `create-tag`: lift the steps from current `tag.yml`. The `needs:` dependency replaces the file-push trigger chain.
-- [ ] 3.4 Delete `changelog.yml` and `tag.yml`.
+- [ ] 3.1 Create `.github/workflows/prepare-release.yml` with `name: Prepare release`, trigger `on: push: { branches: [main], paths: [config/version.json] }` plus `workflow_dispatch` — the SAME trigger as today's `changelog.yml` (NOT the `changelog.md` trigger from `tag.yml`).
+- [ ] 3.2 Job `update-changelog` (`name: update-changelog`): lift the steps from `changelog.yml`'s `changelog` job verbatim (harden-runner, checkout with fetch-depth 0 + tags, mise, setEnvironmentVariables, git-cliff, App-token, commit-and-push).
+- [ ] 3.3 Job `create-tag` (`name: create-tag`) with `needs: update-changelog`: lift the steps from `tag.yml`'s `create_git_tag` job (App-token, setEnvironmentVariables, createGitTag.js). The `needs:` edge replaces the `changelog.md` push trigger.
+- [ ] 3.4 `git rm` `changelog.yml` and `tag.yml`.
 
-## 4. Rename underscore workflows to kebab-case
+## 4. Rename underscore workflow files (Commit D)
 
-- [ ] 4.1 `git mv` `update_version.yml` → `update-version.yml`. Update the `name:` key inside the file. Search for any `workflow:` reference in other workflows and update.
-- [ ] 4.2 `git mv` `update_docs.yml` → `update-docs.yml`. Update `name:` and references.
-- [ ] 4.3 `git mv` `cleanup_pr_image.yml` → `cleanup-pr-image.yml`. Update `name:` and references.
-- [ ] 4.4 Do the rename in a single commit separate from the rewrite commits so `git log --follow` works for future archeology.
+- [ ] 4.1 `git mv .github/workflows/update_docs.yml .github/workflows/update-docs.yml`; update its top-level `name:` if needed; grep for references to the old filename and update.
+- [ ] 4.2 `git mv .github/workflows/cleanup_pr_image.yml .github/workflows/cleanup-pr-image.yml`; same.
+- [ ] 4.3 Do NOT rename `update_version.yml` — deferred until `p12-symmetric-platform-updates` archives (collision with its in-flight internal refactor).
+- [ ] 4.4 Keep renames in their own commit so `git log --follow` traces history.
 
-## 5. Update external references
+## 5. Update external references and repo settings
 
-- [ ] 5.1 Update `README.md` workflow badges to the new filenames.
-- [ ] 5.2 Enumerate branch protection required-checks; update any pinned check names (Settings → Branches → Edit rule → Status checks). Do this BEFORE merging or the post-merge run will be blocked.
-- [ ] 5.3 Update any links in `openspec/specs/*/spec.md` that reference renamed workflows by filename.
+- [ ] 5.1 Update any `README.md` / `readme.md` workflow-filename references or badges that point to renamed files.
+- [ ] 5.2 Coordinate with `p10`: update `.github/rulesets/main.json` comments / check-name lists that reference `changelog.yml` or `tag.yml`.
+- [ ] 5.3 **Before merge**: enumerate branch-protection required status checks (ruleset `1959230` / Settings → Branches) and update any pinned `<workflow> / <job-name>` whose job id or name changed. Skipping this blocks the post-merge run.
+- [ ] 5.4 Update any `openspec/specs/*/spec.md` links that reference renamed workflows by filename.
 
 ## 6. Verify
 
-- [ ] 6.1 In a draft PR: `workflow_dispatch` each rewritten caller; compare the built image digest against the most recent `main` run for the same input. They should match (Docker build is deterministic for an unchanged context).
-- [ ] 6.2 Push a no-op edit to `config/version.json` on a branch and `workflow_dispatch` `prepare-release.yml`; confirm `update-changelog` runs, then `create-tag` runs, then `release.yml` is triggered by the new tag — full chain works.
-- [ ] 6.3 Confirm Scorecard scan still passes after merge (no `TokenPermissionsID` regressions introduced by the new `build-image.yml` workflow).
-- [ ] 6.4 Confirm renamed-workflow runs appear in the Actions UI; archive any old run histories that point to the deleted filenames.
+- [ ] 6.1 `gx lint` is green (no action-pin drift introduced).
+- [ ] 6.2 Repo-wide assert: no `_` in any `.github/workflows/*.yml` filename except `update_version.yml`; no dangling `needs.<old_id>` or `github.job` reference (grep).
+- [ ] 6.3 In a draft PR, push a no-op `config/version.json` edit on a branch and `workflow_dispatch` `prepare-release.yml`; confirm `update-changelog` → `create-tag` runs and the new tag triggers `release.yml` — full chain works.
+- [ ] 6.4 `workflow_dispatch` each renamed workflow (`update-docs`, `cleanup-pr-image`) once; confirm it runs under its new filename and appears in the Actions UI.
+- [ ] 6.5 Confirm Scorecard scan still passes after merge (no regressions from the new `prepare-release.yml`).

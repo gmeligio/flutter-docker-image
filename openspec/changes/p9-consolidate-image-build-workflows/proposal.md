@@ -1,42 +1,47 @@
 ## Why
 
-After p7 (hardening) lands, two structural redundancies in `.github/workflows/` remain:
+The original framing of this change — "image build logic is pasted into four workflows; extract one reusable workflow" — does not survive contact with the current tree. Research (explore mode, 2026-05-31) established three things:
 
-1. **Image build logic lives in four workflows** with the same shape: `build.yml` (PR/dispatch — 380 lines), `ci.yml` (push to main — 83 lines), `windows.yml` (PR/dispatch — 70 lines), `release.yml` (push tags — 277 lines). All four call `docker/metadata-action` → `docker/build-push-action` → `container-structure-test-action` (or its Windows equivalent) with subtly different inputs. The Linux flavor (build/ci/release) and the Windows flavor (windows/release) each have a single semantic build that has been pasted into multiple files.
-2. **The release-prep chain spans three workflows** linked by file/tag push events: `changelog.yml` (writes `changelog.md` when `config/version.json` changes) → `tag.yml` (creates a tag when `changelog.md` changes) → `release.yml` (builds and publishes when a tag is pushed). The chain is fragile (one disabled workflow breaks the whole chain), slow (three sequential job startups), and split across files that are read independently.
+1. **The four image-build workflows are not near-copies.** `build.yml` (Linux/buildx, fork-split push-or-artifact, SBOM+provenance per p13), `ci.yml` (Linux/buildx, `load:true`, gha cache), `windows.yml` (Windows, raw `docker build` — Buildx has no Windows-container support), and `release.yml` (Linux buildx + Windows raw, three registries) diverge on OS, build engine, output mode, cache backend, registry count, and attestations. Forcing them through one reusable workflow produces an `if:`-forked file that the GitHub community consensus calls a readability *loss*, not a win ([smcleod](https://smcleod.net/2022/11/github-not-so-reusable-actions/), [Octopus](https://octopus.com/devops/github-actions/github-actions-workflow/)). Reusable workflows pay off at *N identical copies*, which this is not.
 
-This change introduces a **reusable workflow** for the image build and **merges the changelog+tag pair** into a single workflow. It also takes the opportunity to **rename every underscore-named workflow to kebab-case**, fixing the convention drift before more files accumulate.
+2. **The biggest readability lever is unused.** No job across the workflow suite sets a `name:`. The Actions checks UI therefore renders bare job ids (`build_image`, `scan_image`, `test_gradle`). GitHub's own docs and community convention say the job *id* stays machine-stable while a human-readable `name:` drives the UI ([Future Studio](https://futurestud.io/tutorials/github-actions-customize-the-job-name)). This is the highest readability-per-effort change available and the prior proposal omitted it entirely.
+
+3. **There is no official GitHub naming standard, but the de-facto convention is clear:** kebab-case for workflow filenames (GitHub's own [`actions/starter-workflows`](https://github.com/actions/starter-workflows/issues/1497) is "mostly kebab-case"; the official actions use kebab-case inputs — [actionlint#450](https://github.com/rhysd/actionlint/issues/450)). The [community thread asking GitHub directly](https://github.com/orgs/community/discussions/39547) never got an official answer, so this is convention-by-example, applied here as the house rule ([[feedback_workflow_naming]]).
+
+This change is therefore re-scoped to capture the **evidence-backed value** — readability via naming + one genuine consolidation — and to **explicitly drop** the speculative reusable-build extraction. It also respects two in-flight changes the original proposal predated: `p13-scout-sbom-provenance` (already rewrote `build.yml`'s build step on `main`) and `p12-symmetric-platform-updates` (mid-refactor of `update_version.yml`'s internals).
 
 ## What Changes
 
-- **Add reusable workflow `.github/workflows/build-image.yml`** with `on: workflow_call` and inputs covering: `runner-os` (`ubuntu-24.04` | `windows-2025`), `dockerfile`, `image-name`, `push-to-registries` (boolean), `cache-mode` (`gha` | `registry`), `tag-prefix`. The reusable workflow encapsulates the full image-build prologue and body **inline** (no composite-action indirection): harden-runner, `actions/checkout`, `jdx/mise-action`, `actions/github-script` calling `script/setEnvironmentVariables.js`, conditional `docker/login-action` calls (GHCR + Docker Hub + Quay gated on caller-passed secrets), `docker/metadata-action`, `docker/build-push-action`, `container-structure-test-action`, optional `docker/scout-action`. The reusable workflow itself is the single source of truth for the build sequence; centralization happens at the `workflow_call` boundary, not at a composite-action boundary inside it. Its single job emits an output with the built image's digest.
-- **Rewrite `build.yml`, `ci.yml`, `windows.yml`, `release.yml`** as thin callers of `build-image.yml`. Each becomes ~30-50 lines: trigger, concurrency, and `uses: ./.github/workflows/build-image.yml` with the appropriate inputs/secrets.
-- **Merge `changelog.yml` + `tag.yml` into `prepare-release.yml`** that, on push to `main` with `config/version.json` changed, runs two sequential jobs: `update-changelog` (writes `changelog.md` and commits) → `create-tag` (creates the tag and pushes it). The tag push still triggers `release.yml` exactly as today; this collapses the three-workflow chain to two.
-- **Rename underscore workflows to kebab-case** (no leading underscore, no `_` anywhere): `update_version.yml` → `update-version.yml`, `update_docs.yml` → `update-docs.yml`, `cleanup_pr_image.yml` → `cleanup-pr-image.yml`. Updated workflow names also update the `name:` key inside each file.
-- **Delete** the now-empty `changelog.yml` and `tag.yml` files (their content moves into `prepare-release.yml`). Update any external references (README badges, branch protection check names) that named the old workflows.
+- **Add a `name:` to every job** in every workflow under `.github/workflows/`, as a kebab-case verb phrase (user-confirmed: job display names use kebab-case, e.g. `name: build-and-push-image`, `name: scan-image`).
+- **Rename every job id to kebab-case** (the `jobs.<id>:` key — used by `needs:`, `github.job`, and branch-protection check pinning), since the user wants repo-wide kebab uniformity. Every `needs:` reference and every `${{ needs.<id>.outputs.* }}` / `github.job` expression is updated in lockstep within the same commit.
+- **Add a top-level `name:` to every workflow file** that lacks one, as a Title Case label for the Actions sidebar (e.g. `name: Build image`).
+- **Merge `changelog.yml` + `tag.yml` into `prepare-release.yml`** — a genuine consolidation: two halves of one logical step (write `changelog.md` → create tag) currently linked only by a fragile `paths: [changelog.md]` push trigger. The merged workflow runs `update-changelog` → `create-tag` via `needs:`, preserving the same App-token identity (`VERIFIED_COMMIT_ID/KEY`) so the tag push still triggers `release.yml` and the ruleset bypass actor (tracked by `p10`) stays valid.
+- **Rename underscore workflow files to kebab-case**: `update_docs.yml` → `update-docs.yml`, `cleanup_pr_image.yml` → `cleanup-pr-image.yml`. Update each file's top-level `name:` and any cross-references.
+- **Defer renaming `update_version.yml`** — it collides with `p12-symmetric-platform-updates`, which is mid-refactor of that file's internals. Renaming it now guarantees a merge conflict. It is renamed in a follow-up after p12 archives.
 
 ## Capabilities
 
 ### New Capabilities
 
-- `ci-image-build-reusable`: the contract that `build-image.yml` SHALL satisfy as a reusable workflow — inputs accepted, outputs emitted, jobs/steps composed, and the rule that every caller (PR build, CI build, Windows build, release build) goes through it instead of inlining its own.
+- `ci-workflow-readability`: the contract that every workflow file and every job SHALL carry human-readable, consistently-cased names — kebab-case filenames and job ids, a Title Case workflow `name:`, and a kebab-case job `name:` — so the Actions UI and `ls .github/workflows/` are scannable without opening files. This capability also pins the changelog→tag release-prep step as one workflow (`prepare-release.yml`) with a visible two-job graph.
 
 ### Modified Capabilities
 
-- `ci-image-build-cache`: clarify that the cache-mode selection (GHA cache vs registry cache) is an input to the reusable workflow, not duplicated across caller workflows.
-- `ci-image-handoff`: clarify that the handoff tag computation is encapsulated in the reusable workflow, not in `build.yml`'s inline `run:` blocks.
-- `ci-parallel-image-validation`: clarify that the parallel validation matrix now invokes the reusable workflow per matrix cell.
-- `windows-image-release`: clarify that the Windows release path is a caller of the reusable workflow with `runner-os: windows-2025`.
+_None._ The release-prep merge preserves the `ci-workflow-hardening` properties (App-token push, read-only default permissions, harden-runner) unchanged; the new structural property (one workflow, two jobs) lives in `ci-workflow-readability`.
 
 ### Renamed Capabilities
 
-_None._ Capability names already use hyphens; this change renames only workflow files, not specs.
+_None._ Capability spec names already use hyphens.
+
+### Removed Capabilities
+
+- The `ci-image-build-reusable` capability proposed by the prior revision of this change is **dropped**. The research found the reusable-build extraction is a net readability loss given the four builds' divergence; it is not pursued. (If ever revisited, scope would be the two genuinely-similar Linux push-builds only — `ci.yml` + `release.yml`'s android job — as a separate change, authored after p13 settles.)
 
 ## Impact
 
-- **Affected files**: 4 image-build workflows rewritten as thin callers; 1 new reusable workflow; 2 workflows merged into 1; 3 workflows renamed. Net file count: 11 → 9 in `.github/workflows/`.
-- **Behavioral change**: image consumers see no difference. The maintainer sees the workflow list shrink by 2 files and each caller drop to under 50 lines. Branch protection rules that pin a check by `name:` MUST be updated (this is an out-of-band repo settings change called out in the verification step).
-- **Risk**: this is the largest refactor of the three. Mitigation: ship behind a draft PR that runs each caller via `workflow_dispatch` and compares the built image digest against `main`. Renames go in a separate commit within the PR so `git log --follow` works cleanly.
-- **Risk**: branch protection check-name pinning silently goes stale on renamed workflows. Mitigation: enumerate every check name in the verification step and update the repo settings before merging.
-- **Depends on**: `p7-harden-workflow-permissions` archived. The previous design assumed composite actions from a (now abandoned) p8 as building blocks; the reusable workflow body inlines those step sequences directly, since the workflow body itself is the centralization point. The mechanical workflow-policy enforcement that p8-composites tried to provide structurally is delivered by `p8-enforce-workflow-policy-via-gx` (via `gx lint` rules), which can land independently of this change.
-- **Out of scope**: changes to image content; changes to release versioning logic; changes to the cleanup-pr-image trigger semantics (rename only); changes to `update-version.yml` internals (rename only — its 421-line refactor is a separate future change).
+- **Affected files**: every workflow under `.github/workflows/` gains job `name:` keys and kebab-case job ids; `changelog.yml` + `tag.yml` → `prepare-release.yml` (2 files → 1); `update_docs.yml` and `cleanup_pr_image.yml` renamed. Net file count: 11 → 10.
+- **Behavioral change**: none for image consumers or the release flow. The maintainer sees readable job names in the checks UI and a uniform `ls`.
+- **Risk — branch protection check-name pinning goes stale on job-id renames.** Required status checks are pinned by `<workflow> / <job>` name. Renaming job ids/names breaks those pins until repo settings are updated. Mitigation: enumerate every required check name and update repo settings *before* merge ([[user_solo_maintainer]] pins checks; this is an out-of-band Settings change called out in the verify step).
+- **Risk — `github.job` references break on id rename.** Mitigation: grep for `github.job` and any `needs.<id>` across all workflows and scripts; update in lockstep within the rename commit.
+- **Depends on**: `p7-harden-workflow-permissions` archived (done). Coordinates with `p10-strengthen-branch-protection` (ruleset-as-code references `changelog.yml`/`tag.yml` by name — update those references when merging).
+- **Out of scope**: renaming `update_version.yml` (deferred — p12 collision); any reusable-workflow extraction (dropped); image content; release versioning logic.
