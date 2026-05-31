@@ -16,3 +16,14 @@
 "peter-evans/create-pull-request" = "^7"
 "peter-evans/dockerhub-description" = "^5"
 "step-security/harden-runner" = "^2"
+
+# Workflow-security rules enforce the structural properties defined by the
+# `ci-workflow-hardening` capability. Each rule below maps to a requirement in that spec
+[lint.rules]
+# "Untrusted code is not executed with privileged context" — privileged job
+# checking out PR HEAD. gx.yml's `tidy` job matches the pattern but is
+# fork-gated (head.repo.full_name == github.repository), so the attack is not
+# reachable from forks; exempt that one workflow.
+pr-head-checkout = { level = "error", ignore = [
+    { workflow = ".github/workflows/gx.yml" },
+] }

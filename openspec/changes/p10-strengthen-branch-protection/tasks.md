@@ -31,3 +31,18 @@
 - [ ] 5.2 Open a PR from `renovate[bot]` that touches a file OUTSIDE the path allowlist (simulate by editing a non-allowlisted file in a Renovate-style branch). Confirm the workflow runs, logs `decision=SKIP reason=path X not in allowlist`, and does NOT post an approval.
 - [ ] 5.3 Confirm the bypass-actor change (if any) did not break `changelog.yml` / `tag.yml` by waiting for the next version bump or by dispatching them manually.
 - [ ] 5.4 Wait one Scorecard scan cycle. Record the new `BranchProtectionID` and `CodeReviewID` scores in the archived proposal. Confirm `BranchProtectionID` improves if the bypass-actor narrowing landed; accept that `CodeReviewID` may not improve materially.
+
+## 6. p8 hand-offs (mechanical workflow-policy enforcement via gx)
+
+These two items were handed off from p8 (`p8-enforce-workflow-policy-via-gx`), which enabled the six gx workflow-security rules but could not complete them because `.github/rulesets/` did not exist yet.
+
+- [ ] 6.1 Make `gx lint` a **required status check**. Once `.github/rulesets/main.json` exists (section 1 above), add the `gx lint` job's check name to `required_status_checks` in that file, and apply it to ruleset `1959230` via `gh api -X PUT`. The check name is the `lint` job in `.github/workflows/gx.yml`. Until this lands, gx security enforcement is advisory (visible CI failure, non-blocking).
+- [ ] 6.2 Add a scoped `dangerous-trigger` ignore for `auto-approve-bots.yml`. The `pull_request_target` trigger in the workflow created in section 3 will fail p8's `dangerous-trigger` rule (error). Add to `.github/gx.toml`'s `[lint.rules]` block:
+  ```toml
+  dangerous-trigger = { level = "error", ignore = [
+      # auto-approve-bots.yml uses pull_request_target but does NO actions/checkout
+      # of PR contents — threat model in p10 proposal. Reviewed and accepted.
+      { workflow = ".github/workflows/auto-approve-bots.yml" },
+  ] }
+  ```
+  Run `gx lint` and confirm it exits 0 with both `auto-approve-bots.yml` and the new ignore present.
