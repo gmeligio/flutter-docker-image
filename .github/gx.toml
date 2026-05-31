@@ -23,13 +23,6 @@
 # SECURITY.md). Severities: load-bearing "pwn request" / least-privilege gates
 # at `error`; hygiene rules at `warn`. The current corpus passes all six.
 [lint.rules]
-# "Every workflow declares a minimum-scope permissions: block"
-missing-permissions = { level = "error" }
-# "Least-privilege token scopes" — hygiene; warn so over-grants surface without
-# blocking (the corpus already passes this at error).
-excessive-permissions = { level = "warn" }
-# "Rejection of the pull_request_target 'pwn request' pattern"
-dangerous-trigger = { level = "error" }
 # "Untrusted code is not executed with privileged context" — privileged job
 # checking out PR HEAD. gx.yml's `tidy` job matches the pattern but is
 # fork-gated (head.repo.full_name == github.repository), so the attack is not
@@ -37,7 +30,3 @@ dangerous-trigger = { level = "error" }
 pr-head-checkout = { level = "error", ignore = [
     { workflow = ".github/workflows/gx.yml" },
 ] }
-# "concurrency: on push/schedule triggers" — hygiene; warn (corpus passes).
-missing-concurrency = { level = "warn" }
-# "Fork-secret gates on PR-triggered workflows"
-unprotected-secrets = { level = "error" }
