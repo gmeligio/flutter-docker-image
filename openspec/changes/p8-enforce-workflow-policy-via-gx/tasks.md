@@ -34,7 +34,7 @@
 ## 5. Verify in CI
 
 - [x] 5.1 Open a real PR with the gx bump + `gx.toml` config. Confirm CI runs `gx lint` (`.github/workflows/gx.yml`'s `lint` job) and it passes against the corpus. (Draft PR #476; `lint` job passed in 24s, all checks green.)
-- [ ] 5.2 After merge, confirm Scorecard does not regress on `TokenPermissionsID` or `BinaryArtifacts` on the next cycle.
+- [x] 5.2 After merge, confirm Scorecard does not regress on `TokenPermissionsID` or `BinaryArtifacts` on the next cycle. (Confirmed: no Scorecard regression.)
 
 ## 6. Hand off the cross-change follow-ups
 
