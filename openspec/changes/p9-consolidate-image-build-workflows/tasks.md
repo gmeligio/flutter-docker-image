@@ -1,10 +1,10 @@
 ## 1. Add workflow and job display names (Commit A — no id changes)
 
 - [ ] 1.1 For every file in `.github/workflows/`, add a top-level `name:` in Title Case if absent (e.g. `Build image`, `CI`, `Windows`, `Release`, `Scorecard`, `gx`). Leave files that already have one.
-- [ ] 1.2 For every job in every workflow, add a `name:` key as a kebab-case verb phrase (e.g. `setup` → `name: read-latest-release`, `build_image` → `name: build-and-push-image`, `test_image` → `name: test-image`, `scan_image` → `name: scan-image`, `validate_version_files` → `name: validate-version-files`, `release_android` → `name: release-android`, `update_description` → `name: update-dockerhub-description`, `record_image` → `name: record-image-in-scout`, `create_github_release` → `name: create-github-release`).
+- [ ] 1.2 For every job in every workflow, add a `name:` key as a Title Case verb phrase (e.g. `setup` → `name: Read latest release`, `build_image` → `name: Build and push image`, `test_image` → `name: Test image`, `scan_image` → `name: Scan image`, `validate_version_files` → `name: Validate version files`, `release_android` → `name: Release Android`, `update_description` → `name: Update Docker Hub description`, `record_image` → `name: Record image in Scout`, `create_github_release` → `name: Create GitHub release`). The `name:` is the display label; the `jobs.<id>:` key is renamed separately in §2.
 - [ ] 1.3 This commit changes only display names — no `jobs.<id>:` key changes, so no pinned check breaks yet. Confirm CI parses every file.
 
-## 2. Rename job ids to kebab-case (Commit B)
+## 2. Rename job ids (the `jobs.<id>:` YAML keys) to kebab-case (Commit B)
 
 - [ ] 2.1 Enumerate every job id across all workflows (e.g. `build_image`, `test_image`, `scan_image`, `test_gradle`, `validate_version_files`, `validate_generated_config`, `build_docs`, `release_android`, `release_windows`, `update_description`, `record_image`, `create_github_release`, `create_git_tag`, `changelog`). Map each to its kebab-case form.
 - [ ] 2.2 Rename each `jobs.<id>:` key to kebab-case.

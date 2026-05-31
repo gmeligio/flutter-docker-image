@@ -22,11 +22,11 @@ This is convention-by-example, not an official GitHub standard — GitHub's own 
 - **THEN** the filename uses kebab-case and the file declares a Title Case `name:`
 - **AND** if it uses underscores, the PR is corrected at review
 
-### Requirement: Every job declares a kebab-case id and a kebab-case `name:`
+### Requirement: Every job uses a kebab-case id (YAML key) and a Title Case `name:`
 
-Every job under `jobs:` in every workflow SHALL use a kebab-case `<job-id>` key and SHALL declare a `name:` written as a kebab-case verb phrase. Every `needs:` reference, every `${{ needs.<id>.outputs.* }}` expression, and every `github.job` read SHALL be updated to match the kebab-case ids.
+Every job under `jobs:` in every workflow SHALL use a kebab-case `<job-id>` YAML key and SHALL declare a `name:` written as a Title Case verb phrase. Every `needs:` reference, every `${{ needs.<id>.outputs.* }}` expression, and every `github.job` read SHALL be updated to match the kebab-case ids.
 
-The experience context is the maintainer reading the PR checks list and the Actions job graph: each job shows a human-readable label (`build-and-push-image`, `scan-image`) instead of a bare snake_case id, and the `needs:` graph reads consistently in one casing.
+The experience context is the maintainer reading the PR checks list and the Actions job graph: each job shows a human-readable label (`Build and push image`, `Scan image`) instead of a bare snake_case id, and the `needs:` graph reads consistently with kebab-case keys.
 
 #### Scenario: A job id is renamed to kebab-case
 
@@ -39,7 +39,7 @@ The experience context is the maintainer reading the PR checks list and the Acti
 
 - **GIVEN** a workflow run with jobs that declare `name:` keys
 - **WHEN** the maintainer views the run or the PR checks list
-- **THEN** each job displays its kebab-case `name:` (e.g. `scan-image`) rather than the bare job id
+- **THEN** each job displays its Title Case `name:` (e.g. `Scan image`) rather than the bare job id
 
 #### Scenario: A required status check is pinned by job name
 

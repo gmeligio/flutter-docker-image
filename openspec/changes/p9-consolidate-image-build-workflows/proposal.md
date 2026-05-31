@@ -12,8 +12,8 @@ This change is therefore re-scoped to capture the **evidence-backed value** — 
 
 ## What Changes
 
-- **Add a `name:` to every job** in every workflow under `.github/workflows/`, as a kebab-case verb phrase (user-confirmed: job display names use kebab-case, e.g. `name: build-and-push-image`, `name: scan-image`).
-- **Rename every job id to kebab-case** (the `jobs.<id>:` key — used by `needs:`, `github.job`, and branch-protection check pinning), since the user wants repo-wide kebab uniformity. Every `needs:` reference and every `${{ needs.<id>.outputs.* }}` / `github.job` expression is updated in lockstep within the same commit.
+- **Rename every job id (the `jobs.<id>:` YAML key) to kebab-case** — used by `needs:`, `github.job`, and branch-protection check pinning — since the user wants repo-wide kebab uniformity for the keys. Every `needs:` reference and every `${{ needs.<id>.outputs.* }}` / `github.job` expression is updated in lockstep within the same commit.
+- **Add a `name:` to every job** in every workflow under `.github/workflows/`, as a Title Case verb phrase (e.g. `name: Build and push image`, `name: Scan image`) — the human-readable label shown in the Actions checks UI.
 - **Add a top-level `name:` to every workflow file** that lacks one, as a Title Case label for the Actions sidebar (e.g. `name: Build image`).
 - **Merge `changelog.yml` + `tag.yml` into `prepare-release.yml`** — a genuine consolidation: two halves of one logical step (write `changelog.md` → create tag) currently linked only by a fragile `paths: [changelog.md]` push trigger. The merged workflow runs `update-changelog` → `create-tag` via `needs:`, preserving the same App-token identity (`VERIFIED_COMMIT_ID/KEY`) so the tag push still triggers `release.yml` and the ruleset bypass actor (tracked by `p10`) stays valid.
 - **Rename underscore workflow files to kebab-case**: `update_docs.yml` → `update-docs.yml`, `cleanup_pr_image.yml` → `cleanup-pr-image.yml`. Update each file's top-level `name:` and any cross-references.
@@ -23,7 +23,7 @@ This change is therefore re-scoped to capture the **evidence-backed value** — 
 
 ### New Capabilities
 
-- `ci-workflow-readability`: the contract that every workflow file and every job SHALL carry human-readable, consistently-cased names — kebab-case filenames and job ids, a Title Case workflow `name:`, and a kebab-case job `name:` — so the Actions UI and `ls .github/workflows/` are scannable without opening files. This capability also pins the changelog→tag release-prep step as one workflow (`prepare-release.yml`) with a visible two-job graph.
+- `ci-workflow-readability`: the contract that every workflow file and every job SHALL carry human-readable, consistently-cased names — kebab-case filenames and job ids (YAML keys), a Title Case workflow `name:`, and a Title Case job `name:` — so the Actions UI and `ls .github/workflows/` are scannable without opening files. This capability also pins the changelog→tag release-prep step as one workflow (`prepare-release.yml`) with a visible two-job graph.
 
 ### Modified Capabilities
 
