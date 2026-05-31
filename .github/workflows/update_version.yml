@@ -1,3 +1,5 @@
+name: Update version
+
 on:
   schedule:
     - cron: '0 0 * * MON-FRI'
@@ -18,6 +20,7 @@ env:
 jobs:
   # Resolves the bootstrap container tag — the latest published release tag.
   setup:
+    name: Read latest release
     runs-on: ubuntu-24.04
     outputs:
       flutter_version: ${{ steps.read.outputs.version }}
@@ -35,7 +38,8 @@ jobs:
           version=$(gh api "repos/${{ github.repository }}/releases/latest" --jq '.tag_name')
           echo "version=$version" >> "$GITHUB_OUTPUT"
 
-  update_flutter_version:
+  update-flutter-version:
+    name: Update Flutter version
     permissions:
       # Allow to write contents to push commits
       contents: write
@@ -94,11 +98,12 @@ jobs:
           name: flutter_version.json
           path: ${{ env.FLUTTER_VERSION_PATH }}
 
-  update_windows_version:
+  update-windows-version:
+    name: Update Windows version
     permissions:
       contents: write
-    needs: update_flutter_version
-    if: ${{ needs.update_flutter_version.outputs.new_version == 'true' }}
+    needs: update-flutter-version
+    if: ${{ needs.update-flutter-version.outputs.new_version == 'true' }}
     outputs:
       version_artifact_id: ${{ steps.upload-version.outputs.artifact-id }}
       windows_skipped: ${{ steps.release_identity.outputs.matched != 'true' && 'true' || 'false' }}
@@ -115,7 +120,7 @@ jobs:
       - name: Setup mise tools
         uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
 
-      # Parallel pattern with update_android_version: the artifact is downloaded
+      # Parallel pattern with update-android-version: the artifact is downloaded
       # to keep job structure symmetric, even though windows fields are not
       # currently tied to a specific Flutter tag.
       - name: Delete flutter_version.json
@@ -124,7 +129,7 @@ jobs:
       - name: Download artifact with the new Flutter version
         uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         with:
-          artifact-ids: ${{ needs.update_flutter_version.outputs.flutter_version_artifact_id }}
+          artifact-ids: ${{ needs.update-flutter-version.outputs.flutter_version_artifact_id }}
           path: config
 
       - name: Resolve latest Git for Windows version
@@ -207,7 +212,7 @@ jobs:
         run: cue vet config/schema.cue -d '#Version' config/version.json
 
       # The artifact's file is renamed so it doesn't collide with the Android
-      # artifact's version.json in update_docs_and_create_pr's merge step.
+      # artifact's version.json in update-docs-and-create-pr's merge step.
       - name: Stage windows-only artifact
         if: steps.release_identity.outputs.matched == 'true'
         run: cp config/version.json "${RUNNER_TEMP}/version.json.windows"
@@ -233,7 +238,8 @@ jobs:
             channel.json
             vsman.json
 
-  update_android_version:
+  update-android-version:
+    name: Update Android version
     permissions:
       # Allow to write contents to push commits
       contents: write
@@ -241,8 +247,8 @@ jobs:
       packages: read
       # Allow to write pull requests to create a pull request
       pull-requests: write
-    needs: [setup, update_flutter_version]
-    if: ${{ needs.update_flutter_version.outputs.new_version == 'true' }}
+    needs: [setup, update-flutter-version]
+    if: ${{ needs.update-flutter-version.outputs.new_version == 'true' }}
     outputs:
       version_artifact_id: ${{ steps.upload-version.outputs.artifact-id }}
       android_test_artifact_id: ${{ steps.upload-android-test.outputs.artifact-id }}
@@ -271,7 +277,7 @@ jobs:
       - name: Download artifact with the new Flutter version
         uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         with:
-          artifact-ids: ${{ needs.update_flutter_version.outputs.flutter_version_artifact_id }}
+          artifact-ids: ${{ needs.update-flutter-version.outputs.flutter_version_artifact_id }}
           path: config
 
       - name: Copy Flutter version into version manifest and export FLUTTER_* environment variables
@@ -334,8 +340,9 @@ jobs:
           name: android.yml
           path: test/android.yml
 
-  validate_config_version:
-    needs: update_android_version
+  validate-config-version:
+    name: Validate config version
+    needs: update-android-version
     runs-on: ubuntu-24.04
     steps:
       - name: Harden runner
@@ -356,7 +363,7 @@ jobs:
       - name: Download artifact with the new Flutter version
         uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         with:
-          artifact-ids: ${{ needs.update_android_version.outputs.version_artifact_id }}
+          artifact-ids: ${{ needs.update-android-version.outputs.version_artifact_id }}
           path: config
 
       - name: Setup mise tools
@@ -365,21 +372,22 @@ jobs:
       - name: Validate version.json with CUE
         run: cue vet config/schema.cue -d '#Version' config/version.json
 
-  update_docs_and_create_pr:
+  update-docs-and-create-pr:
+    name: Update docs and create PR
     needs:
-      - update_flutter_version
-      - update_android_version
-      - update_windows_version
-      - validate_config_version
-    # Open the PR even when update_windows_version skipped or failed: the
+      - update-flutter-version
+      - update-android-version
+      - update-windows-version
+      - validate-config-version
+    # Open the PR even when update-windows-version skipped or failed: the
     # Android artifact's version.json already carries a valid windows block
     # (from the base-branch checkout), so a missing windows artifact just
     # means the committed windows block is carried forward unchanged.
     if: |
       !cancelled() &&
-      needs.update_flutter_version.result == 'success' &&
-      needs.update_android_version.result == 'success' &&
-      needs.validate_config_version.result == 'success'
+      needs.update-flutter-version.result == 'success' &&
+      needs.update-android-version.result == 'success' &&
+      needs.validate-config-version.result == 'success'
     runs-on: ubuntu-24.04
     env:
       IMAGE_REPOSITORY_NAME: flutter-android
@@ -402,16 +410,16 @@ jobs:
           rm ${{ env.FLUTTER_VERSION_PATH }} config/version.json test/android.yml
 
       # Compose the artifact-ids list with the Windows artifact id appended
-      # only when update_windows_version actually produced one. When the
+      # only when update-windows-version actually produced one. When the
       # Windows job skipped its update, its version_artifact_id output is
       # empty and we omit it from the list (download-artifact rejects empty
       # entries).
       - name: Compose artifact id list
         id: artifact_ids
         env:
-          FLUTTER_ID: ${{ needs.update_flutter_version.outputs.flutter_version_artifact_id }}
-          ANDROID_ID: ${{ needs.update_android_version.outputs.version_artifact_id }}
-          WINDOWS_ID: ${{ needs.update_windows_version.outputs.version_artifact_id }}
+          FLUTTER_ID: ${{ needs.update-flutter-version.outputs.flutter_version_artifact_id }}
+          ANDROID_ID: ${{ needs.update-android-version.outputs.version_artifact_id }}
+          WINDOWS_ID: ${{ needs.update-windows-version.outputs.version_artifact_id }}
         run: |
           ids="${FLUTTER_ID},${ANDROID_ID}"
           if [ -n "${WINDOWS_ID}" ]; then
@@ -432,7 +440,7 @@ jobs:
       # Android's version.json is the base (carries new flutter+android, plus
       # the base-branch windows block); Windows artifact overlays the windows field.
       - name: Merge windows block into version.json
-        if: needs.update_windows_version.outputs.version_artifact_id != ''
+        if: needs.update-windows-version.outputs.version_artifact_id != ''
         run: |
           jq -s '.[0] + {windows: .[1].windows}' config/version.json config/version.json.windows > config/version.json.merged
           mv config/version.json.merged config/version.json
@@ -447,7 +455,7 @@ jobs:
       - name: Download test artifacts
         uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         with:
-          artifact-ids: ${{ needs.update_android_version.outputs.android_test_artifact_id }}
+          artifact-ids: ${{ needs.update-android-version.outputs.android_test_artifact_id }}
           path: test
 
       - name: Setup mise tools
@@ -477,15 +485,15 @@ jobs:
           echo "commit_message=$commit_message" >> "$GITHUB_OUTPUT"
           echo "Commit message: $commit_message"
 
-      # When update_windows_version skipped its update (release-identity
+      # When update-windows-version skipped its update (release-identity
       # mismatch upstream, or any other non-success outcome), surface that
       # in the PR description so the reviewer doesn't have to dig through
       # job logs to learn why the windows block is unchanged this cycle.
       - name: Compose PR body
         id: pr_body
         env:
-          WINDOWS_SKIPPED: ${{ needs.update_windows_version.outputs.windows_skipped }}
-          WINDOWS_RESULT: ${{ needs.update_windows_version.result }}
+          WINDOWS_SKIPPED: ${{ needs.update-windows-version.outputs.windows_skipped }}
+          WINDOWS_RESULT: ${{ needs.update-windows-version.result }}
           WINDOWS_JOB_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           {
@@ -493,7 +501,7 @@ jobs:
             echo "Automated upgrade PR opened by \`update_version.yml\`."
             if [ "${WINDOWS_SKIPPED}" = "true" ] || [ "${WINDOWS_RESULT}" != "success" ]; then
               echo ""
-              echo "**Windows toolchain unchanged this cycle.** See [\`update_windows_version\` job log](${WINDOWS_JOB_URL}) — the committed \`windows\` block in \`config/version.json\` is carried forward unchanged."
+              echo "**Windows toolchain unchanged this cycle.** See [\`update-windows-version\` job log](${WINDOWS_JOB_URL}) — the committed \`windows\` block in \`config/version.json\` is carried forward unchanged."
             fi
             echo "PR_BODY_EOF"
           } >> "$GITHUB_OUTPUT"

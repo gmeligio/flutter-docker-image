@@ -14,6 +14,7 @@ concurrency:
 
 jobs:
   cleanup:
+    name: Cleanup PR image
     # On `delete` events, only act on branch deletions (not tag deletions).
     # `pull_request: closed` is always in scope.
     if: ${{ github.event_name == 'pull_request' || github.event.ref_type == 'branch' }}

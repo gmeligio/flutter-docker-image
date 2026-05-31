@@ -1,3 +1,5 @@
+name: Build
+
 on:
   pull_request:
   workflow_dispatch:
@@ -18,6 +20,7 @@ jobs:
   # image during which main's version.json points to a tag that doesn't
   # exist in GHCR yet.
   setup:
+    name: Read latest release
     runs-on: ubuntu-24.04
     outputs:
       flutter_version: ${{ steps.read.outputs.version }}
@@ -35,7 +38,8 @@ jobs:
           version=$(gh api "repos/${{ github.repository }}/releases/latest" --jq '.tag_name')
           echo "version=$version" >> "$GITHUB_OUTPUT"
 
-  build_image:
+  build-image:
+    name: Build and push image
     permissions:
       packages: write
     runs-on: ubuntu-24.04
@@ -50,7 +54,7 @@ jobs:
       image_artifact: ${{ steps.handoff.outputs.is_fork == 'true' && format('image-{0}', github.run_id) || '' }}
       image_local_tag: ${{ steps.local_tag.outputs.ref }}
       # Digest emitted by buildx Step A for the non-fork push. Consumed by
-      # `scan_image` to scan the GHCR digest via `registry://` so Scout
+      # `scan-image` to scan the GHCR digest via `registry://` so Scout
       # picks up the attached SBOM attestation. Safe from secret-masking
       # because a `sha256:…` value does not contain the DOCKER_HUB_USERNAME
       # secret string. Empty on fork builds (no push, no digest).
@@ -132,7 +136,7 @@ jobs:
 
       # Non-fork path: push the OCI image index with SBOM + max-mode
       # provenance attestations to GHCR. Scout reads the SBOM attestation
-      # via `registry://...@<digest>` in `scan_image`, skipping the
+      # via `registry://...@<digest>` in `scan-image`, skipping the
       # layer-walk indexing step. Attestations also benefit downstream
       # consumers (verifiable provenance, queryable SBOM).
       - name: Build image (push to GHCR with attestations)
@@ -159,7 +163,7 @@ jobs:
 
       # Fork path: forks can't push to GHCR or Docker Hub, so build into
       # the local Docker daemon and hand off via artifact (steps below).
-      # No attestations — `scan_image` is skipped for forks per
+      # No attestations — `scan-image` is skipped for forks per
       # `ci-parallel-image-validation`, so no SBOM is needed.
       - name: Build image (local artifact only)
         if: steps.handoff.outputs.is_fork == 'true'
@@ -186,7 +190,7 @@ jobs:
       # `<owner>/flutter-android:<version>` cannot be passed through.
       #
       # Forks only: non-fork builds push straight to registry (no local
-      # daemon copy exists), and `test_image` pulls from GHCR for non-forks.
+      # daemon copy exists), and `test-image` pulls from GHCR for non-forks.
       - name: Re-tag image for local handoff
         if: steps.handoff.outputs.is_fork == 'true'
         id: local_tag
@@ -208,8 +212,9 @@ jobs:
           retention-days: 1
           compression-level: 0
 
-  test_image:
-    needs: build_image
+  test-image:
+    name: Test image
+    needs: build-image
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -224,21 +229,21 @@ jobs:
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
       - name: Clean runner disk
-        if: needs.build_image.outputs.image_artifact != ''
+        if: needs.build-image.outputs.image_artifact != ''
         uses: ./.github/actions/clean-runner-disk
 
       - name: Download image artifact
-        if: needs.build_image.outputs.image_artifact != ''
+        if: needs.build-image.outputs.image_artifact != ''
         uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         with:
-          name: ${{ needs.build_image.outputs.image_artifact }}
+          name: ${{ needs.build-image.outputs.image_artifact }}
 
       - name: Load image from artifact
-        if: needs.build_image.outputs.image_artifact != ''
+        if: needs.build-image.outputs.image_artifact != ''
         run: gunzip -c image.tar.gz | docker load
 
       - name: Login to GHCR
-        if: needs.build_image.outputs.image_artifact == ''
+        if: needs.build-image.outputs.image_artifact == ''
         uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
         with:
           registry: ghcr.io
@@ -246,17 +251,18 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Pull image from registry
-        if: needs.build_image.outputs.image_artifact == ''
-        run: docker pull "ghcr.io/${{ github.repository_owner }}/flutter-android:${{ needs.build_image.outputs.image_tag }}"
+        if: needs.build-image.outputs.image_artifact == ''
+        run: docker pull "ghcr.io/${{ github.repository_owner }}/flutter-android:${{ needs.build-image.outputs.image_tag }}"
 
       - name: Setup mise tools
         uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
 
       - name: Test image
-        run: container-structure-test test --image "${{ needs.build_image.outputs.image_artifact != '' && needs.build_image.outputs.image_local_tag || format('ghcr.io/{0}/flutter-android:{1}', github.repository_owner, needs.build_image.outputs.image_tag) }}" --config test/android.yml
+        run: container-structure-test test --image "${{ needs.build-image.outputs.image_artifact != '' && needs.build-image.outputs.image_local_tag || format('ghcr.io/{0}/flutter-android:{1}', github.repository_owner, needs.build-image.outputs.image_tag) }}" --config test/android.yml
 
-  scan_image:
-    needs: [setup, build_image]
+  scan-image:
+    name: Scan image
+    needs: [setup, build-image]
     runs-on: ubuntu-24.04
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     permissions:
@@ -300,12 +306,13 @@ jobs:
         uses: docker/scout-action@f8c776824083494ab0d56b8105ba2ca85c86e4de # v1.18.2
         with:
           command: compare
-          image: registry://ghcr.io/${{ github.repository_owner }}/flutter-android@${{ needs.build_image.outputs.image_digest }}
+          image: registry://ghcr.io/${{ github.repository_owner }}/flutter-android@${{ needs.build-image.outputs.image_digest }}
           to: ghcr.io/${{ github.repository_owner }}/flutter-android:${{ needs.setup.outputs.flutter_version }}
           github-token: ${{ github.token }}
           only-fixed: true
 
-  validate_version_files:
+  validate-version-files:
+    name: Validate version files
     runs-on: ubuntu-24.04
     steps:
       - name: Harden runner
@@ -324,7 +331,8 @@ jobs:
           cue vet config/schema.cue -d '#FlutterVersion' config/flutter_version.json
           cue vet config/schema.cue -d '#Version' config/version.json
 
-  validate_generated_config:
+  validate-generated-config:
+    name: Validate generated config
     runs-on: ubuntu-24.04
     steps:
       - name: Harden runner
@@ -347,7 +355,8 @@ jobs:
           git add -A
           git diff --exit-code HEAD
 
-  build_docs:
+  build-docs:
+    name: Build docs
     runs-on: ubuntu-24.04
     steps:
       - name: Harden runner
@@ -381,7 +390,8 @@ jobs:
             docs/windows.md
           retention-days: 14
 
-  test_gradle:
+  test-gradle:
+    name: Test Gradle
     needs: setup
     permissions:
       # Allow to read packages to pull the container image from GitHub Container Registry
