@@ -16,8 +16,7 @@ This change is therefore re-scoped to capture the **evidence-backed value** — 
 - **Add a `name:` to every job** in every workflow under `.github/workflows/`, as a Title Case verb phrase (e.g. `name: Build and push image`, `name: Scan image`) — the human-readable label shown in the Actions checks UI.
 - **Add a top-level `name:` to every workflow file** that lacks one, as a Title Case label for the Actions sidebar (e.g. `name: Build image`).
 - **Merge `changelog.yml` + `tag.yml` into `prepare-release.yml`** — a genuine consolidation: two halves of one logical step (write `changelog.md` → create tag) currently linked only by a fragile `paths: [changelog.md]` push trigger. The merged workflow runs `update-changelog` → `create-tag` via `needs:`, preserving the same App-token identity (`VERIFIED_COMMIT_ID/KEY`) so the tag push still triggers `release.yml` and the ruleset bypass actor (tracked by `p10`) stays valid.
-- **Rename underscore workflow files to kebab-case**: `update_docs.yml` → `update-docs.yml`, `cleanup_pr_image.yml` → `cleanup-pr-image.yml`. Update each file's top-level `name:` and any cross-references.
-- **Defer renaming `update_version.yml`** — it collides with `p12-symmetric-platform-updates`, which is mid-refactor of that file's internals. Renaming it now guarantees a merge conflict. It is renamed in a follow-up after p12 archives.
+- **Rename underscore workflow files to kebab-case**: `update_docs.yml` → `update-docs.yml`, `cleanup_pr_image.yml` → `cleanup-pr-image.yml`, `update_version.yml` → `update-version.yml`. Update each file's top-level `name:`, self-references, docs, and live spec references. (`update_version.yml` was originally going to be deferred for the `p12-symmetric-platform-updates` collision, but the maintainer chose to rename it now; p12's own artifacts still name the old file and will reconcile when p12 rebases.)
 
 ## Capabilities
 
@@ -44,4 +43,4 @@ _None._ Capability spec names already use hyphens.
 - **Risk — branch protection check-name pinning goes stale on job-id renames.** Required status checks are pinned by `<workflow> / <job>` name. Renaming job ids/names breaks those pins until repo settings are updated. Mitigation: enumerate every required check name and update repo settings *before* merge ([[user_solo_maintainer]] pins checks; this is an out-of-band Settings change called out in the verify step).
 - **Risk — `github.job` references break on id rename.** Mitigation: grep for `github.job` and any `needs.<id>` across all workflows and scripts; update in lockstep within the rename commit.
 - **Depends on**: `p7-harden-workflow-permissions` archived (done). Coordinates with `p10-strengthen-branch-protection` (ruleset-as-code references `changelog.yml`/`tag.yml` by name — update those references when merging).
-- **Out of scope**: renaming `update_version.yml` (deferred — p12 collision); any reusable-workflow extraction (dropped); image content; release versioning logic.
+- **Out of scope**: any reusable-workflow extraction (dropped); image content; release versioning logic. (`update_version.yml` is renamed in this change, not deferred — see What Changes.)

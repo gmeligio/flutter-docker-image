@@ -40,7 +40,7 @@ The experience context is the maintainer who merges two PRs within a minute — 
 
 #### Scenario: Two pushes to `main` arrive within seconds of each other
 
-- **GIVEN** two PRs merge to `main` 5 seconds apart, both touching files that trigger `update_version.yml`
+- **GIVEN** two PRs merge to `main` 5 seconds apart, both touching files that trigger `update-version.yml`
 - **WHEN** the workflow runs
 - **THEN** the second run queues (does not start) until the first completes
 - **AND** neither run fails on a tag-already-exists or commit-conflict error

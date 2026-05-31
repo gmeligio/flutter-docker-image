@@ -1,4 +1,10 @@
-## ADDED Requirements
+# ci-workflow-readability Specification
+
+## Purpose
+
+Define the naming and structure conventions that make `.github/workflows/` legible at a glance — kebab-case filenames with Title Case `name:` labels, kebab-case job ids with Title Case job names, and a single release-prep workflow whose changelog→tag path is one visible job graph. The experience context is the maintainer scanning `ls .github/workflows/`, the Actions sidebar, the PR checks list, and the job graph: every convention here turns a derived-from-filename default or a hidden cross-workflow chain into a readable, self-evident label, and a contributor copying a workflow as a template inherits the convention automatically.
+
+## Requirements
 
 ### Requirement: Every workflow file uses a kebab-case filename and a Title Case `name:`
 

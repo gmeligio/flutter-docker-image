@@ -22,7 +22,7 @@
 
 - [x] 4.1 `git mv .github/workflows/update_docs.yml .github/workflows/update-docs.yml`; update its top-level `name:` if needed; grep for references to the old filename and update.
 - [x] 4.2 `git mv .github/workflows/cleanup_pr_image.yml .github/workflows/cleanup-pr-image.yml`; same.
-- [x] 4.3 Do NOT rename `update_version.yml` — deferred until `p12-symmetric-platform-updates` archives (collision with its in-flight internal refactor).
+- [x] 4.3 `git mv .github/workflows/update_version.yml .github/workflows/update-version.yml`; update its self-reference comment, `docs/src/windows.mdx` (+ generated `docs/windows.md`), and live `openspec/specs/*` references. (User opted to rename now rather than defer; `p12-symmetric-platform-updates` artifacts still name the old file and will reconcile on its rebase.)
 - [x] 4.4 Keep renames in their own commit so `git log --follow` traces history.
 
 ## 5. Update external references and repo settings

@@ -10,7 +10,7 @@ The prior revision of this change proposed extracting one reusable `build-image.
 
 Constraints:
 - Solo maintainer; required status checks are pinned by name in the ruleset ([[user_solo_maintainer]]). Renaming job ids/names is a breaking change for those pins.
-- `p12-symmetric-platform-updates` is mid-refactor of `update_version.yml`'s internals — that file must not be renamed here.
+- `p12-symmetric-platform-updates` is mid-refactor of `update_version.yml`'s internals. This change renames that file (maintainer's call) and edits its job ids; p12's artifacts still name the old file and will reconcile on its rebase.
 - `p10-strengthen-branch-protection` captures the ruleset as code and references `changelog.yml`/`tag.yml` by name.
 
 ## Goals / Non-Goals
@@ -22,7 +22,6 @@ Constraints:
 
 **Non-Goals:**
 - Extracting a reusable image-build workflow (dropped — see Context).
-- Renaming `update_version.yml` (deferred to a post-p12 follow-up).
 - Changing image content, cache backends, registry targets, or release versioning logic.
 - Raising any Scorecard finding (this is readability/consolidation, not hardening).
 
@@ -55,7 +54,7 @@ Constraints:
 ## Automated Test Strategy
 
 There is no application code path here; verification is at the workflow level.
-- **Static**: `gx lint` must stay green (no action-pin drift introduced); YAML must parse (GitHub rejects invalid workflow files on push). A repo-wide grep asserts no `_` in any `.github/workflows/*.yml` filename except the deferred `update_version.yml`, and no dangling `needs.<old_id>` / `github.job` reference.
+- **Static**: `gx lint` must stay green (no action-pin drift introduced); YAML must parse (GitHub rejects invalid workflow files on push). A repo-wide grep asserts no `_` in any `.github/workflows/*.yml` filename, and no dangling `needs.<old_id>` / `github.job` reference.
 - **Dynamic (critical path)**: in the draft PR, `workflow_dispatch` `prepare-release.yml` against a branch with a no-op `config/version.json` edit and assert the job graph runs `update-changelog` → `create-tag` and the resulting tag triggers `release.yml`. `workflow_dispatch` each renamed workflow once to confirm it still runs under its new filename.
 - **No new test infrastructure** is introduced.
 
@@ -67,4 +66,4 @@ There is no application code path here; verification is at the workflow level.
 
 ## Open Questions
 
-_None._ The job-id casing question (kebab vs keep-snake) was resolved by the user: kebab-case ids. The `update_version.yml` rename is deferred by design, not unresolved.
+_None._ The job-id casing question (kebab vs keep-snake) was resolved by the user: kebab-case ids. `update_version.yml` is renamed in this change at the maintainer's request (the earlier p12-collision deferral was reversed).

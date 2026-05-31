@@ -498,7 +498,7 @@ jobs:
         run: |
           {
             echo "body<<PR_BODY_EOF"
-            echo "Automated upgrade PR opened by \`update_version.yml\`."
+            echo "Automated upgrade PR opened by \`update-version.yml\`."
             if [ "${WINDOWS_SKIPPED}" = "true" ] || [ "${WINDOWS_RESULT}" != "success" ]; then
               echo ""
               echo "**Windows toolchain unchanged this cycle.** See [\`update-windows-version\` job log](${WINDOWS_JOB_URL}) — the committed \`windows\` block in \`config/version.json\` is carried forward unchanged."
