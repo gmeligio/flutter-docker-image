@@ -18,10 +18,7 @@
 "step-security/harden-runner" = "^2"
 
 # Workflow-security rules enforce the structural properties defined by the
-# `ci-workflow-hardening` capability. Each rule below maps to a requirement in
-# that spec — this block is the single auditable source of that mapping (no
-# SECURITY.md). Severities: load-bearing "pwn request" / least-privilege gates
-# at `error`; hygiene rules at `warn`. The current corpus passes all six.
+# `ci-workflow-hardening` capability. Each rule below maps to a requirement in that spec
 [lint.rules]
 # "Untrusted code is not executed with privileged context" — privileged job
 # checking out PR HEAD. gx.yml's `tidy` job matches the pattern but is
