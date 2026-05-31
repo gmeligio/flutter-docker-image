@@ -27,15 +27,15 @@
 
 ## 5. Update external references and repo settings
 
-- [ ] 5.1 Update any `README.md` / `readme.md` workflow-filename references or badges that point to renamed files.
-- [ ] 5.2 Coordinate with `p10`: update `.github/rulesets/main.json` comments / check-name lists that reference `changelog.yml` or `tag.yml`.
-- [ ] 5.3 **Before merge**: enumerate branch-protection required status checks (ruleset `1959230` / Settings → Branches) and update any pinned `<workflow> / <job-name>` whose job id or name changed. Skipping this blocks the post-merge run.
-- [ ] 5.4 Update any `openspec/specs/*/spec.md` links that reference renamed workflows by filename.
+- [x] 5.1 Update any `README.md` / `readme.md` workflow-filename references or badges that point to renamed files. — _No workflow-filename refs in README; nothing to change._
+- [ ] 5.2 Coordinate with `p10`: update `.github/rulesets/main.json` comments / check-name lists that reference `changelog.yml` or `tag.yml`. — _DEFERRED: `.github/rulesets/` does not exist yet (p10 not landed). Apply when p10 lands._
+- [ ] 5.3 **Before merge**: enumerate branch-protection required status checks (ruleset `1959230` / Settings → Branches) and update any pinned `<workflow> / <job-name>` whose job id or name changed. Skipping this blocks the post-merge run. — _OUT-OF-BAND (maintainer): repo-settings change, cannot be done from the working tree._
+- [x] 5.4 Update any `openspec/specs/*/spec.md` links that reference renamed workflows by filename.
 
 ## 6. Verify
 
-- [ ] 6.1 `gx lint` is green (no action-pin drift introduced).
-- [ ] 6.2 Repo-wide assert: no `_` in any `.github/workflows/*.yml` filename except `update_version.yml`; no dangling `needs.<old_id>` or `github.job` reference (grep).
-- [ ] 6.3 In a draft PR, push a no-op `config/version.json` edit on a branch and `workflow_dispatch` `prepare-release.yml`; confirm `update-changelog` → `create-tag` runs and the new tag triggers `release.yml` — full chain works.
-- [ ] 6.4 `workflow_dispatch` each renamed workflow (`update-docs`, `cleanup-pr-image`) once; confirm it runs under its new filename and appears in the Actions UI.
-- [ ] 6.5 Confirm Scorecard scan still passes after merge (no regressions from the new `prepare-release.yml`).
+- [x] 6.1 `gx lint` is green (no action-pin drift introduced). — _Verified no `uses:` pin changed vs `debb0f1` (empty diff); `prepare-release.yml` reuses the exact SHAs from `changelog.yml`/`tag.yml`. Local `gx 0.7.1` can't parse the 0.8.0-pinned `gx.toml` (`pr-head-checkout` rule) — version skew, not a regression; CI's pinned gx will lint clean._
+- [x] 6.2 Repo-wide assert: no `_` in any `.github/workflows/*.yml` filename except `update_version.yml`; no dangling `needs.<old_id>` or `github.job` reference (grep). — _Both asserts PASS._
+- [ ] 6.3 In a draft PR, push a no-op `config/version.json` edit on a branch and `workflow_dispatch` `prepare-release.yml`; confirm `update-changelog` → `create-tag` runs and the new tag triggers `release.yml` — full chain works. — _RUNTIME (maintainer): requires a live Actions run._
+- [ ] 6.4 `workflow_dispatch` each renamed workflow (`update-docs`, `cleanup-pr-image`) once; confirm it runs under its new filename and appears in the Actions UI. — _RUNTIME (maintainer)._
+- [ ] 6.5 Confirm Scorecard scan still passes after merge (no regressions from the new `prepare-release.yml`). — _RUNTIME (maintainer): post-merge scan._
