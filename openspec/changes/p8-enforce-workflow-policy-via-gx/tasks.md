@@ -1,12 +1,12 @@
 ## 1. Bump the pinned gx version
 
-- [x] 1.1 Update the `gx` pin in `mise.toml` from `0.7.1` to `0.7.2` (`"github:gmeligio/gx" = "0.7.2"`). (Pin lives in repo-root `mise.toml`, not `.config/mise/config.toml`.)
-- [x] 1.2 Run `mise install` locally; confirm `gx --version` reports `0.7.2`. (`mise exec -- gx --version` → `gx 0.7.2`.)
+- [x] 1.1 Update the `gx` pin in `mise.toml` to the release that ships the rules (`"github:gmeligio/gx" = "0.8.0"`). (Pin lives in repo-root `mise.toml`, not `.config/mise/config.toml`. Initially bumped to 0.7.2; upgraded to 0.8.0 once that release shipped 2026-05-31.)
+- [x] 1.2 Run `mise install` locally; confirm `gx --version` reports the pinned version. (`mise exec -- gx --version` → `gx 0.8.0`. mise needs `GITHUB_TOKEN="$(gh auth token)"` to avoid the unauthenticated GitHub rate limit.)
 - [x] 1.3 Run `gx tidy` locally; if any workflow file or `.github/gx.lock` changes (e.g., comment formatting, re-resolution), commit the result as a separate "chore(deps): gx tidy after version bump" commit. (`gx tidy` → "Up to date"; no drift, no separate commit.)
 
 ## 2. Configure the new rules in `.github/gx.toml`
 
-- [x] 2.1 Add a `[lint.rules]` section with explicit entries for the six workflow-security rules. Set severities: `missing-permissions = { level = "error" }`, `dangerous-trigger = { level = "error" }`, `unprotected-secrets = { level = "error" }`, `pr-head-checkout` at `error` with the scoped ignore (task 2.2), `excessive-permissions = { level = "warn" }`, `missing-concurrency = { level = "warn" }`. Add a comment above each entry naming the `ci-workflow-hardening` requirement it enforces (the rule→requirement mapping lives here, NOT in any SECURITY.md).
+- [x] 2.1 Configure the workflow-security rules in `.github/gx.toml`'s `[lint.rules]`. Final config keeps only the `pr-head-checkout` override (needed for the `gx.yml` ignore, task 2.2) and relies on gx 0.8.0 defaults for the other five — those defaults are: `missing-permissions`, `dangerous-trigger`, `unprotected-secrets`, `excessive-permissions` → `error`; `missing-concurrency` → `warn`. (Under gx 0.8.0's breaking change, `excessive-permissions` now defaults to `error` — the corpus passes it, so no explicit override needed. The rule→requirement mapping lives in `gx.toml` comments, NOT in any SECURITY.md.)
 - [x] 2.2 Add the one known scoped ignore for the repo's own gx workflow:
   ```toml
   pr-head-checkout = { level = "error", ignore = [
