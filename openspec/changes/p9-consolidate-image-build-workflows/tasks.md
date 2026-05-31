@@ -20,10 +20,10 @@
 
 ## 4. Rename underscore workflow files (Commit D)
 
-- [ ] 4.1 `git mv .github/workflows/update_docs.yml .github/workflows/update-docs.yml`; update its top-level `name:` if needed; grep for references to the old filename and update.
-- [ ] 4.2 `git mv .github/workflows/cleanup_pr_image.yml .github/workflows/cleanup-pr-image.yml`; same.
-- [ ] 4.3 Do NOT rename `update_version.yml` — deferred until `p12-symmetric-platform-updates` archives (collision with its in-flight internal refactor).
-- [ ] 4.4 Keep renames in their own commit so `git log --follow` traces history.
+- [x] 4.1 `git mv .github/workflows/update_docs.yml .github/workflows/update-docs.yml`; update its top-level `name:` if needed; grep for references to the old filename and update.
+- [x] 4.2 `git mv .github/workflows/cleanup_pr_image.yml .github/workflows/cleanup-pr-image.yml`; same.
+- [x] 4.3 Do NOT rename `update_version.yml` — deferred until `p12-symmetric-platform-updates` archives (collision with its in-flight internal refactor).
+- [x] 4.4 Keep renames in their own commit so `git log --follow` traces history.
 
 ## 5. Update external references and repo settings
 
