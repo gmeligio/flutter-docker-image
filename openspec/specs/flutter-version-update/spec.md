@@ -2,11 +2,11 @@
 
 ## Purpose
 
-The scheduled `update_version.yml` workflow opens monthly upgrade pull requests that bump the pinned Flutter stable release together with the Android and Windows toolchain blocks in `config/version.json`. The capability covers when an upgrade PR opens, what the PR's `version.json` must contain to be coherent and schema-valid, how each producer job validates its own output before handoff, how producer-job failure surfaces in the Actions tab, and how partial-update cycles (Windows-skip, Android-skip) carry the corresponding block forward from the base branch unchanged.
+The scheduled `update-version.yml` workflow opens monthly upgrade pull requests that bump the pinned Flutter stable release together with the Android and Windows toolchain blocks in `config/version.json`. The capability covers when an upgrade PR opens, what the PR's `version.json` must contain to be coherent and schema-valid, how each producer job validates its own output before handoff, how producer-job failure surfaces in the Actions tab, and how partial-update cycles (Windows-skip, Android-skip) carry the corresponding block forward from the base branch unchanged.
 ## Requirements
 ### Requirement: Scheduled run opens an upgrade PR when a new stable Flutter is released
 
-The `update_version.yml` workflow SHALL open exactly one pull request titled `chore(release): upgrade flutter to <version>` whenever the latest entry in `https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json` matching the stable channel and a `\d+.\d+.\d+` version differs from the version currently pinned in `config/flutter_version.json`.
+The `update-version.yml` workflow SHALL open exactly one pull request titled `chore(release): upgrade flutter to <version>` whenever the latest entry in `https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json` matching the stable channel and a `\d+.\d+.\d+` version differs from the version currently pinned in `config/flutter_version.json`.
 
 The experience context is the CI engineer who watches this repository for upgrade PRs to merge into their image fork.
 
@@ -14,7 +14,7 @@ The experience context is the CI engineer who watches this repository for upgrad
 
 - **GIVEN** `config/flutter_version.json` pins Flutter `X.Y.Z`
 - **AND** the latest stable release in `releases_linux.json` is `X.Y.Z+1`
-- **WHEN** the scheduled run of `update_version.yml` executes
+- **WHEN** the scheduled run of `update-version.yml` executes
 - **THEN** a branch `update-flutter-dependencies/X.Y.Z+1` is pushed
 - **AND** a pull request is opened with title `chore(release): upgrade flutter to X.Y.Z+1`
 - **AND** the commit message on that PR equals the title (non-empty)
@@ -22,7 +22,7 @@ The experience context is the CI engineer who watches this repository for upgrad
 #### Scenario: No upstream change since last run
 
 - **GIVEN** `config/flutter_version.json` already pins the latest stable Flutter version
-- **WHEN** the scheduled run of `update_version.yml` executes
+- **WHEN** the scheduled run of `update-version.yml` executes
 - **THEN** no branch is created
 - **AND** no pull request is opened
 - **AND** all jobs after `update_flutter_version` are skipped
@@ -82,7 +82,7 @@ The experience context is the CI engineer reviewing or merging the upgrade PR. T
 
 ### Requirement: Producer jobs validate their own `version.json` before upload
 
-Each job in `update_version.yml` that writes to `config/version.json` and uploads it as an artifact SHALL run `cue vet config/schema.cue -d '#Version' config/version.json` (or `-d '#FlutterVersion'` for the flutter-only artifact) immediately before the upload step and SHALL fail that job on validation error.
+Each job in `update-version.yml` that writes to `config/version.json` and uploads it as an artifact SHALL run `cue vet config/schema.cue -d '#Version' config/version.json` (or `-d '#FlutterVersion'` for the flutter-only artifact) immediately before the upload step and SHALL fail that job on validation error.
 
 The experience context is the CI engineer triaging a failed scheduled run — they see the failing job pointing at the step that produced the bad data, rather than a downstream `validate_config_version` failure that blames the schema without naming the producer.
 

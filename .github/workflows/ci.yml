@@ -1,3 +1,5 @@
+name: CI
+
 on:
   push:
     branches:
@@ -20,7 +22,8 @@ env:
   VERSION_MANIFEST: config/version.json
 
 jobs:
-  test_image:
+  test-image:
+    name: Test image
     runs-on: ubuntu-24.04
     env:
       ANDROID_BUILD_TOOLS_VERSION: 30.0.3

@@ -1,3 +1,5 @@
+name: gx
+
 on:
   pull_request:
     paths:
@@ -17,6 +19,7 @@ concurrency:
 
 jobs:
   lint:
+    name: Lint workflows
     runs-on: ubuntu-24.04
     steps:
       - name: Harden runner
@@ -36,6 +39,7 @@ jobs:
         run: gx lint
 
   tidy:
+    name: Tidy lockfile
     # Skip PRs from forks: the App token below is scoped to the upstream repo
     # and the fork branch is on the contributor's repo, so the push would fail.
     # Those PRs still get lint feedback and must run `gx tidy` locally.

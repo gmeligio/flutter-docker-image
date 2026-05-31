@@ -8,7 +8,7 @@
 
 ## Toolchain versions
 
-Windows toolchain versions (Git for Windows, Visual Studio BuildTools components, Windows 11 SDK build) are pinned in `config/version.json` under the `windows` block and validated by `config/schema.cue`. The `update_version.yml` workflow refreshes these alongside Flutter and Android in the monthly upgrade PR, and the Pester suite asserts the installed image matches the manifest on every CI run.
+Windows toolchain versions (Git for Windows, Visual Studio BuildTools components, Windows 11 SDK build) are pinned in `config/version.json` under the `windows` block and validated by `config/schema.cue`. The `update-version.yml` workflow refreshes these alongside Flutter and Android in the monthly upgrade PR, and the Pester suite asserts the installed image matches the manifest on every CI run.
 
 ## TODO
 

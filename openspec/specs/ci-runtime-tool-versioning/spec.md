@@ -129,7 +129,7 @@ The `docs/src` MDX→Markdown build SHALL invoke `pnpm` (not `npm`, `yarn`, or `
 
 #### Scenario: CI workflow builds the docs
 
-- **GIVEN** any of `build.yml`, `update_docs.yml`, or `update_version.yml` runs the docs-build step
+- **GIVEN** any of `build.yml`, `update-docs.yml`, or `update-version.yml` runs the docs-build step
 - **WHEN** the build job executes
 - **THEN** the step body is exactly `pnpm install --frozen-lockfile` followed by `pnpm run build`, preceded by a `jdx/mise-action@<pinned>` bootstrap step
 - **AND** the step does not invoke `npm`, `corepack`, or `pnpm/action-setup` anywhere

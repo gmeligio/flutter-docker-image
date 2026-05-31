@@ -1,3 +1,5 @@
+name: Windows
+
 on:
   pull_request:
   workflow_dispatch:
@@ -11,7 +13,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test_windows:
+  test-windows:
+    name: Test Windows image
     runs-on: windows-2025
     env:
       IMAGE_REPOSITORY_NAME: flutter-windows

@@ -80,7 +80,7 @@ The experience context is the reviewer of an upgrade PR: any drift between the m
 
 ### Requirement: Monthly upgrade PR includes Windows toolchain updates
 
-The `update_version.yml` workflow SHALL include a job (`update_windows_version`) that attempts to update the `windows` block in `config/version.json` whenever it runs. The job SHALL:
+The `update-version.yml` workflow SHALL include a job (`update_windows_version`) that attempts to update the `windows` block in `config/version.json` whenever it runs. The job SHALL:
 
 - read the latest Git for Windows release from `https://api.github.com/repos/git-for-windows/git/releases/latest` and write the resolved version to `windows.git.version`,
 - read VS BuildTools component versions from Microsoft's VS catalog manifest (`VisualStudio.vsman`) reached via the channel manifest at `https://aka.ms/vs/17/release/channel`,
@@ -95,7 +95,7 @@ The experience context is the maintainer reviewing the monthly upgrade PR. They 
 
 #### Scenario: Monthly run produces a Windows-aware upgrade PR
 
-- **GIVEN** a scheduled run of `update_version.yml` where Flutter has a new stable
+- **GIVEN** a scheduled run of `update-version.yml` where Flutter has a new stable
 - **AND** Git for Windows has a new release since the last run
 - **AND** `channel.json.info.productSemanticVersion == vsman.json.info.productSemanticVersion`
 - **WHEN** the workflow opens its upgrade PR
@@ -111,7 +111,7 @@ The experience context is the maintainer reviewing the monthly upgrade PR. They 
 
 #### Scenario: Microsoft's channel and vsman disagree on release identity
 
-- **GIVEN** a scheduled run of `update_version.yml`
+- **GIVEN** a scheduled run of `update-version.yml`
 - **AND** Microsoft serves a `channel.json` whose `info.productSemanticVersion` does not equal the `info.productSemanticVersion` in the `vsman.json` reachable from `channel.json.channelItems[…].payloads[0].url`
 - **WHEN** `update_windows_version` runs its release-identity check
 - **THEN** the job emits a `::warning::` annotation naming both versions
@@ -130,7 +130,7 @@ The experience context is the maintainer reviewing the monthly upgrade PR. They 
 
 #### Scenario: Forensic manifests are preserved on every run
 
-- **GIVEN** any run of `update_version.yml`
+- **GIVEN** any run of `update-version.yml`
 - **WHEN** `update_windows_version` completes (whether success or skip)
 - **THEN** a `vs-manifests` workflow artifact is uploaded containing the `channel.json` and `vsman.json` the job fetched
 - **AND** the artifact is available for at least 90 days for retroactive inspection

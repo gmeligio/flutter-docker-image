@@ -1,3 +1,5 @@
+name: Release
+
 on:
   push:
     tags:
@@ -17,7 +19,8 @@ env:
   FLUTTER_VERSION: ${{ github.ref_name }}
 
 jobs:
-  release_android:
+  release-android:
+    name: Release Android
     if: github.event_name == 'push'
     permissions:
       # Allow to write packages to push the container image to the Github Container Registry
@@ -101,7 +104,8 @@ jobs:
             android_ndk_version=${{ env.ANDROID_NDK_VERSION }}
             cmake_version=${{ env.CMAKE_VERSION }}
 
-  release_windows:
+  release-windows:
+    name: Release Windows
     permissions:
       # Allow to write packages to push the container image to the Github Container Registry
       packages: write
@@ -186,9 +190,10 @@ jobs:
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           }
 
-  update_description:
+  update-description:
+    name: Update Docker Hub description
     runs-on: ubuntu-24.04
-    needs: release_android
+    needs: release-android
     env:
       IMAGE_REPOSITORY_NAME: flutter-android
       VERSION_MANIFEST: config/version.json
@@ -221,12 +226,13 @@ jobs:
           short-description: ${{ github.event.repository.description }}
           readme-filepath: readme.md
 
-  record_image:
+  record-image:
+    name: Record image in Scout
     permissions:
       # Allow to write code scanning results to GitHub's code scanning dashboard
       security-events: write
     runs-on: ubuntu-24.04
-    needs: release_android
+    needs: release-android
     env:
       IMAGE_REPOSITORY_NAME: flutter-android
     steps:
@@ -259,12 +265,13 @@ jobs:
         with:
           sarif_file: sarif.json
 
-  create_github_release:
+  create-github-release:
+    name: Create GitHub release
     permissions:
       # Allow to create releases and upload assets to them
       contents: write
     runs-on: ubuntu-24.04
-    needs: release_android
+    needs: release-android
     steps:
       - name: Harden runner
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
