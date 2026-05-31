@@ -13,10 +13,10 @@
 
 ## 3. Merge changelog + tag into prepare-release (Commit C)
 
-- [ ] 3.1 Create `.github/workflows/prepare-release.yml` with `name: Prepare release`, trigger `on: push: { branches: [main], paths: [config/version.json] }` plus `workflow_dispatch` — the SAME trigger as today's `changelog.yml` (NOT the `changelog.md` trigger from `tag.yml`).
-- [ ] 3.2 Job `update-changelog` (`name: update-changelog`): lift the steps from `changelog.yml`'s `changelog` job verbatim (harden-runner, checkout with fetch-depth 0 + tags, mise, setEnvironmentVariables, git-cliff, App-token, commit-and-push).
-- [ ] 3.3 Job `create-tag` (`name: create-tag`) with `needs: update-changelog`: lift the steps from `tag.yml`'s `create_git_tag` job (App-token, setEnvironmentVariables, createGitTag.js). The `needs:` edge replaces the `changelog.md` push trigger.
-- [ ] 3.4 `git rm` `changelog.yml` and `tag.yml`.
+- [x] 3.1 Create `.github/workflows/prepare-release.yml` with `name: Prepare release`, trigger `on: push: { branches: [main], paths: [config/version.json] }` plus `workflow_dispatch` — the SAME trigger as today's `changelog.yml` (NOT the `changelog.md` trigger from `tag.yml`).
+- [x] 3.2 Job `update-changelog` (`name: update-changelog`): lift the steps from `changelog.yml`'s `changelog` job verbatim (harden-runner, checkout with fetch-depth 0 + tags, mise, setEnvironmentVariables, git-cliff, App-token, commit-and-push).
+- [x] 3.3 Job `create-tag` (`name: create-tag`) with `needs: update-changelog`: lift the steps from `tag.yml`'s `create_git_tag` job (App-token, setEnvironmentVariables, createGitTag.js). The `needs:` edge replaces the `changelog.md` push trigger.
+- [x] 3.4 `git rm` `changelog.yml` and `tag.yml`.
 
 ## 4. Rename underscore workflow files (Commit D)
 
