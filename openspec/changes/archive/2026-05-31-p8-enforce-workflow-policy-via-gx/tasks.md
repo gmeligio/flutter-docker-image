@@ -43,4 +43,4 @@
 
 ## 7. Archive
 
-- [ ] 7.1 Archive this change via `/opsx:archive p8-enforce-workflow-policy-via-gx` once CI is green.
+- [x] 7.1 Archive this change via `/opsx:archive p8-enforce-workflow-policy-via-gx` once CI is green. (PR #476 all checks green on gx 0.8.0.)
