@@ -6,8 +6,8 @@
 
 ## 2. Route docs through a PR (update-docs.yml)
 
-- [ ] 2.1 Replace the `github-api-commit-action` direct push (`update-docs.yml:50-56`) with `peter-evans/create-pull-request@v7` (App token, `sign-commits: true`) on a branch like `docs/regenerate-${{ github.sha }}`.
-- [ ] 2.2 Enable auto-merge on the docs PR (`gh pr merge --auto --squash`). Keep `success-if-no-changes` behavior: if the build produced no diff, open no PR.
+- [x] 2.1 Replace the `github-api-commit-action` direct push (`update-docs.yml:50-56`) with `peter-evans/create-pull-request@v7` (App token, `sign-commits: true`) on a branch like `docs/regenerate-${{ github.sha }}`.
+- [x] 2.2 Enable auto-merge on the docs PR (`gh pr merge --auto --squash`). Keep `success-if-no-changes` behavior: if the build produced no diff, open no PR.
 
 ## 3. Enable Renovate auto-merge (renovate.json)
 

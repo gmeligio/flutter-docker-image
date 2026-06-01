@@ -11,7 +11,7 @@ on:
 permissions:
   contents: read
 
-# Pushes a commit on main; serialize to avoid two pushes racing.
+# Opens a PR on main (no direct push); serialize to avoid two runs racing.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
@@ -47,10 +47,23 @@ jobs:
           repositories: ${{ github.event.repository.name }}
           owner: ${{ github.repository_owner }}
 
-      - name: Commit and push regenerated documentation
-        uses: grafana/github-api-commit-action@b1d81091e8480dd11fcea8bc1f0ab977a0376ca5 # v1.0.0
+      - name: Open documentation pull request
+        id: cpr
+        uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7.0.11
         with:
-          commit-message: 'docs: regenerate documentation files'
-          success-if-no-changes: true
-          stage-all-files: true
           token: ${{ steps.app-token.outputs.token }}
+          sign-commits: true
+          branch: docs/regenerate-${{ github.sha }}
+          commit-message: 'docs: regenerate documentation files'
+          title: 'docs: regenerate documentation files'
+          body: |
+            Regenerated documentation from `docs/src/**`.
+          # No PR is opened when the build produced no diff (create-pull-request
+          # is a no-op on an empty changeset), preserving the prior
+          # success-if-no-changes behavior.
+
+      - name: Enable auto-merge on the documentation pull request
+        if: steps.cpr.outputs.pull-request-number
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: gh pr merge --auto --squash "${{ steps.cpr.outputs.pull-request-number }}"
