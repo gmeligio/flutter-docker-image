@@ -12,7 +12,7 @@ Two workflows currently push directly to `main`, relying on the ruleset's bypass
         → createGitTag.js → refs/tags/X.Y.Z → release.yml (push: tags)
 ```
 
-The release chain has a subtle coupling: `create-tag` runs after `update-changelog` via a `needs:` edge **within the same workflow run**, and tags the changelog commit's SHA. `release.yml` then fires on the tag push. We must preserve "tag is created only after the changelog content is on `main`" while changing *how* the changelog lands (PR + merge instead of direct push).
+Key fact established during design: **the committed `changelog.md` is documentation only — nothing reads it.** `release.yml` regenerates its own changelog from git history at release time (`release.yml:301`) for the GitHub Release body, and `ci.yml` ignores `changelog.md` via `paths-ignore`. So there is no ordering requirement that the changelog be committed before the tag — it can be generated in the same PR that bumps `config/version.json`. `config/version.json` is the single source of truth for "is there a release?"; the changelog rides along as documentation.
 
 The ruleset is managed as code in an external repository; bypass-actor removal happens there, not in this repo.
 
@@ -31,19 +31,18 @@ The ruleset is managed as code in an external repository; bypass-actor removal h
 
 ## Decisions
 
-### D1: changelog lands via an auto-merged PR, and tagging moves off the in-run `needs:` edge
+### D1: the changelog is generated in the version-bump PR; `prepare-release.yml` only tags
 
-`update-changelog` opens a PR with `peter-evans/create-pull-request` (App token, `sign-commits: true`) instead of pushing. Auto-merge is enabled on that PR (`gh pr merge --auto --squash` with the App token, since `create-pull-request` has no native auto-merge input).
+Because the committed changelog gates nothing (see Context), it does not need to land before the tag. `update-version.yml` — which already computes the new version and opens the version-bump PR — gains a `git-cliff --tag <new-version>` step that regenerates `changelog.md`. `create-pull-request` already stages all changes, so the changelog rides in the same PR as `config/version.json`. `git-cliff --tag` takes the version as an argument and does not require the tag to exist yet, so there is no chicken-and-egg.
 
-The tag must be created from the **merged** changelog commit on `main`, not chained in the same run via `needs:`. Two viable shapes:
+`prepare-release.yml` then collapses to a single job: triggered by a push to `main` touching `config/version.json` (the merged version-bump), read the version, create the tag. No changelog generation, no PR, no second pass, no direct push.
 
-- **D1a (chosen): two-pass, same workflow, gated jobs, triggered by both paths.** `prepare-release.yml` triggers on push to `main` for **either** `config/version.json` **or** `changelog.md`. Pass 1 (version.json changed): the `update-changelog` job runs and opens the changelog PR; `create-tag` is skipped. Pass 2 (changelog.md merged to `main`): `update-changelog` is skipped and `create-tag` runs, tagging the merged `main` SHA that now includes the changelog. Each job is gated with an `if:` keyed on which file the push changed (derived from `dorny/paths-filter` or a `git diff` against the before-SHA / the changed-files API). `createGitTag.js` is idempotent (`createGitTag.js:9-19` no-ops if the tag exists), so an accidental re-entry is safe.
+Alternatives considered and rejected:
 
-  > **Why the trigger is `changelog.md`, not `config/version.json`:** the changelog PR changes `changelog.md`, so merging it only re-enters the workflow if `changelog.md` is in the path filter. A naive "re-enter on version.json" would never fire on the changelog merge and the tag would never be created.
+- **D1a (two-pass / changelog-triggered tag):** keep changelog generation in `prepare-release.yml`, open a changelog PR, and tag on its merge. Rejected: this only existed to preserve a "changelog before tag" ordering that does not actually matter (the changelog gates nothing), and it added a `detect` job, a second trigger path (`changelog.md`), and reliance on tag-idempotency to absorb spurious changelog-only triggers. Folding the changelog into the version PR is strictly simpler and removes `changelog.md` from the trigger surface entirely.
+- **D1b (poll for merge in-run):** blocks a runner on an async merge. Rejected.
 
-- **D1b (rejected): poll/wait for the PR to merge inside the same run.** Keeps one pass but blocks a runner waiting on merge + checks; fragile and wasteful.
-
-**Why D1a over D1b:** GitHub's model is event-driven; waiting in-run for an async merge is an anti-pattern. Splitting into two passes keyed on the changed file matches how `release.yml` already keys off the tag push, and avoids a blocked runner.
+This also implements the existing `# TODO` at `update-version.yml:518` ("Generate changelog for the new flutter version, that will be the new tag").
 
 ### D2: docs land via an auto-merged PR
 
@@ -61,36 +60,37 @@ The ruleset's `bypass_actors` entry is removed in the external ruleset code as p
 
 The critical path is the release chain end-to-end; it has no unit-testable surface, so verification is operational:
 
-- **Dry-run the changelog PR flow** by dispatching `prepare-release.yml` via `workflow_dispatch` and confirming: a PR opens (not a direct push), required checks run on it, auto-merge merges it, and the tag job then fires and creates `refs/tags/X.Y.Z` pointing at the merged commit.
-- **Confirm `release.yml` triggers** off that tag push (it already keys on `push: tags: ['*']`).
-- **Renovate**: confirm the next Renovate PR auto-merges on green and a failing-check PR does not (the `platformAutomerge` safety precondition).
+- **Version-bump PR carries the changelog**: dispatch `update-version.yml` (or wait for the schedule) and confirm the opened PR includes a regenerated `changelog.md` for the new version alongside `config/version.json`.
+- **Tag-on-merge**: merge a version-bump PR and confirm `prepare-release.yml` creates `refs/tags/X.Y.Z` from the merged commit without pushing any commit, and that `release.yml` then fires (`push: tags: ['*']`).
+- **No spurious release**: confirm that a change to `changelog.md` alone (no version change) does not produce a tag (`createGitTag.js` no-ops on an already-tagged version) — and note `prepare-release.yml` no longer triggers on `changelog.md` at all.
+- **Renovate**: confirm the next Renovate PR auto-merges on green and a failing-check PR does not.
 - **Negative test**: after bypass removal, confirm any residual direct-push attempt is rejected by the ruleset.
 
 No new test infrastructure; these are CI observations recorded in tasks.
 
 ## Observability
 
-- Each workflow logs the PR number it opened and the auto-merge enablement to the run summary, so a failed release is traceable to the step that broke (PR open vs. merge vs. tag).
+- The docs PR's number and auto-merge enablement are logged to the run summary, so a stuck docs update is traceable.
 - `createGitTag.js` already no-ops idempotently; it should log whether it created or skipped the tag so a missing release is diagnosable.
-- Failure is **not** silent: if the changelog PR's checks fail, the PR stays open (visible in the PR list) and no tag is created, so `release.yml` simply doesn't run — an absent release is the signal. The risk to guard against is a *silently stuck* PR (open, never merged); the run summary's PR link makes that visible.
+- Failure is **not** silent: if a version-bump PR's checks fail, the PR stays open (visible in the PR list) and nothing merges, so no tag and no release — an absent release is the signal. `prepare-release.yml` only ever runs on a merged version change, so it cannot tag a version that wasn't reviewed.
 
 ## Risks / Trade-offs
 
-- **[Release chain breaks: tag created before changelog is on `main`]** → D1a tags the post-merge `main` SHA, so the changelog is always present first; `createGitTag.js` idempotency makes re-trigger safe.
+- **[Changelog drifts from the tagged commit]** → not a real risk: the changelog is generated for the new version inside the same PR that bumps it, so the merged commit already contains the matching changelog. `release.yml` regenerates Release notes from history independently anyway.
+- **[Spurious release from a changelog edit]** → removed: `prepare-release.yml` no longer triggers on `changelog.md`, only on `config/version.json`; and `createGitTag.js` no-ops on an already-tagged version.
 - **[Mid-rollout gap: bypass removed while a workflow still pushes directly]** → D4 sequences bypass removal *after* a verified PR-based release.
 - **[`platformAutomerge` merges a failing PR]** → not reachable (5 required checks present); the renovate change must not remove that precondition.
-- **[Extra latency per release/docs update]** → accepted: one CI round-trip and a brief open-PR window, in exchange for no unreviewed writes to `main`.
-- **[App-token PR does not trigger required checks]** → not a risk: the App token is distinct from `GITHUB_TOKEN`, so its PRs trigger workflows normally (unlike `GITHUB_TOKEN`-authored PRs).
+- **[App-token PR / tag does not trigger workflows]** → not a risk: the App token is distinct from `GITHUB_TOKEN`, so its PRs and tag pushes trigger workflows normally.
 
 ## Migration Plan
 
-1. Land the `prepare-release.yml`, `update-docs.yml`, `renovate.json` changes via PR.
-2. Verify a full release completes through the PR flow (dispatch or next real version bump).
+1. Land the `update-version.yml`, `prepare-release.yml`, `update-docs.yml`, `renovate.json` changes via PR.
+2. Verify a full release completes through the PR flow (dispatch `update-version.yml` or next real version bump → merge → tag → release).
 3. Remove the `bypass_actors` entry in the external ruleset code.
 4. Confirm a subsequent direct-push attempt is rejected and releases still succeed.
 
-Rollback: restore the `bypass_actors` entry externally and revert the two workflows to the `github-api-commit-action` direct push.
+Rollback: restore the `bypass_actors` entry externally and revert the workflows to the `github-api-commit-action` direct push.
 
 ## Open Questions
 
-- **Does `release.yml`'s `push: tags: ['*']` fire when the tag is created via the App token from a non-`prepare-release` event?** Expected yes (App token ≠ `GITHUB_TOKEN`, so tag pushes trigger workflows), but confirm during the verification release before removing the bypass.
+- **Does `release.yml`'s `push: tags: ['*']` fire when the tag is created via the App token?** Expected yes (App token ≠ `GITHUB_TOKEN`, so tag pushes trigger workflows), but confirm during the verification release before removing the bypass.

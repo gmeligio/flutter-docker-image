@@ -6,13 +6,20 @@ No workflow SHALL push commits directly to `~DEFAULT_BRANCH`. Every change that 
 
 The experience context is the maintainer trusting that the protected branch's history reflects only reviewed-or-gated changes: there is no side channel by which a workflow mutates `main` without passing the same checks a human PR passes.
 
-#### Scenario: A release prepares its changelog
+#### Scenario: A version bump carries its changelog
 
-- **GIVEN** a version bump triggers `prepare-release.yml`
-- **WHEN** the changelog is generated
-- **THEN** the changelog commit lands on a branch and opens a pull request
-- **AND** the change reaches `main` only after the PR's required checks pass and it is merged
+- **GIVEN** `update-version.yml` detects a newer Flutter version
+- **WHEN** it opens the version-bump pull request
+- **THEN** the regenerated `changelog.md` for the new version is part of that same PR
+- **AND** the version change and its changelog reach `main` together, only after the PR's required checks pass and it is merged
 - **AND** no commit is pushed directly to `main`
+
+#### Scenario: A release is tagged from the merged version
+
+- **GIVEN** a version-bump PR merges, changing `config/version.json` on `main`
+- **WHEN** `prepare-release.yml` runs
+- **THEN** it creates the version tag from the merged commit without pushing any commit
+- **AND** the tag push triggers `release.yml`
 
 #### Scenario: Documentation is regenerated
 

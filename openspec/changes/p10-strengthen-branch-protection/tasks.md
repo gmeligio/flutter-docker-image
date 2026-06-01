@@ -1,8 +1,8 @@
-## 1. Route the changelog through a PR (prepare-release.yml)
+## 1. Generate the changelog in the version-bump PR; collapse prepare-release to tagging
 
-- [x] 1.1 In `update-changelog`, replace the `grafana/github-api-commit-action` direct push (`prepare-release.yml:71-76`) with `peter-evans/create-pull-request@v7` using the App token and `sign-commits: true`, on a branch like `release/changelog-${{ env.FLUTTER_VERSION }}`, title/body describing the changelog bump.
-- [x] 1.2 Enable auto-merge on that PR (`gh pr merge --auto --squash <pr>` with the App token), so it merges once required checks pass.
-- [x] 1.3 Decouple `create-tag` from the in-run `needs: update-changelog` edge per design D1a (two-pass, gated jobs): extend the `push` path filter to `[config/version.json, changelog.md]`; detect which file changed; gate `update-changelog` to run on the version.json pass and `create-tag` to run on the changelog.md (merged-PR) pass. `createGitTag.js` is idempotent so accidental re-entry is safe. Verify the tag points at the merged SHA that includes `changelog.md`.
+- [x] 1.1 In `update-version.yml`, before the existing `peter-evans/create-pull-request` step (`update-version.yml:520`), add a `git-cliff --tag ${{ env.FLUTTER_VERSION }} --github-repo ${{ github.repository }} --output changelog.md` step so the regenerated changelog is staged into the version-bump PR. (Implements the `# TODO` at `update-version.yml:518`.) Ensure `git-cliff` is available (mise) and the repo is checked out with enough history/tags.
+- [x] 1.2 In `prepare-release.yml`, remove the `update-changelog` job and the changelog generation entirely. Keep only a single `create-tag` job triggered by `push` to `main` on `config/version.json` (and `workflow_dispatch`). It reads the version via `setEnvironmentVariables.js` and calls `createGitTag.js`. No `peter-evans/create-pull-request`, no `git-cliff`, no `changelog.md` trigger path, no direct push.
+- [x] 1.3 Confirm `release.yml` is unaffected: it regenerates its own changelog from history (`release.yml:301`) and triggers on the tag push, so it needs no committed `changelog.md`.
 
 ## 2. Route docs through a PR (update-docs.yml)
 
@@ -19,7 +19,7 @@
 
 ## 5. Verify
 
-- [ ] 5.1 Dispatch `prepare-release.yml` (`workflow_dispatch`) or wait for a real version bump. Confirm: a changelog PR opens (no direct push), required checks run on it, auto-merge merges it, the tag job then creates `refs/tags/X.Y.Z` at the merged SHA, and `release.yml` fires on the tag push.
+- [ ] 5.1 Dispatch `update-version.yml` (or wait for a real version bump). Confirm the version-bump PR includes a regenerated `changelog.md`; merge it; confirm `prepare-release.yml` creates `refs/tags/X.Y.Z` from the merged commit (no direct push) and `release.yml` fires on the tag push. Also confirm a `changelog.md`-only edit produces no tag.
 - [ ] 5.2 Trigger `update-docs.yml`; confirm regenerated docs land via an auto-merged PR (or no PR when there is no diff).
 - [ ] 5.3 Confirm the next Renovate PR auto-merges on green; confirm a PR with a failing required check stays open and is NOT merged.
 - [ ] 5.4 After bypass removal (4.1), confirm a residual direct-push attempt to `main` is rejected by the ruleset, and a subsequent release still completes through the PR flow.
