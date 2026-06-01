@@ -11,7 +11,7 @@
 
 ## 3. Enable Renovate auto-merge (renovate.json)
 
-- [ ] 3.1 Add `"automerge": true` and `"platformAutomerge": true` to `.github/renovate.json`. Confirm ≥1 required status check exists (5 do) so `platformAutomerge` cannot merge a failing PR.
+- [x] 3.1 Add `"automerge": true` and `"platformAutomerge": true` to `.github/renovate.json`. Confirm ≥1 required status check exists (5 do) so `platformAutomerge` cannot merge a failing PR.
 
 ## 4. Remove the ruleset bypass actor (external)
 
