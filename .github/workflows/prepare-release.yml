@@ -1,14 +1,21 @@
 name: Prepare release
 
+# Two-pass, event-driven release prep (see openspec p10 design D1a):
+#   Pass 1 — push to main changes config/version.json:
+#            update-changelog opens a PR with the regenerated changelog.md.
+#   Pass 2 — that PR merges, changing changelog.md on main:
+#            create-tag tags the merged commit; the tag push triggers release.yml.
+# Neither job pushes directly to main — every write lands through a PR.
 on:
   push:
     branches:
       - main
     paths:
       - config/version.json
+      - changelog.md
   workflow_dispatch:
 
-# Read-only by default; the commit-and-push and tag-creation steps use a GitHub App token, not GITHUB_TOKEN.
+# Read-only by default; the PR-creation and tag-creation steps use a GitHub App token, not GITHUB_TOKEN.
 permissions:
   contents: read
 
@@ -17,11 +24,49 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # Write changelog.md for the new version and commit it. Replaces the
-  # standalone changelog.yml; the create-tag job below runs next via needs:,
-  # replacing the old changelog.md-push trigger that chained tag.yml.
+  # Decide which pass we are in by diffing the push range — which file changed
+  # determines whether we open the changelog PR or tag the merged commit. Uses
+  # native git (no third-party action) against github.event.before, which push
+  # events always set. workflow_dispatch falls through as the version.json pass.
+  detect:
+    name: Detect changed file
+    runs-on: ubuntu-24.04
+    outputs:
+      changelog_changed: ${{ steps.diff.outputs.changelog }}
+      version_changed: ${{ steps.diff.outputs.version }}
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Diff the push range
+        id: diff
+        env:
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
+        run: |
+          # On push, BEFORE is the prior tip of main; fall back to first-parent
+          # if it is the zero SHA (e.g. branch creation).
+          if [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
+            BEFORE="$AFTER^"
+          fi
+          changed="$(git diff --name-only "$BEFORE" "$AFTER")"
+          echo "$changed"
+          grep -qx 'changelog.md' <<<"$changed" && echo "changelog=true" >> "$GITHUB_OUTPUT" || echo "changelog=false" >> "$GITHUB_OUTPUT"
+          grep -qx 'config/version.json' <<<"$changed" && echo "version=true" >> "$GITHUB_OUTPUT" || echo "version=false" >> "$GITHUB_OUTPUT"
+
+  # Pass 1: write changelog.md for the new version and open a PR.
+  # Runs on the version.json push or a manual dispatch — NOT on the changelog merge.
   update-changelog:
     name: Update changelog
+    needs: detect
+    if: github.event_name == 'workflow_dispatch' || needs.detect.outputs.version_changed == 'true'
     runs-on: ubuntu-24.04
     env:
       IMAGE_REPOSITORY_NAME: flutter-android
@@ -68,21 +113,33 @@ jobs:
           repositories: ${{ github.event.repository.name }}
           owner: ${{ github.repository_owner }}
 
-      - name: Commit and push changelog
-        uses: grafana/github-api-commit-action@b1d81091e8480dd11fcea8bc1f0ab977a0376ca5 # v1.0.0
+      - name: Open changelog pull request
+        id: cpr
+        uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7.0.11
         with:
-          commit-message: "chore(release): prepare for ${{ env.FLUTTER_VERSION }}"
-          stage-all-files: true
           token: ${{ steps.app-token.outputs.token }}
+          sign-commits: true
+          branch: release/changelog-${{ env.FLUTTER_VERSION }}
+          commit-message: "chore(release): prepare for ${{ env.FLUTTER_VERSION }}"
+          title: "chore(release): prepare for ${{ env.FLUTTER_VERSION }}"
+          body: |
+            Regenerated `changelog.md` for ${{ env.FLUTTER_VERSION }}.
 
-  # Create and push the version tag once the changelog commit lands. The
-  # needs: edge replaces the changelog.md-push trigger that previously
-  # coupled tag.yml to changelog.yml; the App-token identity is unchanged,
-  # so the pushed tag still triggers release.yml. If update-changelog fails,
-  # this job is skipped and no orphan tag is created.
+            Merging this PR triggers the tag-creation pass of `prepare-release.yml`,
+            which tags the merged commit and starts `release.yml`.
+
+      - name: Enable auto-merge on the changelog pull request
+        if: steps.cpr.outputs.pull-request-number
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: gh pr merge --auto --squash "${{ steps.cpr.outputs.pull-request-number }}"
+
+  # Pass 2: the changelog PR has merged (changelog.md changed on main); tag the
+  # merged commit. Runs ONLY on the changelog.md push, never on the version.json pass.
   create-tag:
     name: Create tag
-    needs: update-changelog
+    needs: detect
+    if: github.event_name == 'push' && needs.detect.outputs.changelog_changed == 'true'
     runs-on: ubuntu-24.04
     env:
       IMAGE_REPOSITORY_NAME: flutter-android

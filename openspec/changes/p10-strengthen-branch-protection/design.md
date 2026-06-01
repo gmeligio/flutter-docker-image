@@ -37,10 +37,13 @@ The ruleset is managed as code in an external repository; bypass-actor removal h
 
 The tag must be created from the **merged** changelog commit on `main`, not chained in the same run via `needs:`. Two viable shapes:
 
-- **D1a (chosen): tag from a separate trigger on the merged commit.** After the changelog PR squash-merges to `main`, a push to `main` touching `changelog.md` (or the existing `config/version.json` path, already the trigger) drives the tag-creation job. `createGitTag.js` is idempotent (`createGitTag.js:9-19` no-ops if the tag exists), so re-entry is safe. The tag points at the merged `main` SHA, which includes the changelog.
-- **D1b (rejected): poll/wait for the PR to merge inside the same run.** Keeps one workflow but blocks a runner waiting on merge + checks; fragile and wasteful.
+- **D1a (chosen): two-pass, same workflow, gated jobs, triggered by both paths.** `prepare-release.yml` triggers on push to `main` for **either** `config/version.json` **or** `changelog.md`. Pass 1 (version.json changed): the `update-changelog` job runs and opens the changelog PR; `create-tag` is skipped. Pass 2 (changelog.md merged to `main`): `update-changelog` is skipped and `create-tag` runs, tagging the merged `main` SHA that now includes the changelog. Each job is gated with an `if:` keyed on which file the push changed (derived from `dorny/paths-filter` or a `git diff` against the before-SHA / the changed-files API). `createGitTag.js` is idempotent (`createGitTag.js:9-19` no-ops if the tag exists), so an accidental re-entry is safe.
 
-**Why D1a over D1b:** GitHub's model is event-driven; waiting in-run for an async merge is an anti-pattern. Decoupling tag creation onto the post-merge `main` event is simpler and matches how `release.yml` already keys off the tag push. Alternative considered: have the PR-merge itself create the tag via a `workflow_run`/merged-PR trigger — equivalent to D1a, folded into the same post-merge job.
+  > **Why the trigger is `changelog.md`, not `config/version.json`:** the changelog PR changes `changelog.md`, so merging it only re-enters the workflow if `changelog.md` is in the path filter. A naive "re-enter on version.json" would never fire on the changelog merge and the tag would never be created.
+
+- **D1b (rejected): poll/wait for the PR to merge inside the same run.** Keeps one pass but blocks a runner waiting on merge + checks; fragile and wasteful.
+
+**Why D1a over D1b:** GitHub's model is event-driven; waiting in-run for an async merge is an anti-pattern. Splitting into two passes keyed on the changed file matches how `release.yml` already keys off the tag push, and avoids a blocked runner.
 
 ### D2: docs land via an auto-merged PR
 

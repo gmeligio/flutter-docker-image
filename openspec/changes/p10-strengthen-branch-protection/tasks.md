@@ -1,8 +1,8 @@
 ## 1. Route the changelog through a PR (prepare-release.yml)
 
-- [ ] 1.1 In `update-changelog`, replace the `grafana/github-api-commit-action` direct push (`prepare-release.yml:71-76`) with `peter-evans/create-pull-request@v7` using the App token and `sign-commits: true`, on a branch like `release/changelog-${{ env.FLUTTER_VERSION }}`, title/body describing the changelog bump.
-- [ ] 1.2 Enable auto-merge on that PR (`gh pr merge --auto --squash <pr>` with the App token), so it merges once required checks pass.
-- [ ] 1.3 Decouple `create-tag` from the in-run `needs: update-changelog` edge per design D1a: create the tag from the **merged** `main` commit (the existing `push: { branches: [main], paths: [config/version.json] }` trigger re-enters after merge; `createGitTag.js` is idempotent so re-entry is safe). Verify the tag points at the merged SHA that includes `changelog.md`.
+- [x] 1.1 In `update-changelog`, replace the `grafana/github-api-commit-action` direct push (`prepare-release.yml:71-76`) with `peter-evans/create-pull-request@v7` using the App token and `sign-commits: true`, on a branch like `release/changelog-${{ env.FLUTTER_VERSION }}`, title/body describing the changelog bump.
+- [x] 1.2 Enable auto-merge on that PR (`gh pr merge --auto --squash <pr>` with the App token), so it merges once required checks pass.
+- [x] 1.3 Decouple `create-tag` from the in-run `needs: update-changelog` edge per design D1a (two-pass, gated jobs): extend the `push` path filter to `[config/version.json, changelog.md]`; detect which file changed; gate `update-changelog` to run on the version.json pass and `create-tag` to run on the changelog.md (merged-PR) pass. `createGitTag.js` is idempotent so accidental re-entry is safe. Verify the tag points at the merged SHA that includes `changelog.md`.
 
 ## 2. Route docs through a PR (update-docs.yml)
 
