@@ -44,9 +44,18 @@ Alternatives considered and rejected:
 
 This also implements the existing `# TODO` at `update-version.yml:518` ("Generate changelog for the new flutter version, that will be the new tag").
 
-### D2: docs land via an auto-merged PR
+### D2: docs output is regenerated onto the same PR branch
 
-`update-docs.yml` mirrors D1's pattern: build docs → `create-pull-request` (App token) → `gh pr merge --auto`. No tag/release coupling, so this is the simpler of the two.
+`docs/src/*.mdx` is **source**; `compile.js` generates committed Markdown outputs (`readme.md`, `windows.md`, `contributing.md`, `license.md`). When the source changes, the outputs go stale. Rather than regenerate them in a separate post-merge PR (the old behavior — asymmetric, two PRs, a window where `main` is out of sync), `update-docs.yml` becomes a **`pull_request`** workflow that regenerates the outputs and commits them **onto the PR branch** when `docs/src/**` changed. Source and generated output are then reviewed and merged together — the same "generated artifact rides in the PR that caused it" principle as D1's changelog, and as `update-version.yml` already does for docs in the version-bump PR.
+
+Mechanics and why they're safe:
+
+- **Trigger / fork safety:** PRs touching `docs/src/**` come only from the maintainer and `renovate[bot]` — same-repo branches, never forks. So `pull_request` (not `pull_request_target`) gives the job the App token and write access to the PR head. A fork PR would get a read-only token and simply fail to push (fail-closed), but that case does not arise here.
+- **Commit method:** plain `git commit` + `git push` to the PR head using the App token. No new action dependency. The PR feature branch is **not** covered by `required_signatures` (the ruleset targets `~DEFAULT_BRANCH` only), so an unsigned branch commit is fine; the squash-merge commit on `main` is signed by GitHub (`allowed_merge_methods: [squash]`).
+- **No infinite loop:** the push re-triggers the workflow on `synchronize`, but the second run regenerates identical output, finds no diff, pushes nothing, and stops. The guard is "commit only if `git diff` is non-empty."
+- **gx policy:** the job is fork-gated (`if: head.repo.full_name == github.repository`), top-level `permissions` stays `contents: read` with `contents: write` scoped to the job. This clears `excessive-permissions` and `unprotected-secrets`. The `pr-head-checkout` rule still matches statically (it can't see the `if:` gate), so `update-docs.yml` is added to that rule's scoped ignore in `.github/gx.toml` — alongside `gx.yml`'s `tidy`, which is gated the same way. PR HEAD is therefore only checked out for same-repo branches, never fork code, so the 'pwn request' path is unreachable.
+
+Alternative considered (Option A): a `pull_request` check that runs the build and `git diff --exit-code`, failing if the author forgot to regenerate (like `Validate generated config` for `version.json`), with the human committing the output. Rejected in favor of auto-regeneration so the maintainer/Renovate never has to run the build locally — but it remains a clean fallback if branch-push ever becomes undesirable.
 
 ### D3: Renovate auto-merge via platform automerge
 
