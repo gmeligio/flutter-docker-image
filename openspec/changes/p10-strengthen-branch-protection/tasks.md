@@ -7,9 +7,10 @@
 ## 2. Docs: check everywhere, generate on same-repo PRs (update-docs.yml)
 
 - [x] 2.1 Change `update-docs.yml` trigger from `push` to `pull_request: { paths: [docs/src/**] }` (plus `workflow_dispatch`). Top-level `permissions: { contents: read }`.
-- [x] 2.2 Add the `check` job (runs on all PRs incl. forks, no fork-gate, no token, `contents: read`): default checkout, `pnpm install --frozen-lockfile`, `pnpm run build`, then `git diff --exit-code`. On a diff, fail with an explicit message naming the command to run (`pnpm --dir docs/src run build`) and to commit the result. This is the required status check.
-- [x] 2.3 Add the `generate` job, fork-gated (`if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository`), `permissions: { contents: write }` scoped to the job, App token, checkout PR head (`ref`/`repository` from `pull_request.head`, `token` = App token). Build, then `git add -A`; `git diff --cached --quiet || (commit as the App identity && git push)`. No-diff guard prevents a `synchronize` loop.
-- [x] 2.4 Add `update-docs.yml` to the `pr-head-checkout` scoped ignore in `.github/gx.toml` (only `generate` matches; it is fork-gated so the 'pwn request' path is unreachable — gx can't see the `if:`). Confirm `gx lint` exits 0.
+- [x] 2.2 Add a `[tasks.docs]` task to `mise.toml` (`dir = "docs/src"`, `pnpm install --frozen-lockfile` + `pnpm run build`) as the single docs-build recipe. Wire `update-version.yml`'s docs step to `mise run docs` too. Verify `mise run docs` regenerates the four outputs with no spurious diff.
+- [x] 2.3 Add the `check` job (runs on all PRs incl. forks, no fork-gate, no token, `contents: read`): default checkout, `mise run docs`, then `git diff --exit-code`. On a diff, fail with an explicit message to run `mise run docs` and commit. This is the required status check.
+- [x] 2.4 Add the `generate` job, fork-gated (`if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository`), `permissions: { contents: write }` scoped to the job, App token, checkout PR head (`ref`/`repository` from `pull_request.head`, `token` = App token). `mise run docs`, then `git add -A`; `git diff --cached --quiet || (commit as the App identity && git push)`. No-diff guard prevents a `synchronize` loop.
+- [x] 2.5 Add `update-docs.yml` to the `pr-head-checkout` scoped ignore in `.github/gx.toml` (only `generate` matches; it is fork-gated so the 'pwn request' path is unreachable — gx can't see the `if:`). Confirm `gx lint` exits 0.
 
 ## 3. Enable Renovate auto-merge (renovate.json)
 

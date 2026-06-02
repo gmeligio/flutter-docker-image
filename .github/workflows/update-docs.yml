@@ -40,20 +40,15 @@ jobs:
       - name: Setup mise tools
         uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
 
-      - name: Build documentation
-        working-directory: docs/src
-        run: |
-          pnpm install --frozen-lockfile
-          pnpm run build
+      - name: Regenerate documentation
+        run: mise run docs
 
       - name: Fail if the committed docs output is stale
         run: |
           if ! git diff --exit-code; then
             {
               echo "::error::Documentation output is out of date with docs/src/**."
-              echo "Run the following and commit the result:"
-              echo "    pnpm --dir docs/src install --frozen-lockfile"
-              echo "    pnpm --dir docs/src run build"
+              echo "Run 'mise run docs' and commit the result."
             } >&2
             exit 1
           fi
@@ -93,11 +88,8 @@ jobs:
       - name: Setup mise tools
         uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
 
-      - name: Build documentation
-        working-directory: docs/src
-        run: |
-          pnpm install --frozen-lockfile
-          pnpm run build
+      - name: Regenerate documentation
+        run: mise run docs
 
       - name: Commit regenerated documentation to the PR branch
         env:
