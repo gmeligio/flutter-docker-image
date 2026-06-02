@@ -26,8 +26,9 @@
 # out for same-repo branches — never attacker-controlled fork code — and the
 # 'pwn request' path is unreachable. gx's static check can't see the `if:` gate.
 #   - gx.yml `tidy`: lockfile tidy on same-repo PRs.
-#   - update-docs.yml `update-docs`: regenerates committed docs output onto the
-#     PR branch (maintainer / renovate[bot] only). Needs write + PR-head checkout.
+#   - update-docs.yml `generate`: regenerates committed docs output onto the PR
+#     branch (maintainer / renovate[bot] only). Needs write + PR-head checkout.
+#     The `check` job in the same workflow is token-free and triggers no rule.
 pr-head-checkout = { level = "error", ignore = [
     { workflow = ".github/workflows/gx.yml" },
     { workflow = ".github/workflows/update-docs.yml" },

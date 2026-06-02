@@ -21,20 +21,28 @@ The experience context is the maintainer trusting that the protected branch's hi
 - **THEN** it creates the version tag from the merged commit without pushing any commit
 - **AND** the tag push triggers `release.yml`
 
-#### Scenario: Documentation source is edited in a PR
+#### Scenario: A same-repo PR edits documentation source
 
-- **GIVEN** a pull request changes a `docs/src/**` source file
-- **WHEN** `update-docs.yml` runs on that pull request
-- **THEN** it regenerates the committed docs output and commits it onto the same PR branch
-- **AND** the regenerated output is reviewed in the same PR that edited the source
-- **AND** no commit is pushed directly to `main`
+- **GIVEN** a same-repo pull request (maintainer or `renovate[bot]`) changes a `docs/src/**` source file
+- **WHEN** `update-docs.yml` runs
+- **THEN** the `generate` job regenerates the committed docs output and pushes it onto the same PR branch
+- **AND** that push re-triggers the `check` job, which then passes
+- **AND** the regenerated output is reviewed in the same PR; no commit is pushed directly to `main`
+
+#### Scenario: A fork PR leaves documentation output stale
+
+- **GIVEN** a pull request from a fork changes `docs/src/**` without regenerating the output
+- **WHEN** `update-docs.yml` runs
+- **THEN** the `generate` job is skipped (no secret reaches fork code)
+- **AND** the `check` job fails with an explicit instruction to run the docs build and commit the result
+- **AND** the PR cannot merge until the contributor commits the regenerated output
 
 #### Scenario: Documentation output is already in sync
 
 - **GIVEN** a pull request whose `docs/src/**` change produces no output diff
 - **WHEN** `update-docs.yml` runs
-- **THEN** it pushes nothing and does not re-trigger itself
-- **AND** the PR is unchanged
+- **THEN** the `check` job passes and `generate` pushes nothing
+- **AND** the workflow does not re-trigger itself
 
 ### Requirement: The default-branch ruleset has no bypass actor
 

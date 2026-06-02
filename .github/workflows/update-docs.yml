@@ -1,12 +1,14 @@
 name: Update docs
 
 # docs/src/*.mdx is the source; compile.js generates committed Markdown outputs
-# (readme.md, windows.md, contributing.md, license.md). When a PR edits the source,
-# this workflow regenerates those outputs and commits them back ONTO THE PR BRANCH,
-# so source and generated output are reviewed and merged together — no separate
-# post-merge PR, no direct push to main. PRs touching docs/src/** come only from the
-# maintainer and renovate[bot] (same-repo branches, never forks), so pull_request
-# (not pull_request_target) gives the App token write access to the PR head.
+# (readme.md, windows.md, contributing.md, license.md). On a PR that edits the
+# source, two jobs keep source and generated output in sync within the same PR:
+#   check    — runs everywhere (incl. forks), no token; fails if output is stale
+#              and tells the contributor what to run. The required status check.
+#   generate — same-repo PRs only (maintainer / renovate[bot]); regenerates and
+#              pushes the output onto the PR branch, re-triggering check.
+# Pushing a generated commit onto a *fork* branch is impossible from CI (fork runs
+# get a read-only token, no secrets), so forks get `check`'s failure instead.
 on:
   pull_request:
     paths:
@@ -21,15 +23,48 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  update-docs:
-    name: Update docs
+  # Safe everywhere: no token, no write, default checkout. Fails if the committed
+  # docs output does not match a fresh build, with instructions to regenerate.
+  check:
+    name: Check docs are in sync
     runs-on: ubuntu-24.04
-    # Fork-gate: same-repo PRs only (the maintainer and renovate[bot]). On a fork PR
-    # this job is skipped, so the App secret and the write-token PR-head checkout
-    # never run against untrusted code (closes the 'pwn request' class). Mirrors the
-    # guard on gx.yml's `tidy` job.
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Setup mise tools
+        uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
+
+      - name: Build documentation
+        working-directory: docs/src
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm run build
+
+      - name: Fail if the committed docs output is stale
+        run: |
+          if ! git diff --exit-code; then
+            {
+              echo "::error::Documentation output is out of date with docs/src/**."
+              echo "Run the following and commit the result:"
+              echo "    pnpm --dir docs/src install --frozen-lockfile"
+              echo "    pnpm --dir docs/src run build"
+            } >&2
+            exit 1
+          fi
+
+  # Same-repo PRs only: regenerate the output and push it onto the PR branch so
+  # the maintainer / renovate[bot] never has to run the build by hand. Skipped on
+  # fork PRs (the secret never reaches fork code); those rely on `check` failing.
+  generate:
+    name: Generate docs
+    runs-on: ubuntu-24.04
     if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
-    # Needs write to push the regenerated output onto the PR branch.
     permissions:
       contents: write
     steps:
@@ -50,8 +85,6 @@ jobs:
       - name: Checkout PR head
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
-          # Check out the PR branch so the regenerated output can be committed back.
-          # workflow_dispatch falls back to the dispatched ref.
           ref: ${{ github.event.pull_request.head.ref || github.ref }}
           repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
           token: ${{ steps.app-token.outputs.token }}
@@ -70,13 +103,12 @@ jobs:
         env:
           APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
         run: |
-          # Identify commits as the App, matching the existing verified-commit history.
           git config user.name "${APP_SLUG}[bot]"
           git config user.email "${APP_SLUG}[bot]@users.noreply.github.com"
 
           git add -A
-          # Only commit+push when the build produced a diff. On a no-diff run this is a
-          # no-op, so nothing is pushed and the synchronize re-trigger does not loop.
+          # Only commit+push when the build produced a diff. On a no-diff run this is
+          # a no-op, so nothing is pushed and the synchronize re-trigger does not loop.
           if git diff --cached --quiet; then
             echo "Documentation already in sync — nothing to commit."
           else
