@@ -1,3 +1,19 @@
+## [3.44.1] - 2026-06-02
+
+### 🚀 Features
+
+- *(ci)* Scan PR images via SBOM attestation, compare to release tag (p13) (#475)
+- *(ci)* Enforce workflow security policy via gx lint (#476)
+
+### 🐛 Bug Fixes
+
+- *(docs)* Bump transitive uuid to patched 11.1.1 (CVE-2026-41907) (#474)
+- *(ci)* Tolerate locked files in Windows disk cleanup (#479)
+
+### ⚙️ Miscellaneous Tasks
+
+- Consolidate workflows — readable names, kebab job ids, prepare-release merge (p9) (#477)
+- *(release)* Upgrade flutter to 3.44.1 (#480)
 ## [3.44.0] - 2026-05-28
 
 ### 🚀 Features
