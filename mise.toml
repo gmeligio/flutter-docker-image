@@ -5,3 +5,15 @@ pnpm = "11.2.2"
 node = "lts"
 "github:gmeligio/gx" = "0.8.0"
 "github:GoogleContainerTools/container-structure-test[exe=container-structure-test-linux-amd64]" = "1.22.1"
+
+# Regenerate the committed docs output (readme.md, windows.md, contributing.md,
+# license.md) from docs/src/**. Single source of truth for the docs build, used
+# by update-docs.yml (check + generate) and update-version.yml, and run locally
+# as `mise run docs` from anywhere in the repo.
+[tasks.docs]
+description = "Regenerate committed docs output from docs/src/**"
+dir = "docs/src"
+run = [
+  "pnpm install --frozen-lockfile",
+  "pnpm run build",
+]

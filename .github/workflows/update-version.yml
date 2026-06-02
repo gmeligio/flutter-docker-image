@@ -400,6 +400,10 @@ jobs:
 
       - name: Checkout repository
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          # git-cliff needs full commit history and all tags to generate the changelog.
+          fetch-depth: 0
+          fetch-tags: true
 
       # TODO: Workaround because actions/download-artifact can't overwrite existing files
       # Check if this workaround can be removed after the following issues are fixed:
@@ -462,10 +466,7 @@ jobs:
         uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
 
       - name: Update documentation
-        working-directory: docs/src
-        run: |
-          pnpm install --frozen-lockfile
-          pnpm run build
+        run: mise run docs
 
       - name: Read environment variables from the version manifest
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
@@ -515,7 +516,14 @@ jobs:
           repositories: ${{ github.event.repository.name }}
           owner: ${{ github.repository_owner }}
 
-      # TODO: Generate changelog for the new flutter version, that will be the new tag
+      # Regenerate the changelog for the new version so it rides in the same PR as
+      # the version bump. The committed changelog is documentation only (release.yml
+      # regenerates its own notes from history at release time); generating it here
+      # lets prepare-release.yml stay a pure tag-creation step with no direct push.
+      - name: Generate changelog for the new version
+        run: |
+          git-cliff -v --tag ${{ env.FLUTTER_VERSION }} --github-repo ${{ github.repository }} --output changelog.md
+
       - name: Create pull request if there are changes
         uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7.0.11
         with:

@@ -1,48 +1,28 @@
-## 1. Capture the ruleset as code
+## 1. Generate the changelog in the version-bump PR; collapse prepare-release to tagging
 
-- [ ] 1.1 `gh api repos/gmeligio/flutter-docker-image/rulesets/1959230 | jq '.' > .github/rulesets/main.json`. Strip API-only fields (`id`, `node_id`, `created_at`, `updated_at`, `source`, `source_type`, `_links`, `current_user_can_bypass`); the remaining shape matches what `PUT /repos/{owner}/{repo}/rulesets/{id}` accepts.
-- [ ] 1.2 Add `.github/rulesets/README.md` documenting (a) the apply command (`gh api -X PUT /repos/.../rulesets/1959230 --input main.json`), (b) the rule that ruleset edits go through PR review, (c) why GitHub does not yet auto-apply rulesets from a repo file.
-- [ ] 1.3 In the JSON, add a top-of-file comment (technically a sibling note in the README — JSON does not allow comments) recording the deliberate choice to leave `required_approving_review_count: 0` for solo-maintainer reasons, with a link to this proposal.
-- [ ] 1.4 In `.github/rulesets/main.json` under the `required_status_checks` rule's `required_status_checks` array, ensure the `gx lint` job (exposed by `.github/workflows/gx.yml`) is present as a required check. Use the exact job name string — verify against the Actions UI before applying. Apply the change via `gh api -X PUT /repos/.../rulesets/1959230 --input main.json`.
-- [ ] 1.5 In `.github/rulesets/README.md`, add a short section "Required status checks" enumerating which checks are required and why each is load-bearing. `gx lint` covers action pinning + (after p8-enforce-workflow-policy-via-gx) workflow-level structural properties.
+- [x] 1.1 In `update-version.yml`, before the existing `peter-evans/create-pull-request` step (`update-version.yml:520`), add a `git-cliff --tag ${{ env.FLUTTER_VERSION }} --github-repo ${{ github.repository }} --output changelog.md` step so the regenerated changelog is staged into the version-bump PR. (Implements the `# TODO` at `update-version.yml:518`.) Ensure `git-cliff` is available (mise) and the repo is checked out with enough history/tags.
+- [x] 1.2 In `prepare-release.yml`, remove the `update-changelog` job and the changelog generation entirely. Keep only a single `create-tag` job triggered by `push` to `main` on `config/version.json` (and `workflow_dispatch`). It reads the version via `setEnvironmentVariables.js` and calls `createGitTag.js`. No `peter-evans/create-pull-request`, no `git-cliff`, no `changelog.md` trigger path, no direct push.
+- [x] 1.3 Confirm `release.yml` is unaffected: it regenerates its own changelog from history (`release.yml:301`) and triggers on the tag push, so it needs no committed `changelog.md`.
 
-## 2. Audit and (if safe) narrow the bypass actor
+## 2. Docs: check everywhere, generate on same-repo PRs (update-docs.yml)
 
-- [ ] 2.1 Resolve `actor_id: 987256, actor_type: Integration` to a specific GitHub App. Try `gh api /repos/gmeligio/flutter-docker-image/installations` and match by app slug; cross-reference with the Apps installed at https://github.com/settings/installations.
-- [ ] 2.2 Confirm what the App is used for. Most likely candidate is the `verified-commit` App referenced in `changelog.yml:44-48` and `tag.yml:20-26` for App-token-authenticated pushes.
-- [ ] 2.3 Test whether `changelog.yml` / `tag.yml` push commits directly (skipping the PR + merge flow) — if they DO push directly, the `bypass_mode: always` is required and SHALL be kept. If they push through PRs (via `peter-evans/create-pull-request` or similar), narrow to `bypass_mode: pull_request`.
-- [ ] 2.4 If the App is unidentifiable or unused, remove the `bypass_actors` entry entirely. Apply the change to ruleset `1959230` via `gh api -X PUT`. Update `.github/rulesets/main.json` to match.
+- [x] 2.1 Change `update-docs.yml` trigger from `push` to `pull_request: { paths: [docs/src/**] }` (plus `workflow_dispatch`). Top-level `permissions: { contents: read }`.
+- [x] 2.2 Add a `[tasks.docs]` task to `mise.toml` (`dir = "docs/src"`, `pnpm install --frozen-lockfile` + `pnpm run build`) as the single docs-build recipe. Wire `update-version.yml`'s docs step to `mise run docs` too. Verify `mise run docs` regenerates the four outputs with no spurious diff.
+- [x] 2.3 Add the `check` job (runs on all PRs incl. forks, no fork-gate, no token, `contents: read`): default checkout, `mise run docs`, then `git diff --exit-code`. On a diff, fail with an explicit message to run `mise run docs` and commit. This is the required status check.
+- [x] 2.4 Add the `generate` job, fork-gated (`if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository`), `permissions: { contents: write }` scoped to the job, App token, checkout PR head (`ref`/`repository` from `pull_request.head`, `token` = App token). `mise run docs`, then `git add -A`; `git diff --cached --quiet || (commit as the App identity && git push)`. No-diff guard prevents a `synchronize` loop.
+- [x] 2.5 Add `update-docs.yml` to the `pr-head-checkout` scoped ignore in `.github/gx.toml` (only `generate` matches; it is fork-gated so the 'pwn request' path is unreachable — gx can't see the `if:`). Confirm `gx lint` exits 0.
 
-## 3. Add the bot auto-approve workflow
+## 3. Enable Renovate auto-merge (renovate.json)
 
-- [ ] 3.1 Create `.github/workflows/auto-approve-bots.yml` with `on: pull_request_target: { types: [opened, synchronize, reopened] }`, top-level `permissions: { contents: read, pull-requests: write }`, harden-runner audit step (from p7's `ci-workflow-hardening` spec).
-- [ ] 3.2 Hard-code two allowlists in the workflow body: author allowlist (`renovate[bot]`, `verified-commit[bot]`) and path allowlist (`renovate.json`, `package*.json`, `pnpm-lock.yaml`, `mise.toml`, `.github/gx.toml`, `changelog.md`, `config/version.json`). Changes to either list go through PR review like any other code change.
-- [ ] 3.3 Steps: harden-runner; `actions/create-github-app-token` (using `VERIFIED_COMMIT_ID` / `VERIFIED_COMMIT_KEY`); `actions/github-script` that (a) checks the author against the author allowlist, (b) calls `pulls.listFiles` and checks every returned path against the path allowlist, (c) on pass: `pulls.createReview({event: 'APPROVE', body: 'Auto-approved per .github/workflows/auto-approve-bots.yml — author and changed paths are in the trusted allowlists. Threat model: openspec/.../p10-strengthen-branch-protection/proposal.md'})`, (d) logs the decision to the run summary.
-- [ ] 3.4 Add a header comment at the top of the workflow file pointing to the threat-model section in `openspec/changes/p10-strengthen-branch-protection/proposal.md`. Explicitly state "no actions/checkout — this is a security invariant; do not add one in a follow-up".
+- [x] 3.1 Add `"automerge": true` to `.github/renovate.json`. `platformAutomerge` defaults to `true`, so GitHub-native auto-merge is used without setting it. Confirm ≥1 required status check exists (5 do) so platform auto-merge cannot merge a failing PR.
 
-## 4. Document the governance model
+## 4. Remove the ruleset bypass actor (external)
 
-- [ ] 4.1 Create `.github/SECURITY.md` with sections: "Sole-maintainer governance", "Active ruleset" (link to `.github/rulesets/main.json` and the GitHub UI URL), "Why CodeReview Scorecard score is low" (accepted ceiling, recovery path = co-maintainer), "Trusted bots" (link to `auto-approve-bots.yml`), "Reporting vulnerabilities" (GitHub's private vulnerability reporting flow).
-- [ ] 4.2 If `.github/CODEOWNERS` does not already note the review model, prepend a header comment.
+- [ ] 4.1 In the **external** ruleset code, remove the `bypass_actors` entry (`actor_id: 987256`). Do this only **after** tasks 1–3 are merged and a release has completed through the PR flow (task 5.1). Sequencing per design D4 avoids a "no bypass + still pushing directly" gap.
 
 ## 5. Verify
 
-- [ ] 5.1 Trigger a Renovate run (or open a fake PR from the `verified-commit` App). Confirm `auto-approve-bots.yml` runs, posts an APPROVE within ~30 s, and the PR can auto-merge if Renovate has automerge enabled.
-- [ ] 5.2 Open a PR from `renovate[bot]` that touches a file OUTSIDE the path allowlist (simulate by editing a non-allowlisted file in a Renovate-style branch). Confirm the workflow runs, logs `decision=SKIP reason=path X not in allowlist`, and does NOT post an approval.
-- [ ] 5.3 Confirm the bypass-actor change (if any) did not break `changelog.yml` / `tag.yml` by waiting for the next version bump or by dispatching them manually.
-- [ ] 5.4 Wait one Scorecard scan cycle. Record the new `BranchProtectionID` and `CodeReviewID` scores in the archived proposal. Confirm `BranchProtectionID` improves if the bypass-actor narrowing landed; accept that `CodeReviewID` may not improve materially.
-
-## 6. p8 hand-offs (mechanical workflow-policy enforcement via gx)
-
-These two items were handed off from p8 (`p8-enforce-workflow-policy-via-gx`), which enabled the six gx workflow-security rules but could not complete them because `.github/rulesets/` did not exist yet.
-
-- [ ] 6.1 Make `gx lint` a **required status check**. Once `.github/rulesets/main.json` exists (section 1 above), add the `gx lint` job's check name to `required_status_checks` in that file, and apply it to ruleset `1959230` via `gh api -X PUT`. The check name is the `lint` job in `.github/workflows/gx.yml`. Until this lands, gx security enforcement is advisory (visible CI failure, non-blocking).
-- [ ] 6.2 Add a scoped `dangerous-trigger` ignore for `auto-approve-bots.yml`. The `pull_request_target` trigger in the workflow created in section 3 will fail p8's `dangerous-trigger` rule (error). Add to `.github/gx.toml`'s `[lint.rules]` block:
-  ```toml
-  dangerous-trigger = { level = "error", ignore = [
-      # auto-approve-bots.yml uses pull_request_target but does NO actions/checkout
-      # of PR contents — threat model in p10 proposal. Reviewed and accepted.
-      { workflow = ".github/workflows/auto-approve-bots.yml" },
-  ] }
-  ```
-  Run `gx lint` and confirm it exits 0 with both `auto-approve-bots.yml` and the new ignore present.
+- [ ] 5.1 Dispatch `update-version.yml` (or wait for a real version bump). Confirm the version-bump PR includes a regenerated `changelog.md`; merge it; confirm `prepare-release.yml` creates `refs/tags/X.Y.Z` from the merged commit (no direct push) and `release.yml` fires on the tag push. Also confirm a `changelog.md`-only edit produces no tag.
+- [ ] 5.2 Open a PR editing a `docs/src/**` source file; confirm `update-docs.yml` regenerates the output and commits it onto the same PR branch, and that a no-diff case pushes nothing and does not loop.
+- [ ] 5.3 Confirm the next Renovate PR auto-merges on green; confirm a PR with a failing required check stays open and is NOT merged.
+- [ ] 5.4 After bypass removal (4.1), confirm a residual direct-push attempt to `main` is rejected by the ruleset, and a subsequent release still completes through the PR flow.

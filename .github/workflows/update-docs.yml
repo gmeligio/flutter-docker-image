@@ -1,9 +1,16 @@
 name: Update docs
 
+# docs/src/*.mdx is the source; compile.js generates committed Markdown outputs
+# (readme.md, windows.md, contributing.md, license.md). On a PR that edits the
+# source, two jobs keep source and generated output in sync within the same PR:
+#   check    — runs everywhere (incl. forks), no token; fails if output is stale
+#              and tells the contributor what to run. The required status check.
+#   generate — same-repo PRs only (maintainer / renovate[bot]); regenerates and
+#              pushes the output onto the PR branch, re-triggering check.
+# Pushing a generated commit onto a *fork* branch is impossible from CI (fork runs
+# get a read-only token, no secrets), so forks get `check`'s failure instead.
 on:
-  push:
-    branches:
-      - main
+  pull_request:
     paths:
       - docs/src/**
   workflow_dispatch:
@@ -11,14 +18,15 @@ on:
 permissions:
   contents: read
 
-# Pushes a commit on main; serialize to avoid two pushes racing.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: false
 
 jobs:
-  update-docs:
-    name: Update docs
+  # Safe everywhere: no token, no write, default checkout. Fails if the committed
+  # docs output does not match a fresh build, with instructions to regenerate.
+  check:
+    name: Check docs are in sync
     runs-on: ubuntu-24.04
     steps:
       - name: Harden runner
@@ -32,11 +40,33 @@ jobs:
       - name: Setup mise tools
         uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
 
-      - name: Build documentation
-        working-directory: docs/src
+      - name: Regenerate documentation
+        run: mise run docs
+
+      - name: Fail if the committed docs output is stale
         run: |
-          pnpm install --frozen-lockfile
-          pnpm run build
+          if ! git diff --exit-code; then
+            {
+              echo "::error::Documentation output is out of date with docs/src/**."
+              echo "Run 'mise run docs' and commit the result."
+            } >&2
+            exit 1
+          fi
+
+  # Same-repo PRs only: regenerate the output and push it onto the PR branch so
+  # the maintainer / renovate[bot] never has to run the build by hand. Skipped on
+  # fork PRs (the secret never reaches fork code); those rely on `check` failing.
+  generate:
+    name: Generate docs
+    runs-on: ubuntu-24.04
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
+    permissions:
+      contents: write
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
 
       - name: Generate authentication token with GitHub App to trigger Actions
         uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1
@@ -47,10 +77,33 @@ jobs:
           repositories: ${{ github.event.repository.name }}
           owner: ${{ github.repository_owner }}
 
-      - name: Commit and push regenerated documentation
-        uses: grafana/github-api-commit-action@b1d81091e8480dd11fcea8bc1f0ab977a0376ca5 # v1.0.0
+      - name: Checkout PR head
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
-          commit-message: 'docs: regenerate documentation files'
-          success-if-no-changes: true
-          stage-all-files: true
+          ref: ${{ github.event.pull_request.head.ref || github.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
           token: ${{ steps.app-token.outputs.token }}
+          persist-credentials: true
+
+      - name: Setup mise tools
+        uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
+
+      - name: Regenerate documentation
+        run: mise run docs
+
+      - name: Commit regenerated documentation to the PR branch
+        env:
+          APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
+        run: |
+          git config user.name "${APP_SLUG}[bot]"
+          git config user.email "${APP_SLUG}[bot]@users.noreply.github.com"
+
+          git add -A
+          # Only commit+push when the build produced a diff. On a no-diff run this is
+          # a no-op, so nothing is pushed and the synchronize re-trigger does not loop.
+          if git diff --cached --quiet; then
+            echo "Documentation already in sync — nothing to commit."
+          else
+            git commit -m 'docs: regenerate documentation files'
+            git push
+          fi

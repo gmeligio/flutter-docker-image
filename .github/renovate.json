@@ -7,6 +7,7 @@
     "group:monorepos",
     "schedule:weekly"
   ],
+  "automerge": true,
   "packageRules": [
     {
       "description": "Disable Renovate's built-in github-actions manager — gx owns workflow and composite-action files",
