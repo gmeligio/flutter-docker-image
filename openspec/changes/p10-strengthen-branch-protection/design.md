@@ -65,7 +65,7 @@ Why not one job with `GITHUB_TOKEN` and no secret: a same-repo push made with th
 
 ### D3: Renovate auto-merge via platform automerge
 
-Add `"automerge": true` + `"platformAutomerge": true` to `renovate.json`. GitHub performs the merge respecting the ruleset; `required_approving_review_count: 0` means no approval is needed, and the 5 existing required checks satisfy `platformAutomerge`'s "must have ≥1 required check" precondition. No workflow added.
+Add `"automerge": true` to `renovate.json`. `platformAutomerge` defaults to `true`, so merging is delegated to GitHub-native auto-merge, which respects the ruleset; `required_approving_review_count: 0` means no approval is needed, and the 5 existing required checks satisfy the "must have ≥1 required check" precondition. No workflow added; no need to set `platformAutomerge` explicitly.
 
 ### D4: bypass-actor removal is external and concurrent
 
@@ -94,7 +94,7 @@ No new test infrastructure; these are CI observations recorded in tasks.
 - **[Changelog drifts from the tagged commit]** → not a real risk: the changelog is generated for the new version inside the same PR that bumps it, so the merged commit already contains the matching changelog. `release.yml` regenerates Release notes from history independently anyway.
 - **[Spurious release from a changelog edit]** → removed: `prepare-release.yml` no longer triggers on `changelog.md`, only on `config/version.json`; and `createGitTag.js` no-ops on an already-tagged version.
 - **[Mid-rollout gap: bypass removed while a workflow still pushes directly]** → D4 sequences bypass removal *after* a verified PR-based release.
-- **[`platformAutomerge` merges a failing PR]** → not reachable (5 required checks present); the renovate change must not remove that precondition.
+- **[GitHub-native auto-merge merges a failing PR]** → not reachable (5 required checks present); the renovate change must not remove that precondition.
 - **[App-token PR / tag does not trigger workflows]** → not a risk: the App token is distinct from `GITHUB_TOKEN`, so its PRs and tag pushes trigger workflows normally.
 
 ## Migration Plan

@@ -31,7 +31,7 @@ Removing the bypass actor sets Scorecard's `EnforceAdmins` to `true`, but that i
   - **`generate`** — **fork-gated** (`head.repo.full_name == github.repository`), `contents: write` + App token. On same-repo PRs (the maintainer and `renovate[bot]`) it regenerates the output and pushes it onto the PR branch; that push re-triggers `check`, which then passes. Skipped on fork PRs, so the contributor sees `check` fail and regenerates themselves.
 
   This gives forks a clear failure with instructions and same-repo PRs automatic regeneration, without ever exposing a secret to fork code. The feature branch is not covered by `required_signatures` (the ruleset targets `~DEFAULT_BRANCH` only); the squash-merge commit on `main` is signed by GitHub.
-- **`renovate.json`** — add `"automerge": true` and `"platformAutomerge": true` so GitHub auto-merges Renovate PRs once required checks pass. No approval needed (count is `0`); ≥1 required check is present (5 exist), satisfying `platformAutomerge`'s safety precondition.
+- **`renovate.json`** — add `"automerge": true` so GitHub auto-merges Renovate PRs once required checks pass. `platformAutomerge` is left at its default (`true`), so merging is delegated to GitHub-native auto-merge, which respects the ruleset. No approval needed (count is `0`); ≥1 required check is present (5 exist), so auto-merge cannot land a failing PR.
 - **Remove the ruleset bypass actor** — done in the **external** ruleset code, not here. The version tag push (`script/createGitTag.js:21`, `refs/tags/*`) is unaffected: the ruleset targets `~DEFAULT_BRANCH` (branches) only, so tag creation never needed the bypass. Recorded here as a cross-repo follow-up so the in-repo workflow change and the external ruleset change land together.
 
 ### Out of scope, by intent
@@ -57,5 +57,5 @@ _None._
 - **External (cross-repo)**: the ruleset bypass actor is removed in the external ruleset code in the same rollout.
 - **Behavioral change**: the changelog is now generated inside the version-bump PR (reviewed alongside the version change) instead of as a separate post-merge direct push. `prepare-release.yml` no longer pushes anything — it only tags. Docs regeneration lands via an auto-merged PR. Renovate PRs merge automatically instead of needing a manual click.
 - **Source of truth**: `config/version.json` unambiguously gates a release — a new `flutter.version` lands (with its changelog) via the version-bump PR, and merging it triggers the tag, which triggers `release.yml`. `changelog.md` is documentation that rides along; it gates nothing.
-- **Risk**: `platformAutomerge` could merge a failing PR if no required check exists — not applicable here (5 required checks present), but the renovate change must not remove that precondition.
+- **Risk**: GitHub-native auto-merge could merge a failing PR if no required check exists — not applicable here (5 required checks present), but the renovate change must not remove that precondition.
 - **Depends on**: `p7-harden-workflow-permissions` (archived) for workflow-hardening conventions.

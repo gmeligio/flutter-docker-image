@@ -72,7 +72,7 @@ The experience context is the maintainer who wants lockfile bumps and routine re
 
 #### Scenario: A Renovate PR passes all checks
 
-- **GIVEN** Renovate opens a PR and `automerge`/`platformAutomerge` are enabled
+- **GIVEN** Renovate opens a PR and `automerge` is enabled (platform-native auto-merge is the default)
 - **WHEN** all required status checks pass
 - **THEN** GitHub merges the PR automatically
 - **AND** no manual merge click and no approval are required
