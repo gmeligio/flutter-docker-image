@@ -140,12 +140,36 @@ runs:
 
         # ForEach-Object -Parallel (PS7) removes directories concurrently without
         # subprocess overhead. ThrottleLimit 8 keeps I/O pressure reasonable.
+        #
+        # Each removal is wrapped in try/catch so a single locked/denied file (e.g.
+        # Firefox's crashhelper.exe holding an open handle) reclaims what it can and
+        # logs a warning, instead of surfacing a terminating Access-denied error out
+        # of the parallel runspace and failing the whole cleanup step. -ErrorAction
+        # Continue is unreliable inside -Parallel; an explicit catch is deterministic.
         $paths | Where-Object { Test-Path -LiteralPath $_ } | ForEach-Object -Parallel {
           $p = $_
           Write-Host "Removing $p"
-          Remove-Item -LiteralPath $p -Recurse -Force -ErrorAction Continue
+          # Try the whole tree first; on a locked file this throws before reclaiming
+          # the unlocked siblings, so fall back to deleting children individually so
+          # one denied file (e.g. Firefox's crashhelper.exe) can't block the rest.
+          try {
+            Remove-Item -LiteralPath $p -Recurse -Force -ErrorAction Stop
+          }
+          catch {
+            Write-Host "::warning::clean-runner-disk: bulk remove of $p failed ($($_.Exception.Message)); retrying per-item"
+            Get-ChildItem -LiteralPath $p -Recurse -Force -ErrorAction SilentlyContinue |
+              Sort-Object FullName -Descending |
+              ForEach-Object {
+                try {
+                  Remove-Item -LiteralPath $_.FullName -Force -Recurse -ErrorAction Stop
+                }
+                catch {
+                  Write-Host "::warning::clean-runner-disk: skipped locked path $($_.FullName)"
+                }
+              }
+          }
           if (Test-Path -LiteralPath $p) {
-            Write-Host "::warning::$p still present after removal"
+            Write-Host "::warning::clean-runner-disk: $p still present after removal (likely a locked file)"
           }
         } -ThrottleLimit 8
 
