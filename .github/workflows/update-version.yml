@@ -106,7 +106,9 @@ jobs:
     if: ${{ needs.update-flutter-version.outputs.new_version == 'true' }}
     outputs:
       version_artifact_id: ${{ steps.upload-version.outputs.artifact-id }}
-      windows_skipped: ${{ steps.release_identity.outputs.matched != 'true' && 'true' || 'false' }}
+      # 'true' whenever no fragment was produced: either the release-identity check
+      # didn't match, or it matched but a later step failed before the upload ran.
+      windows_skipped: ${{ (steps.release_identity.outputs.matched == 'true' && steps.upload-version.outcome == 'success') && 'false' || 'true' }}
     runs-on: ubuntu-24.04
     steps:
       - name: Harden runner
@@ -252,6 +254,9 @@ jobs:
     outputs:
       version_artifact_id: ${{ steps.upload-version.outputs.artifact-id }}
       android_test_artifact_id: ${{ steps.upload-android-test.outputs.artifact-id }}
+      # 'true' whenever the fragment upload did not run (job failed before reaching
+      # it), so compose-version-manifest carries forward the base android+fastlane.
+      android_skipped: ${{ steps.upload-version.outcome == 'success' && 'false' || 'true' }}
     runs-on: ubuntu-24.04
     container:
       image: ghcr.io/${{ github.repository_owner }}/flutter-android:${{ needs.setup.outputs.flutter_version }}
@@ -280,12 +285,18 @@ jobs:
           artifact-ids: ${{ needs.update-flutter-version.outputs.flutter_version_artifact_id }}
           path: config
 
-      - name: Copy Flutter version into version manifest and export FLUTTER_* environment variables
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
-        with:
-          script: |
-            const script = require('./script/copyFlutterVersion.js')
-            await script({core})
+      # This job does NOT merge the Flutter block into config/version.json —
+      # that overlay now happens centrally in compose-version-manifest. Here we
+      # only export FLUTTER_VERSION / FLUTTER_CHANNEL, which the Setup Flutter and
+      # Gradle steps below consume.
+      - name: Export FLUTTER_* environment variables
+        env:
+          FLUTTER_VERSION_PATH: ${{ env.FLUTTER_VERSION_PATH }}
+        run: |
+          version=$(jq -r '.flutter.version' "${FLUTTER_VERSION_PATH}")
+          channel=$(jq -r '.flutter.channel' "${FLUTTER_VERSION_PATH}")
+          echo "FLUTTER_VERSION=${version}" >> "$GITHUB_ENV"
+          echo "FLUTTER_CHANNEL=${channel}" >> "$GITHUB_ENV"
 
       - name: Update latest Fastlane version
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
@@ -323,15 +334,25 @@ jobs:
         run: |
           ./script/update_test.sh
 
+      # No #Android definition exists in the schema, so validate the full in-job
+      # manifest: the android + fastlane blocks were written onto the schema-valid
+      # base checkout, so a passing #Version confirms this producer's blocks.
       - name: Validate version.json with CUE
         run: cue vet config/schema.cue -d '#Version' config/version.json
 
-      - name: Upload artifact with the updated version.json
+      # Emit a fragment carrying only this producer's blocks (android + fastlane).
+      # Both are written by this job, so both ride the fragment; compose-version-
+      # manifest overlays them onto the base manifest. The file name disambiguates
+      # from the Windows fragment when both are downloaded with merge-multiple.
+      - name: Stage android-only fragment
+        run: jq '{android, fastlane}' config/version.json > "${RUNNER_TEMP}/version.json.android"
+
+      - name: Upload artifact with the updated android block
         id: upload-version
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         with:
-          name: version.json
-          path: config/version.json
+          name: version.json.android
+          path: ${{ runner.temp }}/version.json.android
 
       - name: Upload the test artifact for Android
         id: upload-android-test
