@@ -517,19 +517,22 @@ jobs:
 
   update-docs-and-create-pr:
     name: Update docs and create PR
+    # Platform updaters stay in needs: only so their <platform>_skipped outputs
+    # are readable for PR-body annotation; the data consumed is composed-manifest.
     needs:
       - update-flutter-version
       - update-android-version
       - update-windows-version
+      - compose-version-manifest
       - validate-config-version
-    # Open the PR even when update-windows-version skipped or failed: the
-    # Android artifact's version.json already carries a valid windows block
-    # (from the base-branch checkout), so a missing windows artifact just
-    # means the committed windows block is carried forward unchanged.
+    # Open the PR whenever Flutter changed, composition succeeded, and validation
+    # passed. Either platform updater skipping (android or windows) is fine — its
+    # block was carried forward by compose-version-manifest. The gate is the
+    # composed-and-validated manifest, not the individual platform jobs.
     if: |
       !cancelled() &&
       needs.update-flutter-version.result == 'success' &&
-      needs.update-android-version.result == 'success' &&
+      needs.compose-version-manifest.result == 'success' &&
       needs.validate-config-version.result == 'success'
     runs-on: ubuntu-24.04
     env:
@@ -552,58 +555,19 @@ jobs:
       # Check if this workaround can be removed after the following issues are fixed:
       # https://github.com/actions/download-artifact/issues/225
       # https://github.com/actions/download-artifact/issues/138
-      - name: Delete flutter_version.json and version.json
+      - name: Delete flutter_version.json, version.json and android.yml
         run: |-
           rm ${{ env.FLUTTER_VERSION_PATH }} config/version.json test/android.yml
 
-      # Compose the artifact-ids list with the Windows artifact id appended
-      # only when update-windows-version actually produced one. When the
-      # Windows job skipped its update, its version_artifact_id output is
-      # empty and we omit it from the list (download-artifact rejects empty
-      # entries).
-      - name: Compose artifact id list
-        id: artifact_ids
-        env:
-          FLUTTER_ID: ${{ needs.update-flutter-version.outputs.flutter_version_artifact_id }}
-          ANDROID_ID: ${{ needs.update-android-version.outputs.version_artifact_id }}
-          WINDOWS_ID: ${{ needs.update-windows-version.outputs.version_artifact_id }}
-        run: |
-          ids="${FLUTTER_ID},${ANDROID_ID}"
-          if [ -n "${WINDOWS_ID}" ]; then
-            ids="${ids},${WINDOWS_ID}"
-          fi
-          echo "ids=${ids}" >> "$GITHUB_OUTPUT"
-
-      - name: Download configuration artifacts
+      # Read-only consumer: download the single composed-and-validated manifest.
+      # No jq, no overlay, no re-validation — compose-version-manifest produced it
+      # and validate-config-version already gated it. The artifact unpacks
+      # config/version.json and test/android.yml at their repo-relative paths.
+      - name: Download composed manifest
         uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         with:
-          artifact-ids: ${{ steps.artifact_ids.outputs.ids }}
-          path: config
-          # Download to the configured path instead of separated directories by artifact id.
-          # Artifacts contain distinct filenames (flutter_version.json, version.json,
-          # version.json.windows) so merge-multiple is safe.
-          merge-multiple: true
-
-      # Android's version.json is the base (carries new flutter+android, plus
-      # the base-branch windows block); Windows artifact overlays the windows field.
-      - name: Merge windows block into version.json
-        if: needs.update-windows-version.outputs.version_artifact_id != ''
-        run: |
-          jq -s '.[0] + {windows: .[1].windows}' config/version.json config/version.json.windows > config/version.json.merged
-          mv config/version.json.merged config/version.json
-          rm config/version.json.windows
-
-      - name: Setup mise tools
-        uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
-
-      - name: Validate merged version.json with CUE
-        run: cue vet config/schema.cue -d '#Version' config/version.json
-
-      - name: Download test artifacts
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
-        with:
-          artifact-ids: ${{ needs.update-android-version.outputs.android_test_artifact_id }}
-          path: test
+          artifact-ids: ${{ needs.compose-version-manifest.outputs.composed_artifact_id }}
+          path: .
 
       - name: Setup mise tools
         uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
@@ -629,23 +593,29 @@ jobs:
           echo "commit_message=$commit_message" >> "$GITHUB_OUTPUT"
           echo "Commit message: $commit_message"
 
-      # When update-windows-version skipped its update (release-identity
-      # mismatch upstream, or any other non-success outcome), surface that
-      # in the PR description so the reviewer doesn't have to dig through
-      # job logs to learn why the windows block is unchanged this cycle.
+      # Annotate each platform that did not update this cycle (skipped output set,
+      # or job not successful), so the reviewer sees which blocks were carried
+      # forward without digging through job logs. Android and Windows are treated
+      # symmetrically.
       - name: Compose PR body
         id: pr_body
         env:
+          ANDROID_SKIPPED: ${{ needs.update-android-version.outputs.android_skipped }}
+          ANDROID_RESULT: ${{ needs.update-android-version.result }}
           WINDOWS_SKIPPED: ${{ needs.update-windows-version.outputs.windows_skipped }}
           WINDOWS_RESULT: ${{ needs.update-windows-version.result }}
-          WINDOWS_JOB_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          JOB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           {
             echo "body<<PR_BODY_EOF"
             echo "Automated upgrade PR opened by \`update-version.yml\`."
+            if [ "${ANDROID_SKIPPED}" = "true" ] || [ "${ANDROID_RESULT}" != "success" ]; then
+              echo ""
+              echo "**Android toolchain unchanged this cycle.** See [\`update-android-version\` job log](${JOB_RUN_URL}) — the committed \`android\` block in \`config/version.json\` is carried forward unchanged."
+            fi
             if [ "${WINDOWS_SKIPPED}" = "true" ] || [ "${WINDOWS_RESULT}" != "success" ]; then
               echo ""
-              echo "**Windows toolchain unchanged this cycle.** See [\`update-windows-version\` job log](${WINDOWS_JOB_URL}) — the committed \`windows\` block in \`config/version.json\` is carried forward unchanged."
+              echo "**Windows toolchain unchanged this cycle.** See [\`update-windows-version\` job log](${JOB_RUN_URL}) — the committed \`windows\` block in \`config/version.json\` is carried forward unchanged."
             fi
             echo "PR_BODY_EOF"
           } >> "$GITHUB_OUTPUT"

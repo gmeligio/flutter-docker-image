@@ -34,12 +34,12 @@
 
 ## 5. Simplify `update-docs-and-create-pr` to be a read-only consumer
 
-- [ ] 5.1 Change the PR job's `needs:` to `[update-flutter-version, update-android-version, update-windows-version, compose-version-manifest, validate-config-version]`. Keep platform updaters in `needs:` so `<platform>_skipped` outputs remain accessible for PR-body annotation; the actual data consumed is `composed-manifest`.
-- [ ] 5.2 Replace the "Download configuration artifacts" + "Compose artifact id list" + "Merge windows block" steps with a single "Download composed manifest" step that fetches `needs.compose-version-manifest.outputs.composed_artifact_id` into the working directory.
-- [ ] 5.3 Remove the now-unused "Validate merged version.json with CUE" step. Validation lives in `validate-config-version` only.
-- [ ] 5.4 Remove the "Download test artifacts" step (the composed-manifest artifact now carries `test/android.yml`).
-- [ ] 5.5 Update the "Compose PR body" step to annotate both platforms uniformly: when `needs.update-android-version.outputs.android_skipped == 'true'`, add the "Android toolchain unchanged this cycle" line; same for Windows. Keep the existing job-log URL pattern.
-- [ ] 5.6 Confirm `script/setEnvironmentVariables.js` and `script/copyFlutterVersion.js` (for env-var export only, not file mutation) still work against the composed manifest. The env-var exports happen against `config/version.json` which is now the composed result.
+- [x] 5.1 Change the PR job's `needs:` to `[update-flutter-version, update-android-version, update-windows-version, compose-version-manifest, validate-config-version]`. Keep platform updaters in `needs:` so `<platform>_skipped` outputs remain accessible for PR-body annotation; the actual data consumed is `composed-manifest`.
+- [x] 5.2 Replace the "Download configuration artifacts" + "Compose artifact id list" + "Merge windows block" steps with a single "Download composed manifest" step that fetches `needs.compose-version-manifest.outputs.composed_artifact_id` into the working directory.
+- [x] 5.3 Remove the now-unused "Validate merged version.json with CUE" step. Validation lives in `validate-config-version` only.
+- [x] 5.4 Remove the "Download test artifacts" step (the composed-manifest artifact now carries `test/android.yml`).
+- [x] 5.5 Update the "Compose PR body" step to annotate both platforms uniformly: when `needs.update-android-version.outputs.android_skipped == 'true'`, add the "Android toolchain unchanged this cycle" line; same for Windows. Keep the existing job-log URL pattern.
+- [x] 5.6 Confirm `script/setEnvironmentVariables.js` and `script/copyFlutterVersion.js` (for env-var export only, not file mutation) still work against the composed manifest. The env-var exports happen against `config/version.json` which is now the composed result.
 
 ## 6. Validate
 
