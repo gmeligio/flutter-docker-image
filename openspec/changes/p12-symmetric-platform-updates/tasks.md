@@ -14,23 +14,23 @@
 
 ## 3. Add `compose-version-manifest` job
 
-- [ ] 3.1 In `.github/workflows/update-version.yml`, add a new job `compose-version-manifest` between the platform-updater jobs and `validate-config-version`. Its `needs:` is `[update-flutter-version, update-android-version, update-windows-version]` and its `if:` is `!cancelled() && needs.update-flutter-version.result == 'success'`. Runs on `ubuntu-24.04` with a `harden-runner` step.
-- [ ] 3.2 Checkout the base branch to obtain the schema-valid `config/version.json` and `test/android.yml` as the composition canvas.
-- [ ] 3.3 Download Flutter's artifact (`needs.update-flutter-version.outputs.flutter_version_artifact_id`) — always required.
-- [ ] 3.4 Conditionally download Android's fragment artifact when `needs.update-android-version.outputs.version_artifact_id` is non-empty. Use a "Compose artifact id list" pattern (like the one introduced in `p11`'s PR job) to assemble the `artifact-ids` input dynamically.
-- [ ] 3.5 Conditionally download Windows's fragment artifact when `needs.update-windows-version.outputs.version_artifact_id` is non-empty.
-- [ ] 3.6 Conditionally download Android's `test/android.yml` artifact when Android produced it; otherwise use the base-branch checkout's copy.
-- [ ] 3.7 Overlay the Flutter block onto the base `config/version.json` via `jq -s '.[0] * .[1]' config/version.json config/flutter_version.json > tmp && mv tmp config/version.json` (or use `script/copyFlutterVersion.js` — decide based on whether the script's env-var export is wanted here; in this job, only the file mutation is wanted, so prefer the inline `jq`).
-- [ ] 3.8 Overlay the Android **and fastlane** blocks if the Android fragment was downloaded: `jq -s '.[0] + {android: .[1].android, fastlane: .[1].fastlane}' config/version.json config/version.json.android > tmp && mv tmp config/version.json`. (The Android fragment carries both per task 1.2; if Android skipped, both blocks carry forward from the base manifest.)
-- [ ] 3.9 Overlay the Windows block if downloaded: `jq -s '.[0] + {windows: .[1].windows}' config/version.json config/version.json.windows > tmp && mv tmp config/version.json`.
-- [ ] 3.10 Clean up the fragment files from the composed-manifest staging area so they don't get uploaded with the composed artifact.
-- [ ] 3.11 Upload the composed `config/version.json` (and `test/android.yml`) as a single `composed-manifest` artifact. Expose its artifact id as a job output `composed_artifact_id`.
+- [x] 3.1 In `.github/workflows/update-version.yml`, add a new job `compose-version-manifest` between the platform-updater jobs and `validate-config-version`. Its `needs:` is `[update-flutter-version, update-android-version, update-windows-version]` and its `if:` is `!cancelled() && needs.update-flutter-version.result == 'success'`. Runs on `ubuntu-24.04` with a `harden-runner` step.
+- [x] 3.2 Checkout the base branch to obtain the schema-valid `config/version.json` and `test/android.yml` as the composition canvas.
+- [x] 3.3 Download Flutter's artifact (`needs.update-flutter-version.outputs.flutter_version_artifact_id`) — always required.
+- [x] 3.4 Conditionally download Android's fragment artifact when `needs.update-android-version.outputs.version_artifact_id` is non-empty. Use a "Compose artifact id list" pattern (like the one introduced in `p11`'s PR job) to assemble the `artifact-ids` input dynamically.
+- [x] 3.5 Conditionally download Windows's fragment artifact when `needs.update-windows-version.outputs.version_artifact_id` is non-empty.
+- [x] 3.6 Conditionally download Android's `test/android.yml` artifact when Android produced it; otherwise use the base-branch checkout's copy.
+- [x] 3.7 Overlay the Flutter block onto the base `config/version.json` via `jq -s '.[0] * .[1]' config/version.json config/flutter_version.json > tmp && mv tmp config/version.json` (or use `script/copyFlutterVersion.js` — decide based on whether the script's env-var export is wanted here; in this job, only the file mutation is wanted, so prefer the inline `jq`).
+- [x] 3.8 Overlay the Android **and fastlane** blocks if the Android fragment was downloaded: `jq -s '.[0] + {android: .[1].android, fastlane: .[1].fastlane}' config/version.json config/version.json.android > tmp && mv tmp config/version.json`. (The Android fragment carries both per task 1.2; if Android skipped, both blocks carry forward from the base manifest.)
+- [x] 3.9 Overlay the Windows block if downloaded: `jq -s '.[0] + {windows: .[1].windows}' config/version.json config/version.json.windows > tmp && mv tmp config/version.json`.
+- [x] 3.10 Clean up the fragment files from the composed-manifest staging area so they don't get uploaded with the composed artifact.
+- [x] 3.11 Upload the composed `config/version.json` (and `test/android.yml`) as a single `composed-manifest` artifact. Expose its artifact id as a job output `composed_artifact_id`.
 
 ## 4. Point `validate-config-version` at the composed artifact
 
-- [ ] 4.1 Change `validate-config-version.needs` from `update-android-version` to `compose-version-manifest`.
-- [ ] 4.2 Change the artifact id reference from `needs.update-android-version.outputs.version_artifact_id` to `needs.compose-version-manifest.outputs.composed_artifact_id`.
-- [ ] 4.3 Confirm `validate-config-version` still runs `cue vet config/schema.cue -d '#Version' config/version.json` and exits 0 only on the composed (final) manifest.
+- [x] 4.1 Change `validate-config-version.needs` from `update-android-version` to `compose-version-manifest`.
+- [x] 4.2 Change the artifact id reference from `needs.update-android-version.outputs.version_artifact_id` to `needs.compose-version-manifest.outputs.composed_artifact_id`.
+- [x] 4.3 Confirm `validate-config-version` still runs `cue vet config/schema.cue -d '#Version' config/version.json` and exits 0 only on the composed (final) manifest.
 
 ## 5. Simplify `update-docs-and-create-pr` to be a read-only consumer
 
