@@ -307,7 +307,7 @@ jobs:
 
       - name: Setup Flutter
         run: |
-          cd $FLUTTER_ROOT
+          cd "$FLUTTER_ROOT"
           git fetch origin ${{ env.FLUTTER_VERSION }}:${{ env.FLUTTER_VERSION }}
           git switch --discard-changes ${{ env.FLUTTER_VERSION }}
 
