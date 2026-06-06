@@ -1,4 +1,11 @@
 /.env
 /test_app
 /.vscode
-/.claude/scheduled_tasks.lock
+
+# Claude Code: ignore everything under .claude, then re-include the shared,
+# versioned bits. This keeps runtime state (locks, *.local.* settings) and any
+# future drop-ins out of git by default — opt in per shared file/dir.
+/.claude/*
+!/.claude/commands/
+!/.claude/skills/
+!/.claude/settings.json
