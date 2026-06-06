@@ -43,9 +43,9 @@
 
 ## 6. Validate
 
-- [ ] 6.1 Run `openspec validate p12-symmetric-platform-updates --strict`.
-- [ ] 6.2 Verify `.github/workflows/update-version.yml` parses cleanly via `python3 -c "import yaml; yaml.safe_load(open(…))"`.
-- [ ] 6.3 In the implementation PR description, document the manual verification matrix:
+- [x] 6.1 Run `openspec validate p12-symmetric-platform-updates --strict`.
+- [x] 6.2 Verify `.github/workflows/update-version.yml` parses cleanly via `python3 -c "import yaml; yaml.safe_load(open(…))"`. Also linted with `gx 0.8.1` (`dangling-reference`, `invalid-expression`, `run-shellcheck`) — no issues.
+- [x] 6.3 In the implementation PR description, document the manual verification matrix:
   - **Happy path**: `workflow_dispatch` after merging — confirm both platforms produce fragments, composed manifest is correct, PR opens without skip annotations.
   - **Android-skipped path**: temporarily set `update-android-version.if: false` on the PR branch and dispatch — confirm composed manifest has new flutter + new windows + carried-forward android; PR body shows Android annotation.
   - **Windows-skipped path**: same as above for `update-windows-version.if: false` — confirm composed manifest has new flutter + new android + carried-forward windows; PR body shows Windows annotation.
@@ -53,5 +53,5 @@
 
 ## 7. Spec validation against archived p11
 
-- [ ] 7.1 After `p11-resilient-windows-update` is archived (post-merge), confirm `openspec validate p12-symmetric-platform-updates --strict` still passes against the archived spec state.
-- [ ] 7.2 Update any cross-references in p12's design.md if archival paths change.
+- [x] 7.1 After `p11-resilient-windows-update` is archived (post-merge), confirm `openspec validate p12-symmetric-platform-updates --strict` still passes against the archived spec state.
+- [x] 7.2 Update any cross-references in p12's design.md if archival paths change. No-op: p11 is referenced only in narrative prose, no archived-path links exist.
