@@ -3,7 +3,7 @@ cue = "0.15.0"
 git-cliff = "2.10.1"
 pnpm = "11.2.2"
 node = "lts"
-"github:gmeligio/gx" = "0.8.0"
+"github:gmeligio/gx" = "0.8.1"
 "github:GoogleContainerTools/container-structure-test[exe=container-structure-test-linux-amd64]" = "1.22.1"
 
 # Regenerate the committed docs output (readme.md, windows.md, contributing.md,
