@@ -296,7 +296,7 @@ jobs:
           # Store the changelog in a temporary directory to not pollute the working directory
           mkdir -p "${{ runner.temp }}/git-cliff"
           changelog_file="${{ runner.temp }}/git-cliff/changelog.md"
-          echo "changelog_file=${changelog_file}" >>$GITHUB_OUTPUT
+          echo "changelog_file=${changelog_file}" >> "$GITHUB_OUTPUT"
 
           git-cliff -v --latest --strip all --no-exec --github-repo "${{ github.repository }}" --output "$changelog_file"
 

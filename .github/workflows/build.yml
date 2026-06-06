@@ -418,16 +418,16 @@ jobs:
             echo "content<<EOF"
             cat ./config/version.json
             echo "EOF"
-          } >> $GITHUB_OUTPUT
+          } >> "$GITHUB_OUTPUT"
 
       - name: Set environment variables from version.json
         run: |
-          echo "FLUTTER_VERSION=${{ fromJson( steps.version-json.outputs.content ).flutter.version }}" >> $GITHUB_ENV
-          echo "FLUTTER_CHANNEL=${{ fromJson( steps.version-json.outputs.content ).flutter.channel }}" >> $GITHUB_ENV
+          echo "FLUTTER_VERSION=${{ fromJson( steps.version-json.outputs.content ).flutter.version }}" >> "$GITHUB_ENV"
+          echo "FLUTTER_CHANNEL=${{ fromJson( steps.version-json.outputs.content ).flutter.channel }}" >> "$GITHUB_ENV"
 
       - name: Setup Flutter
         run: |
-          cd $FLUTTER_ROOT
+          cd "$FLUTTER_ROOT"
           git fetch origin ${{ env.FLUTTER_VERSION }}:${{ env.FLUTTER_VERSION }}
           git switch --discard-changes ${{ env.FLUTTER_VERSION }}
 
