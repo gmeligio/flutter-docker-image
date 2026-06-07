@@ -106,7 +106,9 @@ jobs:
     if: ${{ needs.update-flutter-version.outputs.new_version == 'true' }}
     outputs:
       version_artifact_id: ${{ steps.upload-version.outputs.artifact-id }}
-      windows_skipped: ${{ steps.release_identity.outputs.matched != 'true' && 'true' || 'false' }}
+      # 'true' whenever no fragment was produced: either the release-identity check
+      # didn't match, or it matched but a later step failed before the upload ran.
+      windows_skipped: ${{ (steps.release_identity.outputs.matched == 'true' && steps.upload-version.outcome == 'success') && 'false' || 'true' }}
     runs-on: ubuntu-24.04
     steps:
       - name: Harden runner
@@ -252,6 +254,9 @@ jobs:
     outputs:
       version_artifact_id: ${{ steps.upload-version.outputs.artifact-id }}
       android_test_artifact_id: ${{ steps.upload-android-test.outputs.artifact-id }}
+      # 'true' whenever the fragment upload did not run (job failed before reaching
+      # it), so compose-version-manifest carries forward the base android+fastlane.
+      android_skipped: ${{ steps.upload-version.outcome == 'success' && 'false' || 'true' }}
     runs-on: ubuntu-24.04
     container:
       image: ghcr.io/${{ github.repository_owner }}/flutter-android:${{ needs.setup.outputs.flutter_version }}
@@ -280,12 +285,18 @@ jobs:
           artifact-ids: ${{ needs.update-flutter-version.outputs.flutter_version_artifact_id }}
           path: config
 
-      - name: Copy Flutter version into version manifest and export FLUTTER_* environment variables
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
-        with:
-          script: |
-            const script = require('./script/copyFlutterVersion.js')
-            await script({core})
+      # This job does NOT merge the Flutter block into config/version.json —
+      # that overlay now happens centrally in compose-version-manifest. Here we
+      # only export FLUTTER_VERSION / FLUTTER_CHANNEL, which the Setup Flutter and
+      # Gradle steps below consume.
+      - name: Export FLUTTER_* environment variables
+        env:
+          FLUTTER_VERSION_PATH: ${{ env.FLUTTER_VERSION_PATH }}
+        run: |
+          version=$(jq -r '.flutter.version' "${FLUTTER_VERSION_PATH}")
+          channel=$(jq -r '.flutter.channel' "${FLUTTER_VERSION_PATH}")
+          echo "FLUTTER_VERSION=${version}" >> "$GITHUB_ENV"
+          echo "FLUTTER_CHANNEL=${channel}" >> "$GITHUB_ENV"
 
       - name: Update latest Fastlane version
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
@@ -296,7 +307,7 @@ jobs:
 
       - name: Setup Flutter
         run: |
-          cd $FLUTTER_ROOT
+          cd "$FLUTTER_ROOT"
           git fetch origin ${{ env.FLUTTER_VERSION }}:${{ env.FLUTTER_VERSION }}
           git switch --discard-changes ${{ env.FLUTTER_VERSION }}
 
@@ -323,15 +334,25 @@ jobs:
         run: |
           ./script/update_test.sh
 
+      # No #Android definition exists in the schema, so validate the full in-job
+      # manifest: the android + fastlane blocks were written onto the schema-valid
+      # base checkout, so a passing #Version confirms this producer's blocks.
       - name: Validate version.json with CUE
         run: cue vet config/schema.cue -d '#Version' config/version.json
 
-      - name: Upload artifact with the updated version.json
+      # Emit a fragment carrying only this producer's blocks (android + fastlane).
+      # Both are written by this job, so both ride the fragment; compose-version-
+      # manifest overlays them onto the base manifest. The file name disambiguates
+      # from the Windows fragment when both are downloaded with merge-multiple.
+      - name: Stage android-only fragment
+        run: jq '{android, fastlane}' config/version.json > "${RUNNER_TEMP}/version.json.android"
+
+      - name: Upload artifact with the updated android block
         id: upload-version
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         with:
-          name: version.json
-          path: config/version.json
+          name: version.json.android
+          path: ${{ runner.temp }}/version.json.android
 
       - name: Upload the test artifact for Android
         id: upload-android-test
@@ -340,9 +361,128 @@ jobs:
           name: android.yml
           path: test/android.yml
 
+  # Single composition step: overlay each platform's fragment onto the schema-valid
+  # base manifest. Runs whenever Flutter produced a fragment, regardless of whether
+  # the platform jobs succeeded — a missing fragment means that block is carried
+  # forward from the base branch unchanged. This is the ONLY place config/version.json
+  # is composed; validate-config-version then gates the single composed result.
+  compose-version-manifest:
+    name: Compose version manifest
+    needs: [update-flutter-version, update-android-version, update-windows-version]
+    if: ${{ !cancelled() && needs.update-flutter-version.result == 'success' }}
+    runs-on: ubuntu-24.04
+    outputs:
+      composed_artifact_id: ${{ steps.upload-composed.outputs.artifact-id }}
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      # Base-branch checkout is the composition canvas: its config/version.json and
+      # test/android.yml are schema-valid (enforced by build.yml on every merge),
+      # so any block carried forward is by definition a previously-validated block.
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      # The Flutter fragment is always present (the pipeline is gated on Flutter
+      # changing). Download it into config/ overwriting the committed flutter_version.json.
+      - name: Delete flutter_version.json
+        run: rm ${{ env.FLUTTER_VERSION_PATH }}
+
+      - name: Download Flutter fragment
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        with:
+          artifact-ids: ${{ needs.update-flutter-version.outputs.flutter_version_artifact_id }}
+          path: config
+
+      # Compose the artifact-ids list with the Android and Windows fragment ids
+      # appended only when their producer jobs actually uploaded one. An empty id
+      # is omitted (download-artifact rejects empty entries). The android fragment
+      # also carries android.yml's producer; its test artifact id is handled separately.
+      - name: Compose fragment artifact id list
+        id: fragment_ids
+        env:
+          ANDROID_ID: ${{ needs.update-android-version.outputs.version_artifact_id }}
+          WINDOWS_ID: ${{ needs.update-windows-version.outputs.version_artifact_id }}
+          ANDROID_TEST_ID: ${{ needs.update-android-version.outputs.android_test_artifact_id }}
+        run: |
+          ids=""
+          [ -n "${ANDROID_ID}" ] && ids="${ids:+$ids,}${ANDROID_ID}"
+          [ -n "${WINDOWS_ID}" ] && ids="${ids:+$ids,}${WINDOWS_ID}"
+          [ -n "${ANDROID_TEST_ID}" ] && ids="${ids:+$ids,}${ANDROID_TEST_ID}"
+          echo "ids=${ids}" >> "$GITHUB_OUTPUT"
+          echo "Fragment artifact ids: ${ids:-<none>}"
+
+      # Download whatever fragments exist (android, windows, android.yml). Distinct
+      # filenames (version.json.android, version.json.windows, android.yml) make
+      # merge-multiple safe. When the list is empty, the step is skipped and the
+      # base-branch copies are used as-is.
+      - name: Download available fragments
+        if: steps.fragment_ids.outputs.ids != ''
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        with:
+          artifact-ids: ${{ steps.fragment_ids.outputs.ids }}
+          path: ${{ runner.temp }}/fragments
+          merge-multiple: true
+
+      - name: Setup mise tools
+        uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
+
+      # Overlay each block in turn. Flutter always overlays; android (+fastlane)
+      # and windows overlay only when their fragment was downloaded, else the base
+      # block carries forward. android.yml is replaced only when its fragment exists.
+      - name: Compose manifest
+        env:
+          FRAGMENTS: ${{ runner.temp }}/fragments
+        run: |
+          # Flutter — always present.
+          jq -s '.[0] * .[1]' config/version.json config/flutter_version.json > config/version.json.tmp
+          mv config/version.json.tmp config/version.json
+          rm config/flutter_version.json
+
+          # Android + fastlane — when the fragment was produced this cycle.
+          if [ -f "${FRAGMENTS}/version.json.android" ]; then
+            jq -s '.[0] + {android: .[1].android, fastlane: .[1].fastlane}' \
+              config/version.json "${FRAGMENTS}/version.json.android" > config/version.json.tmp
+            mv config/version.json.tmp config/version.json
+            echo "Overlaid android + fastlane from fragment."
+          else
+            echo "No android fragment — carrying forward base android + fastlane."
+          fi
+
+          # Windows — when the fragment was produced this cycle.
+          if [ -f "${FRAGMENTS}/version.json.windows" ]; then
+            jq -s '.[0] + {windows: .[1].windows}' \
+              config/version.json "${FRAGMENTS}/version.json.windows" > config/version.json.tmp
+            mv config/version.json.tmp config/version.json
+            echo "Overlaid windows from fragment."
+          else
+            echo "No windows fragment — carrying forward base windows."
+          fi
+
+          # test/android.yml — replace with the fresh one when Android produced it.
+          if [ -f "${FRAGMENTS}/android.yml" ]; then
+            cp "${FRAGMENTS}/android.yml" test/android.yml
+            echo "Replaced test/android.yml from fragment."
+          else
+            echo "No android.yml fragment — carrying forward base test/android.yml."
+          fi
+
+      # Upload the composed manifest + test file as a single artifact. This is the
+      # exact byte content that becomes the PR's config/version.json and test/android.yml.
+      - name: Upload composed manifest
+        id: upload-composed
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        with:
+          name: composed-manifest
+          path: |
+            config/version.json
+            test/android.yml
+
   validate-config-version:
     name: Validate config version
-    needs: update-android-version
+    needs: compose-version-manifest
     runs-on: ubuntu-24.04
     steps:
       - name: Harden runner
@@ -357,14 +497,17 @@ jobs:
       # Check if this workaround can be removed after the following issues are fixed:
       # https://github.com/actions/download-artifact/issues/225
       # https://github.com/actions/download-artifact/issues/138
-      - name: Delete version.json
-        run: rm config/version.json
+      - name: Delete version.json and android.yml
+        run: rm config/version.json test/android.yml
 
-      - name: Download artifact with the new Flutter version
+      # Validate the COMPOSED manifest — the only version of config/version.json
+      # that becomes the PR's content. The composed-manifest artifact unpacks
+      # config/version.json and test/android.yml at their repo-relative paths.
+      - name: Download composed manifest
         uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         with:
-          artifact-ids: ${{ needs.update-android-version.outputs.version_artifact_id }}
-          path: config
+          artifact-ids: ${{ needs.compose-version-manifest.outputs.composed_artifact_id }}
+          path: .
 
       - name: Setup mise tools
         uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
@@ -374,19 +517,22 @@ jobs:
 
   update-docs-and-create-pr:
     name: Update docs and create PR
+    # Platform updaters stay in needs: only so their <platform>_skipped outputs
+    # are readable for PR-body annotation; the data consumed is composed-manifest.
     needs:
       - update-flutter-version
       - update-android-version
       - update-windows-version
+      - compose-version-manifest
       - validate-config-version
-    # Open the PR even when update-windows-version skipped or failed: the
-    # Android artifact's version.json already carries a valid windows block
-    # (from the base-branch checkout), so a missing windows artifact just
-    # means the committed windows block is carried forward unchanged.
+    # Open the PR whenever Flutter changed, composition succeeded, and validation
+    # passed. Either platform updater skipping (android or windows) is fine — its
+    # block was carried forward by compose-version-manifest. The gate is the
+    # composed-and-validated manifest, not the individual platform jobs.
     if: |
       !cancelled() &&
       needs.update-flutter-version.result == 'success' &&
-      needs.update-android-version.result == 'success' &&
+      needs.compose-version-manifest.result == 'success' &&
       needs.validate-config-version.result == 'success'
     runs-on: ubuntu-24.04
     env:
@@ -409,58 +555,19 @@ jobs:
       # Check if this workaround can be removed after the following issues are fixed:
       # https://github.com/actions/download-artifact/issues/225
       # https://github.com/actions/download-artifact/issues/138
-      - name: Delete flutter_version.json and version.json
+      - name: Delete flutter_version.json, version.json and android.yml
         run: |-
           rm ${{ env.FLUTTER_VERSION_PATH }} config/version.json test/android.yml
 
-      # Compose the artifact-ids list with the Windows artifact id appended
-      # only when update-windows-version actually produced one. When the
-      # Windows job skipped its update, its version_artifact_id output is
-      # empty and we omit it from the list (download-artifact rejects empty
-      # entries).
-      - name: Compose artifact id list
-        id: artifact_ids
-        env:
-          FLUTTER_ID: ${{ needs.update-flutter-version.outputs.flutter_version_artifact_id }}
-          ANDROID_ID: ${{ needs.update-android-version.outputs.version_artifact_id }}
-          WINDOWS_ID: ${{ needs.update-windows-version.outputs.version_artifact_id }}
-        run: |
-          ids="${FLUTTER_ID},${ANDROID_ID}"
-          if [ -n "${WINDOWS_ID}" ]; then
-            ids="${ids},${WINDOWS_ID}"
-          fi
-          echo "ids=${ids}" >> "$GITHUB_OUTPUT"
-
-      - name: Download configuration artifacts
+      # Read-only consumer: download the single composed-and-validated manifest.
+      # No jq, no overlay, no re-validation — compose-version-manifest produced it
+      # and validate-config-version already gated it. The artifact unpacks
+      # config/version.json and test/android.yml at their repo-relative paths.
+      - name: Download composed manifest
         uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         with:
-          artifact-ids: ${{ steps.artifact_ids.outputs.ids }}
-          path: config
-          # Download to the configured path instead of separated directories by artifact id.
-          # Artifacts contain distinct filenames (flutter_version.json, version.json,
-          # version.json.windows) so merge-multiple is safe.
-          merge-multiple: true
-
-      # Android's version.json is the base (carries new flutter+android, plus
-      # the base-branch windows block); Windows artifact overlays the windows field.
-      - name: Merge windows block into version.json
-        if: needs.update-windows-version.outputs.version_artifact_id != ''
-        run: |
-          jq -s '.[0] + {windows: .[1].windows}' config/version.json config/version.json.windows > config/version.json.merged
-          mv config/version.json.merged config/version.json
-          rm config/version.json.windows
-
-      - name: Setup mise tools
-        uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
-
-      - name: Validate merged version.json with CUE
-        run: cue vet config/schema.cue -d '#Version' config/version.json
-
-      - name: Download test artifacts
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
-        with:
-          artifact-ids: ${{ needs.update-android-version.outputs.android_test_artifact_id }}
-          path: test
+          artifact-ids: ${{ needs.compose-version-manifest.outputs.composed_artifact_id }}
+          path: .
 
       - name: Setup mise tools
         uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
@@ -486,23 +593,29 @@ jobs:
           echo "commit_message=$commit_message" >> "$GITHUB_OUTPUT"
           echo "Commit message: $commit_message"
 
-      # When update-windows-version skipped its update (release-identity
-      # mismatch upstream, or any other non-success outcome), surface that
-      # in the PR description so the reviewer doesn't have to dig through
-      # job logs to learn why the windows block is unchanged this cycle.
+      # Annotate each platform that did not update this cycle (skipped output set,
+      # or job not successful), so the reviewer sees which blocks were carried
+      # forward without digging through job logs. Android and Windows are treated
+      # symmetrically.
       - name: Compose PR body
         id: pr_body
         env:
+          ANDROID_SKIPPED: ${{ needs.update-android-version.outputs.android_skipped }}
+          ANDROID_RESULT: ${{ needs.update-android-version.result }}
           WINDOWS_SKIPPED: ${{ needs.update-windows-version.outputs.windows_skipped }}
           WINDOWS_RESULT: ${{ needs.update-windows-version.result }}
-          WINDOWS_JOB_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          JOB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           {
             echo "body<<PR_BODY_EOF"
             echo "Automated upgrade PR opened by \`update-version.yml\`."
+            if [ "${ANDROID_SKIPPED}" = "true" ] || [ "${ANDROID_RESULT}" != "success" ]; then
+              echo ""
+              echo "**Android toolchain unchanged this cycle.** See [\`update-android-version\` job log](${JOB_RUN_URL}) — the committed \`android\` block in \`config/version.json\` is carried forward unchanged."
+            fi
             if [ "${WINDOWS_SKIPPED}" = "true" ] || [ "${WINDOWS_RESULT}" != "success" ]; then
               echo ""
-              echo "**Windows toolchain unchanged this cycle.** See [\`update-windows-version\` job log](${WINDOWS_JOB_URL}) — the committed \`windows\` block in \`config/version.json\` is carried forward unchanged."
+              echo "**Windows toolchain unchanged this cycle.** See [\`update-windows-version\` job log](${JOB_RUN_URL}) — the committed \`windows\` block in \`config/version.json\` is carried forward unchanged."
             fi
             echo "PR_BODY_EOF"
           } >> "$GITHUB_OUTPUT"
