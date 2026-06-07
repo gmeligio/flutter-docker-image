@@ -29,77 +29,110 @@ The experience context is the CI engineer who watches this repository for upgrad
 
 ### Requirement: Upgrade PR contains a coherent, validated `version.json`
 
-When the workflow opens an upgrade PR, the included `config/version.json` SHALL satisfy `cue vet config/schema.cue -d '#Version'`. Its `android.buildTools.version` SHALL equal the build-tools version that the Android Gradle Plugin (AGP) requests at build time inside a freshly-created Flutter project at the target Flutter tag — that is, the same version `sdkmanager` would install if `./gradlew bundleRelease` were run against a vanilla `flutter create` output. The workflow SHALL NOT derive this value from Flutter's `engine/src/flutter/tools/android_sdk/packages.txt`; that file lists Google's pre-staged CIPD package set and is not authoritative for what AGP requests. Its `windows.git.version` SHALL equal the latest non-prerelease tag at `https://api.github.com/repos/git-for-windows/git/releases/latest` (with any `.windows.N` suffix stripped). Its VS BuildTools component versions SHALL come from the deterministic source documented in `p3-windows-version-schema`'s design, as refined by `p11-resilient-windows-update`'s design (release-identity check against Microsoft's `channel.json` and `vsman.json`).
+When the workflow opens an upgrade PR, the included `config/version.json` SHALL be a single composed manifest produced by the `compose-version-manifest` job and validated by `validate-config-version` before any PR work begins. The composed manifest SHALL satisfy `cue vet config/schema.cue -d '#Version'` and SHALL contain:
 
-When the `update_windows_version` job has skipped its update for this cycle (because Microsoft's `channel.json` and `vsman.json` disagree on release identity), the PR SHALL still open with the Flutter and Android updates merged into `config/version.json` and the existing committed `windows` block carried forward unchanged. The PR body SHALL include a one-line annotation explaining that the Windows toolchain was unchanged this cycle. The carried-forward `windows` block SHALL pass `cue vet` against `#Version` because it was already valid on the base branch.
+- the `flutter` block written by `update-flutter-version` (always present — the pipeline is gated on Flutter having changed),
+- the `android` and `fastlane` blocks written by `update-android-version` *if* that job produced its fragment artifact this cycle, otherwise the `android` and `fastlane` blocks as committed on the base branch (both ride the Android fragment because both are written by that job),
+- the `windows` block written by `update-windows-version` *if* that job produced its fragment artifact this cycle, otherwise the `windows` block as committed on the base branch.
 
-The experience context is the CI engineer reviewing or merging the upgrade PR. They observe that downstream image builds will not silently regress on Android tooling *or* on Windows tooling — in particular, that the image's pre-installed build-tools matches what a freshly-created Flutter project asks for, so the Android smoke test does not trigger runtime `sdkmanager` downloads. They also observe that an extractor bug cannot quietly produce a malformed `buildTools.version` that surfaces only as a confusing schema error downstream, and that a transient inconsistency in Microsoft's VS manifest publishing does not block the Flutter+Android portion of the monthly upgrade.
+The job that creates the pull request (`update-docs-and-create-pr`) SHALL be a read-only consumer of the composed and validated manifest: it SHALL NOT run `jq` against `config/version.json`, SHALL NOT re-validate it, and SHALL NOT depend on the individual platform-updater jobs' artifacts.
 
-#### Scenario: Build-tools version tracks what AGP requests for the new Flutter tag
+When either platform updater skipped its update this cycle, the PR body SHALL include a one-line annotation per skipped platform, linking the corresponding job log.
+
+The experience context is the CI engineer reviewing or merging the upgrade PR — they observe that composition and validation happen exactly once, in dedicated jobs, before the PR is composed; they can tell from the PR body which platforms updated this cycle and which carried forward; and they can trust that the version manifest they're reviewing is the same byte-for-byte content the validation gate approved.
+
+#### Scenario: Happy path — both platforms produce fragments
 
 - **GIVEN** the workflow is opening an upgrade PR for Flutter `X.Y.Z`
-- **AND** at tag `X.Y.Z`, `flutter create test_app` produces an Android project whose AGP configuration resolves `buildToolsVersion` to `A.B.C`
-- **WHEN** the `update_android_version` job runs
-- **THEN** `config/version.json` in the resulting PR contains `android.buildTools.version == "A.B.C"`
-- **AND** the workflow makes no network request to `raw.githubusercontent.com/.../packages.txt` for the purpose of resolving build-tools
+- **AND** `update-android-version` and `update-windows-version` both produced their fragment artifacts
+- **WHEN** `compose-version-manifest` runs
+- **THEN** the composed `config/version.json` contains the new `flutter`, new `android`, and new `windows` blocks
+- **AND** `validate-config-version` runs against the composed artifact and exits 0
+- **AND** the PR opens with this exact composed manifest as its `config/version.json`
+- **AND** the PR body does not include any "toolchain unchanged this cycle" annotations
 
-#### Scenario: Pre-installed build-tools matches what a vanilla Flutter project requests
+#### Scenario: Build-tools version tracks the new Flutter tag (preserved)
 
-- **GIVEN** an image built from the PR's `config/version.json` with `android.buildTools.version == A.B.C` pre-installed at `/home/flutter/sdks/android-sdk/build-tools/A.B.C`
-- **WHEN** `flutter create test_app && cd test_app/android && ./gradlew bundleRelease` runs inside the image
-- **THEN** Gradle completes the build without invoking `sdkmanager` to install or download any build-tools package
-- **AND** the build output contains no occurrence of `Checking the license for package Android SDK Build-Tools`, `Installing Android SDK Build-Tools`, or `Downloading https://dl.google.com/android/repository/build-tools_`
-- **AND** the `test/android.yml` smoke test "Gradle, licenses and platforms are already downloaded" passes
+- **GIVEN** the workflow is opening an upgrade PR for Flutter `X.Y.Z`
+- **AND** Flutter's `engine/src/flutter/tools/android_sdk/packages.txt` at tag `X.Y.Z` lists `build-tools;A.B.C` as the only build-tools entry
+- **AND** `update-android-version` produced its fragment artifact
+- **WHEN** the PR is created
+- **THEN** `config/version.json` in the PR contains `android.buildTools.version == "A.B.C"`
 
-#### Scenario: Generated config is schema-valid
+#### Scenario: Build-tools picks highest version when packages.txt lists multiple (preserved)
 
-- **GIVEN** the workflow has produced a candidate `config/version.json`
-- **WHEN** the `validate_config_version` job runs
+- **GIVEN** Flutter's `engine/src/flutter/tools/android_sdk/packages.txt` at the target tag contains the line `build-tools;A.B.C,build-tools;D.E.F,build-tools;G.H.I:build-tools` where `A.B.C` is the highest version
+- **WHEN** `update-android-version` extracts the build-tools version
+- **THEN** the extracted value is `A.B.C` exactly (no trailing `,build-tools` suffix and no other suffix)
+- **AND** `config/version.json` in the resulting PR contains `android.buildTools.version == "A.B.C"`
+
+#### Scenario: Composed manifest is schema-valid before PR work begins
+
+- **GIVEN** `compose-version-manifest` produced its composed artifact
+- **WHEN** `validate-config-version` runs against that artifact
 - **THEN** `cue vet config/schema.cue -d '#Version' config/version.json` exits 0
-- **AND** the workflow only proceeds to open the PR if validation passes
+- **AND** the workflow only proceeds to `update-docs-and-create-pr` if validation passes
+- **AND** `update-docs-and-create-pr` does not run `cue vet` again
 
-#### Scenario: Git for Windows tracks the latest published tag
+#### Scenario: Git for Windows tracks the latest published tag (preserved)
 
 - **GIVEN** `https://api.github.com/repos/git-for-windows/git/releases/latest` returns an asset whose underlying Git semver is `M.m.p`
+- **AND** `update-windows-version` produced its fragment artifact
 - **WHEN** the upgrade PR is created
 - **THEN** `config/version.json` in the PR contains `windows.git.version == "M.m.p"`
 
-#### Scenario: Windows toolchain block is schema-valid
+#### Scenario: Android skipped — carried-forward block
 
-- **GIVEN** the workflow has produced a candidate `config/version.json` containing the new `windows` block
-- **WHEN** the `validate_config_version` job runs
-- **THEN** `cue vet` passes against the `windows` block as well as the existing `flutter` and `android` blocks
+- **GIVEN** `update-android-version` did not produce a fragment this cycle (e.g., Flutter's `packages.txt` unreachable)
+- **AND** `update-flutter-version` and `update-windows-version` produced their artifacts
+- **WHEN** `compose-version-manifest` runs
+- **THEN** the composed `config/version.json` contains the new `flutter` and new `windows` blocks
+- **AND** the `android` block in the composed manifest is byte-for-byte identical to the `android` block on the base branch
+- **AND** `validate-config-version` exits 0
+- **AND** the PR opens with the composed manifest
+- **AND** the PR body contains a one-line annotation indicating the Android toolchain was unchanged this cycle, with a link to the `update-android-version` job log
 
-#### Scenario: PR opens with Windows toolchain unchanged when upstream is inconsistent
+#### Scenario: Windows skipped — carried-forward block (preserved)
 
-- **GIVEN** the `update_windows_version` job skipped its update this cycle because Microsoft's `channel.json` and `vsman.json` disagreed on release identity
-- **AND** the `update_flutter_version` and `update_android_version` jobs produced fresh artifacts
-- **WHEN** the upgrade PR is composed
-- **THEN** the PR opens with Flutter and Android updates merged into `config/version.json`
-- **AND** the `windows` block in the PR's `config/version.json` is byte-for-byte identical to the `windows` block on the base branch
-- **AND** the PR body contains an annotation indicating the Windows toolchain was unchanged this cycle
-- **AND** `cue vet config/schema.cue -d '#Version'` passes on the resulting `config/version.json`
+- **GIVEN** `update-windows-version` did not produce a fragment this cycle (e.g., release-identity mismatch in Microsoft's upstream)
+- **AND** `update-flutter-version` and `update-android-version` produced their artifacts
+- **WHEN** `compose-version-manifest` runs
+- **THEN** the composed `config/version.json` contains the new `flutter` and new `android` blocks
+- **AND** the `windows` block in the composed manifest is byte-for-byte identical to the `windows` block on the base branch
+- **AND** `validate-config-version` exits 0
+- **AND** the PR opens with the composed manifest
+- **AND** the PR body contains a one-line annotation indicating the Windows toolchain was unchanged this cycle, with a link to the `update-windows-version` job log
+
+#### Scenario: Both platforms skipped — Flutter-only PR
+
+- **GIVEN** neither `update-android-version` nor `update-windows-version` produced a fragment this cycle
+- **AND** `update-flutter-version` produced its artifact
+- **WHEN** `compose-version-manifest` runs
+- **THEN** the composed `config/version.json` contains the new `flutter` block
+- **AND** the `android` and `windows` blocks are byte-for-byte identical to the base branch
+- **AND** `validate-config-version` exits 0
+- **AND** the PR opens with both per-platform "unchanged this cycle" annotations in its body
 
 ### Requirement: Producer jobs validate their own `version.json` before upload
 
-Each job in `update-version.yml` that writes to `config/version.json` and uploads it as an artifact SHALL run `cue vet config/schema.cue -d '#Version' config/version.json` (or `-d '#FlutterVersion'` for the flutter-only artifact) immediately before the upload step and SHALL fail that job on validation error.
+Each job in `update-version.yml` that writes a fragment to `config/version.json` and uploads it as an artifact SHALL run `cue vet config/schema.cue -d '#Version' config/version.json` (or `-d '#FlutterVersion'` for the flutter-only artifact) immediately before the upload step and SHALL fail that job on validation error. Because `config/schema.cue` defines no per-platform definition (only `#WindowsToolchain`, `#FlutterVersion`, and the top-level `#Version`), producer-side validation runs against the *full* manifest the producer has in hand — its own block(s) overlaid onto the base manifest checked out at job start — not against the extracted fragment. This gives an early failure surface that points at the offending producer rather than at the centralized compose step. The Android producer's blocks are `android` and `fastlane` (both written by `update-android-version`); the Windows producer's block is `windows`.
 
-The experience context is the CI engineer triaging a failed scheduled run — they see the failing job pointing at the step that produced the bad data, rather than a downstream `validate_config_version` failure that blames the schema without naming the producer.
+The experience context is the CI engineer triaging a failed scheduled run — they see the failing job pointing at the step that produced the bad data, rather than a downstream `validate-config-version` failure that blames the schema without naming the producer.
 
 #### Scenario: Android producer catches its own bad output
 
-- **GIVEN** the `update_android_version` job writes a `config/version.json` whose `android.buildTools.version` does not match `^\d+\.\d+\.\d+$`
+- **GIVEN** the `update-android-version` job writes a fragment whose `android.buildTools.version` does not match `^\d+\.\d+\.\d+$`
 - **WHEN** the job's validation step runs before artifact upload
-- **THEN** `cue vet` exits non-zero and the `update_android_version` job is marked failed
+- **THEN** `cue vet` exits non-zero and the `update-android-version` job is marked failed
 - **AND** the artifact upload step does not execute
-- **AND** the downstream `validate_config_version` job is skipped, not blamed
+- **AND** the downstream `compose-version-manifest` job tolerates the missing fragment and carries forward the base-branch `android` block (no `version.json` corruption propagates)
 
 #### Scenario: Producer validation passes for a well-formed manifest
 
-- **GIVEN** the `update_android_version` job produces a `config/version.json` that satisfies `#Version`
+- **GIVEN** the `update-android-version` job produces a fragment whose `android` block satisfies `#Version`
 - **WHEN** the job's validation step runs
 - **THEN** `cue vet` exits 0
-- **AND** the artifact upload step runs and uploads `config/version.json`
+- **AND** the artifact upload step runs and uploads the fragment
 
 ### Requirement: Schema rejects non-stable Flutter channels
 
