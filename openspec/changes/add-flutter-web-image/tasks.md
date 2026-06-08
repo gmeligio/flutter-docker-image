@@ -1,20 +1,20 @@
 ## 1. Prerequisite
 
-- [ ] 1.1 Confirm `p13-scout-sbom-provenance` is landed and archived (the web matrix leg inherits its build/scan/SBOM wiring)
+- [x] 1.1 Confirm `p13-scout-sbom-provenance` is landed and archived (the web matrix leg inherits its build/scan/SBOM wiring)
 
 ## 2. Dockerfile
 
-- [ ] 2.1 Add `FROM flutter AS web` stage to `android.Dockerfile`, branching off the base (sibling of `fastlane`)
-- [ ] 2.2 In the `web` stage, run `flutter config --enable-web && flutter precache --web`; leave the base `flutter` stage's `--no-enable-web` unchanged
-- [ ] 2.3 Build `--target android` locally and confirm the `flutter-android` image is unchanged (no new layers, same digest aside from base bumps)
-- [ ] 2.4 Build `--target web` locally and confirm: image runs `flutter build web` with no `Downloading`/`Installing`, `$ANDROID_HOME` is absent, no JDK present
-- [ ] 2.5 Add/confirm a `web` service target in `docker-compose.yml` mapping to `--target web`
+- [x] 2.1 Add `FROM flutter AS web` stage to `android.Dockerfile`, branching off the base (sibling of `fastlane`)
+- [x] 2.2 In the `web` stage, run `flutter config --enable-web && flutter precache --web`; leave the base `flutter` stage's `--no-enable-web` unchanged
+- [ ] 2.3 Build `--target android` locally and confirm the `flutter-android` image is unchanged (no new layers, same digest aside from base bumps) — DEFERRED to CI: local podman build network injects a self-signed TLS cert that breaks the Flutter SDK download; host egress is fine, CI runners unaffected
+- [ ] 2.4 Build `--target web` locally and confirm: image runs `flutter build web` with no `Downloading`/`Installing`, `$ANDROID_HOME` is absent, no JDK present — DEFERRED to CI (same local TLS limitation; build verified up to the Flutter clone, base apt step passes after CURL_VERSION bump)
+- [x] 2.5 Add/confirm a `web` service target in `docker-compose.yml` mapping to `--target web`
 
 ## 3. Tests
 
-- [ ] 3.1 Create `test/web.yml` mirroring `test/android.yml`: a `flutter create` + `flutter build web` command test with `excludedOutput: [Downloading, Installing]`
-- [ ] 3.2 Add a structure-test assertion that the Android SDK directory (`$ANDROID_HOME`) does not exist and no JDK is installed
-- [ ] 3.3 Run `container-structure-test --config test/web.yml` against the locally built web image and confirm green
+- [x] 3.1 Create `test/web.yml` mirroring `test/android.yml`: a `flutter create` + `flutter build web` command test with `excludedOutput: [Downloading, Installing]`
+- [x] 3.2 Add a structure-test assertion that the Android SDK directory (`$ANDROID_HOME`) does not exist and no JDK is installed
+- [ ] 3.3 Run `container-structure-test --config test/web.yml` against the locally built web image and confirm green — DEFERRED to CI (depends on a locally-built image; blocked by the same podman TLS limitation as 2.3/2.4)
 
 ## 4. PR validation CI (build.yml)
 

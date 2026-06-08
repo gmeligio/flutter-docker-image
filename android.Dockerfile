@@ -5,7 +5,7 @@ SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 ENV LANG=C.UTF-8
 
 # renovate: suite=trixie depName=curl
-ARG CURL_VERSION="8.14.1-2+deb13u2"
+ARG CURL_VERSION="8.14.1-2+deb13u3"
 # renovate: suite=trixie depName=git
 ARG GIT_VERSION="1:2.47.3-0+deb13u1"
 # renovate: suite=trixie depName=lcov
@@ -227,3 +227,20 @@ RUN ./gradlew --version
 
 WORKDIR "$HOME"
 RUN rm -r build_app
+
+#-----------------------------------------------
+#-----------------------------------------------
+#-----------------------------------------------
+
+# Minimal Flutter-web image: the base `flutter` stage plus the web platform.
+# Branches from `flutter`, not `fastlane`/`android`, so it carries no Ruby,
+# JDK, or Android SDK. The base leaves all platforms disabled; this leaf opts
+# into web, symmetric with how the `android` stage opts into Android.
+FROM flutter AS web
+
+SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
+
+# Enable web and predownload the web engine artifacts so `flutter build web`
+# runs in the container without any runtime download.
+RUN flutter config --enable-web \
+    && flutter precache --web
