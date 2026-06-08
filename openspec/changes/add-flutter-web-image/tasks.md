@@ -35,14 +35,14 @@
 
 ## 6. Registries
 
-- [ ] 6.1 Create the `flutter-web` repository on Docker Hub with push credentials matching existing secrets
-- [ ] 6.2 Create the `flutter-web` repository on Quay.io with robot-token push access (GHCR auto-creates on first push)
+- [ ] 6.1 Create the `flutter-web` repository on Docker Hub with push credentials matching existing secrets — MANUAL (maintainer action via Docker Hub UI; needs the existing DOCKER_HUB token's org; can't be done from this session). Must exist before the first tag release or `release-linux (flutter-web)` push fails.
+- [ ] 6.2 Create the `flutter-web` repository on Quay.io with robot-token push access (GHCR auto-creates on first push) — MANUAL (maintainer action via Quay.io UI; grant the existing QUAY robot token write on the new repo)
 
 ## 7. Docs
 
-- [ ] 7.1 Add `flutter-web` badges and a Running Containers table row in `docs/src` sources
-- [ ] 7.2 Tick **Web** off the Roadmap in `docs/src`
-- [ ] 7.3 Regenerate `readme.md` from `docs/src` and verify the diff
+- [x] 7.1 Add `flutter-web` badges and a Running Containers table row in `docs/src` sources (badges.mdx + content.mdx: web URIs, table, GitHub Actions example, feature bullet)
+- [x] 7.2 Tick **Web** off the Roadmap in `docs/src` (removed Web; iOS/Linux/Windows remain)
+- [x] 7.3 Regenerate `readme.md` from `docs/src` and verify the diff (pnpm run build; readme.md/LICENSE.md/docs regenerated)
 
 ## 8. Verify
 
