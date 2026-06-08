@@ -35,12 +35,21 @@
     },
     {
       "customType": "regex",
-      "managerFilePatterns": ["/^Dockerfile$/"],
+      "managerFilePatterns": ["**/*.Dockerfile"],
       "matchStrings": [
         "#\\s*renovate:\\s*suite=(?<suite>.*?) depName=(?<depName>.*?)\\sARG .*?_VERSION=\"(?<currentValue>.*)\"\\s"
       ],
       "registryUrlTemplate": "https://deb.debian.org/debian?{{#if release }}release={{release}}{{else}}suite=stable{{/if}}&components=main,contrib,non-free&binaryArch=amd64",
       "datasourceTemplate": "deb"
+    },
+    {
+      "customType": "regex",
+      "description": "Read inline-pinned gem versions (datasource=rubygems) from Dockerfiles",
+      "managerFilePatterns": ["**/*.Dockerfile"],
+      "matchStrings": [
+        "#\\s*renovate:\\s*datasource=(?<datasource>.*?) depName=(?<depName>.*?)\\sARG .*?_VERSION=\"(?<currentValue>.*)\"\\s"
+      ],
+      "versioningTemplate": "ruby"
     }
   ]
 }

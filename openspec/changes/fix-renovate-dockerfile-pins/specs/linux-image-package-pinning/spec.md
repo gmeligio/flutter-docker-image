@@ -4,7 +4,7 @@
 
 The `deb`-datasource custom manager in `.github/renovate.json` SHALL match `android.Dockerfile` so that every `# renovate:`-annotated apt-package version pin receives automated upgrade PRs. The manager's `managerFilePatterns` SHALL be a pattern that matches `*.Dockerfile` files regardless of their basename prefix (e.g. the glob `**/*.Dockerfile`), not an anchored regex bound to a single literal filename.
 
-**Experience context:** A CI engineer or maintainer asking *"are the image's apt package versions kept current automatically?"* relies on Renovate opening weekly PRs for curl, git, lcov, ca-certificates, unzip, ruby-dev, build-essential, openjdk-17-jdk-headless, and sudo. Before this requirement, the manager's pattern (`/^Dockerfile$/`) matched no file after the `Dockerfile → android.Dockerfile` rename, so every pin silently went stale with no signal. Binding the pattern to the `*.Dockerfile` suffix rather than a literal name means a future rename or a new `*.Dockerfile` does not silently re-break automated pinning.
+**Experience context:** A CI engineer or maintainer asking *"are the image's apt package versions kept current automatically?"* relies on Renovate opening weekly PRs for curl, git, lcov, ca-certificates, unzip, ruby-full, build-essential, openjdk-17-jdk-headless, and sudo. Before this requirement, the manager's pattern (`/^Dockerfile$/`) matched no file after the `Dockerfile → android.Dockerfile` rename, so every pin silently went stale with no signal. Binding the pattern to the `*.Dockerfile` suffix rather than a literal name means a future rename or a new `*.Dockerfile` does not silently re-break automated pinning.
 
 #### Scenario: Custom manager matches the renamed Dockerfile
 
@@ -50,3 +50,29 @@ Every Renovate-managed `*_VERSION` value in `android.Dockerfile` — a value car
 - **WHEN** a maintainer reads its declaration
 - **THEN** it is a lowercase `ARG` with no default value and no `# renovate:` annotation
 - **AND** Renovate does not attempt to manage it
+
+### Requirement: Each `# renovate:` annotation names the dependency actually installed, with the correct datasource
+
+Every `# renovate:` annotation in `android.Dockerfile` SHALL name, in its `depName`, the exact dependency that the corresponding `RUN` line installs, and SHALL use the datasource matching that dependency's ecosystem. A `deb`-ecosystem pin SHALL use the `suite=` form (deb datasource); a RubyGems pin SHALL use `datasource=rubygems depName=<gem>` and be matched by a dedicated rubygems custom manager in `.github/renovate.json`. A version value managed elsewhere (e.g. via the `config/version.json` manifest and a `--build-arg`) SHALL NOT carry a contradicting inline `# renovate:` annotation.
+
+**Experience context:** A maintainer reading a pin trusts that Renovate is tracking *that* package. A wrong `depName` is worse than an unmatched pin: Renovate feeds the wrong dependency's version into the `ARG`, which can break the build (e.g. a `ruby-dev` version string applied to a `ruby-full` install) or silently track an unrelated project. Two such defects existed — `RUBY_VERSION` annotated `depName=ruby-dev` while the `RUN` installs `ruby-full`, and `BUNDLER_VERSION` annotated `depName=fastlane` (refactor residue) while the `RUN` installs `bundler`. The `fastlane` gem is intentionally not pinned here at all: its version is owned by `config/version.json` and fanned out to the build (`--build-arg fastlane_version`) and the rendered docs, so an inline `depName=fastlane` was both wrong and redundant.
+
+#### Scenario: deb pin names the installed package
+
+- **GIVEN** the `RUBY_VERSION` pin, whose `RUN` line installs `ruby-full`
+- **WHEN** a maintainer reads its `# renovate:` annotation
+- **THEN** the `depName` is `ruby-full`, not `ruby-dev`
+
+#### Scenario: RubyGems pin is matched and names the installed gem
+
+- **GIVEN** the `BUNDLER_VERSION` pin, whose `RUN` line runs `gem install … bundler`
+- **WHEN** Renovate evaluates the repository
+- **THEN** a rubygems custom manager extracts it as a `rubygems` dependency with `depName` `bundler`
+- **AND** a newer published `bundler` version yields an upgrade PR
+
+#### Scenario: Manifest-managed gem is not double-pinned inline
+
+- **GIVEN** the `fastlane` gem, whose version is owned by `config/version.json` and injected via `--build-arg fastlane_version`
+- **WHEN** a maintainer scans `android.Dockerfile` for `# renovate:` annotations
+- **THEN** no annotation names `fastlane` as a `depName`
+- **AND** Renovate does not surface `fastlane` as a managed dependency of the Dockerfile
