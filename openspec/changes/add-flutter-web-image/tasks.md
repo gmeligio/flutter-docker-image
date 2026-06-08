@@ -35,8 +35,8 @@
 
 ## 6. Registries
 
-- [ ] 6.1 Create the `flutter-web` repository on Docker Hub with push credentials matching existing secrets — MANUAL (maintainer action via Docker Hub UI; needs the existing DOCKER_HUB token's org; can't be done from this session). Must exist before the first tag release or `release-linux (flutter-web)` push fails.
-- [ ] 6.2 Create the `flutter-web` repository on Quay.io with robot-token push access (GHCR auto-creates on first push) — MANUAL (maintainer action via Quay.io UI; grant the existing QUAY robot token write on the new repo)
+- [x] 6.1 Docker Hub `flutter-web` repo — NO ACTION NEEDED: the first push auto-creates it, public by default (matches the public `flutter-android`). GHCR likewise auto-creates on first push.
+- [ ] 6.2 Quay.io `flutter-web` repo — MAINTAINER CHECK (not a hard blocker): the push auto-creates it, but as **private** and only if the Quay org has an active plan. To match the public `flutter-android`, set the repo visibility to **public** (pre-create public in the UI, or flip after first push). Also confirm the existing QUAY robot token has **write** on the new repo (Quay robot scopes are per-repo).
 
 ## 7. Docs
 
