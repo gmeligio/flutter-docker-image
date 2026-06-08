@@ -27,11 +27,11 @@
 
 ## 5. Release CI (release.yml)
 
-- [ ] 5.1 Add/parameterize a web release job: build `android.Dockerfile --target web`, push to Docker Hub + GHCR + Quay.io under `flutter-web:<version>`
-- [ ] 5.2 Use `docker/metadata-action` with the three `flutter-web` registry namespaces and `type=raw,value=${{ env.FLUTTER_VERSION }}`; apply OCI labels matching the android conventions
-- [ ] 5.3 Ensure the web release job has no `needs:` on android/windows release and vice versa (parallel, independent failure)
-- [ ] 5.4 Add Docker Hub description sync for the `flutter-web` repository (peter-evans/dockerhub-description), reading `readme.md`
-- [ ] 5.5 Ensure the web image is recorded in Scout on release via the shared (post-p13) release path
+- [x] 5.1 Add/parameterize a web release job: build `android.Dockerfile --target web`, push to Docker Hub + GHCR + Quay.io under `flutter-web:<version>` (release-android → matrix `release-linux` over {android, web})
+- [x] 5.2 Use `docker/metadata-action` with the three `flutter-web` registry namespaces and `type=raw,value=${{ env.FLUTTER_VERSION }}`; apply OCI labels matching the android conventions (shared metadata step, IMAGE_REPOSITORY_PATH from matrix.name)
+- [x] 5.3 Ensure the web release job has no `needs:` on android/windows release and vice versa (parallel, independent failure) (fail-fast: false matrix; release-windows independent)
+- [x] 5.4 Add Docker Hub description sync for the `flutter-web` repository (peter-evans/dockerhub-description), reading `readme.md` (update-description matrixed over both images)
+- [x] 5.5 Ensure the web image is recorded in Scout on release via the shared (post-p13) release path (record-image matrixed; per-image SARIF category)
 
 ## 6. Registries
 
