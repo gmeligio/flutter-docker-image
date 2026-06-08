@@ -46,6 +46,6 @@
 
 ## 8. Verify
 
-- [ ] 8.1 Validate the change: `openspec validate add-flutter-web-image`
-- [ ] 8.2 Cut a test tag (or dry-run) and confirm `flutter-web:<version>` exists on all three registries with `flutter --version` == tag
-- [ ] 8.3 Confirm a forced no-precache build turns the `test/web.yml` no-download assertion red (negative test)
+- [x] 8.1 Validate the change: `openspec validate add-flutter-web-image` (valid; also confirmed `validate-generated-config` gate stays green — `update_test.sh` only generates `test/android.yml`, leaves hand-authored `test/web.yml` untouched, no drift)
+- [ ] 8.2 Cut a test tag (or dry-run) and confirm `flutter-web:<version>` exists on all three registries with `flutter --version` == tag — DEFERRED: requires pushing a tag + a real release run (external; after registries 6.1/6.2 exist)
+- [ ] 8.3 Confirm a forced no-precache build turns the `test/web.yml` no-download assertion red (negative test) — DEFERRED to CI: blocked by the local podman build-network TLS interception (same as 2.3/2.4/3.3)
