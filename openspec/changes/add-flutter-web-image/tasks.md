@@ -18,12 +18,12 @@
 
 ## 4. PR validation CI (build.yml)
 
-- [ ] 4.1 Parameterize the build/test/scan jobs over a `{IMAGE_REPOSITORY_NAME, target}` matrix including `flutter-web`/`web` and `flutter-android`/`android`
-- [ ] 4.2 Parameterize the buildcache ref on image name so web uses `…/flutter-web:buildcache` (no collision with android)
-- [ ] 4.3 Point the test job at `test/web.yml` for the web leg (per-target config selection)
-- [ ] 4.4 Confirm the web leg consumes the image via handoff (pull / artifact load), never `docker build` in test/scan
-- [ ] 4.5 Confirm the fork-PR gate still skips the web Scout scan leg while the web build+test legs run on the local artifact
-- [ ] 4.6 Open a draft PR touching `android.Dockerfile` and verify named `(web)` and `(android)` checks both appear and pass
+- [x] 4.1 Parameterize the build/test/scan jobs over a `{IMAGE_REPOSITORY_NAME, target}` matrix including `flutter-web`/`web` and `flutter-android`/`android`
+- [x] 4.2 Parameterize the buildcache ref on image name so web uses `…/flutter-web:buildcache` (no collision with android)
+- [x] 4.3 Point the test job at `test/web.yml` for the web leg (per-target config selection)
+- [x] 4.4 Confirm the web leg consumes the image via handoff (pull / artifact load), never `docker build` in test/scan
+- [x] 4.5 Confirm the fork-PR gate still skips the web Scout scan leg while the web build+test legs run on the local artifact (job-level `if:` preserved; matrix consumers recompute tag/digest)
+- [ ] 4.6 Open a draft PR touching `android.Dockerfile` and verify named `(web)` and `(android)` checks both appear and pass — DEFERRED: requires pushing the branch + a CI run (not doable from this session); lint passes (gx + actionlint)
 
 ## 5. Release CI (release.yml)
 

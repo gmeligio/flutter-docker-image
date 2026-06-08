@@ -39,29 +39,25 @@ jobs:
           echo "version=$version" >> "$GITHUB_OUTPUT"
 
   build-image:
-    name: Build and push image
+    name: Build and push image (${{ matrix.name }})
     permissions:
       packages: write
     runs-on: ubuntu-24.04
-    outputs:
-      # image_ref is set per the p2 contract but GitHub Actions suppresses
-      # any job output whose value contains a registered secret. When
-      # github.repository_owner equals DOCKER_HUB_USERNAME (as on this repo),
-      # image_ref is masked-and-dropped. Consumers MUST use image_tag and
-      # reconstruct ghcr.io/${{ github.repository_owner }}/flutter-android:<tag>.
-      image_ref: ${{ steps.handoff.outputs.is_fork != 'true' && format('ghcr.io/{0}/flutter-android:{1}', github.repository_owner, steps.handoff.outputs.tag) || '' }}
-      image_tag: ${{ steps.handoff.outputs.is_fork != 'true' && steps.handoff.outputs.tag || '' }}
-      image_artifact: ${{ steps.handoff.outputs.is_fork == 'true' && format('image-{0}', github.run_id) || '' }}
-      image_local_tag: ${{ steps.local_tag.outputs.ref }}
-      # Digest emitted by buildx Step A for the non-fork push. Consumed by
-      # `scan-image` to scan the GHCR digest via `registry://` so Scout
-      # picks up the attached SBOM attestation. Safe from secret-masking
-      # because a `sha256:…` value does not contain the DOCKER_HUB_USERNAME
-      # secret string. Empty on fork builds (no push, no digest).
-      image_digest: ${{ steps.handoff.outputs.is_fork != 'true' && steps.build.outputs.digest || '' }}
-      flutter_version: ${{ env.FLUTTER_VERSION }}
+    # One leg per published Linux image. Both legs build android.Dockerfile;
+    # `target` selects the stage and `name` is the published repository name.
+    # Consumer jobs (test-image, scan-image) recompute the deterministic
+    # handoff tag rather than reading job outputs — a matrix job's `outputs:`
+    # block is last-leg-wins, so per-image refs cannot flow through it.
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: flutter-android
+            target: android
+          - name: flutter-web
+            target: web
     env:
-      IMAGE_REPOSITORY_NAME: flutter-android
+      IMAGE_REPOSITORY_NAME: ${{ matrix.name }}
       VERSION_MANIFEST: config/version.json
     steps:
       - name: Harden runner
@@ -148,11 +144,13 @@ jobs:
           push: true
           sbom: true
           provenance: mode=max
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/flutter-android:buildcache
-          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/flutter-android:buildcache,mode=max
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/${{ matrix.name }}:buildcache
+          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/${{ matrix.name }}:buildcache,mode=max
           labels: ${{ steps.metadata.outputs.labels }}
           tags: ${{ steps.metadata.outputs.tags }}
-          target: android
+          target: ${{ matrix.target }}
+          # The android build-args are inert for the web target (its stage
+          # declares none of them), so a single shared block serves both legs.
           build-args: |
             flutter_version=${{ env.FLUTTER_VERSION }}
             fastlane_version=${{ env.FASTLANE_VERSION }}
@@ -171,10 +169,10 @@ jobs:
         with:
           file: android.Dockerfile
           outputs: type=docker
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/flutter-android:buildcache
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/${{ matrix.name }}:buildcache
           labels: ${{ steps.metadata.outputs.labels }}
           tags: ${{ steps.metadata.outputs.tags }}
-          target: android
+          target: ${{ matrix.target }}
           build-args: |
             flutter_version=${{ env.FLUTTER_VERSION }}
             fastlane_version=${{ env.FASTLANE_VERSION }}
@@ -195,7 +193,7 @@ jobs:
         if: steps.handoff.outputs.is_fork == 'true'
         id: local_tag
         run: |
-          DEST="flutter-android:${{ env.FLUTTER_VERSION }}"
+          DEST="${{ matrix.name }}:${{ env.FLUTTER_VERSION }}"
           docker tag "${{ fromJSON(steps.metadata.outputs.json).tags[0] }}" "$DEST"
           echo "ref=$DEST" >> "$GITHUB_OUTPUT"
 
@@ -203,22 +201,41 @@ jobs:
         if: steps.handoff.outputs.is_fork == 'true'
         run: docker save "${{ steps.local_tag.outputs.ref }}" | gzip > image.tar.gz
 
+      # Artifact name is suffixed with the image name so the two matrix legs
+      # do not overwrite each other's upload (artifact names are run-global).
       - name: Upload image artifact
         if: steps.handoff.outputs.is_fork == 'true'
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         with:
-          name: image-${{ github.run_id }}
+          name: image-${{ github.run_id }}-${{ matrix.name }}
           path: image.tar.gz
           retention-days: 1
           compression-level: 0
 
   test-image:
-    name: Test image
+    name: Test image (${{ matrix.name }})
     needs: build-image
     runs-on: ubuntu-24.04
     permissions:
       contents: read
       packages: read
+    # Mirror the build matrix so each image is tested on its own leg. The
+    # per-image handoff (tag, artifact name, structure-test config) is
+    # recomputed here rather than read from build-image outputs, which a
+    # matrix job cannot expose per-leg.
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: flutter-android
+            config: test/android.yml
+          - name: flutter-web
+            config: test/web.yml
+    env:
+      # Deterministic handoff: non-fork PRs (and same-repo events) push to
+      # GHCR under pr-<N> / branch-<ref>; fork PRs hand off a local artifact.
+      IS_FORK: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
+      TAG: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || format('branch-{0}', github.ref_name) }}
     steps:
       - name: Harden runner
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
@@ -229,21 +246,21 @@ jobs:
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
       - name: Clean runner disk
-        if: needs.build-image.outputs.image_artifact != ''
+        if: env.IS_FORK == 'true'
         uses: ./.github/actions/clean-runner-disk
 
       - name: Download image artifact
-        if: needs.build-image.outputs.image_artifact != ''
+        if: env.IS_FORK == 'true'
         uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         with:
-          name: ${{ needs.build-image.outputs.image_artifact }}
+          name: image-${{ github.run_id }}-${{ matrix.name }}
 
       - name: Load image from artifact
-        if: needs.build-image.outputs.image_artifact != ''
+        if: env.IS_FORK == 'true'
         run: gunzip -c image.tar.gz | docker load
 
       - name: Login to GHCR
-        if: needs.build-image.outputs.image_artifact == ''
+        if: env.IS_FORK != 'true'
         uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
         with:
           registry: ghcr.io
@@ -251,24 +268,46 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Pull image from registry
-        if: needs.build-image.outputs.image_artifact == ''
-        run: docker pull "ghcr.io/${{ github.repository_owner }}/flutter-android:${{ needs.build-image.outputs.image_tag }}"
+        if: env.IS_FORK != 'true'
+        run: docker pull "ghcr.io/${{ github.repository_owner }}/${{ matrix.name }}:${{ env.TAG }}"
 
       - name: Setup mise tools
         uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
 
       - name: Test image
-        run: container-structure-test test --image "${{ needs.build-image.outputs.image_artifact != '' && needs.build-image.outputs.image_local_tag || format('ghcr.io/{0}/flutter-android:{1}', github.repository_owner, needs.build-image.outputs.image_tag) }}" --config test/android.yml
+        # Fork legs loaded a single local tag for this image (resolved from the
+        # daemon); non-fork legs pulled the GHCR ref under the handoff tag.
+        run: |
+          if [[ "${IS_FORK}" == "true" ]]; then
+            tag="$(docker images --format '{{.Tag}}' '${{ matrix.name }}' | head -1)"
+            IMAGE="${{ matrix.name }}:${tag}"
+          else
+            IMAGE="ghcr.io/${{ github.repository_owner }}/${{ matrix.name }}:${{ env.TAG }}"
+          fi
+          container-structure-test test --image "$IMAGE" --config ${{ matrix.config }}
 
   scan-image:
-    name: Scan image
+    name: Scan image (${{ matrix.name }})
     needs: [setup, build-image]
     runs-on: ubuntu-24.04
+    # Preserve the fork-PR gate: forks have no Docker Hub secret and can't
+    # write PR comments, so Scout is skipped entirely for them (job-level if).
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     permissions:
       packages: read
       pull-requests: write
       security-events: write
+    # Mirror the build matrix so each image is scanned vs. its own published
+    # release. The digest is resolved from the registry by the recomputed tag
+    # (matrix outputs can't carry the per-leg digest).
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: flutter-android
+          - name: flutter-web
+    env:
+      TAG: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || format('branch-{0}', github.ref_name) }}
     steps:
       - name: Harden runner
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
@@ -295,6 +334,18 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # Resolve the just-pushed manifest digest from the registry by its
+      # handoff tag. The build job pushed the OCI index (+SBOM attestation)
+      # under this tag; Scout consumes it by digest so it reads the attached
+      # SBOM rather than re-indexing layers. The digest can't be read from a
+      # matrix job output, hence the registry lookup.
+      - name: Resolve image digest
+        id: digest
+        run: |
+          ref="ghcr.io/${{ github.repository_owner }}/${{ matrix.name }}:${{ env.TAG }}"
+          digest="$(docker buildx imagetools inspect "$ref" --format '{{json .Manifest.Digest}}' | tr -d '"')"
+          echo "value=$digest" >> "$GITHUB_OUTPUT"
+
       # Compare the PR's image (read via the SBOM attestation attached at
       # build time) against the latest published release, pinned by tag.
       # `to:` replaces the env-stream lookup (`to-env: prod`) — Scout DSOS
@@ -306,8 +357,8 @@ jobs:
         uses: docker/scout-action@f8c776824083494ab0d56b8105ba2ca85c86e4de # v1.18.2
         with:
           command: compare
-          image: registry://ghcr.io/${{ github.repository_owner }}/flutter-android@${{ needs.build-image.outputs.image_digest }}
-          to: ghcr.io/${{ github.repository_owner }}/flutter-android:${{ needs.setup.outputs.flutter_version }}
+          image: registry://ghcr.io/${{ github.repository_owner }}/${{ matrix.name }}@${{ steps.digest.outputs.value }}
+          to: ghcr.io/${{ github.repository_owner }}/${{ matrix.name }}:${{ needs.setup.outputs.flutter_version }}
           github-token: ${{ github.token }}
           only-fixed: true
 
