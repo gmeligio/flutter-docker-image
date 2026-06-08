@@ -361,15 +361,15 @@ jobs:
           name: android.yml
           path: test/android.yml
 
-  # Single composition step: overlay each platform's fragment onto the schema-valid
-  # base manifest. Runs whenever Flutter produced a fragment, regardless of whether
-  # the platform jobs succeeded — a missing fragment means that block is carried
-  # forward from the base branch unchanged. This is the ONLY place config/version.json
-  # is composed; validate-config-version then gates the single composed result.
+  # Overlays each platform fragment onto the schema-valid base manifest; a skipped
+  # platform uploads no fragment, so the overlays below are individually guarded.
+  # Gated on new_version == 'true' because the Flutter overlay is unconditional:
+  # without its fragment the compose deletes the base file and jq fails on the gap.
+  # Sole composer of config/version.json; validate-config-version gates the result.
   compose-version-manifest:
     name: Compose version manifest
     needs: [update-flutter-version, update-android-version, update-windows-version]
-    if: ${{ !cancelled() && needs.update-flutter-version.result == 'success' }}
+    if: ${{ !cancelled() && needs.update-flutter-version.outputs.new_version == 'true' }}
     runs-on: ubuntu-24.04
     outputs:
       composed_artifact_id: ${{ steps.upload-composed.outputs.artifact-id }}
@@ -385,8 +385,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
-      # The Flutter fragment is always present (the pipeline is gated on Flutter
-      # changing). Download it into config/ overwriting the committed flutter_version.json.
+      # The if gate guarantees the upstream upload ran, so the fragment always exists.
       - name: Delete flutter_version.json
         run: rm ${{ env.FLUTTER_VERSION_PATH }}
 
