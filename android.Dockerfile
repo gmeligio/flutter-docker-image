@@ -120,7 +120,12 @@ ENV FASTLANE_HIDE_CHANGELOG="YES"
 
 ARG fastlane_version
 
-RUN gem install --no-document --version "$fastlane_version" fastlane
+# multi_json is an undeclared runtime dependency of representable (reached via
+# fastlane's Google Play actions), so no fastlane install pulls it in. Install it
+# explicitly so a bare `fastlane` invocation resolves its closure. See issue #490;
+# remove if a future fastlane/representable release declares it.
+RUN gem install --no-document --version "$fastlane_version" fastlane \
+    && gem install --no-document multi_json
 
 #-----------------------------------------------
 #-----------------------------------------------

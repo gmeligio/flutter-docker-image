@@ -12,11 +12,15 @@ RUN bundle init && bundle add --version "$fastlane_version" fastlane
 
 `GEM_HOME` and `GEM_PATH` both point at `$SDK_ROOT/ruby`, and `$GEM_HOME/bin` is on `PATH`, so `bundle add` does install fastlane and its ~165 transitive gems into `GEM_HOME` and drops a `fastlane` binstub there.
 
-The failure (issue #490) is not a missing gem on disk — it's a missing *dependency declaration*. `representable/json.rb` (pulled in transitively via `googleauth` → `google-apis-core` → `representable`) does `require 'multi_json'` behind a `gem 'multi_json'` activation call, but **`representable`'s gemspec does not declare `multi_json` as a runtime dependency**. Under `bundle exec`, bundler activates the entire locked closure up front, so `multi_json` is already on the load path and the bare `gem` call is satisfied. Under a **bare binstub** (how `test/android.yml` invokes it — `fastlane hello` from `test_app/android`, no `bundle exec`), RubyGems activates lazily and strictly by declared dependency edges; with no edge to `multi_json`, `gem 'multi_json'` raises `Gem::MissingSpecError` even though the gem sits in `GEM_HOME/gems`.
+The failure (issue #490) is a **genuinely missing gem**, not merely an activation-context quirk. `representable/json.rb` (pulled in transitively via `googleauth` → `google-apis-core` → `representable`) does `require 'multi_json'` behind a `gem 'multi_json'` activation call, but **`representable`'s gemspec does not declare `multi_json` as a runtime dependency**. Because nothing in fastlane's declared dependency tree depends on `multi_json`, **no installer pulls it in** — neither `bundle add fastlane` nor `gem install fastlane` installs `multi_json` at all. A bare `fastlane` invocation then aborts in `representable/json.rb:1` with `Gem::MissingSpecError: Could not find 'multi_json'`.
 
-This is a known fastlane/representable ecosystem issue, reproduced verbatim in [actions/runner-images #14186](https://github.com/actions/runner-images/issues/14186) and discussed in [fastlane #21050](https://github.com/fastlane/fastlane/discussions/21050).
+**This was verified empirically during implementation** (see Migration Notes): a cold `gem install fastlane` (2.235.0) installed 156 gems including `representable-3.2.0` but **zero `multi_json`**; `fastlane action debug` reproduced the exact #490 stack trace. Installing `multi_json` explicitly made fastlane load successfully.
 
-The mismatch is structural: gems are **managed by bundler** but **invoked through RubyGems activation**. Buildcache hides it because PR CI reuses the cached `fastlane` layer; only a cold (`--no-cache`) rebuild re-runs resolution and surfaces the break.
+Why it appears to work for some users under `bundle exec`: their Gemfile transitively includes *other* gems that depend on `multi_json` (e.g. cocoapods / aws-sdk on iOS projects), so `multi_json` ends up in their locked closure by a different edge. It is not fastlane/representable resolving it. This repo's bundle had no such sibling, so `multi_json` was simply never installed.
+
+This is a known fastlane/representable ecosystem issue — undeclared `multi_json` dependency — reproduced verbatim in [actions/runner-images #14186](https://github.com/actions/runner-images/issues/14186) and discussed in [fastlane #21050](https://github.com/fastlane/fastlane/discussions/21050). The standard remedy in those threads is `gem install multi_json` / `bundle add multi_json`.
+
+Two independent problems compound in the current stage: (1) `multi_json` is never installed (the actual #490 break), and (2) bundler indirection adds a manage-vs-invoke layer the image doesn't need. The fix addresses both. Buildcache hides the failure because PR CI reuses the cached `fastlane` layer; only a cold (`--no-cache`) rebuild re-runs resolution and surfaces the break.
 
 ## Goals / Non-Goals
 
@@ -34,23 +38,29 @@ The mismatch is structural: gems are **managed by bundler** but **invoked throug
 
 ## Decisions
 
-### Decision: Replace `bundle add` with `gem install fastlane`
+### Decision: `gem install fastlane multi_json` (drop bundler, install the missing gem explicitly)
 
-Install fastlane with RubyGems directly:
+Install fastlane *and* the undeclared `multi_json` dependency directly with RubyGems:
 
 ```dockerfile
 ARG fastlane_version
-RUN gem install --no-document --version "$fastlane_version" fastlane
+RUN gem install --no-document --version "$fastlane_version" fastlane multi_json
 ```
 
 …and delete the bundler scaffolding: the `gem install ... bundler` line, the `BUNDLER_VERSION` env, the `FASTLANE_ROOT` env + `mkdir`, and the `WORKDIR "$FASTLANE_ROOT"`.
 
-**Rationale:** `gem install` builds and installs the closure that RubyGems' *own* lazy activation expects — the binstub it generates is runnable standalone by design. The repo never wanted a project bundle here; it wants a `fastlane` binary on `PATH`. Removing bundler removes the mismatch at its source, so the existing bare-`fastlane` tests become correct by construction with no further edits.
+**Rationale (two parts):**
+
+1. **`multi_json` must be installed explicitly.** It is the actual #490 fix, verified in-image. Since `representable` does not declare it, no fastlane install pulls it in; the image has to add it directly. This is the upstream-recommended remedy.
+2. **Drop bundler.** The image wants a standalone `fastlane` binary on `PATH`, not a project bundle. `gem install` produces exactly that and removes the manage-vs-invoke indirection, so the existing bare-`fastlane` tests in `test/android.yml` are correct by construction (no `bundle exec`, no Gemfile). This is a simplification, but — proven by implementation — **not sufficient on its own**; it must be paired with installing `multi_json`.
+
+`multi_json` is left unpinned, like the rest of fastlane's resolved tree under `gem install`. Adding a hard pin would create a second floating-version maintenance point for an indirect dependency with no corresponding benefit; the base image digest + `fastlane_version` already bound the build.
 
 **Alternatives considered:**
 
-- **A — `bundle add fastlane multi_json`:** add a declared `multi_json` edge to the Gemfile. This is the literal upstream workaround and a 1-line diff, but it treats the symptom: any *other* undeclared transitive (rare, but the same class of bug) would recur, and it pins a gem the repo doesn't directly use. Rejected in favor of fixing the cause.
-- **B — run tests via `bundle exec` / `BUNDLE_GEMFILE`:** keep bundler and make invocation re-enter it. Robust, but the lanes run from `test_app/android` (not `$FASTLANE_ROOT`), so it needs `BUNDLE_GEMFILE` plumbing or a copied Gemfile, adding moving parts to the test harness for no benefit over removing bundler. Rejected.
+- **C — `gem install fastlane` only (no `multi_json`):** the originally-proposed approach. **Falsified during implementation** — a cold build still failed with the identical `MissingSpecError` because `multi_json` was never installed. The bundler-removal half is kept; the "this alone fixes it" premise was wrong.
+- **A′ — `bundle add fastlane multi_json`:** add a declared `multi_json` edge but keep bundler. Fixes the gem-missing half, but retains the bundler indirection and the bare-binstub-vs-bundle mismatch the image doesn't need. The chosen decision is A′ minus bundler.
+- **B — run tests via `bundle exec` / `BUNDLE_GEMFILE`:** keep bundler and make invocation re-enter it. Adds harness plumbing (lanes run from `test_app/android`, not `$FASTLANE_ROOT`) for no benefit over removing bundler. Rejected.
 
 ### Decision: Preserve all surrounding env unchanged
 
@@ -75,6 +85,17 @@ Failures surface loudly and non-silently:
 
 ## Risks / Trade-offs
 
+- **[`multi_json` is an undeclared, future-fragile dependency]** → we install it explicitly because `representable` won't. If a future fastlane/representable release declares it (or drops the `multi_json` require), the explicit install becomes redundant but harmless. Mitigation: a comment in the Dockerfile ties the explicit `multi_json` install to issue #490 so a future maintainer knows why it's there and when it can be removed.
 - **[Loss of lockfile reproducibility]** → `gem install` resolves transitive versions at build time rather than from a committed lock. Mitigation: the fastlane version itself stays pinned via `fastlane_version`; the image is already a from-scratch build artifact (no committed lock existed before — `bundle add` generated `Gemfile.lock` inside the image layer, never in the repo), so reproducibility is unchanged in practice and gated by the base image digest + flutter/fastlane pins.
 - **[Warm-cache false green]** → the fix can't be trusted from a cached CI run. Mitigation: cold `--no-cache` build verification is a required task step (see Automated Test Strategy). Related: this is instance #2 of the `android.Dockerfile` cold-build drift pattern (sibling: issue #486).
-- **[Unrelated apt-pin drift may block a cold build]** → a from-scratch build of `android.Dockerfile` may also hit stale Debian apt pins (#486), unrelated to fastlane, which could obscure verification. Mitigation: verify on a base that already builds cold (or land after/with #486); treat an apt failure as out of scope for this change.
+- **[Unrelated apt-pin drift may block a cold build]** → a from-scratch build of `android.Dockerfile` may also hit stale Debian apt pins (#486), unrelated to fastlane, which could obscure verification. **Confirmed during implementation:** the cold build first failed on `curl="8.14.1-2+deb13u2"` (mirror moved to `deb13u3`). Mitigation: bump the drifted pin to reach the fastlane stage (done locally and temporarily for verification only — the curl bump belongs to #486, not this change); treat apt failures as out of scope here.
+
+## Migration Notes
+
+Verification during implementation revised the root-cause model:
+
+- A cold `gem install --no-document --version 2.235.0 fastlane` installed **156 gems including `representable-3.2.0` but no `multi_json`** (0 occurrences in the build log; absent from `gem list`).
+- `fastlane action debug` against that image reproduced the exact #490 trace: `representable/json.rb:1 → gem 'multi_json' → Gem::MissingSpecError`.
+- `gem install multi_json` in the same image, then `fastlane action debug`, loaded successfully.
+
+Conclusion: `gem install fastlane` alone does **not** fix #490 — `multi_json` must be installed explicitly. The shipped fix is `gem install ... fastlane multi_json`. No rollback concern: the change is confined to one `RUN` line in the `fastlane` stage; reverting restores the prior (broken-on-cold-build) state.
