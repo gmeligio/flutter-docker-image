@@ -1,9 +1,9 @@
 ## 1. Replace bundler install with gem install
 
-- [ ] 1.1 In `android.Dockerfile` `fastlane` stage, remove the `bundler` gem install line (`gem install --no-document --version "$BUNDLER_VERSION" bundler`) and the `BUNDLER_VERSION` env declaration
-- [ ] 1.2 Remove the `FASTLANE_ROOT` env, the `mkdir -p "$FASTLANE_ROOT"`, and the `WORKDIR "$FASTLANE_ROOT"` lines
-- [ ] 1.3 Replace `RUN bundle init && bundle add --version "$fastlane_version" fastlane` with `RUN gem install --no-document --version "$fastlane_version" fastlane` (keep the `ARG fastlane_version`)
-- [ ] 1.4 Confirm `GEM_HOME`, `GEM_PATH`, `PATH` (with `$GEM_HOME/bin`), and the `FASTLANE_OPT_OUT_USAGE` / `FASTLANE_SKIP_UPDATE_CHECK` / `FASTLANE_HIDE_CHANGELOG` env vars are left unchanged
+- [x] 1.1 In `android.Dockerfile` `fastlane` stage, remove the `bundler` gem install line (`gem install --no-document --version "$BUNDLER_VERSION" bundler`) and the `BUNDLER_VERSION` env declaration
+- [x] 1.2 Remove the `FASTLANE_ROOT` env, the `mkdir -p "$FASTLANE_ROOT"`, and the `WORKDIR "$FASTLANE_ROOT"` lines
+- [x] 1.3 Replace `RUN bundle init && bundle add --version "$fastlane_version" fastlane` with `RUN gem install --no-document --version "$fastlane_version" fastlane` (keep the `ARG fastlane_version`)
+- [x] 1.4 Confirm `GEM_HOME`, `GEM_PATH`, `PATH` (with `$GEM_HOME/bin`), and the `FASTLANE_OPT_OUT_USAGE` / `FASTLANE_SKIP_UPDATE_CHECK` / `FASTLANE_HIDE_CHANGELOG` env vars are left unchanged
 
 ## 2. Cold-build verification
 
