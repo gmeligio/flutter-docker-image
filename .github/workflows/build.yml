@@ -346,6 +346,22 @@ jobs:
           digest="$(docker buildx imagetools inspect "$ref" --format '{{json .Manifest.Digest}}' | tr -d '"')"
           echo "value=$digest" >> "$GITHUB_OUTPUT"
 
+      # The compare baseline is the latest published release of this image.
+      # A brand-new image (e.g. flutter-web before its first release) has no
+      # such tag yet, so `compare` would hard-fail with MANIFEST_UNKNOWN.
+      # Probe for the baseline and skip the comparison on that bootstrap case;
+      # once a release exists the scan runs normally on every PR.
+      - name: Check baseline exists
+        id: baseline
+        run: |
+          ref="ghcr.io/${{ github.repository_owner }}/${{ matrix.name }}:${{ needs.setup.outputs.flutter_version }}"
+          if docker buildx imagetools inspect "$ref" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::No published ${{ matrix.name }}:${{ needs.setup.outputs.flutter_version }} baseline yet — skipping Scout compare (first release of this image)."
+          fi
+
       # Compare the PR's image (read via the SBOM attestation attached at
       # build time) against the latest published release, pinned by tag.
       # `to:` replaces the env-stream lookup (`to-env: prod`) — Scout DSOS
@@ -353,6 +369,7 @@ jobs:
       # require dual-pushing to Docker Hub. The pinned `to:` comparator
       # gives the same delta-vs-prod semantic with one registry.
       - name: Scan with Docker Scout
+        if: steps.baseline.outputs.exists == 'true'
         id: docker-scout
         uses: docker/scout-action@f8c776824083494ab0d56b8105ba2ca85c86e4de # v1.18.2
         with:

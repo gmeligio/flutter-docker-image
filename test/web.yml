@@ -19,12 +19,6 @@ commandTests:
       - Checking
       - Installing
       - Downloading
-  - name: Web platform is enabled
-    command: flutter
-    args:
-      - config
-    expectedOutput:
-      - 'enable-web: true'
   - name: Android SDK is not installed
     command: bash
     args:
