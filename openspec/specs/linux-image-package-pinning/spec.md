@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Keeps the Linux (`android.Dockerfile`) image's self-pinned package versions current and trustworthy by making them visible to Renovate. Covers how the `deb` and `rubygems` custom managers in `.github/renovate.json` match the Dockerfile, the `ARG`-only declaration convention that determines what Renovate can see, and the invariant that every `# renovate:` annotation names the dependency actually installed with the correct datasource. The desktop user this serves is the CI engineer or maintainer who needs confidence that the image's apt-package and gem version pins receive automated upgrade PRs rather than silently going stale.
+Keeps the Linux (`android.Dockerfile`) image's self-pinned package versions current and trustworthy by making them visible to Renovate. Covers how the `deb` custom manager in `.github/renovate.json` matches the Dockerfile, the `ARG`-only declaration convention that determines what Renovate can see, and the invariant that every `# renovate:` annotation names the dependency actually installed with the correct datasource. The desktop user this serves is the CI engineer or maintainer who needs confidence that the image's apt-package version pins receive automated upgrade PRs rather than silently going stale.
 
 ## Requirements
 
@@ -35,7 +35,7 @@ The `deb`-datasource custom manager in `.github/renovate.json` SHALL match `andr
 
 Every Renovate-managed `*_VERSION` value in `android.Dockerfile` — a value carrying a `# renovate:` annotation and a literal default — SHALL be declared with `ARG`, not `ENV`. The `matchStrings` regex SHALL remain `ARG`-only, so the convention is enforced by what Renovate can match: an `ENV`-declared pin is invisible to the manager and therefore a defect.
 
-**Experience context:** A maintainer reading `android.Dockerfile` sees one keyword convention for self-pinned versions, with no `ENV` exceptions to explain. Build-only version strings do not leak into the final image's runtime environment or `docker inspect` metadata, and cannot collide with a real runtime variable — `bundler` reads `BUNDLER_VERSION` from the environment, so a persisted `ENV BUNDLER_VERSION` could silently influence runtime tooling. The uppercase/lowercase `ARG` distinction is preserved and orthogonal: UPPERCASE-with-default names are self-pinned and Renovate-managed; lowercase names without a default are injected at build time via `--build-arg` from CI and are intentionally outside Renovate's scope.
+**Experience context:** A maintainer reading `android.Dockerfile` sees one keyword convention for self-pinned versions, with no `ENV` exceptions to explain. Build-only version strings do not leak into the final image's runtime environment or `docker inspect` metadata, and cannot collide with a real runtime variable a tool might read from the environment. The uppercase/lowercase `ARG` distinction is preserved and orthogonal: UPPERCASE-with-default names are self-pinned and Renovate-managed; lowercase names without a default are injected at build time via `--build-arg` from CI and are intentionally outside Renovate's scope.
 
 #### Scenario: A managed version pin uses ARG
 
@@ -59,22 +59,15 @@ Every Renovate-managed `*_VERSION` value in `android.Dockerfile` — a value car
 
 ### Requirement: Each `# renovate:` annotation names the dependency actually installed, with the correct datasource
 
-Every `# renovate:` annotation in `android.Dockerfile` SHALL name, in its `depName`, the exact dependency that the corresponding `RUN` line installs, and SHALL use the datasource matching that dependency's ecosystem. A `deb`-ecosystem pin SHALL use the `suite=` form (deb datasource); a RubyGems pin SHALL use `datasource=rubygems depName=<gem>` and be matched by a dedicated rubygems custom manager in `.github/renovate.json`. A version value managed elsewhere (e.g. via the `config/version.json` manifest and a `--build-arg`) SHALL NOT carry a contradicting inline `# renovate:` annotation.
+Every `# renovate:` annotation in `android.Dockerfile` SHALL name, in its `depName`, the exact dependency that the corresponding `RUN` line installs, and SHALL use the datasource matching that dependency's ecosystem. A `deb`-ecosystem pin SHALL use the `suite=` form (deb datasource). A version value managed elsewhere (e.g. via the `config/version.json` manifest and a `--build-arg`) SHALL NOT carry a contradicting inline `# renovate:` annotation.
 
-**Experience context:** A maintainer reading a pin trusts that Renovate is tracking *that* package. A wrong `depName` is worse than an unmatched pin: Renovate feeds the wrong dependency's version into the `ARG`, which can break the build (e.g. a `ruby-dev` version string applied to a `ruby-full` install) or silently track an unrelated project. Two such defects existed — `RUBY_VERSION` annotated `depName=ruby-dev` while the `RUN` installs `ruby-full`, and `BUNDLER_VERSION` annotated `depName=fastlane` (refactor residue) while the `RUN` installs `bundler`. The `fastlane` gem is intentionally not pinned here at all: its version is owned by `config/version.json` and fanned out to the build (`--build-arg fastlane_version`) and the rendered docs, so an inline `depName=fastlane` was both wrong and redundant.
+**Experience context:** A maintainer reading a pin trusts that Renovate is tracking *that* package. A wrong `depName` is worse than an unmatched pin: Renovate feeds the wrong dependency's version into the `ARG`, which can break the build (e.g. a `ruby-dev` version string applied to a `ruby-full` install) or silently track an unrelated project. One such defect existed — `RUBY_VERSION` annotated `depName=ruby-dev` while the `RUN` installs `ruby-full`. The `fastlane` gem is intentionally not pinned here at all: its version is owned by `config/version.json` and fanned out to the build (`--build-arg fastlane_version`) and the rendered docs, so an inline `depName=fastlane` would be both wrong and redundant.
 
 #### Scenario: deb pin names the installed package
 
 - **GIVEN** the `RUBY_VERSION` pin, whose `RUN` line installs `ruby-full`
 - **WHEN** a maintainer reads its `# renovate:` annotation
 - **THEN** the `depName` is `ruby-full`, not `ruby-dev`
-
-#### Scenario: RubyGems pin is matched and names the installed gem
-
-- **GIVEN** the `BUNDLER_VERSION` pin, whose `RUN` line runs `gem install … bundler`
-- **WHEN** Renovate evaluates the repository
-- **THEN** a rubygems custom manager extracts it as a `rubygems` dependency with `depName` `bundler`
-- **AND** a newer published `bundler` version yields an upgrade PR
 
 #### Scenario: Manifest-managed gem is not double-pinned inline
 

@@ -118,21 +118,12 @@ ENV FASTLANE_OPT_OUT_USAGE="YES"
 ENV FASTLANE_SKIP_UPDATE_CHECK="YES"
 ENV FASTLANE_HIDE_CHANGELOG="YES"
 
-# renovate: datasource=rubygems depName=bundler
-ARG BUNDLER_VERSION="2.4.14"
-
-RUN gem install --no-document --version "$BUNDLER_VERSION" bundler
-
-ENV FASTLANE_ROOT="$SDK_ROOT/fastlane"
-
-RUN mkdir -p "$FASTLANE_ROOT"
-
-WORKDIR "$FASTLANE_ROOT"
-
 ARG fastlane_version
 
-RUN bundle init \
-    && bundle add --version "$fastlane_version" fastlane
+# Fastlane needs multi_json at runtime, but no gem lists it as a dependency,
+# so we have to install it ourselves (#490).
+RUN gem install --no-document --version "$fastlane_version" fastlane \
+    && gem install --no-document multi_json
 
 #-----------------------------------------------
 #-----------------------------------------------
