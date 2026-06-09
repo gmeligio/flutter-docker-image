@@ -15,4 +15,4 @@
 ## 3. Spec sync and close-out
 
 - [x] 3.1 Confirm the shipped Dockerfile behavior matches `specs/android-fastlane-runtime/spec.md`; adjust the spec if implementation revealed a discrepancy. DONE: spec describes observable behavior (fastlane runs standalone, analytics opted out) — both verified, no spec change needed. Implementation corrected the *root-cause model* (proposal + design updated), not the user-facing contract.
-- [ ] 3.2 Reference issue #490 in the PR and confirm the previously-failing `Test image (flutter-android)` job is green on a cold-cache build
+- [x] 3.2 Reference issue #490 in the PR and confirm the previously-failing `Test image (flutter-android)` job is green on a cold-cache build. DONE: PR #491 (references #490). `Test image` PASS (4m41s) — both "Fastlane can run lanes" and "Fastlane usage is opted-out" → `--- PASS`, 0 `MissingSpecError`, 0 failures. `Build and push image` PASS (11m51s, cleared the curl/apt stage), `Scan image` PASS. All 8 checks green.
