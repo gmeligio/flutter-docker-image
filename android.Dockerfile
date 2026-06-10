@@ -93,10 +93,10 @@ FROM flutter AS fastlane
 
 SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
-# renovate: suite=trixie depName=ruby-dev
+# renovate: suite=trixie depName=ruby-full
 ARG RUBY_VERSION="1:3.3"
 # renovate: suite=trixie depName=build-essential
-ENV BUILD_ESSENTIAL_VERSION="12.12"
+ARG BUILD_ESSENTIAL_VERSION="12.12"
 
 USER root
 RUN apt-get update \
