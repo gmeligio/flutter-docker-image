@@ -1,0 +1,42 @@
+schemaVersion: 2.0.0
+commandTests:
+  - name: Web engine is already downloaded
+    setup:
+      - - flutter
+        - create
+        - test_app
+    teardown:
+      - - rm
+        - -r
+        - test_app
+    command: bash
+    args:
+      - -c
+      - |
+        cd test_app \
+        && timeout --preserve-status 480s flutter build web
+    excludedOutput:
+      - Checking
+      - Installing
+      - Downloading
+  - name: Android SDK is not installed
+    command: bash
+    args:
+      - -c
+      - |
+        test ! -e /home/flutter/sdks/android-sdk && echo absent
+    expectedOutput:
+      - absent
+  - name: JDK is not installed
+    command: bash
+    args:
+      - -c
+      - |
+        test ! -e /usr/lib/jvm && echo absent
+    expectedOutput:
+      - absent
+fileContentTests:
+  - name: Dart and Flutter analytics are disabled
+    path: /home/flutter/.dart-tool/dart-flutter-telemetry.config
+    expectedContents:
+      - reporting=0
