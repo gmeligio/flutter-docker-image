@@ -272,6 +272,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
+      # Set up early: the flutter-android container does not ship jq, which the
+      # Export FLUTTER_* and Stage android-only fragment steps below rely on.
+      # mise provides it (and cue) independent of the container image.
+      - name: Setup mise tools
+        uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
+
       # TODO: Workaround because actions/download-artifact can't overwrite existing files
       # Check if this workaround can be removed after the following issues are fixed:
       # https://github.com/actions/download-artifact/issues/225
@@ -326,9 +332,6 @@ jobs:
       - name: Clean test application
         run: |
           rm -rf test_app
-
-      - name: Setup mise tools
-        uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
 
       - name: Generate test files with CUE
         run: |
