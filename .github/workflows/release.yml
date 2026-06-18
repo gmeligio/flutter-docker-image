@@ -139,14 +139,11 @@ jobs:
 
   verify-published:
     name: Verify ${{ matrix.name }} is anonymously pullable
-    # Verify whatever actually published. "Did it publish?" is read from the
-    # registry by an anonymous pull (script/verify_published_image.sh), never
-    # inferred from which release job succeeded — that job-result coupling is
-    # what let this job drift (the dangling `release-android` reference, the
-    # silently unverified web image). So there is no per-image gating: one
-    # platform failing leaves only its own matrix leg red while the images that
-    # did publish verify independently. Fix-forward a failed platform by
-    # re-pushing the tag; this re-runs and the leg turns green once it's live.
+    # "Did it publish?" is read from the registry by an anonymous pull, never
+    # inferred from which release job succeeded — that coupling is what let this
+    # job drift before. With no per-image gating each image verifies on its own
+    # leg, so one platform's failure leaves only its leg red; re-push the tag to
+    # fix it forward.
     needs: [release-linux, release-windows]
     # !cancelled() so a failed release job doesn't skip verification of the ones
     # that succeeded. Scoped to push, the path on which all images are built.
@@ -186,6 +183,9 @@ jobs:
     name: Update Docker Hub description (${{ matrix.name }})
     runs-on: ubuntu-24.04
     needs: release-linux
+    # !cancelled() (not default success()) so one image's release failure does
+    # not skip the other's description sync. Scoped to push, where release-linux runs.
+    if: ${{ github.event_name == 'push' && !cancelled() }}
     strategy:
       fail-fast: false
       matrix:
@@ -231,6 +231,9 @@ jobs:
       security-events: write
     runs-on: ubuntu-24.04
     needs: release-linux
+    # !cancelled() (not default success()) so one image's release failure does
+    # not skip the other's Scout record. Scoped to push, where release-linux runs.
+    if: ${{ github.event_name == 'push' && !cancelled() }}
     strategy:
       fail-fast: false
       matrix:
@@ -279,6 +282,10 @@ jobs:
       contents: write
     runs-on: ubuntu-24.04
     needs: release-linux
+    # The release/changelog is per-version, not per-image, so !cancelled() keeps
+    # it from being skipped when one image's release leg fails. Scoped to push,
+    # where release-linux runs.
+    if: ${{ github.event_name == 'push' && !cancelled() }}
     steps:
       - name: Harden runner
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
