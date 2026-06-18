@@ -1,102 +1,109 @@
 ## Context
 
-`p12-symmetric-platform-updates` established the model that `update-version.yml` uses today: each platform updater writes its block, validates, and uploads a fragment artifact; `compose-version-manifest` overlays the fragments onto the schema-valid base `config/version.json`; `validate-config-version` gates the composed result; `update-docs-and-create-pr` is a read-only consumer.
+`p12-symmetric-platform-updates` gave `update-version.yml` a fragment-artifact pipeline: each platform updater writes its block, validates, and uploads a fragment artifact; `compose-version-manifest` downloads the fragments and overlays them onto the base `config/version.json`; `validate-config-version` gates the composed result; `update-docs-and-create-pr` is a read-only consumer.
 
-`p12`'s design treated Flutter as a fragment producer "for symmetry" but implemented that fragment as the committed file `config/flutter_version.json` — a file that *duplicates* `config/version.json`'s `flutter` block. The compose step folds that file into `version.json` and `rm`s it. Two facts make this load-bearing-wrong:
+Two facts make that machinery heavier than it needs to be:
 
-1. The committed `config/flutter_version.json` is redundant with `config/version.json`'s `flutter` block. Nothing outside the update pipeline reads it (`script/setEnvironmentVariables.js` reads `version.json`; `#Version` embeds `#FlutterVersion`).
-2. The pipeline both *requires* the file (trigger anchor in `update-flutter-version`; `cue vet` in `build.yml`) and *deletes* it (in compose, from the PR). On merge, `main` loses the file the next run depends on.
+1. **The version data is tiny and scalar.** Each cycle's new values are a handful of strings/ints per platform — well within job-output limits. `p12` used artifacts on the reasoning that "outputs are size-limited, not for structured data", but that does not bind here.
+2. **`test/android.yml` is derived, not authored.** `script/update_test.sh` regenerates it from `config/version.json` via `cue export config/android.cue` (`script/update_test.sh:11-25`), taking the committed `test/android.yml` as the structural input and overlaying version values. Any job holding the composed manifest can rebuild it; it never needs to cross a job boundary as an artifact.
+
+`config/flutter_version.json` is also a committed *duplicate* of `version.json`'s `flutter` block, which `p12` deletes from the PR while other steps still require it — breaking `build.yml`'s Build check and leaving a self-destructing trigger.
 
 ```
-  TODAY (broken)
-  update-flutter-version ── reads/writes ──▶ config/flutter_version.json (committed duplicate)
-        │ upload artifact                              │
-  compose ── overlay flutter ──▶ rm flutter_version.json  ← PR deletes it
-        │
-  build.yml: cue vet -d '#FlutterVersion' config/flutter_version.json  ← RED after delete
+  TODAY (p12) — 7 jobs, ~4 version artifacts
+  flutter/android/windows ──stage→upload fragment──▶ compose ──download→merge→overlay──▶ validate ──▶ PR
+        │ (flutter fragment == committed flutter_version.json, rm'd in compose)
+        └ android also uploads test/android.yml
 ```
-
-This change keeps `p12`'s symmetric fragment model but sources the Flutter fragment from `config/version.json` and deletes the duplicate file.
 
 ## Goals / Non-Goals
 
 **Goals:**
 
-- `config/version.json` is the single committed source of truth for the Flutter version. No second committed file holds the same data.
-- Preserve `p12` symmetry: `flutter`, `android`, and `windows` are all fragment producers (`version.json.<platform>`), each overlaid in `compose-version-manifest`.
-- Remove the self-destruct: no workflow step deletes a file that a later run depends on.
-- `build.yml`'s `validate-version-files` validates the single manifest and still covers the Flutter block (including the stable-channel constraint).
+- `config/version.json` is the single committed source of truth; no second committed file holds the same data.
+- Remove the version-artifact subsystem: producers report blocks as job outputs; no `upload-artifact`/`download-artifact`/id-list/`merge-multiple`/`rm`-overwrite plumbing for version data.
+- `test/android.yml` is regenerated from the composed manifest, so it cannot drift from `version.json`.
+- One composition + one validation gate, in one job, before the PR is opened.
+- Preserve producer self-validation (a malformed block fails *its* producer job, not a downstream gate) and the carry-forward behavior for skipped platforms.
 
 **Non-Goals:**
 
-- Changing `config/schema.cue` or any per-platform extractor logic (Flutter release resolution, Android `packages.txt`/Gradle, Windows vsman identity-matching are unchanged).
-- Removing the `compose-version-manifest` / `validate-config-version` / `update-docs-and-create-pr` job structure.
-- Changing the committed `config/version.json` schema or its happy-path byte output.
-- Adopting the alternative "A1" design (Flutter via job outputs, no fragment). A1 is simpler but asymmetric; this change deliberately chooses the uniform fragment model.
+- Changing `config/schema.cue`, the Flutter/Android/Windows resolution logic, `script/update_test.sh`, or `config/android.cue`.
+- Changing `config/version.json`'s committed role, schema, or happy-path byte output.
+- Touching image-build workflows (`build.yml` build path, `windows.yml`, `release.yml`, `prepare-release.yml`) or test suites.
+- Removing the Windows `vs-manifests` forensic artifact (independent of the version data flow).
 
 ## Decisions
 
-### Decision: The Flutter fragment is derived from `config/version.json`, not a separate committed file
+### Decision: Producers report their block as a job output
 
-`update-flutter-version` resolves the latest stable release, compares against `config/version.json`'s `.flutter.version`, and on a bump overlays the new `flutter` block into the in-job `config/version.json`:
+Each producer overlays its block onto its in-job checkout of `config/version.json`, validates with `cue vet config/schema.cue -d '#Version' config/version.json` (its block on the schema-valid base → a passing `#Version` confirms the block), then emits the block as a compact JSON job output:
 
-```sh
-jq --arg channel "$c" --arg commit "$h" --arg version "$v" \
-   '.flutter = {channel: $channel, commit: $commit, version: $version}' \
-   config/version.json > tmp && mv tmp config/version.json
-```
+- `update-flutter-version` → outputs `changed`, `flutter_channel`, `flutter_commit`, `flutter_version` (the Flutter overlay is trivial; the scalars also feed the Android job directly).
+- `update-android-version` → `android_block = $(jq -c '{android, fastlane}' config/version.json)`, plus `android_skipped`.
+- `update-windows-version` → `windows_block = $(jq -c '{windows}' config/version.json)` when the release-identity check matches, else empty, plus `windows_skipped`.
 
-It then stages the fragment with `jq '{flutter}' config/version.json > "$RUNNER_TEMP/version.json.flutter"` and uploads it as `version.json.flutter`. This makes Flutter structurally identical to the Android (`jq '{android, fastlane}'`) and Windows (`{windows}`) producers.
+For Android and Windows this is a *small* change — they already overlay-and-validate today; only the final "stage file + upload-artifact" becomes "echo block to `$GITHUB_OUTPUT`".
 
 Alternatives considered:
+- **Keep fragment artifacts (the A2 design).** Rejected: preserves the artifact boilerplate that is the actual maintenance cost; buys only downloadable forensics (the PR already carries the exact manifest).
+- **Pass full `version.json` from each producer as an output.** Rejected: forces a 3-way merge and obscures which block each producer owns. Per-block outputs keep ownership explicit.
 
-- **Keep `config/flutter_version.json` as the committed fragment (revert p12's `rm`).** Rejected: reinstates the duplication that is the root cause.
-- **Pass the Flutter block via job outputs, no fragment (the "A1" design on the existing branch).** Rejected for this change: simplest in isolation, but introduces a second transport mechanism (outputs for Flutter, artifacts for Android/Windows) and diverges from the `p12` fragment model a future maintainer would reasonably expect to extend. A2 keeps one pattern.
+### Decision: `test/android.yml` is regenerated downstream, not shipped
 
-### Decision: Scalar `flutter_version` / `flutter_channel` outputs serve the one mid-pipeline consumer
+The Android job stops generating and uploading `test/android.yml`. The final job runs `script/update_test.sh` against the *composed* `config/version.json` (with the base `test/android.yml` from checkout as the structural input). On the Android-skip path the composed manifest carries the base `android` block, so regeneration reproduces the base `test/android.yml` byte-for-byte — no special-casing.
 
-`update-android-version`'s `Setup Flutter` and Gradle steps need the *new* Flutter version/channel before the manifest is composed. Rather than have Android download and parse the `version.json.flutter` fragment (re-introducing a download step), `update-flutter-version` also exposes `flutter_version` and `flutter_channel` as job outputs. Android reads them directly into `$GITHUB_ENV`.
+### Decision: Collapse compose + validate + PR into one job
 
-This is a deliberate split, not a contradiction of the fragment model: the **fragment** is the manifest-composition transport (consumed by `compose-version-manifest`); the **scalar outputs** are a convenience for a consumer that needs the raw version string mid-pipeline. Android does not need the structured block, so it does not download the fragment.
+`compose-version-manifest` and `validate-config-version` are removed. The final job `compose-and-open-pr` (renamed from `update-docs-and-create-pr`):
 
-### Decision: Flutter producer validates the full in-job `#Version` manifest, like the others
+1. Checks out the base branch (`fetch-depth: 0`, `fetch-tags: true` for the changelog) — the schema-valid base `version.json` is the composition canvas.
+2. Overlays the platform blocks from job outputs (passed via `env:`, not inline interpolation):
+   ```sh
+   jq --arg channel "$FLUTTER_CHANNEL" --arg commit "$FLUTTER_COMMIT" --arg version "$FLUTTER_VERSION" \
+      '.flutter = {channel: $channel, commit: $commit, version: $version}' config/version.json > t && mv t config/version.json
+   [ -n "$ANDROID_BLOCK" ]  && jq --argjson a "$ANDROID_BLOCK"  '. + $a' config/version.json > t && mv t config/version.json
+   [ -n "$WINDOWS_BLOCK" ]  && jq --argjson w "$WINDOWS_BLOCK"  '. + $w' config/version.json > t && mv t config/version.json
+   ```
+   Flutter is unconditional (the pipeline is gated on Flutter changing); Android/Windows are guarded on a non-empty block output, else the base block carries forward.
+3. Regenerates `test/android.yml` via `script/update_test.sh`.
+4. Validates the composed manifest: `cue vet config/schema.cue -d '#Version' config/version.json` — the single central gate, as a step. `bash -e`/step failure stops the job before any PR step runs.
+5. Exports env vars (`setEnvironmentVariables.js`), builds docs (`mise run docs`), generates the changelog (`git-cliff`), composes the PR body with per-platform "unchanged this cycle" annotations (from `android_skipped`/`windows_skipped`), and opens the PR.
 
-Because `update-flutter-version` now overlays its block into `config/version.json`, it validates the full in-job manifest with `cue vet config/schema.cue -d '#Version' config/version.json` — identical to the Android and Windows producers. This removes `p12`'s "Flutter is the exception, validated as a standalone `#FlutterVersion` artifact" carve-out. `#FlutterVersion` remains a building block of `#Version` (so the stable-channel constraint still applies); it is simply no longer invoked against a standalone file.
+The single-gate property is now *real* (composition and validation are adjacent in one job, validation strictly before PR creation), and a failing **step** still identifies compose-vs-validate-vs-PR in the log without needing separate jobs.
 
-### Decision: `compose-version-manifest` overlays the Flutter fragment unconditionally
-
-The compose job downloads `version.json.flutter` (always present — the pipeline is gated on Flutter having changed) alongside the conditionally-present Android and Windows fragments, and overlays it onto the base manifest. The Flutter fragment id is prepended to the existing dynamic artifact-id list; the per-fragment overlay is guarded by file presence for Android/Windows and unconditional for Flutter. The `rm config/flutter_version.json` step is deleted.
+Alternatives considered:
+- **Keep `validate-config-version` as a separate job (the Hybrid).** Rejected for this change: without an artifact to hand off, a separate validate job would need to re-receive the composed manifest (re-introducing an artifact). Co-locating compose+validate removes that need; step-level granularity preserves log clarity.
 
 ### Decision: `build.yml` validates only `config/version.json`
 
-`validate-version-files` runs `cue vet config/schema.cue -d '#Version' config/version.json`. The `-d '#FlutterVersion' config/flutter_version.json` line is removed; its coverage is subsumed because `#Version` embeds `#FlutterVersion`.
+`validate-version-files` runs `cue vet config/schema.cue -d '#Version' config/version.json`. The `-d '#FlutterVersion' config/flutter_version.json` line is removed; `#Version` embeds `#FlutterVersion`, so the `flutter` block and its `channel: "stable"` constraint stay covered.
 
 ```
-  AFTER (A2)
-  update-flutter-version ── overlay into version.json ──▶ upload {flutter} fragment
-        │  (+ flutter_version/channel outputs)                     │
-  update-android/windows ── upload {android}/{windows} fragments   │
-        │                                                          ▼
-  compose ── overlay flutter (uncond.) + android/windows (guarded) onto base version.json
-        │
-  validate-config-version ── cue vet -d '#Version' ──▶ update-docs-and-create-pr (read-only)
-
-  config/version.json = SINGLE source of truth; no flutter_version.json; nothing self-deletes
+  AFTER (C) — 5 jobs, 0 version artifacts
+  setup ─▶ update-flutter-version ─(outputs)─┐
+                 │ (changed gate)             │
+          update-windows-version ─(windows_block output)─┤
+          update-android-version ─(android_block output)─┤
+                                                          ▼
+                          compose-and-open-pr: overlay outputs → regen android.yml
+                                                → cue vet (#Version) → docs → PR
+  config/version.json = SINGLE committed source of truth; no flutter_version.json
 ```
 
 ## Automated Test Strategy
 
-This capability has no unit-test harness; it is verified by the workflows themselves and by a manual dry-run:
+No unit-test harness exists; verification is by the workflows plus a manual dry-run:
 
-- **Critical path — schema validity:** `cue vet config/schema.cue -d '#Version' config/version.json` must pass for the committed manifest (`build.yml` `validate-version-files`) and for the composed manifest (`update-version.yml` `validate-config-version`). Both gates already exist; this change only removes the redundant `-d '#FlutterVersion' config/flutter_version.json` invocation.
-- **Producer self-validation:** each producer (now including Flutter) runs `cue vet -d '#Version'` on its in-job manifest before upload, failing fast at the offending job.
-- **Manifest-shape assertions (local, pre-merge):** confirm `jq '{flutter}' config/version.json` produces a `#FlutterVersion`-shaped document and that the compose overlay `jq '.flutter = {...}'` preserves the `android`, `fastlane`, and `windows` blocks. These can be run by hand against the committed `version.json` without CI.
-- **End-to-end:** a `workflow_dispatch` run of `update-version.yml` (or the next scheduled run) must open an upgrade PR whose `config/version.json` is byte-equivalent to today's happy-path output and whose diff contains **no** deletion of `config/flutter_version.json`. The PR's own `build.yml` Build check must pass `validate-version-files`.
+- **Schema gate (critical path):** `cue vet -d '#Version' config/version.json` must pass for the committed manifest (`build.yml` `validate-version-files`) and for the composed manifest (the gating step in `compose-and-open-pr`).
+- **Producer self-validation:** each producer runs `cue vet -d '#Version'` on its in-job manifest before emitting its block output, so a malformed block fails the producer job.
+- **Local shape checks (pre-merge, no CI):** `jq -c '{android, fastlane}' config/version.json` and `jq -c '{windows}' config/version.json` produce valid block JSON; the overlay chain (`jq --arg` flutter, `jq --argjson` android/windows) preserves all sibling blocks; `script/update_test.sh` regenerates `test/android.yml` byte-identically from the committed manifest.
+- **End-to-end:** a `workflow_dispatch` (or scheduled) run opens an upgrade PR whose `config/version.json` and `test/android.yml` are byte-equivalent to today's happy-path output, whose diff contains **no** deletion of `config/flutter_version.json`, and whose `build.yml` `validate-version-files` check passes. Validate the Android-skip and Windows-skip paths by confirming the corresponding base block (and regenerated `test/android.yml`) carries forward and the PR body annotation appears.
 
 ## Observability
 
-- **Producer failures are loud and located:** each producer's `cue vet -d '#Version'` step fails its own job (red in the Actions tab) at the step that produced the bad block, before any artifact upload — no silent propagation to a downstream compose failure.
-- **Composition/validation gate:** `validate-config-version` fails the workflow before `update-docs-and-create-pr` runs, so a malformed composed manifest blocks the PR rather than opening a bad one.
-- **Trigger transparency:** `update-flutter-version` logs the current pinned version (read from `config/version.json`) and the resolved upstream version, so a "no change" green run and a "bump detected" run are distinguishable in the log.
-- **No silent self-destruct:** the failure mode this change eliminates (a deleted anchor file surfacing only on the *next* run) is removed by construction — there is one committed file and no step deletes it. The previously-failing `build.yml` `validate-version-files` becomes a positive signal again.
-- **Regression guard:** `build.yml`'s `validate-version-files` runs on every PR including merges to `main`, so any future reintroduction of a non-schema-valid or duplicated Flutter source surfaces as a red Build check on the introducing PR.
+- **Producer failures are loud and located:** each producer's `cue vet -d '#Version'` fails its own job at the offending step, before its block output is emitted — no silent propagation.
+- **Central gate before PR:** the `cue vet` step in `compose-and-open-pr` runs strictly before the PR-creation step; a malformed composed manifest fails the run with a red job and no PR opened. Compose-vs-validate-vs-PR are distinguishable by which step failed.
+- **Skip transparency:** an empty `android_block`/`windows_block` output drives both the carry-forward overlay and the PR-body "toolchain unchanged this cycle" annotation, so a reviewer sees which platforms moved without reading job logs.
+- **Trigger transparency:** `update-flutter-version` logs the pinned version (from `config/version.json`) vs the resolved upstream version, distinguishing a green "no change" run from a "bump detected" run.
+- **No silent self-destruct:** with one committed file and no step that deletes it, the failure mode where a deleted anchor surfaces only on the *next* run is removed by construction; `build.yml` `validate-version-files` returns to a positive signal and guards against any future reintroduction of a duplicated/non-schema-valid Flutter source on the introducing PR.
