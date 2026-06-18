@@ -29,7 +29,7 @@ The images includes the minimum tools to run Flutter and build apps. The version
 * Cached Fastlane gem 2.236.1.
 * Minimal images with predownloaded SDKs and tools ready to run `flutter` commands:  
    * `flutter-android` for the Android platform.  
-   * `flutter-web` for the Web platform (Flutter SDK only, no Android SDK), with the web engine precached so `flutter build web` runs without downloads.
+   * `flutter-web` for the Web platform.
 
 Predownloaded SDKs and tools in Android:
 
