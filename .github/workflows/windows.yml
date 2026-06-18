@@ -15,8 +15,7 @@ concurrency:
 jobs:
   test-windows:
     name: Test Windows image
-    # Build the `test` target and run the Pester suite via the shared workflow.
-    # No secrets are forwarded: the test path performs no registry login.
+    # Test path runs the Pester suite and never logs in, so no secrets are passed.
     uses: ./.github/workflows/windows-image.yml
     with:
       target: test

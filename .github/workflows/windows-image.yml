@@ -1,9 +1,8 @@
 name: Windows image
 
-# Reusable workflow that owns the entire shared Windows image build. Both the
-# PR test path (windows.yml) and the release path (release.yml) call this with
-# uses:, differing only in `target` and `push`. See the windows-image-build
-# capability spec.
+# Reusable workflow owning the shared Windows image build. The PR test path
+# (windows.yml) and release path (release.yml) call it, differing only in
+# `target` and `push`.
 on:
   workflow_call:
     inputs:
@@ -27,13 +26,10 @@ on:
       QUAY_ROBOT_TOKEN:
         required: false
 
-# No top-level `permissions:` block: a reusable workflow's declared permissions
-# act as a ceiling that cannot exceed — and silently downgrades — the caller's
-# grant. Omitting it lets the build job inherit each caller's token exactly: the
-# PR caller stays `contents: read`, and the release caller's `packages: write`
-# (needed for the GHCR push) flows through. Declaring `packages: write` here
-# instead hard-fails the PR caller at startup ("requesting packages: write, but
-# only allowed packages: none").
+# No `permissions:` block on purpose: a reusable workflow's declared permissions
+# cap the caller's token. Omitting it lets each caller's grant flow through —
+# `contents: read` for the PR caller, `packages: write` for the release caller.
+# Declaring `packages: write` here would instead hard-fail the read-only PR caller.
 
 jobs:
   build:
@@ -54,9 +50,9 @@ jobs:
       - name: Clean runner disk
         uses: ./.github/actions/clean-runner-disk
 
-      # Workaround for actions/runner-images#13729: Docker service does not
-      # always auto-start on windows-2022/2025 runners. Start it explicitly
-      # and wait until the daemon answers before invoking `docker build`.
+      # Workaround for actions/runner-images#13729: the Docker service does not
+      # always auto-start on windows-2025 runners. Start it and wait for the
+      # daemon before `docker build`.
       - name: Ensure Docker daemon is running
         shell: powershell
         run: |
@@ -99,9 +95,8 @@ jobs:
           tags: |
             type=raw,value=${{ env.FLUTTER_VERSION }}
 
-      # Logins run only on the push path. The PR test path contacts no registry
-      # (base image from mcr.microsoft.com, Pester from PSGallery, test runs the
-      # local image), so a fork PR builds and tests with zero login steps.
+      # Logins run only on the push path, so a fork PR builds and tests with no
+      # registry credentials.
       - name: Login to Docker Hub
         if: ${{ inputs.push }}
         uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
@@ -125,8 +120,7 @@ jobs:
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_ROBOT_TOKEN }}
 
-      # Docker Buildx is not supported for Windows containers, so build with a
-      # direct docker build command.
+      # Buildx is unsupported for Windows containers, so use plain `docker build`.
       - name: Build image
         shell: powershell
         env:
@@ -166,10 +160,8 @@ jobs:
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           }
 
-      # Test path: run the locally-built `test` image, which overrides the
-      # entrypoint to RunPester.ps1. The image bakes in config/version.json and
-      # the test files, so no env/volumes are needed. Propagate the container
-      # exit code so a failing Pester test fails the job.
+      # Run the locally-built `test` image (entrypoint is RunPester.ps1) and
+      # propagate its exit code so a failing test fails the job.
       - name: Run Pester tests
         if: ${{ !inputs.push }}
         shell: powershell

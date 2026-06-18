@@ -110,8 +110,8 @@ jobs:
       contents: read
       # Allow to write packages to push the container image to the Github Container Registry
       packages: write
-    # Build the `flutter` target and push to all three registries via the shared
-    # workflow. No `needs: release-android` — the two release jobs run in parallel.
+    # Push path: build the `flutter` target. Runs in parallel with
+    # release-android (no `needs`).
     uses: ./.github/workflows/windows-image.yml
     with:
       target: flutter
@@ -125,9 +125,8 @@ jobs:
   verify-published:
     name: Verify published images are anonymously pullable
     needs: [release-android, release-windows]
-    # always(): a Windows failure must not cancel Android verification, and vice
-    # versa — this preserves the release-android/release-windows independence
-    # required by windows-image-release. Run whenever at least one published.
+    # always() so one platform's failure can't cancel the other's verification;
+    # run whenever at least one release job published.
     if: ${{ always() && (needs.release-android.result == 'success' || needs.release-windows.result == 'success') }}
     runs-on: ubuntu-24.04
     steps:
@@ -139,10 +138,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
-      # No registry login here, on purpose: the verification must reflect the
-      # unauthenticated consumer who copies a pull command out of the readme. A
-      # green result means an anonymous `docker pull` of the tag would succeed —
-      # it cannot pass on the strength of CI's own credentials.
+      # No registry login on purpose: this must verify an anonymous `docker pull`
+      # succeeds, not pass on the strength of CI's own credentials.
       - name: Verify flutter-android across all registries
         if: ${{ needs.release-android.result == 'success' }}
         env:
