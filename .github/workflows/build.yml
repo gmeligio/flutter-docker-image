@@ -228,6 +228,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
+      - name: Setup mise tools
+        uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
+
       - name: Clean runner disk
         if: needs.build-image.outputs.image_artifact != ''
         uses: ./.github/actions/clean-runner-disk
@@ -253,9 +256,6 @@ jobs:
       - name: Pull image from registry
         if: needs.build-image.outputs.image_artifact == ''
         run: docker pull "ghcr.io/${{ github.repository_owner }}/flutter-android:${{ needs.build-image.outputs.image_tag }}"
-
-      - name: Setup mise tools
-        uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
 
       - name: Test image
         run: container-structure-test test --image "${{ needs.build-image.outputs.image_artifact != '' && needs.build-image.outputs.image_local_tag || format('ghcr.io/{0}/flutter-android:{1}', github.repository_owner, needs.build-image.outputs.image_tag) }}" --config test/android.yml
@@ -411,6 +411,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
+      - name: Setup mise tools
+        uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
+
       - name: Read version.json
         id: version-json
         run: |
@@ -440,9 +443,6 @@ jobs:
         run: |
           cat ../../script/updateAndroidVersions.gradle.kts >> app/build.gradle.kts
           ./gradlew --warning-mode all updateAndroidVersions
-
-      - name: Setup mise tools
-        uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
 
       - name: Validate version.json with CUE
         run: cue vet config/schema.cue -d '#Version' config/version.json

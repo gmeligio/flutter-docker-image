@@ -272,9 +272,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
-      # Set up early: the flutter-android container does not ship jq, which the
-      # Export FLUTTER_* and Stage android-only fragment steps below rely on.
-      # mise provides it (and cue) independent of the container image.
       - name: Setup mise tools
         uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
 
@@ -388,6 +385,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
+      - name: Setup mise tools
+        uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
+
       # The if gate guarantees the upstream upload ran, so the fragment always exists.
       - name: Delete flutter_version.json
         run: rm ${{ env.FLUTTER_VERSION_PATH }}
@@ -427,9 +427,6 @@ jobs:
           artifact-ids: ${{ steps.fragment_ids.outputs.ids }}
           path: ${{ runner.temp }}/fragments
           merge-multiple: true
-
-      - name: Setup mise tools
-        uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
 
       # Overlay each block in turn. Flutter always overlays; android (+fastlane)
       # and windows overlay only when their fragment was downloaded, else the base
@@ -495,6 +492,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
+      - name: Setup mise tools
+        uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
+
       # TODO: Workaround because actions/download-artifact can't overwrite existing files
       # Check if this workaround can be removed after the following issues are fixed:
       # https://github.com/actions/download-artifact/issues/225
@@ -510,9 +510,6 @@ jobs:
         with:
           artifact-ids: ${{ needs.compose-version-manifest.outputs.composed_artifact_id }}
           path: .
-
-      - name: Setup mise tools
-        uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
 
       - name: Validate version.json with CUE
         run: cue vet config/schema.cue -d '#Version' config/version.json
@@ -553,6 +550,9 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
 
+      - name: Setup mise tools
+        uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
+
       # TODO: Workaround because actions/download-artifact can't overwrite existing files
       # Check if this workaround can be removed after the following issues are fixed:
       # https://github.com/actions/download-artifact/issues/225
@@ -570,9 +570,6 @@ jobs:
         with:
           artifact-ids: ${{ needs.compose-version-manifest.outputs.composed_artifact_id }}
           path: .
-
-      - name: Setup mise tools
-        uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
 
       - name: Update documentation
         run: mise run docs
