@@ -1,8 +1,7 @@
 [tools]
 cue = "0.15.0"
 git-cliff = "2.10.1"
-# jq is needed by the update-android-version job, whose flutter-android
-# container does not ship it; mise provides it independent of the image.
+# For update-android-version: the flutter-android container lacks jq.
 jq = "1.8.1"
 pnpm = "11.2.2"
 node = "lts"
