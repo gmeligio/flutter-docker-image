@@ -1,3 +1,24 @@
+## [3.44.2] - 2026-06-18
+
+### 🚀 Features
+
+- *(ci)* Route main writes through PRs + enable Renovate automerge (p10) (#478)
+
+### 🐛 Bug Fixes
+
+- *(android)* Install multi_json explicitly so fastlane runs (#490) (#491)
+- *(renovate)* Match android.Dockerfile + correct package pin annotations (#488)
+
+### 📚 Documentation
+
+- Archive p10-strengthen-branch-protection (#481)
+- Archive scout sbom provenance (#485)
+
+### ⚙️ Miscellaneous Tasks
+
+- *(update-version)* Make platform updaters symmetric via single compose-manifest job (#483)
+- *(update-version)* Gate compose-manifest on Flutter change, not job success (#487)
+- *(update-version)* Provide jq via mise in android job container (#494)
 ## [3.44.1] - 2026-06-02
 
 ### 🚀 Features
