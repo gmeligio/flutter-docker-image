@@ -14,9 +14,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
 
-env:
-  FLUTTER_VERSION_PATH: config/flutter_version.json
-
 jobs:
   # Resolves the bootstrap container tag — the latest published release tag.
   setup:
@@ -48,7 +45,9 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       new_version: ${{ steps.update_flutter_version.outputs.result }}
-      flutter_version_artifact_id: ${{ steps.upload-version.outputs.artifact-id }}
+      flutter_version: ${{ steps.update_flutter_version.outputs.version }}
+      flutter_channel: ${{ steps.update_flutter_version.outputs.channel }}
+      flutter_commit: ${{ steps.update_flutter_version.outputs.commit }}
     steps:
       - name: Harden runner
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
@@ -61,14 +60,14 @@ jobs:
       - name: Setup mise tools
         uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
 
-      - name: Fetch and update latest Flutter version
+      - name: Resolve latest Flutter version
         id: update_flutter_version
         run: |
           releases_json_path="${RUNNER_TEMP}/releases.json"
           curl -fsSL https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json \
             -o "$releases_json_path"
 
-          old_version=$(jq -r '.flutter.version' "${{ env.FLUTTER_VERSION_PATH }}")
+          old_version=$(jq -r '.flutter.version' config/version.json)
           new_version=$(jq -r '[.releases[] | select(.channel=="stable")] | max_by(.release_date) | .version' "$releases_json_path")
           new_channel=$(jq -r '[.releases[] | select(.channel=="stable")] | max_by(.release_date) | .channel' "$releases_json_path")
           new_commit=$(jq -r '[.releases[] | select(.channel=="stable")] | max_by(.release_date) | .hash' "$releases_json_path")
@@ -80,23 +79,28 @@ jobs:
             echo "No version change — skipping update."
             echo "result=false" >> "$GITHUB_OUTPUT"
           else
-            echo "New version detected — updating ${{ env.FLUTTER_VERSION_PATH }}"
-            printf '{\n    "flutter": {\n        "channel": "%s",\n        "commit": "%s",\n        "version": "%s"\n    }\n}\n' \
-              "$new_channel" "$new_commit" "$new_version" > "${{ env.FLUTTER_VERSION_PATH }}"
-            echo "result=true" >> "$GITHUB_OUTPUT"
+            echo "New version detected: $new_version (channel: $new_channel)"
+            {
+              echo "result=true"
+              echo "version=$new_version"
+              echo "channel=$new_channel"
+              echo "commit=$new_commit"
+            } >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Validate version.json with CUE
+      # Validate the resolved Flutter block in isolation — the only data this job
+      # owns. compose-version-manifest overlays it onto config/version.json, which
+      # validate-config-version then re-checks as a whole #Version manifest.
+      - name: Validate resolved Flutter block with CUE
         if: ${{ steps.update_flutter_version.outputs.result == 'true' }}
-        run: cue vet config/schema.cue -d '#FlutterVersion' ${{ env.FLUTTER_VERSION_PATH }}
-
-      - name: Upload artifact with the new Flutter version
-        if: ${{ steps.update_flutter_version.outputs.result == 'true' }}
-        id: upload-version
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
-        with:
-          name: flutter_version.json
-          path: ${{ env.FLUTTER_VERSION_PATH }}
+        env:
+          FLUTTER_CHANNEL: ${{ steps.update_flutter_version.outputs.channel }}
+          FLUTTER_COMMIT: ${{ steps.update_flutter_version.outputs.commit }}
+          FLUTTER_VERSION: ${{ steps.update_flutter_version.outputs.version }}
+        run: |
+          jq -n --arg channel "$FLUTTER_CHANNEL" --arg commit "$FLUTTER_COMMIT" --arg version "$FLUTTER_VERSION" \
+            '{flutter: {channel: $channel, commit: $commit, version: $version}}' > "${RUNNER_TEMP}/flutter.json"
+          cue vet config/schema.cue -d '#FlutterVersion' "${RUNNER_TEMP}/flutter.json"
 
   update-windows-version:
     name: Update Windows version
@@ -121,18 +125,6 @@ jobs:
 
       - name: Setup mise tools
         uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
-
-      # Parallel pattern with update-android-version: the artifact is downloaded
-      # to keep job structure symmetric, even though windows fields are not
-      # currently tied to a specific Flutter tag.
-      - name: Delete flutter_version.json
-        run: rm ${{ env.FLUTTER_VERSION_PATH }}
-
-      - name: Download artifact with the new Flutter version
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
-        with:
-          artifact-ids: ${{ needs.update-flutter-version.outputs.flutter_version_artifact_id }}
-          path: config
 
       - name: Resolve latest Git for Windows version
         id: git_version
@@ -275,31 +267,14 @@ jobs:
       - name: Setup mise tools
         uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
 
-      # TODO: Workaround because actions/download-artifact can't overwrite existing files
-      # Check if this workaround can be removed after the following issues are fixed:
-      # https://github.com/actions/download-artifact/issues/225
-      # https://github.com/actions/download-artifact/issues/138
-      - name: Delete flutter_version.json
-        run: rm ${{ env.FLUTTER_VERSION_PATH }}
-
-      - name: Download artifact with the new Flutter version
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
-        with:
-          artifact-ids: ${{ needs.update-flutter-version.outputs.flutter_version_artifact_id }}
-          path: config
-
-      # This job does NOT merge the Flutter block into config/version.json —
-      # that overlay now happens centrally in compose-version-manifest. Here we
-      # only export FLUTTER_VERSION / FLUTTER_CHANNEL, which the Setup Flutter and
-      # Gradle steps below consume.
+      # The Flutter version/channel come straight from update-flutter-version's
+      # outputs (the job that resolved the bump); the Setup Flutter and Gradle steps
+      # below consume them. compose-version-manifest folds the Flutter block into
+      # config/version.json centrally.
       - name: Export FLUTTER_* environment variables
-        env:
-          FLUTTER_VERSION_PATH: ${{ env.FLUTTER_VERSION_PATH }}
         run: |
-          version=$(jq -r '.flutter.version' "${FLUTTER_VERSION_PATH}")
-          channel=$(jq -r '.flutter.channel' "${FLUTTER_VERSION_PATH}")
-          echo "FLUTTER_VERSION=${version}" >> "$GITHUB_ENV"
-          echo "FLUTTER_CHANNEL=${channel}" >> "$GITHUB_ENV"
+          echo "FLUTTER_VERSION=${{ needs.update-flutter-version.outputs.flutter_version }}" >> "$GITHUB_ENV"
+          echo "FLUTTER_CHANNEL=${{ needs.update-flutter-version.outputs.flutter_channel }}" >> "$GITHUB_ENV"
 
       - name: Update latest Fastlane version
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
@@ -361,11 +336,12 @@ jobs:
           name: android.yml
           path: test/android.yml
 
-  # Overlays each platform fragment onto the schema-valid base manifest; a skipped
-  # platform uploads no fragment, so the overlays below are individually guarded.
-  # Gated on new_version == 'true' because the Flutter overlay is unconditional:
-  # without its fragment the compose deletes the base file and jq fails on the gap.
-  # Sole composer of config/version.json; validate-config-version gates the result.
+  # Overlays each platform's data onto the schema-valid base manifest; a skipped
+  # platform uploads no fragment, so the android/windows overlays are individually
+  # guarded. Gated on new_version == 'true' because the Flutter overlay is
+  # unconditional — it always applies the resolved Flutter block from the resolver
+  # job's outputs. Sole composer of config/version.json; validate-config-version
+  # gates the result.
   compose-version-manifest:
     name: Compose version manifest
     needs: [update-flutter-version, update-android-version, update-windows-version]
@@ -387,16 +363,6 @@ jobs:
 
       - name: Setup mise tools
         uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
-
-      # The if gate guarantees the upstream upload ran, so the fragment always exists.
-      - name: Delete flutter_version.json
-        run: rm ${{ env.FLUTTER_VERSION_PATH }}
-
-      - name: Download Flutter fragment
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
-        with:
-          artifact-ids: ${{ needs.update-flutter-version.outputs.flutter_version_artifact_id }}
-          path: config
 
       # Compose the artifact-ids list with the Android and Windows fragment ids
       # appended only when their producer jobs actually uploaded one. An empty id
@@ -434,11 +400,14 @@ jobs:
       - name: Compose manifest
         env:
           FRAGMENTS: ${{ runner.temp }}/fragments
+          FLUTTER_CHANNEL: ${{ needs.update-flutter-version.outputs.flutter_channel }}
+          FLUTTER_COMMIT: ${{ needs.update-flutter-version.outputs.flutter_commit }}
+          FLUTTER_VERSION: ${{ needs.update-flutter-version.outputs.flutter_version }}
         run: |
-          # Flutter — always present.
-          jq -s '.[0] * .[1]' config/version.json config/flutter_version.json > config/version.json.tmp
+          # Flutter — always overlaid from the resolver job's outputs.
+          jq --arg channel "$FLUTTER_CHANNEL" --arg commit "$FLUTTER_COMMIT" --arg version "$FLUTTER_VERSION" \
+            '.flutter = {channel: $channel, commit: $commit, version: $version}' config/version.json > config/version.json.tmp
           mv config/version.json.tmp config/version.json
-          rm config/flutter_version.json
 
           # Android + fastlane — when the fragment was produced this cycle.
           if [ -f "${FRAGMENTS}/version.json.android" ]; then
@@ -557,9 +526,9 @@ jobs:
       # Check if this workaround can be removed after the following issues are fixed:
       # https://github.com/actions/download-artifact/issues/225
       # https://github.com/actions/download-artifact/issues/138
-      - name: Delete flutter_version.json, version.json and android.yml
+      - name: Delete version.json and android.yml
         run: |-
-          rm ${{ env.FLUTTER_VERSION_PATH }} config/version.json test/android.yml
+          rm config/version.json test/android.yml
 
       # Read-only consumer: download the single composed-and-validated manifest.
       # No jq, no overlay, no re-validation — compose-version-manifest produced it
