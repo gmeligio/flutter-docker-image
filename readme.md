@@ -1,4 +1,4 @@
-<!--- This markdown file was auto-generated from "readme.mdx" -->
+<!--- This markdown file was auto-generated from docs/build.mjs -->
 
 [![openssf scorecard](https://api.scorecard.dev/projects/github.com/gmeligio/flutter-docker-image/badge)](https://scorecard.dev/viewer/?uri=github.com/gmeligio/flutter-docker-image) [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/gmeligio/flutter-docker-image) [![channel](https://img.shields.io/static/v1?label=channel&message=stable&color=blue)](https://docs.flutter.dev/release/archive?tab=linux) [![flutter-android version](https://img.shields.io/docker/v/gmeligio/flutter-android?label=flutter-android%20version)](https://hub.docker.com/r/gmeligio/flutter-android/tags) [![flutter-android pulls](https://img.shields.io/docker/pulls/gmeligio/flutter-android?label=flutter-android%20pulls)](https://hub.docker.com/r/gmeligio/flutter-android/tags)
 
@@ -10,39 +10,39 @@ The images includes the minimum tools to run Flutter and build apps. The version
 
 ## Contents
 
-* [Features](#features)
-* [Running Containers](#running-containers)
-* [Tags](#tags)
-* [Building Locally](#building-locally)
-* [Roadmap](#roadmap)
-* [FAQ](#faq)  
-   * [Why the images are not published in the AWS ECR Public registry?](#why-the-images-are-not-published-in-the-aws-ecr-public-registry)  
-   * [Why there is no dynamic tag like latest?](#why-there-is-no-dynamic-tag-like-latest)
-* [Contributing](#contributing)
-* [License](#license)
+- [Features](#features)
+- [Running Containers](#running-containers)
+- [Tags](#tags)
+- [Building Locally](#building-locally)
+- [Roadmap](#roadmap)
+- [FAQ](#faq)
+  - [Why the images are not published in the AWS ECR Public registry?](#why-the-images-are-not-published-in-the-aws-ecr-public-registry)
+  - [Why there is no dynamic tag like `latest`?](#why-there-is-no-dynamic-tag-like-latest)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## Features
 
-* Installed Flutter SDK 3.44.2.
-* Analytics disabled by default, opt-in if `ENABLE_ANALYTICS` environment variable is passed when running the container.
-* Rootless user `flutter:flutter`, with permissions to run on Github workflows and GitLab CI.
-* Cached Fastlane gem 2.236.1.
-* Minimal image with predownloaded SDKs and tools ready to run `flutter` commands for the Android platform.
+- Installed Flutter SDK 3.44.2.
+- Analytics disabled by default, opt-in if `ENABLE_ANALYTICS` environment variable is passed when running the container.
+- Rootless user `flutter:flutter`, with permissions to run on GitHub workflows and GitLab CI.
+- Cached Fastlane gem 2.236.1.
+- Minimal image with predownloaded SDKs and tools ready to run `flutter` commands for the Android platform.
 
 Predownloaded SDKs and tools in Android:
 
-* Licenses accepted
-* Android SDK Platforms: 36
-* Android NDK: 28.2.13676358
-* Gradle: 9.1.0
+- Licenses accepted
+- Android SDK Platforms: 36
+- Android NDK: 28.2.13676358
+- Gradle: 9.1.0
 
 ## Running Containers
 
-| Registry                  | flutter-android                                                                                                            |
-| ------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| Docker Hub                | [gmeligio/flutter-android:3.44.2](https://hub.docker.com/r/gmeligio/flutter-android)                                       |
+| Registry                  | flutter-android |
+| ------------------------- | --------------- |
+| Docker Hub                | [gmeligio/flutter-android:3.44.2](https://hub.docker.com/r/gmeligio/flutter-android) |
 | GitHub Container Registry | [ghcr.io/gmeligio/flutter-android:3.44.2](https://github.com/gmeligio/flutter-docker-image/pkgs/container/flutter-android) |
-| Quay                      | [quay.io/gmeligio/flutter-android:3.44.2](https://quay.io/repository/gmeligio/flutter-android)                             |
+| Quay                      | [quay.io/gmeligio/flutter-android:3.44.2](https://quay.io/repository/gmeligio/flutter-android) |
 
 On the terminal:
 
@@ -61,7 +61,7 @@ jobs:
       image: ghcr.io/gmeligio/flutter-android:3.44.2
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Build
         run: flutter build apk
 ```
@@ -74,6 +74,11 @@ build:
   script:
     - flutter build apk
 ```
+
+This image runs on GitHub Actions, GitLab CI, Gitea, and Forgejo. Ready-to-use
+workflows for each are in [`examples/`](examples/) — the Gitea and Forgejo ones
+show how to make Node.js available for `actions/checkout` (act-based runners do
+not inject it the way GitHub does).
 
 Fastlane:
 
@@ -91,16 +96,16 @@ bundle exec fastlane
 
 Every new tag on the flutter stable channel gets built. The tag is composed of the Flutter version used to build the image:
 
-* Docker image: gmeligio/flutter-android:3.44.2
-* Flutter version: 3.44.2
+- Docker image: gmeligio/flutter-android:3.44.2
+- Flutter version: 3.44.2
 
 ## Building Locally
 
 The android.Dockerfile expects a few arguments:
 
-* `flutter_version <string>`: The version of Flutter to use when building. Example: 3.44.2
-* `android_build_tools_version <string>`: The version of the Android SDK Build Tools to install. Example: 36.0.0
-* `android_platform_versions <list>`: The versions of the Android SDK Platforms to install, separated by spaces. Example: 36
+- `flutter_version <string>`: The version of Flutter to use when building. Example: 3.44.2
+- `android_build_tools_version <string>`: The version of the Android SDK Build Tools to install. Example: 36.0.0
+- `android_platform_versions <list>`: The versions of the Android SDK Platforms to install, separated by spaces. Example: 36
 
 ```bash
 # Android
@@ -109,13 +114,13 @@ docker build --target android --build-arg flutter_version=3.44.2 --build-arg fas
 
 ## Roadmap
 
-* Minimal image with predownloaded SDKs and tools ready to run `flutter` commands for the platforms:  
-   * iOS  
-   * Linux  
-   * Windows  
-   * Web
-* Android features:  
-   * Android emulator
+- Minimal image with predownloaded SDKs and tools ready to run `flutter` commands for the platforms:
+  - iOS
+  - Linux
+  - Windows
+  - Web
+- Android features:
+  - Android emulator
 
 ## FAQ
 

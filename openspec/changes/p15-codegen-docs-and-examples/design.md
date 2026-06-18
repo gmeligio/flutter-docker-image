@@ -12,7 +12,7 @@ task and the existing regenerate-and-diff CI gate.
         │     GitHub+GitLab examples, 4-platform mention + examples/ link,
         │     generated TOC, channel badge
         │
-        └─ cue export ./gen -e <backend> --out yaml ▶ examples/<backend>.yml  (×4)
+        └─ cue export docs/examples.cue config/version.json -e <backend> --out yaml ▶ examples/<backend>.yml  (×4)
               github-actions, gitlab-ci, gitea-actions, forgejo-actions
 
   windows.md / docs/contributing.md / LICENSE.md  → static committed markdown
@@ -79,7 +79,7 @@ a literal token.
 
 - `build.mjs` logs `📝 readme.md` on success and **exits non-zero** on any
   failure (missing manifest field, write error) — no silent partial output.
-- `cue export` fails loudly on an invalid `gen` definition; the `mise` task
+- `cue export` fails loudly on an invalid `docs/examples.cue` definition; the `mise` task
   aborts on the first non-zero command, so a broken example fails the run.
 - The CI `git diff --exit-code` step is the catch-all: any divergence between
   committed `readme.md`/`examples/` and a fresh build fails the required check

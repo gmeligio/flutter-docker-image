@@ -1,5 +1,3 @@
-<!--- This markdown file was auto-generated from "windows.mdx" -->
-
 # Windows
 
 ## Swich between Linux and Windows containers

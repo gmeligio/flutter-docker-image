@@ -47,7 +47,7 @@ backends — closing #493 for Gitea/Forgejo without changing the image.
 - **`windows.md`, `docs/contributing.md`, `LICENSE.md` become static** committed
   markdown (they carry no `version.json` values today — `windows.mdx` only
   *points to* the manifest in prose).
-- **CUE example generation.** A `gen` CUE package defines the four backend
+- **CUE example generation.** `docs/examples.cue` defines the four backend
   workflows as data; `cue export --out yaml` emits
   `examples/{github-actions,gitlab-ci,gitea-actions,forgejo-actions}.yml` at the
   current image tag. The Gitea and Forgejo examples include a job-level step that
@@ -57,7 +57,7 @@ backends — closing #493 for Gitea/Forgejo without changing the image.
 - **Wire into `mise run docs`.** Replace the `pnpm` build with
   `node docs/build.mjs` + the per-backend `cue export` commands.
 - **Workflows.** Point `build.yml`'s `build-docs` job at `mise run docs`; update
-  `update-docs.yml` `paths:` to watch the new sources (`docs/build.mjs`, `gen/**`,
+  `update-docs.yml` `paths:` to watch the new sources (`docs/build.mjs`, `docs/examples.cue`,
   `config/version.json`) instead of `docs/src/**`; `update-version.yml` is
   unchanged (it already calls `mise run docs`, so the README tag and examples
   refresh automatically on a version bump).
@@ -81,13 +81,13 @@ backends — closing #493 for Gitea/Forgejo without changing the image.
 
 ## Impact
 
-- **Affected**: `docs/build.mjs` (new), `gen/*.cue` (new), `examples/*.yml` (new,
+- **Affected**: `docs/build.mjs` (new), `docs/examples.cue` (new), `examples/*.yml` (new,
   generated), `readme.md` (now Node-generated), `mise.toml`, `.github/workflows/`
   (`build.yml`, `update-docs.yml`); deletions under `docs/src/`. `windows.md`/
   `docs/contributing.md`/`LICENSE.md` demoted to static.
 - **Resolves** #493 (Gitea/Forgejo guidance via examples; image keeps no Node).
 - **Breaking** (maintainer-facing): the `docs/src` pnpm workspace is removed;
-  contributors edit `docs/build.mjs` / `gen/*.cue` instead of `*.mdx`.
+  contributors edit `docs/build.mjs` / `docs/examples.cue` instead of `*.mdx`.
 - **Behavioral change for readers**: `readme.md`/Docker Hub description content is
   equivalent (exact versions, badges, TOC) plus a four-platform mention and an
   `examples/` link; the usage tag stays current automatically.

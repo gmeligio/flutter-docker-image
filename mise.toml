@@ -3,19 +3,21 @@ cue = "0.15.0"
 git-cliff = "2.10.1"
 # For update-android-version: the flutter-android container lacks jq.
 jq = "1.8.1"
-pnpm = "11.2.2"
 node = "lts"
 "github:gmeligio/gx" = "0.8.2"
 "github:GoogleContainerTools/container-structure-test[exe=container-structure-test-linux-amd64]" = "1.22.1"
 
-# Regenerate the committed docs output (readme.md, windows.md, contributing.md,
-# license.md) from docs/src/**. Single source of truth for the docs build, used
-# by update-docs.yml (check + generate) and update-version.yml, and run locally
-# as `mise run docs` from anywhere in the repo.
+# Code-generate the committed docs output from config/version.json (the single
+# source of truth, CUE-validated by config/schema.cue): readme.md via the Node
+# generator, and examples/*.yml via `cue export`. windows.md, contributing.md,
+# and LICENSE.md are static. Used by update-docs.yml (check + generate),
+# build.yml, and update-version.yml, and run locally as `mise run docs`.
 [tasks.docs]
-description = "Regenerate committed docs output from docs/src/**"
-dir = "docs/src"
+description = "Code-generate readme.md and examples/*.yml from config/version.json"
 run = [
-  "pnpm install --frozen-lockfile",
-  "pnpm run build",
+  "cue export docs/examples.cue config/version.json -e github  --out yaml > examples/github-actions.yml",
+  "cue export docs/examples.cue config/version.json -e gitlab  --out yaml > examples/gitlab-ci.yml",
+  "cue export docs/examples.cue config/version.json -e gitea   --out yaml > examples/gitea-actions.yml",
+  "cue export docs/examples.cue config/version.json -e forgejo --out yaml > examples/forgejo-actions.yml",
+  "node docs/build.mjs",
 ]

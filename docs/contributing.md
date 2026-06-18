@@ -1,5 +1,3 @@
-<!--- This markdown file was auto-generated from "contributing.mdx" -->
-
 # Contributing
 
 ## Repository wiki
