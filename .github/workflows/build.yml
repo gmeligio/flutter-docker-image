@@ -53,11 +53,9 @@ jobs:
             target: android
           - name: flutter-web
             target: web
-    # The handoff tag, fork flag, and built version depend on the event, not the
-    # image, so both legs compute the same value — they survive matrix outputs
-    # being last-leg-wins and become the single handoff to test/scan, keeping the
-    # tag formula in one place. The per-image digest can't flow this way and is
-    # recomputed in scan-image.
+    # These are image-independent, so the last-leg-wins behaviour of matrix job
+    # outputs is harmless: both legs compute the same handoff for test/scan. The
+    # per-image digest is not image-independent, so scan-image recomputes it.
     outputs:
       tag: ${{ steps.handoff.outputs.tag }}
       is_fork: ${{ steps.handoff.outputs.is_fork }}
