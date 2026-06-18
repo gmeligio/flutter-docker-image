@@ -2,7 +2,7 @@
 
 ### Requirement: Pull request CI verifies the Windows image on every PR
 
-The `.github/workflows/windows.yml` workflow SHALL run on every `pull_request` event and SHALL verify the Windows image through a caller job that delegates to the reusable `.github/workflows/windows-image.yml` workflow (`uses:`) with `target: test`, `push: false`, `can-login` set to whether the PR head is in this repository, and forwarding only the two Docker Hub secrets (it never pushes, so it does not forward the Quay credentials). The reusable workflow SHALL build `windows.Dockerfile` with `--target test` and run the Pester suite at `test/windows/Windows.Tests.ps1` inside that image. The PR check SHALL fail if the image build fails, if any Pester test fails, or if Pester exits non-zero. `windows.yml` SHALL NOT build `windows.Dockerfile` with its own inline steps.
+The `.github/workflows/windows.yml` workflow SHALL run on every `pull_request` event and SHALL verify the Windows image through a caller job that delegates to the reusable `.github/workflows/windows-image.yml` workflow (`uses:`) with `target: test`, `push: false`, and forwarding no secrets (the test path performs no registry login). The reusable workflow SHALL build `windows.Dockerfile` with `--target test` and run the Pester suite at `test/windows/Windows.Tests.ps1` inside that image. The PR check SHALL fail if the image build fails, if any Pester test fails, or if Pester exits non-zero. `windows.yml` SHALL NOT build `windows.Dockerfile` with its own inline steps.
 
 The experience context is the maintainer reviewing a PR that touches `windows.Dockerfile`, `script/InstallPester.ps1`, `script/RunPester.ps1`, or `test/windows/**` — they get a single red/green check rather than having to build the multi-hour Windows image locally, and that check exercises the exact build definition the release path uses.
 
@@ -32,6 +32,6 @@ The experience context is the maintainer reviewing a PR that touches `windows.Do
 #### Scenario: Fork PR is verified without secrets
 
 - **GIVEN** a pull request opened from a fork (no repository secrets available)
-- **WHEN** the Windows caller job runs with `can-login: false`, `push: false`
+- **WHEN** the Windows caller job runs with `push: false` and no secrets forwarded
 - **THEN** the image builds `--target test` and the Pester suite runs without any registry login step
 - **AND** the PR check reports success or failure based only on the build and Pester result

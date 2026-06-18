@@ -37,17 +37,20 @@ The two units being consolidated are *whole jobs* with the same `runs-on`, `env`
 
 *Alternative considered — patch only (add the three missing steps to `release-windows`):* smallest diff, but leaves the duplication intact and lets the paths drift again on the next change. Rejected; the user explicitly chose consolidation.
 
-### Decision 2: Parameterize with `target`, `push`, and `can-login`
+### Decision 2: Parameterize with `target` and `push` only
 
 - `target` (string): `test` or `flutter`, passed straight to `docker build --target`.
-- `push` (boolean): selects the post-build tail — `false` runs the Pester container, `true` pushes the metadata tags. Also gates the GHCR and Quay logins (only the publish path needs them).
-- `can-login` (boolean): gates the Docker Hub login so fork PRs (no secrets) skip it. Callers compute it: the PR caller passes `github.event.pull_request.head.repo.full_name == github.repository`; the release caller passes `true`.
+- `push` (boolean): selects the post-build tail **and** gates every registry login. `false` → `docker run --rm <local tag>` to execute the Pester suite (the `--target test` image's `CMD`), propagating the container exit code so a failing test reddens the job. `true` → log in to Docker Hub, GHCR, and Quay, then push the metadata tags.
 
-*Alternative considered — a single `mode: test|release` enum:* conflates two orthogonal axes (which target to build vs. whether secrets/push are available), and would not cleanly express the fork-PR `can-login=false, push=false` case. Rejected in favor of explicit booleans.
+There is no `can-login` input. The PR test path performs no registry interaction at all: the base image is `mcr.microsoft.com/windows/servercore` (not Docker Hub), Pester installs from PSGallery, and the test runs the locally-built image — nothing is pulled from or pushed to a registry. Gating all logins on `push` therefore makes fork-PR safety automatic: `push: false` ⇒ zero logins, so a fork with no secrets cannot fail on a login step.
+
+*Alternative considered — keep a `can-login` input to preserve today's defensive Docker Hub login on same-repo PRs:* rejected. That login guards a no-op (the build never contacts Docker Hub), so the input is machinery protecting nothing; dropping it removes an input, the fork-detection expression, and a failure mode, while making the PR path strictly more least-privilege (it forwards no secrets).
+
+*Alternative considered — a single `mode: test|release` enum:* collapses the two coupled concerns (`target` and `push`) into one name and reads less clearly at the call site than two explicit values. Rejected in favor of `target` + `push`.
 
 ### Decision 2a: Explicit least-privilege `secrets:` interface, not `secrets: inherit`
 
-The reusable workflow declares an explicit `secrets:` block naming only the four credentials it uses — `DOCKER_HUB_USERNAME`, `DOCKER_HUB_TOKEN`, `QUAY_USERNAME`, `QUAY_ROBOT_TOKEN` — each `required: false`. `github.token` (for GHCR) is provided automatically and is not part of the interface. Each caller forwards only the subset its path needs: the PR caller (`windows.yml`) maps just the two Docker Hub secrets (it never pushes, so it never sees the Quay robot token); the release caller (`release.yml`) maps all four. `required: false` is correct because a fork PR resolves the Docker Hub secrets to empty (login is gated off via `can-login`) and the PR caller omits Quay entirely.
+The reusable workflow declares an explicit `secrets:` block naming only the four credentials it uses — `DOCKER_HUB_USERNAME`, `DOCKER_HUB_TOKEN`, `QUAY_USERNAME`, `QUAY_ROBOT_TOKEN` — each `required: false`. `github.token` (for GHCR) is provided automatically and is not part of the interface. Only the release caller (`release.yml`, `push: true`) forwards these — all four. The PR caller (`windows.yml`, `push: false`) forwards **no secrets at all**, because its path never logs in. `required: false` is what permits the PR caller to omit them entirely.
 
 *Alternative considered — `secrets: inherit`:* forwards the caller's entire secret set to the reusable workflow, which is simpler (no signature to maintain) but violates least privilege — the Windows build job would receive every repository secret, not just the four it uses. Rejected: the named interface costs four lines and bounds exactly what the build can read, which is the property we want. The cost is that adding a future registry requires touching the interface and the relevant caller; that is an acceptable, visible edit.
 
@@ -68,7 +71,7 @@ The reusable workflow declares a top-level `permissions: { contents: read }`. Th
 There is no unit-test harness for workflows; verification is layered:
 - **Static:** `gx lint` (the repo's workflow policy gate) must pass on the new `windows-image.yml` and the two edited callers — covering SHA-pinning, `permissions:` presence, and harden-runner placement. YAML-parse all three files and confirm every `uses:` resolves and every `inputs.*`/`secrets` reference is defined.
 - **PR path (self-testing):** this change is itself a PR, so `windows.yml` → `test-windows` runs the consolidated workflow end-to-end on `windows-2025`: `clean-runner-disk` runs, the image builds `--target test`, and Pester passes. A green `test-windows` check on this PR is the primary functional gate.
-- **Fork-safety:** confirm (by reading the resolved `can-login`/`push` gates) that with `can-login=false, push=false` no login step executes — the critical path for contributor PRs.
+- **Fork-safety:** confirm (by reading the resolved `push` gate) that with `push: false` no login step executes and the PR caller forwards no secrets — the critical path for contributor PRs.
 - **Release path (deferred):** the `release-windows` publish can only be fully verified on the first tag push after merge — the image must build past Step 21/36 (VS Build Tools) without OOM and push to all three registries. This is the deferred runtime gate, mirrored on `workflow_dispatch` for a one-off rebuild if needed.
 
 ## Observability
@@ -81,7 +84,7 @@ There is no unit-test harness for workflows; verification is layered:
 ## Risks / Trade-offs
 
 - **[Reusable-workflow permissions intersection drops `packages: write`]** → the release caller job must declare `permissions: { contents: read, packages: write }`; verified by a successful GHCR push on the deferred release run (and by reading the caller job's `permissions:` block).
-- **[Fork PR accidentally attempts a login and fails]** → `can-login`/`push` gating is computed by the caller and asserted by inspection; the PR path with `can-login=false` skips Docker Hub login entirely.
+- **[Fork PR accidentally attempts a login and fails]** → structurally impossible: all logins gate on `push`, the PR caller passes `push: false` and forwards no secrets, so no login step exists on that path.
 - **[harden-runner audit perturbs the Windows build]** → audit mode only records egress, it does not block; if it misbehaves on `windows-2025` the fallback is a scoped exemption in `.github/gx.toml` (the mechanism `ci-workflow-hardening` already defines), not reverting the consolidation.
 - **[Nested logs reduce at-a-glance readability]** → the caller job still reports a single red/green check on the PR/release; the run summary and harden-runner insights remain one tab away. Acceptable trade for a single source of truth.
 - **[Deferred release verification]** → the release path is only exercised on tag push; mitigated by the PR path exercising the identical build (minus push) on every PR, and by `workflow_dispatch` allowing a manual rebuild without re-cutting the tag.
@@ -89,8 +92,8 @@ There is no unit-test harness for workflows; verification is layered:
 ## Migration Plan
 
 1. Add `.github/workflows/windows-image.yml` (`workflow_call`) carrying the full shared build + tail.
-2. Replace `windows.yml`'s `test-windows` steps with a caller (`target: test`, `push: false`, `can-login` computed; map only the two Docker Hub secrets).
-3. Replace `release.yml`'s `release-windows` steps with a caller (`target: flutter`, `push: true`, `can-login: true`; map all four Docker Hub + Quay secrets; `permissions: packages: write`).
+2. Replace `windows.yml`'s `test-windows` steps with a caller (`target: test`, `push: false`; forward no secrets).
+3. Replace `release.yml`'s `release-windows` steps with a caller (`target: flutter`, `push: true`; forward all four Docker Hub + Quay secrets; `permissions: packages: write`).
 4. Update specs: add `windows-image-build`; restate `windows-image-testing`, `windows-image-release`, and the `ci-workflow-hardening` harden-runner requirement.
 5. Open the PR; `test-windows` (now the consolidated path) must be green before merge.
 
