@@ -19,9 +19,9 @@
 
 ## 3. Convert `release-windows` to a caller
 
-- [ ] 3.1 In `release.yml`, replace the `release-windows` job body with `uses: ./.github/workflows/windows-image.yml`, `with: { target: flutter, push: true }`, and a `secrets:` mapping forwarding all four `DOCKER_HUB_USERNAME`, `DOCKER_HUB_TOKEN`, `QUAY_USERNAME`, `QUAY_ROBOT_TOKEN`.
-- [ ] 3.2 Keep `permissions: { contents: read, packages: write }` on the `release-windows` caller job (comment: GHCR push); confirm it does **not** declare `needs: release-android` (preserves Android/Windows parallelism).
-- [ ] 3.3 Remove the now-inlined steps (manifest read, metadata, three logins, build/push) from the `release-windows` job in `release.yml`.
+- [x] 3.1 In `release.yml`, replace the `release-windows` job body with `uses: ./.github/workflows/windows-image.yml`, `with: { target: flutter, push: true }`, and a `secrets:` mapping forwarding all four `DOCKER_HUB_USERNAME`, `DOCKER_HUB_TOKEN`, `QUAY_USERNAME`, `QUAY_ROBOT_TOKEN`.
+- [x] 3.2 Keep `permissions: { contents: read, packages: write }` on the `release-windows` caller job (comment: GHCR push); confirm it does **not** declare `needs: release-android` (preserves Android/Windows parallelism).
+- [x] 3.3 Remove the now-inlined steps (manifest read, metadata, three logins, build/push) from the `release-windows` job in `release.yml`.
 
 ## 4. Validate locally
 
