@@ -2,7 +2,7 @@
 
 ### Requirement: A single reusable workflow builds the Windows image for every path
 
-`.github/workflows/windows-image.yml` SHALL be a `workflow_call` reusable workflow that is the only place `windows.Dockerfile` is built. It SHALL accept inputs `target` (string, passed to `docker build --target`), `push` (boolean), and `can-login` (boolean), accept registry credentials via `secrets: inherit`, and SHALL build `windows.Dockerfile` on `windows-2025` with exactly the five build-args `flutter_version`, `git_version`, `vs_cmake_version`, `vs_win11sdk_build`, and `vs_vctools_version` read from `config/version.json` via `script/setEnvironmentVariables.js`. Both the PR-test path (`windows.yml`) and the release path (`release.yml`) SHALL invoke this workflow as a `uses:` caller job rather than building `windows.Dockerfile` with their own inline steps.
+`.github/workflows/windows-image.yml` SHALL be a `workflow_call` reusable workflow that is the only place `windows.Dockerfile` is built. It SHALL accept inputs `target` (string, passed to `docker build --target`), `push` (boolean), and `can-login` (boolean), receive registry credentials through an explicit `secrets:` interface (see "The reusable workflow declares a least-privilege secrets interface"), and SHALL build `windows.Dockerfile` on `windows-2025` with exactly the five build-args `flutter_version`, `git_version`, `vs_cmake_version`, `vs_win11sdk_build`, and `vs_vctools_version` read from `config/version.json` via `script/setEnvironmentVariables.js`. Both the PR-test path (`windows.yml`) and the release path (`release.yml`) SHALL invoke this workflow as a `uses:` caller job rather than building `windows.Dockerfile` with their own inline steps.
 
 The experience context is the maintainer editing the Windows build — a new VS component, a build-arg, a runner bump, or a registry change is made in one file and takes effect identically on both the PR check and the release publish; the two paths cannot drift because there is only one build definition.
 
@@ -73,6 +73,33 @@ The experience context is the external contributor opening a PR from a fork — 
 - **WHEN** the reusable workflow runs
 - **THEN** it logs in to Docker Hub, GHCR, and Quay.io before pushing
 - **AND** the built tags are pushed to all three
+
+### Requirement: The reusable workflow declares a least-privilege secrets interface
+
+`windows-image.yml` SHALL declare an explicit `workflow_call` `secrets:` block naming only the credentials it uses — `DOCKER_HUB_USERNAME`, `DOCKER_HUB_TOKEN`, `QUAY_USERNAME`, and `QUAY_ROBOT_TOKEN`, each `required: false` — and SHALL NOT use `secrets: inherit`. Each caller SHALL forward only the subset of those secrets its path requires: a non-pushing caller (the PR test path) SHALL forward only the two Docker Hub secrets; a pushing caller (the release path) SHALL forward all four. `github.token` (used for the GHCR login on the push path) is provided automatically and is not part of the declared interface.
+
+The experience context is the maintainer auditing what the Windows build can read: the `secrets:` block names exactly four credentials, so a reviewer can see at a glance that the build job cannot access any other repository secret, and that the PR path never receives the Quay robot token.
+
+#### Scenario: The workflow names only the secrets it uses
+
+- **GIVEN** `.github/workflows/windows-image.yml`
+- **WHEN** its `workflow_call.secrets` block is inspected
+- **THEN** it names exactly `DOCKER_HUB_USERNAME`, `DOCKER_HUB_TOKEN`, `QUAY_USERNAME`, `QUAY_ROBOT_TOKEN`
+- **AND** it does not use `secrets: inherit`
+- **AND** every named secret is `required: false`
+
+#### Scenario: The PR caller does not forward the Quay token
+
+- **GIVEN** the `windows.yml` caller job (`push: false`)
+- **WHEN** its `secrets:` mapping is inspected
+- **THEN** it forwards only `DOCKER_HUB_USERNAME` and `DOCKER_HUB_TOKEN`
+- **AND** it does not forward `QUAY_USERNAME` or `QUAY_ROBOT_TOKEN`
+
+#### Scenario: The release caller forwards all four
+
+- **GIVEN** the `release-windows` caller job (`push: true`)
+- **WHEN** its `secrets:` mapping is inspected
+- **THEN** it forwards `DOCKER_HUB_USERNAME`, `DOCKER_HUB_TOKEN`, `QUAY_USERNAME`, and `QUAY_ROBOT_TOKEN`
 
 ### Requirement: The build job starts with harden-runner
 
