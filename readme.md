@@ -89,7 +89,7 @@ bundle install --prefer-local
 bundle exec fastlane
 ```
 
-For building Flutter web apps, use the `flutter-web` image, which contains only the Flutter SDK with the web platform enabled and precached:
+For Flutter web apps, use the `flutter-web` image:
 
 | Registry                  | flutter-web                                                                                                        |
 | ------------------------- | ------------------------------------------------------------------------------------------------------------------ |

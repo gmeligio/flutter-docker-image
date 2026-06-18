@@ -223,10 +223,9 @@ RUN rm -r build_app
 #-----------------------------------------------
 #-----------------------------------------------
 
-# Minimal Flutter-web image: the base `flutter` stage plus the web platform.
-# Branches from `flutter`, not `fastlane`/`android`, so it carries no Ruby,
-# JDK, or Android SDK. The base leaves all platforms disabled; this leaf opts
-# into web, symmetric with how the `android` stage opts into Android.
+# Minimal web image: branches from `flutter` (not `fastlane`/`android`), so it
+# carries no Ruby, JDK, or Android SDK. Opts into web, mirroring how the
+# `android` stage opts into Android.
 FROM flutter AS web
 
 SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]

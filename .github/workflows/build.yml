@@ -43,8 +43,8 @@ jobs:
     permissions:
       packages: write
     runs-on: ubuntu-24.04
-    # One leg per published Linux image. Both legs build android.Dockerfile;
-    # `target` selects the stage and `name` is the published repository name.
+    # One leg per published Linux image, both from android.Dockerfile: `target`
+    # picks the stage, `name` the published repository.
     strategy:
       fail-fast: false
       matrix:
@@ -185,10 +185,9 @@ jobs:
             android_ndk_version=${{ env.ANDROID_NDK_VERSION }}
             cmake_version=${{ env.CMAKE_VERSION }}
 
-      # Re-tag to a deterministic, owner-less `<name>:<version>`: the metadata
-      # tag carries the owner, so dropping it lets test-image reconstruct the
-      # tag from build-image's flutter_version output without a job output that
-      # would be masked (owner == DOCKER_HUB_USERNAME on this repo).
+      # Re-tag to an owner-less `<name>:<version>` so test-image can rebuild the
+      # ref from flutter_version; a job output carrying the owner would be masked
+      # (owner == DOCKER_HUB_USERNAME on this repo).
       #
       # Forks only: non-fork builds push straight to GHCR (no local daemon copy).
       - name: Re-tag image for local handoff
@@ -221,8 +220,7 @@ jobs:
     permissions:
       contents: read
       packages: read
-    # Mirror the build matrix so each image is tested on its own leg; the
-    # structure-test config is the only per-image input.
+    # Mirror the build matrix; the structure-test config is the only per-image input.
     strategy:
       fail-fast: false
       matrix:
@@ -232,8 +230,8 @@ jobs:
           - name: flutter-web
             config: test/web.yml
     env:
-      # Reuse build-image's handoff: non-fork legs pull GHCR under TAG, fork
-      # legs load the local artifact built under flutter_version.
+      # build-image's handoff: non-fork legs pull GHCR under TAG; forks load the
+      # local artifact built under flutter_version.
       IS_FORK: ${{ needs.build-image.outputs.is_fork }}
       TAG: ${{ needs.build-image.outputs.tag }}
     steps:
@@ -275,8 +273,7 @@ jobs:
         run: docker pull "ghcr.io/${{ github.repository_owner }}/${{ matrix.name }}:${{ env.TAG }}"
 
       - name: Test image
-        # Fork legs loaded a local <name>:<version> tag; non-fork legs pulled
-        # the GHCR ref under the handoff tag.
+        # Fork legs use the local <name>:<version> tag; non-fork legs the GHCR handoff ref.
         run: |
           if [[ "${IS_FORK}" == "true" ]]; then
             IMAGE="${{ matrix.name }}:${{ needs.build-image.outputs.flutter_version }}"
@@ -296,8 +293,7 @@ jobs:
       packages: read
       pull-requests: write
       security-events: write
-    # Mirror the build matrix so each image is scanned vs. its own published
-    # release.
+    # Mirror the build matrix: each image is scanned against its own release.
     strategy:
       fail-fast: false
       matrix:
@@ -332,11 +328,9 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Resolve the just-pushed manifest digest from the registry by its
-      # handoff tag. The build job pushed the OCI index (+SBOM attestation)
-      # under this tag; Scout consumes it by digest so it reads the attached
-      # SBOM rather than re-indexing layers. The digest can't be read from a
-      # matrix job output, hence the registry lookup.
+      # Resolve the pushed manifest digest by its handoff tag. Scout consumes the
+      # image by digest to read the attached SBOM instead of re-indexing layers;
+      # the digest can't flow through a matrix job output, hence the lookup.
       - name: Resolve image digest
         id: digest
         run: |
@@ -344,11 +338,9 @@ jobs:
           digest="$(docker buildx imagetools inspect "$ref" --format '{{json .Manifest.Digest}}' | tr -d '"')"
           echo "value=$digest" >> "$GITHUB_OUTPUT"
 
-      # The compare baseline is the latest published release of this image.
-      # A brand-new image (e.g. flutter-web before its first release) has no
-      # such tag yet, so `compare` would hard-fail with MANIFEST_UNKNOWN.
-      # Probe for the baseline and skip the comparison on that bootstrap case;
-      # once a release exists the scan runs normally on every PR.
+      # Skip the compare until this image has a published release to compare
+      # against: a brand-new image (e.g. flutter-web's first PR) would otherwise
+      # hard-fail with MANIFEST_UNKNOWN.
       - name: Check baseline exists
         id: baseline
         run: |
