@@ -13,9 +13,9 @@
 
 ## 2. Convert `windows.yml` to a caller
 
-- [ ] 2.1 Keep `on: { pull_request:, workflow_dispatch: }`, the top-level `permissions: { contents: read }`, and the existing `concurrency:` block (`cancel-in-progress: true`).
-- [ ] 2.2 Replace the entire `test-windows` job body with `uses: ./.github/workflows/windows-image.yml` and `with: { target: test, push: false }`. Forward no secrets (the test path performs no registry login).
-- [ ] 2.3 Remove the now-inlined steps (clean-runner-disk, daemon guard, manifest read, metadata, Docker Hub login, build, run) from `windows.yml`.
+- [x] 2.1 Keep `on: { pull_request:, workflow_dispatch: }`, the top-level `permissions: { contents: read }`, and the existing `concurrency:` block (`cancel-in-progress: true`).
+- [x] 2.2 Replace the entire `test-windows` job body with `uses: ./.github/workflows/windows-image.yml` and `with: { target: test, push: false }`. Forward no secrets (the test path performs no registry login).
+- [x] 2.3 Remove the now-inlined steps (clean-runner-disk, daemon guard, manifest read, metadata, Docker Hub login, build, run) from `windows.yml`.
 
 ## 3. Convert `release-windows` to a caller
 
