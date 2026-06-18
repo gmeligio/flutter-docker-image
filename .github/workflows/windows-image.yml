@@ -27,20 +27,18 @@ on:
       QUAY_ROBOT_TOKEN:
         required: false
 
-# Read-only permissions by default
-permissions:
-  contents: read
+# No top-level `permissions:` block: a reusable workflow's declared permissions
+# act as a ceiling that cannot exceed — and silently downgrades — the caller's
+# grant. Omitting it lets the build job inherit each caller's token exactly: the
+# PR caller stays `contents: read`, and the release caller's `packages: write`
+# (needed for the GHCR push) flows through. Declaring `packages: write` here
+# instead hard-fails the PR caller at startup ("requesting packages: write, but
+# only allowed packages: none").
 
 jobs:
   build:
     name: Build Windows image
     runs-on: windows-2025
-    permissions:
-      contents: read
-      # packages: write is needed to push to GHCR on the release path; the
-      # effective grant is the intersection with the caller job's permissions,
-      # so the PR caller (contents: read) never receives write.
-      packages: write
     env:
       IMAGE_REPOSITORY_NAME: flutter-windows
       VERSION_MANIFEST: config/version.json

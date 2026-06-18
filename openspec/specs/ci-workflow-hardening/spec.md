@@ -8,6 +8,8 @@ Define the baseline security posture every workflow under `.github/workflows/` S
 
 Every YAML file under `.github/workflows/` SHALL declare a top-level `permissions:` block. The default scope SHALL be `contents: read`; any broader scope SHALL be declared at job level (not workflow level) on the specific job that needs it, with a comment naming why.
 
+A reusable (`workflow_call`) workflow is the one exception: it MAY omit the block so it inherits each caller's token scope, because a declared `permissions:` acts as a ceiling that cannot exceed and silently downgrades the caller's grant (declaring `packages: write` would hard-fail a `contents: read` caller at startup; declaring `contents: read` would cap a caller's `packages: write` and 403 a registry push). The token scope SHALL instead be declared explicitly at every caller, and the omission SHALL be recorded as a narrowly-scoped `missing-permissions` ignore in `.github/gx.toml` with a comment.
+
 The experience context is the maintainer reviewing a PR that touches workflows â€” a single grep (`grep -L "^permissions:" .github/workflows/*.yml`) returns nothing, and Scorecard's `TokenPermissionsID` check reports score 10 for the permissions dimension.
 
 #### Scenario: Workflow with no privileged operations declares read-only scope
@@ -29,6 +31,14 @@ The experience context is the maintainer reviewing a PR that touches workflows â
 - **GIVEN** a PR adds a new file under `.github/workflows/`
 - **WHEN** the file has no top-level `permissions:` block
 - **THEN** the PR is blocked at review (and Scorecard will report `TokenPermissionsID` on the next scan)
+
+#### Scenario: A reusable workflow omits permissions to inherit caller scope
+
+- **GIVEN** a `workflow_call` reusable workflow (e.g. `windows-image.yml`) whose jobs need different scopes per caller (`contents: read` on the PR test path, `packages: write` on the release push path)
+- **WHEN** the workflow omits a top-level `permissions:` block so it inherits each caller's token
+- **AND** every caller declares its own scope explicitly, and a `missing-permissions` ignore naming the file (with a comment) is present in `.github/gx.toml`
+- **THEN** `gx lint` passes and the omission is accepted as intentional
+- **AND** a reusable workflow that omits the block *without* the scoped `gx.toml` exemption is still blocked at review
 
 ### Requirement: Push-triggered workflows that mutate shared state declare concurrency
 

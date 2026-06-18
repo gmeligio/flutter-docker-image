@@ -33,3 +33,16 @@ pr-head-checkout = { level = "error", ignore = [
     { workflow = ".github/workflows/gx.yml" },
     { workflow = ".github/workflows/update-docs.yml" },
 ] }
+
+# "Every workflow declares a minimum-scope permissions block" — windows-image.yml
+# is a reusable (`workflow_call`) workflow. A reusable workflow's declared
+# `permissions:` act as a ceiling that cannot exceed the caller's grant and
+# silently downgrades it, so a block here would either cap the release caller's
+# `packages: write` (breaking the GHCR push) or hard-fail the PR caller at
+# startup ("requesting packages: write, but only allowed packages: none"). The
+# token scope is still explicit — declared at each caller (windows.yml:
+# `contents: read`; release.yml `release-windows`: `packages: write`) — and the
+# reusable workflow inherits it. So the missing block is intentional and safe.
+missing-permissions = { level = "error", ignore = [
+    { workflow = ".github/workflows/windows-image.yml" },
+] }
