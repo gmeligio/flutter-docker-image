@@ -122,6 +122,47 @@ jobs:
       QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
       QUAY_ROBOT_TOKEN: ${{ secrets.QUAY_ROBOT_TOKEN }}
 
+  verify-published:
+    name: Verify published images are anonymously pullable
+    needs: [release-android, release-windows]
+    # always(): a Windows failure must not cancel Android verification, and vice
+    # versa — this preserves the release-android/release-windows independence
+    # required by windows-image-release. Run whenever at least one published.
+    if: ${{ always() && (needs.release-android.result == 'success' || needs.release-windows.result == 'success') }}
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      # No registry login here, on purpose: the verification must reflect the
+      # unauthenticated consumer who copies a pull command out of the readme. A
+      # green result means an anonymous `docker pull` of the tag would succeed —
+      # it cannot pass on the strength of CI's own credentials.
+      - name: Verify flutter-android across all registries
+        if: ${{ needs.release-android.result == 'success' }}
+        env:
+          TAG: ${{ env.FLUTTER_VERSION }}
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          for registry in docker.io ghcr.io quay.io; do
+            ./script/verify_published_image.sh "$registry" "$OWNER/flutter-android" "$TAG"
+          done
+
+      - name: Verify flutter-windows across all registries
+        if: ${{ needs.release-windows.result == 'success' }}
+        env:
+          TAG: ${{ env.FLUTTER_VERSION }}
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          for registry in docker.io ghcr.io quay.io; do
+            ./script/verify_published_image.sh "$registry" "$OWNER/flutter-windows" "$TAG"
+          done
+
   update-description:
     name: Update Docker Hub description
     runs-on: ubuntu-24.04
