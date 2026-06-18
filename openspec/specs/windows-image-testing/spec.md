@@ -1,5 +1,9 @@
 # windows-image-testing Specification
 
+## Purpose
+
+Define how every pull request verifies the Windows image — building the `test` target and running the Pester suite inside it — so a maintainer gets one red/green check instead of building the multi-hour image locally. The experience context is the reviewer of a PR touching `windows.Dockerfile`, the Pester scripts, or `test/windows/**`.
+
 ## Requirements
 
 ### Requirement: Pull request CI verifies the Windows image on every PR

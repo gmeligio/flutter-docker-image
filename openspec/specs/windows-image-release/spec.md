@@ -1,3 +1,11 @@
+# windows-image-release Specification
+
+## Purpose
+
+Define how a pushed tag publishes the `flutter-windows` image: which job builds it, which registries it fans out to, how it runs relative to the Android release, and how a maintainer rebuilds a single tag's image. The experience context is the CI engineer who pulls `flutter-windows:<version>` at the same tag they already use for `flutter-android`, and the maintainer recovering a failed Windows release without re-cutting the Git tag.
+
+## Requirements
+
 ### Requirement: Tag push publishes a `flutter-windows` image to all release registries
 
 When a tag matching `*` is pushed to the repository, the `release_windows` job in `.github/workflows/release.yml` SHALL build `windows.Dockerfile` with `--target flutter` and `--build-arg flutter_version=<tag>`, and SHALL push the resulting image to Docker Hub, GitHub Container Registry, and Quay.io under the repository name `flutter-windows` with the tag equal to the Flutter version.
