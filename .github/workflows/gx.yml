@@ -9,7 +9,7 @@ on:
       - .github/gx.lock
   workflow_dispatch:
 
-# Read-only by default; the tidy job's auto-fix step uses a GitHub App token.
+# Read-only permissions by default; the tidy job's auto-fix step uses a GitHub App token.
 permissions:
   contents: read
 
