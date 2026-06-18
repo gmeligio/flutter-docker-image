@@ -31,8 +31,10 @@
 - [x] 4.4 Grep that no inline `docker build ... windows.Dockerfile` remains in `windows.yml` or `release.yml`.
 - [x] 4.5 Confirm least privilege: `windows-image.yml` declares an explicit `secrets:` block (no `secrets: inherit`) naming only the four Docker Hub/Quay secrets; the PR caller forwards no secrets; the release caller forwards all four.
 
-## 5. Verify on CI
+## 5. Verify on CI (deferred runtime gates)
 
-- [ ] 5.1 Open the PR; confirm the consolidated `test-windows` caller runs `clean-runner-disk`, builds `--target test`, and the Pester suite passes (green Windows check). This exercises the same build the release path will use, minus push.
-- [ ] 5.2 Confirm harden-runner appears in the run's Security insights for the Windows build job.
-- [ ] 5.3 **Deferred — release runtime gate (verified on the first tag push / `workflow_dispatch` after merge).** `release-windows` builds past Step 21/36 (VS Build Tools) without `not enough space on the disk`, pushes `flutter-windows:<tag>` to Docker Hub, GHCR, and Quay, and `release-android` runs in parallel unaffected.
+Archived on the strength of the group-4 local validation (`gx lint` green, YAML/interface checks); the gates below are verified when the workflows actually run.
+
+- [ ] 5.1 **Deferred — PR runtime gate.** On a PR, confirm the consolidated `test-windows` caller runs `clean-runner-disk`, builds `--target test`, and the Pester suite passes (green Windows check). This exercises the same build the release path will use, minus push.
+- [ ] 5.2 **Deferred — PR runtime gate.** Confirm harden-runner appears in the run's Security insights for the Windows build job.
+- [ ] 5.3 **Deferred — release runtime gate (verified on the first tag push / `workflow_dispatch` after this lands).** `release-windows` builds past Step 21/36 (VS Build Tools) without `not enough space on the disk`, pushes `flutter-windows:<tag>` to Docker Hub, GHCR, and Quay, and `release-android` runs in parallel unaffected.
