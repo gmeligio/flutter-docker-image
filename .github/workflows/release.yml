@@ -126,7 +126,7 @@ jobs:
       # Allow to write packages to push the container image to the Github Container Registry
       packages: write
     # Push path: build the `flutter` target. Runs in parallel with
-    # release-android (no `needs`).
+    # release-linux (no `needs`).
     uses: ./.github/workflows/windows-image.yml
     with:
       target: flutter
@@ -138,12 +138,29 @@ jobs:
       QUAY_ROBOT_TOKEN: ${{ secrets.QUAY_ROBOT_TOKEN }}
 
   verify-published:
-    name: Verify published images are anonymously pullable
-    needs: [release-android, release-windows]
-    # always() so one platform's failure can't cancel the other's verification;
-    # run whenever at least one release job published.
-    if: ${{ always() && (needs.release-android.result == 'success' || needs.release-windows.result == 'success') }}
+    name: Verify ${{ matrix.name }} is anonymously pullable
+    # Verify whatever actually published. "Did it publish?" is read from the
+    # registry by an anonymous pull (script/verify_published_image.sh), never
+    # inferred from which release job succeeded — that job-result coupling is
+    # what let this job drift (the dangling `release-android` reference, the
+    # silently unverified web image). So there is no per-image gating: one
+    # platform failing leaves only its own matrix leg red while the images that
+    # did publish verify independently. Fix-forward a failed platform by
+    # re-pushing the tag; this re-runs and the leg turns green once it's live.
+    needs: [release-linux, release-windows]
+    # !cancelled() so a failed release job doesn't skip verification of the ones
+    # that succeeded. Scoped to push, the path on which all images are built.
+    if: ${{ github.event_name == 'push' && !cancelled() }}
     runs-on: ubuntu-24.04
+    # One leg per published image. Adding an image to the release is one matrix
+    # entry here. fail-fast: false so every image is checked even if one fails.
+    strategy:
+      fail-fast: false
+      matrix:
+        name:
+          - flutter-android
+          - flutter-web
+          - flutter-windows
     steps:
       - name: Harden runner
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
@@ -155,24 +172,14 @@ jobs:
 
       # No registry login on purpose: this must verify an anonymous `docker pull`
       # succeeds, not pass on the strength of CI's own credentials.
-      - name: Verify flutter-android across all registries
-        if: ${{ needs.release-android.result == 'success' }}
+      - name: Verify ${{ matrix.name }} across all registries
         env:
           TAG: ${{ env.FLUTTER_VERSION }}
           OWNER: ${{ github.repository_owner }}
+          IMAGE: ${{ matrix.name }}
         run: |
           for registry in docker.io ghcr.io quay.io; do
-            ./script/verify_published_image.sh "$registry" "$OWNER/flutter-android" "$TAG"
-          done
-
-      - name: Verify flutter-windows across all registries
-        if: ${{ needs.release-windows.result == 'success' }}
-        env:
-          TAG: ${{ env.FLUTTER_VERSION }}
-          OWNER: ${{ github.repository_owner }}
-        run: |
-          for registry in docker.io ghcr.io quay.io; do
-            ./script/verify_published_image.sh "$registry" "$OWNER/flutter-windows" "$TAG"
+            ./script/verify_published_image.sh "$registry" "$OWNER/$IMAGE" "$TAG"
           done
 
   update-description:
