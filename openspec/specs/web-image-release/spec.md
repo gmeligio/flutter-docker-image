@@ -36,13 +36,6 @@ The experience context is the CI engineer whose pipeline pulls `flutter-web:<ver
 - **THEN** the build completes successfully
 - **AND** the command output contains no `Downloading` or `Installing` lines from Flutter
 
-#### Scenario: Android tooling is absent from the web image
-
-- **WHEN** the `flutter-web:X.Y.Z` image is inspected
-- **THEN** the Android SDK directory (`$ANDROID_HOME`) does not exist
-- **AND** no JDK is installed
-- **AND** the image is built from the `flutter` base stage, not the `fastlane` or `android` stages
-
 ### Requirement: Web release runs in parallel with Android and Windows releases
 
 The web release job SHALL NOT declare a `needs:` dependency on the android or windows release jobs, and those jobs SHALL NOT declare a `needs:` dependency on the web release job. A failure in one SHALL NOT cancel the others.
