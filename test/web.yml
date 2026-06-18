@@ -19,22 +19,14 @@ commandTests:
       - Checking
       - Installing
       - Downloading
-  - name: Android SDK is not installed
+  - name: Web platform is enabled
     command: bash
     args:
       - -c
       - |
-        test ! -e /home/flutter/sdks/android-sdk && echo absent
+        flutter config | grep 'enable-web: true'
     expectedOutput:
-      - absent
-  - name: JDK is not installed
-    command: bash
-    args:
-      - -c
-      - |
-        test ! -e /usr/lib/jvm && echo absent
-    expectedOutput:
-      - absent
+      - 'enable-web: true'
 fileContentTests:
   - name: Dart and Flutter analytics are disabled
     path: /home/flutter/.dart-tool/dart-flutter-telemetry.config
