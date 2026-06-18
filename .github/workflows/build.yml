@@ -45,9 +45,6 @@ jobs:
     runs-on: ubuntu-24.04
     # One leg per published Linux image. Both legs build android.Dockerfile;
     # `target` selects the stage and `name` is the published repository name.
-    # Consumer jobs (test-image, scan-image) recompute the deterministic
-    # handoff tag rather than reading job outputs — a matrix job's `outputs:`
-    # block is last-leg-wins, so per-image refs cannot flow through it.
     strategy:
       fail-fast: false
       matrix:
@@ -56,6 +53,15 @@ jobs:
             target: android
           - name: flutter-web
             target: web
+    # The handoff tag, fork flag, and built version depend on the event, not the
+    # image, so both legs compute the same value — they survive matrix outputs
+    # being last-leg-wins and become the single handoff to test/scan, keeping the
+    # tag formula in one place. The per-image digest can't flow this way and is
+    # recomputed in scan-image.
+    outputs:
+      tag: ${{ steps.handoff.outputs.tag }}
+      is_fork: ${{ steps.handoff.outputs.is_fork }}
+      flutter_version: ${{ env.FLUTTER_VERSION }}
     env:
       IMAGE_REPOSITORY_NAME: ${{ matrix.name }}
       VERSION_MANIFEST: config/version.json
@@ -181,14 +187,12 @@ jobs:
             android_ndk_version=${{ env.ANDROID_NDK_VERSION }}
             cmake_version=${{ env.CMAKE_VERSION }}
 
-      # Re-tag the loaded image to a name that does NOT contain the owner.
-      # `image_local_tag` is exposed as a job output; GitHub Actions drops
-      # outputs whose value contains a registered secret (DOCKER_HUB_USERNAME
-      # == github.repository_owner on this repo), so the metadata tag
-      # `<owner>/flutter-android:<version>` cannot be passed through.
+      # Re-tag to a deterministic, owner-less `<name>:<version>`: the metadata
+      # tag carries the owner, so dropping it lets test-image reconstruct the
+      # tag from build-image's flutter_version output without a job output that
+      # would be masked (owner == DOCKER_HUB_USERNAME on this repo).
       #
-      # Forks only: non-fork builds push straight to registry (no local
-      # daemon copy exists), and `test-image` pulls from GHCR for non-forks.
+      # Forks only: non-fork builds push straight to GHCR (no local daemon copy).
       - name: Re-tag image for local handoff
         if: steps.handoff.outputs.is_fork == 'true'
         id: local_tag
@@ -219,10 +223,8 @@ jobs:
     permissions:
       contents: read
       packages: read
-    # Mirror the build matrix so each image is tested on its own leg. The
-    # per-image handoff (tag, artifact name, structure-test config) is
-    # recomputed here rather than read from build-image outputs, which a
-    # matrix job cannot expose per-leg.
+    # Mirror the build matrix so each image is tested on its own leg; the
+    # structure-test config is the only per-image input.
     strategy:
       fail-fast: false
       matrix:
@@ -232,10 +234,10 @@ jobs:
           - name: flutter-web
             config: test/web.yml
     env:
-      # Deterministic handoff: non-fork PRs (and same-repo events) push to
-      # GHCR under pr-<N> / branch-<ref>; fork PRs hand off a local artifact.
-      IS_FORK: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
-      TAG: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || format('branch-{0}', github.ref_name) }}
+      # Reuse build-image's handoff: non-fork legs pull GHCR under TAG, fork
+      # legs load the local artifact built under flutter_version.
+      IS_FORK: ${{ needs.build-image.outputs.is_fork }}
+      TAG: ${{ needs.build-image.outputs.tag }}
     steps:
       - name: Harden runner
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
@@ -275,12 +277,11 @@ jobs:
         run: docker pull "ghcr.io/${{ github.repository_owner }}/${{ matrix.name }}:${{ env.TAG }}"
 
       - name: Test image
-        # Fork legs loaded a single local tag for this image (resolved from the
-        # daemon); non-fork legs pulled the GHCR ref under the handoff tag.
+        # Fork legs loaded a local <name>:<version> tag; non-fork legs pulled
+        # the GHCR ref under the handoff tag.
         run: |
           if [[ "${IS_FORK}" == "true" ]]; then
-            tag="$(docker images --format '{{.Tag}}' '${{ matrix.name }}' | head -1)"
-            IMAGE="${{ matrix.name }}:${tag}"
+            IMAGE="${{ matrix.name }}:${{ needs.build-image.outputs.flutter_version }}"
           else
             IMAGE="ghcr.io/${{ github.repository_owner }}/${{ matrix.name }}:${{ env.TAG }}"
           fi
@@ -298,8 +299,7 @@ jobs:
       pull-requests: write
       security-events: write
     # Mirror the build matrix so each image is scanned vs. its own published
-    # release. The digest is resolved from the registry by the recomputed tag
-    # (matrix outputs can't carry the per-leg digest).
+    # release.
     strategy:
       fail-fast: false
       matrix:
@@ -307,7 +307,7 @@ jobs:
           - name: flutter-android
           - name: flutter-web
     env:
-      TAG: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || format('branch-{0}', github.ref_name) }}
+      TAG: ${{ needs.build-image.outputs.tag }}
     steps:
       - name: Harden runner
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
