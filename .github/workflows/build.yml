@@ -245,6 +245,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
+      - name: Setup mise tools
+        uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
+
       - name: Clean runner disk
         if: env.IS_FORK == 'true'
         uses: ./.github/actions/clean-runner-disk
@@ -270,9 +273,6 @@ jobs:
       - name: Pull image from registry
         if: env.IS_FORK != 'true'
         run: docker pull "ghcr.io/${{ github.repository_owner }}/${{ matrix.name }}:${{ env.TAG }}"
-
-      - name: Setup mise tools
-        uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
 
       - name: Test image
         # Fork legs loaded a single local tag for this image (resolved from the
@@ -479,6 +479,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
+      - name: Setup mise tools
+        uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
+
       - name: Read version.json
         id: version-json
         run: |
@@ -508,9 +511,6 @@ jobs:
         run: |
           cat ../../script/updateAndroidVersions.gradle.kts >> app/build.gradle.kts
           ./gradlew --warning-mode all updateAndroidVersions
-
-      - name: Setup mise tools
-        uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
 
       - name: Validate version.json with CUE
         run: cue vet config/schema.cue -d '#Version' config/version.json
