@@ -25,11 +25,11 @@
 
 ## 4. Validate locally
 
-- [ ] 4.1 YAML-parse `windows-image.yml`, `windows.yml`, and `release.yml`; confirm every `inputs.*` reference resolves to a declared input and every `uses:` target exists.
-- [ ] 4.2 Run the repo workflow policy gate (`gx lint`) and resolve findings: SHA-pinning + `# vX.Y.Z` comments on every third-party action (matching the SHAs already used elsewhere in the repo), top-level `permissions:` on the new file, harden-runner first.
-- [ ] 4.3 Confirm by inspection that with `push: false` no login step executes (all three logins gate on `push`), and that the test tail's `docker run` exit code propagates to the job.
-- [ ] 4.4 Grep that no inline `docker build ... windows.Dockerfile` remains in `windows.yml` or `release.yml`.
-- [ ] 4.5 Confirm least privilege: `windows-image.yml` declares an explicit `secrets:` block (no `secrets: inherit`) naming only the four Docker Hub/Quay secrets; the PR caller forwards no secrets; the release caller forwards all four.
+- [x] 4.1 YAML-parse `windows-image.yml`, `windows.yml`, and `release.yml`; confirm every `inputs.*` reference resolves to a declared input and every `uses:` target exists.
+- [x] 4.2 Run the repo workflow policy gate (`gx lint`) and resolve findings: SHA-pinning + `# vX.Y.Z` comments on every third-party action (matching the SHAs already used elsewhere in the repo), top-level `permissions:` on the new file, harden-runner first.
+- [x] 4.3 Confirm by inspection that with `push: false` no login step executes (all three logins gate on `push`), and that the test tail's `docker run` exit code propagates to the job.
+- [x] 4.4 Grep that no inline `docker build ... windows.Dockerfile` remains in `windows.yml` or `release.yml`.
+- [x] 4.5 Confirm least privilege: `windows-image.yml` declares an explicit `secrets:` block (no `secrets: inherit`) naming only the four Docker Hub/Quay secrets; the PR caller forwards no secrets; the release caller forwards all four.
 
 ## 5. Verify on CI
 
