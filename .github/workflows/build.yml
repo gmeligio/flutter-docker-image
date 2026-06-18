@@ -394,10 +394,10 @@ jobs:
       - name: Setup mise tools
         uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
 
-      - name: Validate version.json and flutter_version.json with CUE
-        run: |
-          cue vet config/schema.cue -d '#FlutterVersion' config/flutter_version.json
-          cue vet config/schema.cue -d '#Version' config/version.json
+      # config/version.json is the single source of truth; #Version embeds
+      # #FlutterVersion, so this validates the Flutter block too.
+      - name: Validate version.json with CUE
+        run: cue vet config/schema.cue -d '#Version' config/version.json
 
   validate-generated-config:
     name: Validate generated config
