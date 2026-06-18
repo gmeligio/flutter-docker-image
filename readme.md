@@ -1,6 +1,6 @@
 <!--- This markdown file was auto-generated from "readme.mdx" -->
 
-[![openssf scorecard](https://api.scorecard.dev/projects/github.com/gmeligio/flutter-docker-image/badge)](https://scorecard.dev/viewer/?uri=github.com/gmeligio/flutter-docker-image) [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/gmeligio/flutter-docker-image) [![channel](https://img.shields.io/static/v1?label=channel&message=stable&color=blue)](https://docs.flutter.dev/release/archive?tab=linux) [![flutter-android version](https://img.shields.io/docker/v/gmeligio/flutter-android?label=flutter-android%20version)](https://hub.docker.com/r/gmeligio/flutter-android/tags) [![flutter-android pulls](https://img.shields.io/docker/pulls/gmeligio/flutter-android?label=flutter-android%20pulls)](https://hub.docker.com/r/gmeligio/flutter-android/tags)
+[![openssf scorecard](https://api.scorecard.dev/projects/github.com/gmeligio/flutter-docker-image/badge)](https://scorecard.dev/viewer/?uri=github.com/gmeligio/flutter-docker-image) [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/gmeligio/flutter-docker-image) [![channel](https://img.shields.io/static/v1?label=channel&message=stable&color=blue)](https://docs.flutter.dev/release/archive?tab=linux) [![flutter-android version](https://img.shields.io/docker/v/gmeligio/flutter-android?label=flutter-android%20version)](https://hub.docker.com/r/gmeligio/flutter-android/tags) [![flutter-android pulls](https://img.shields.io/docker/pulls/gmeligio/flutter-android?label=flutter-android%20pulls)](https://hub.docker.com/r/gmeligio/flutter-android/tags) [![flutter-web version](https://img.shields.io/docker/v/gmeligio/flutter-web?label=flutter-web%20version)](https://hub.docker.com/r/gmeligio/flutter-web/tags) [![flutter-web pulls](https://img.shields.io/docker/pulls/gmeligio/flutter-web?label=flutter-web%20pulls)](https://hub.docker.com/r/gmeligio/flutter-web/tags)
 
 # Flutter Docker Image
 
@@ -27,7 +27,9 @@ The images includes the minimum tools to run Flutter and build apps. The version
 * Analytics disabled by default, opt-in if `ENABLE_ANALYTICS` environment variable is passed when running the container.
 * Rootless user `flutter:flutter`, with permissions to run on Github workflows and GitLab CI.
 * Cached Fastlane gem 2.236.1.
-* Minimal image with predownloaded SDKs and tools ready to run `flutter` commands for the Android platform.
+* Minimal images with predownloaded SDKs and tools ready to run `flutter` commands:  
+   * `flutter-android` for the Android platform.  
+   * `flutter-web` for the Web platform.
 
 Predownloaded SDKs and tools in Android:
 
@@ -87,6 +89,27 @@ bundle install --prefer-local
 bundle exec fastlane
 ```
 
+For Flutter web apps, use the `flutter-web` image:
+
+| Registry                  | flutter-web                                                                                                        |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Docker Hub                | [gmeligio/flutter-web:3.44.2](https://hub.docker.com/r/gmeligio/flutter-web)                                       |
+| GitHub Container Registry | [ghcr.io/gmeligio/flutter-web:3.44.2](https://github.com/gmeligio/flutter-docker-image/pkgs/container/flutter-web) |
+| Quay                      | [quay.io/gmeligio/flutter-web:3.44.2](https://quay.io/repository/gmeligio/flutter-web)                             |
+
+```yaml
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/gmeligio/flutter-web:3.44.2
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Build
+        run: flutter build web
+```
+
 ## Tags
 
 Every new tag on the flutter stable channel gets built. The tag is composed of the Flutter version used to build the image:
@@ -112,8 +135,7 @@ docker build --target android --build-arg flutter_version=3.44.2 --build-arg fas
 * Minimal image with predownloaded SDKs and tools ready to run `flutter` commands for the platforms:  
    * iOS  
    * Linux  
-   * Windows  
-   * Web
+   * Windows
 * Android features:  
    * Android emulator
 
