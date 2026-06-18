@@ -3,12 +3,12 @@
 ## Purpose
 
 Define the baseline security posture every workflow under `.github/workflows/` SHALL meet — least-privilege token scopes, serialized release runs, SHA-pinned third-party actions, runtime egress observability via harden-runner, and rejection of the `pull_request_target` "pwn request" pattern. The experience context is the maintainer reviewing a workflow PR or responding to a Scorecard/Dependabot signal: every guardrail here is something they would otherwise have to catch by hand, and that they can verify with a single grep or a single tab of the run summary.
-
 ## Requirements
-
 ### Requirement: Every workflow declares a minimum-scope `permissions:` block
 
 Every YAML file under `.github/workflows/` SHALL declare a top-level `permissions:` block. The default scope SHALL be `contents: read`; any broader scope SHALL be declared at job level (not workflow level) on the specific job that needs it, with a comment naming why.
+
+A reusable (`workflow_call`) workflow is the one exception: it MAY omit the block so it inherits each caller's token scope, because a declared `permissions:` acts as a ceiling that cannot exceed and silently downgrades the caller's grant (declaring `packages: write` would hard-fail a `contents: read` caller at startup; declaring `contents: read` would cap a caller's `packages: write` and 403 a registry push). The token scope SHALL instead be declared explicitly at every caller, and the omission SHALL be recorded as a narrowly-scoped `missing-permissions` ignore in `.github/gx.toml` with a comment.
 
 The experience context is the maintainer reviewing a PR that touches workflows — a single grep (`grep -L "^permissions:" .github/workflows/*.yml`) returns nothing, and Scorecard's `TokenPermissionsID` check reports score 10 for the permissions dimension.
 
@@ -31,6 +31,14 @@ The experience context is the maintainer reviewing a PR that touches workflows �
 - **GIVEN** a PR adds a new file under `.github/workflows/`
 - **WHEN** the file has no top-level `permissions:` block
 - **THEN** the PR is blocked at review (and Scorecard will report `TokenPermissionsID` on the next scan)
+
+#### Scenario: A reusable workflow omits permissions to inherit caller scope
+
+- **GIVEN** a `workflow_call` reusable workflow (e.g. `windows-image.yml`) whose jobs need different scopes per caller (`contents: read` on the PR test path, `packages: write` on the release push path)
+- **WHEN** the workflow omits a top-level `permissions:` block so it inherits each caller's token
+- **AND** every caller declares its own scope explicitly, and a `missing-permissions` ignore naming the file (with a comment) is present in `.github/gx.toml`
+- **THEN** `gx lint` passes and the omission is accepted as intentional
+- **AND** a reusable workflow that omits the block *without* the scoped `gx.toml` exemption is still blocked at review
 
 ### Requirement: Push-triggered workflows that mutate shared state declare concurrency
 
@@ -76,7 +84,9 @@ The experience context is the maintainer reviewing a Dependabot bump — a singl
 
 Every job in every workflow SHALL declare `step-security/harden-runner` as its first step. The initial policy SHALL be `egress-policy: audit` to record outbound network calls without blocking. Promotion to `egress-policy: block` MAY happen per-job in a follow-up change once an egress baseline is established.
 
-The experience context is the maintainer who needs to detect a compromised action that silently exfiltrates a secret — without harden-runner the egress is invisible; with it, the job summary lists every domain contacted and the maintainer can compare against the expected baseline.
+A reusable-workflow **caller** job — one whose body is `uses: ./.github/workflows/<file>.yml` — runs no steps of its own and therefore cannot host a harden-runner step. For such caller jobs, the requirement is satisfied by the **called** workflow's job declaring harden-runner as its first step. Every job that actually executes on a runner (including the job inside a `workflow_call` reusable workflow) SHALL still start with harden-runner; the Windows build, previously the only build path without harden-runner coverage, is brought into compliance through the `windows-image.yml` reusable workflow's job.
+
+The experience context is the maintainer who needs to detect a compromised action that silently exfiltrates a secret — without harden-runner the egress is invisible; with it, the job summary lists every domain contacted and the maintainer can compare against the expected baseline, and a reviewer reading a thin `uses:` caller job knows the coverage lives in the called workflow rather than flagging the caller as non-compliant.
 
 #### Scenario: A job runs and harden-runner audit-mode log is present
 
@@ -91,6 +101,14 @@ The experience context is the maintainer who needs to detect a compromised actio
 - **GIVEN** a PR adds a new job
 - **WHEN** the job has no harden-runner step
 - **THEN** the PR is blocked at review
+
+#### Scenario: A reusable-workflow caller job delegates harden-runner to the called workflow
+
+- **GIVEN** a caller job whose body is `uses: ./.github/workflows/windows-image.yml`
+- **WHEN** the workflow is reviewed
+- **THEN** the caller job is accepted without an inline harden-runner step
+- **AND** the job inside `windows-image.yml` declares `step-security/harden-runner` with `egress-policy: audit` as its first step
+- **AND** the Windows build's egress appears in the run's harden-runner summary
 
 ### Requirement: PR-triggered workflows use `pull_request`, not `pull_request_target`
 
@@ -172,3 +190,4 @@ The experience context is the maintainer reviewing a contributor PR or their own
 - **WHEN** the proposal is reviewed
 - **THEN** the proposal SHALL identify the gx rule that enforces the new requirement, or SHALL declare that a gx rule will be added (with a tracked dependency)
 - **AND** a structural requirement without a mechanical enforcement path is rejected — the spec stays load-bearing only because every requirement has a gate
+

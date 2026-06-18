@@ -1,20 +1,22 @@
 # windows-image-testing Specification
 
-## Requirements
+## Purpose
 
+Define how every pull request verifies the Windows image — building the `test` target and running the Pester suite inside it — so a maintainer gets one red/green check instead of building the multi-hour image locally. The experience context is the reviewer of a PR touching `windows.Dockerfile`, the Pester scripts, or `test/windows/**`.
+## Requirements
 ### Requirement: Pull request CI verifies the Windows image on every PR
 
-The `.github/workflows/windows.yml` workflow SHALL run on every `pull_request` event, build `windows.Dockerfile` with `--target test`, and run the Pester suite at `test/windows/Windows.Tests.ps1` inside that image. The workflow SHALL fail the PR check if the image build fails, if any Pester test fails, or if Pester exits non-zero.
+The `.github/workflows/windows.yml` workflow SHALL run on every `pull_request` event and SHALL verify the Windows image through a caller job that delegates to the reusable `.github/workflows/windows-image.yml` workflow (`uses:`) with `target: test`, `push: false`, and forwarding no secrets (the test path performs no registry login). The reusable workflow SHALL build `windows.Dockerfile` with `--target test` and run the Pester suite at `test/windows/Windows.Tests.ps1` inside that image. The PR check SHALL fail if the image build fails, if any Pester test fails, or if Pester exits non-zero. `windows.yml` SHALL NOT build `windows.Dockerfile` with its own inline steps.
 
-The experience context is the maintainer reviewing a PR that touches `windows.Dockerfile`, `script/InstallPester.ps1`, `script/RunPester.ps1`, or `test/windows/**` — they get a single red/green check rather than having to build the multi-hour Windows image locally.
+The experience context is the maintainer reviewing a PR that touches `windows.Dockerfile`, `script/InstallPester.ps1`, `script/RunPester.ps1`, or `test/windows/**` — they get a single red/green check rather than having to build the multi-hour Windows image locally, and that check exercises the exact build definition the release path uses.
 
 #### Scenario: PR check is green when the image is healthy
 
 - **GIVEN** a PR whose `windows.Dockerfile` builds successfully on `windows-2025`
 - **AND** every Pester test in `test/windows/Windows.Tests.ps1` passes inside the resulting `test`-target image
-- **WHEN** the `test_windows` job runs
+- **WHEN** the Windows caller job runs the reusable workflow with `target: test`
 - **THEN** the job exits 0
-- **AND** the `test_windows` check on the PR is reported as success
+- **AND** the Windows check on the PR is reported as success
 
 #### Scenario: PR check is red when a Pester test fails
 
@@ -22,14 +24,21 @@ The experience context is the maintainer reviewing a PR that touches `windows.Do
 - **AND** at least one Pester test fails (e.g., the Flutter version inside the image does not match `config/version.json`)
 - **WHEN** `script/RunPester.ps1` runs
 - **THEN** the script exits non-zero (it propagates `$LASTEXITCODE` from `Invoke-Pester`)
-- **AND** the `test_windows` job is reported as failed on the PR
+- **AND** the Windows caller job is reported as failed on the PR
 
 #### Scenario: PR check is red when the Dockerfile cannot be built
 
 - **GIVEN** a PR that breaks `windows.Dockerfile` (for example, by referencing a `COPY` source path that does not exist)
-- **WHEN** the `test_windows` job runs `docker build ... --target test`
+- **WHEN** the reusable workflow runs `docker build ... --target test`
 - **THEN** the build exits non-zero
-- **AND** the `test_windows` job is reported as failed on the PR
+- **AND** the Windows caller job is reported as failed on the PR
+
+#### Scenario: Fork PR is verified without secrets
+
+- **GIVEN** a pull request opened from a fork (no repository secrets available)
+- **WHEN** the Windows caller job runs with `push: false` and no secrets forwarded
+- **THEN** the image builds `--target test` and the Pester suite runs without any registry login step
+- **AND** the PR check reports success or failure based only on the build and Pester result
 
 ### Requirement: Tests assert the Flutter version inside the image matches `config/version.json`
 
@@ -148,3 +157,4 @@ The experience context is the contributor reading `test/windows/` and trying to 
 - **WHEN** a contributor lists `test/windows/`
 - **THEN** the listing contains `Windows.Tests.ps1` (and any newly added Pester files)
 - **AND** the listing does not contain `main.go`, `main_test.go`, `go.mod`, or `go.sum`
+

@@ -17,19 +17,21 @@
 "peter-evans/dockerhub-description" = "^5"
 "step-security/harden-runner" = "^2"
 
-# Workflow-security rules enforce the structural properties defined by the
-# `ci-workflow-hardening` capability. Each rule below maps to a requirement in that spec
+# Rules map to the `ci-workflow-hardening` capability spec.
 [lint.rules]
-# "Untrusted code is not executed with privileged context" — privileged job
-# checking out PR HEAD. Both jobs below match the pattern but are fork-gated
-# (`head.repo.full_name == github.repository`), so PR HEAD is only ever checked
-# out for same-repo branches — never attacker-controlled fork code — and the
-# 'pwn request' path is unreachable. gx's static check can't see the `if:` gate.
+# Both ignored jobs are fork-gated (`head.repo.full_name == github.repository`),
+# so PR HEAD is only checked out for same-repo branches — the 'pwn request' path
+# is unreachable, but gx can't see the `if:` gate.
 #   - gx.yml `tidy`: lockfile tidy on same-repo PRs.
-#   - update-docs.yml `generate`: regenerates committed docs output onto the PR
-#     branch (maintainer / renovate[bot] only). Needs write + PR-head checkout.
-#     The `check` job in the same workflow is token-free and triggers no rule.
+#   - update-docs.yml `generate`: writes regenerated docs to the PR branch
+#     (maintainer / renovate[bot] only); needs write + PR-head checkout.
 pr-head-checkout = { level = "error", ignore = [
     { workflow = ".github/workflows/gx.yml" },
     { workflow = ".github/workflows/update-docs.yml" },
+] }
+
+# windows-image.yml is reusable (`workflow_call`) and omits `permissions:` so each
+# caller's grant flows through; see the note in that file. Callers declare scope.
+missing-permissions = { level = "error", ignore = [
+    { workflow = ".github/workflows/windows-image.yml" },
 ] }

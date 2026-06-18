@@ -1,9 +1,5 @@
-# windows-image-release Specification
+## MODIFIED Requirements
 
-## Purpose
-
-Define how a pushed tag publishes the `flutter-windows` image: which job builds it, which registries it fans out to, how it runs relative to the Android release, and how a maintainer rebuilds a single tag's image. The experience context is the CI engineer who pulls `flutter-windows:<version>` at the same tag they already use for `flutter-android`, and the maintainer recovering a failed Windows release without re-cutting the Git tag.
-## Requirements
 ### Requirement: Tag push publishes a `flutter-windows` image to all release registries
 
 When a tag matching `*` is pushed to the repository, the `release-windows` job in `.github/workflows/release.yml` SHALL publish the Windows image through a caller job that delegates to the reusable `.github/workflows/windows-image.yml` workflow (`uses:`) with `target: flutter`, `push: true`, forwarding all four Docker Hub and Quay secrets, and `permissions: { contents: read, packages: write }` on the caller job. The reusable workflow SHALL run `./.github/actions/clean-runner-disk` before building, build `windows.Dockerfile` with `--target flutter` and `--build-arg flutter_version=<tag>`, and push the resulting image to Docker Hub, GitHub Container Registry, and Quay.io under the repository name `flutter-windows` with the tag equal to the Flutter version. `release-windows` SHALL NOT build `windows.Dockerfile` with its own inline steps.
@@ -46,20 +42,6 @@ The experience context is the maintainer cutting a release: they accept that one
 - **AND** the workflow run is reported as failed (because at least one job failed)
 - **AND** the failure surface is the `release-windows` job specifically, not `release-android`
 
-### Requirement: Windows release uses the same metadata conventions as Android release
-
-The Windows release build SHALL use `docker/metadata-action` with the `images` input set to the same three registry namespaces and the `tags` input set to `type=raw,value=${{ env.FLUTTER_VERSION }}`, mirroring the Android job. This metadata step runs inside the reusable `windows-image.yml` workflow invoked by the `release-windows` caller. The image labels (`org.opencontainers.image.*`) produced by `metadata-action` SHALL be applied to the built image (as `--label` arguments to `docker build`), so that `docker inspect` reports the same OCI label set as the Android image. `docker/build-push-action` is not a viable mechanism here because it does not support Windows containers (tracked at https://github.com/docker/build-push-action/issues/18).
-
-The experience context is the operator inspecting `docker inspect <org>/flutter-windows:X.Y.Z` and `docker inspect <org>/flutter-android:X.Y.Z` and finding the same set of OCI labels (description, source, revision, version) populated with the same values.
-
-#### Scenario: Labels match Android conventions
-
-- **GIVEN** a successful `release-windows` run for tag `X.Y.Z`
-- **WHEN** an operator runs `docker inspect docker.io/<org>/flutter-windows:X.Y.Z` and inspects the `Labels` map
-- **THEN** the keys `org.opencontainers.image.source`, `org.opencontainers.image.revision`, `org.opencontainers.image.version`, and `org.opencontainers.image.title` are all present
-- **AND** `org.opencontainers.image.version` equals `X.Y.Z`
-- **AND** `org.opencontainers.image.revision` equals the commit SHA of the tag
-
 ### Requirement: Manual `workflow_dispatch` rebuild is Windows-only
 
 The `release.yml` workflow SHALL continue to declare `workflow_dispatch:`. On `workflow_dispatch`, only the `release-windows` caller job SHALL execute; `release-android` and its downstream jobs (`update-description`, `record-image`, `create-github-release`) SHALL be skipped via an `if: github.event_name == 'push'` guard on `release-android` (the downstream jobs auto-skip via their existing `needs: release-android`). The `FLUTTER_VERSION` env var SHALL be set from `github.ref_name`, so that a maintainer can rebuild a single tag's Windows image — through the same `windows-image.yml` reusable workflow — without re-cutting the Git tag and without re-publishing the Android image, re-pushing the Docker Hub readme, or re-attempting `gh release create`.
@@ -83,3 +65,16 @@ The experience context is the maintainer recovering from a transient Windows run
 - **AND** the digest at `docker.io/<org>/flutter-android:X.Y.Z` remains `D_a`
 - **AND** the run is reported as success (no failed jobs)
 
+### Requirement: Windows release uses the same metadata conventions as Android release
+
+The Windows release build SHALL use `docker/metadata-action` with the `images` input set to the same three registry namespaces and the `tags` input set to `type=raw,value=${{ env.FLUTTER_VERSION }}`, mirroring the Android job. This metadata step runs inside the reusable `windows-image.yml` workflow invoked by the `release-windows` caller. The image labels (`org.opencontainers.image.*`) produced by `metadata-action` SHALL be applied to the built image (as `--label` arguments to `docker build`), so that `docker inspect` reports the same OCI label set as the Android image. `docker/build-push-action` is not a viable mechanism here because it does not support Windows containers (tracked at https://github.com/docker/build-push-action/issues/18).
+
+The experience context is the operator inspecting `docker inspect <org>/flutter-windows:X.Y.Z` and `docker inspect <org>/flutter-android:X.Y.Z` and finding the same set of OCI labels (description, source, revision, version) populated with the same values.
+
+#### Scenario: Labels match Android conventions
+
+- **GIVEN** a successful `release-windows` run for tag `X.Y.Z`
+- **WHEN** an operator runs `docker inspect docker.io/<org>/flutter-windows:X.Y.Z` and inspects the `Labels` map
+- **THEN** the keys `org.opencontainers.image.source`, `org.opencontainers.image.revision`, `org.opencontainers.image.version`, and `org.opencontainers.image.title` are all present
+- **AND** `org.opencontainers.image.version` equals `X.Y.Z`
+- **AND** `org.opencontainers.image.revision` equals the commit SHA of the tag
