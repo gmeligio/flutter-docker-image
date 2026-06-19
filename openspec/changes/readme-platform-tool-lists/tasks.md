@@ -23,6 +23,6 @@
 
 ## 4. Verify
 
-- [ ] 4.1 `cue vet config/schema.cue -d '#Version' config/version.json` is green and `readme.md` is in sync with `content.mdx` (the `update-docs` check would pass)
-- [ ] 4.2 Confirm `build.yml` version-file / schema validation stays green with the new required field
+- [x] 4.1 `cue vet config/schema.cue -d '#Version' config/version.json` is green and `readme.md` is in sync with `content.mdx` (idempotent rebuild produced no diff — the `update-docs` check would pass)
+- [x] 4.2 Confirm `build.yml` version-file / schema validation stays green with the new required field (both `validate-version-files` `cue vet` and `validate-generated-config` `update_test.sh` reproduce `test/android.yml` byte-for-byte — no drift, since the test templating reads cmdlineTools/ndk/buildTools, not `java`)
 - [ ] 4.3 (Deferred) optional `test/android.yml` assertion that `java -version`'s major equals `android.java.version` — deferred; requires extending `config/android.cue` test-templating to inject the Java field
