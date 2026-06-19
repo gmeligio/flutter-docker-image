@@ -6,11 +6,11 @@
 
 ## 2. Producer derivation (update-version.yml)
 
-- [ ] 2.1 In `update-android-version`, after the "Update default Android platform versions" step, add a step that runs `script/java_version.sh` inside the `flutter-android` container to read the installed JDK major
-- [ ] 2.2 Write the derived major into `android.java.version` via `jq` as an **integer** (not a string), before the existing "Validate version.json with CUE" step
-- [ ] 2.3 Confirm the producer's `cue vet` self-validation now covers `android.java`; a missing or non-integer value fails the job (so `android_block` is not emitted)
-- [ ] 2.4 Confirm the emitted `android_block` (`jq -c '{android, fastlane}'`) includes `android.java`
-- [ ] 2.5 Confirm the Android-skip path carries forward the base-branch `android.java` unchanged (no derivation; existing `compose-and-open-pr` carry-forward handles it)
+- [x] 2.1 In `update-android-version`, after the "Update default Android platform versions" step, add a step that runs `script/java_version.sh` inside the `flutter-android` container to read the installed JDK major
+- [x] 2.2 Write the derived major into `android.java.version` via `jq` as an **integer** (not a string), before the existing "Validate version.json with CUE" step (verified: `jq --argjson` writes a JSON number)
+- [x] 2.3 Confirm the producer's `cue vet` self-validation now covers `android.java`; a missing or non-integer value fails the job (so `android_block` is not emitted) (verified: `jq --argjson` rejects a non-numeric major, failing the step before emit)
+- [x] 2.4 Confirm the emitted `android_block` (`jq -c '{android, fastlane}'`) includes `android.java` (verified locally)
+- [x] 2.5 Confirm the Android-skip path carries forward the base-branch `android.java` unchanged (no derivation; existing `compose-and-open-pr` `else` branch leaves the base `android` block — now including `java` — untouched)
 
 ## 3. README content (docs/src)
 

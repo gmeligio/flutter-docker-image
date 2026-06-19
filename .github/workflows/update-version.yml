@@ -293,6 +293,20 @@ jobs:
         run: |
           rm -rf test_app
 
+      # Java is installed by android.Dockerfile (openjdk-NN) but is not derived by
+      # the Gradle producer. Read the major from the running flutter-android
+      # container so android.java.version mirrors the JDK the image actually ships,
+      # rather than being a second hand-maintained pin. A non-integer (e.g. an
+      # unexpected `java -version` format) makes `jq --argjson` fail this step,
+      # failing the job before it emits android_block — the empty output then
+      # carries forward the base android block unchanged.
+      - name: Derive installed Java major version
+        run: |
+          java_major=$(bash script/java_version.sh)
+          echo "Derived Java major: $java_major"
+          jq --argjson java "$java_major" '.android.java = {version: $java}' config/version.json > config/version.json.tmp
+          mv config/version.json.tmp config/version.json
+
       # Producer self-validation: the android + fastlane blocks overlaid onto the
       # schema-valid base must satisfy #Version before they are reported. (No
       # #Android definition exists in the schema, so validate the full manifest.)
