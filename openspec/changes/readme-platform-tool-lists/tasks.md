@@ -1,8 +1,8 @@
 ## 1. Version manifest + schema
 
-- [ ] 1.1 Add `android.java: { "version": <current major> }` (e.g. `17`) to `config/version.json`, placed alongside the other `android` sub-fields
-- [ ] 1.2 Add `java!: #PlatformVersion` to the `android` struct of `#Version` in `config/schema.cue` (bare integer major, modeled like `platforms`)
-- [ ] 1.3 Run `cue vet config/schema.cue -d '#Version' config/version.json` and confirm it exits 0
+- [x] 1.1 Add `android.java: { "version": <current major> }` (e.g. `17`) to `config/version.json`, placed alongside the other `android` sub-fields
+- [x] 1.2 Add `java!: #PlatformVersion` to the `android` struct of `#Version` in `config/schema.cue` (bare integer major, modeled like `platforms`)
+- [x] 1.3 Run `cue vet config/schema.cue -d '#Version' config/version.json` and confirm it exits 0 (verified: exit 0; also confirmed a manifest missing `android.java` fails with "field is required")
 
 ## 2. Producer derivation (update-version.yml)
 
