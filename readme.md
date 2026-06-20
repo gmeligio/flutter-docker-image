@@ -23,20 +23,25 @@ The images includes the minimum tools to run Flutter and build apps. The version
 
 ## Features
 
-* Installed Flutter SDK 3.44.2.
 * Analytics disabled by default, opt-in if `ENABLE_ANALYTICS` environment variable is passed when running the container.
 * Rootless user `flutter:flutter`, with permissions to run on Github workflows and GitLab CI.
-* Cached Fastlane gem 2.236.1.
-* Minimal images with predownloaded SDKs and tools ready to run `flutter` commands:  
+* Minimal images with predownloaded SDKs and tools ready to run `flutter` commands without further downloads:  
    * `flutter-android` for the Android platform.  
    * `flutter-web` for the Web platform.
 
-Predownloaded SDKs and tools in Android:
+Main tools in `flutter-android`:
 
-* Licenses accepted
-* Android SDK Platforms: 36
+* Flutter SDK: 3.44.2
+* Java (OpenJDK): 17
+* Android SDK Platform: 36
 * Android NDK: 28.2.13676358
 * Gradle: 9.1.0
+* Fastlane: 2.236.1
+
+Main tools in `flutter-web`:
+
+* Flutter SDK: 3.44.2
+* Web engine: precached (no runtime download)
 
 ## Running Containers
 

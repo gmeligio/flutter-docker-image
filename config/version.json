@@ -10,6 +10,9 @@
         "version": 36
       }
     ],
+    "java": {
+      "version": 17
+    },
     "gradle": {
       "version": "9.1.0"
     },
