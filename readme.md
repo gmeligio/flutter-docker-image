@@ -29,7 +29,7 @@ The images includes the minimum tools to run Flutter and build apps. The version
    * `flutter-android` for the Android platform.  
    * `flutter-web` for the Web platform.
 
-Headline tools in `flutter-android`:
+Main tools in `flutter-android`:
 
 * Flutter SDK: 3.44.2
 * Java (OpenJDK): 17
@@ -38,7 +38,7 @@ Headline tools in `flutter-android`:
 * Gradle: 9.1.0
 * Fastlane: 2.236.1
 
-Headline tools in `flutter-web`:
+Main tools in `flutter-web`:
 
 * Flutter SDK: 3.44.2
 * Web engine: precached (no runtime download)
