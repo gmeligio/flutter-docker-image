@@ -293,13 +293,7 @@ jobs:
         run: |
           rm -rf test_app
 
-      # Java is installed by android.Dockerfile (openjdk-NN) but is not derived by
-      # the Gradle producer. Read the major from the running flutter-android
-      # container so android.java.version mirrors the JDK the image actually ships,
-      # rather than being a second hand-maintained pin. A non-integer (e.g. an
-      # unexpected `java -version` format) makes `jq --argjson` fail this step,
-      # failing the job before it emits android_block — the empty output then
-      # carries forward the base android block unchanged.
+      # Derive from the running image so android.java.version can't drift from the JDK it ships.
       - name: Derive installed Java major version
         run: |
           java_major=$(bash script/java_version.sh)
