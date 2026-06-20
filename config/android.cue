@@ -30,13 +30,14 @@ android_cmdline_tools_test_expected_content: string @tag(android_cmdline_tools_t
 android_cmdline_tools_version: string @tag(android_cmdline_tools_version)
 android_ndk_version: string @tag(android_ndk_version)
 android_sdk_build_tools_version: string @tag(android_sdk_build_tools_version)
+android_java_version: string @tag(android_java_version)
 
 output: {
 	schemaVersion: input.schemaVersion
 	
 	commandTests: list.Concat([
 		list.Take(input.commandTests, 1),
-		if len(input.commandTests) >= 3 {
+		if len(input.commandTests) >= 4 {
 			[
 				{
 					name: input.commandTests[1].name
@@ -49,10 +50,16 @@ output: {
 					command: input.commandTests[2].command
 					args: input.commandTests[2].args
 					expectedOutput: [android_ndk_version]
+				},
+				{
+					name: input.commandTests[3].name
+					command: input.commandTests[3].command
+					args: input.commandTests[3].args
+					expectedOutput: [android_java_version]
 				}
 			]
 		},
-		list.Drop(input.commandTests, 3),
+		list.Drop(input.commandTests, 4),
 	])
 	
 	fileContentTests: list.Concat([
