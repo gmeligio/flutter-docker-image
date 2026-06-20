@@ -51,6 +51,8 @@ output: {
 					args: input.commandTests[2].args
 					expectedOutput: [android_ndk_version]
 				},
+				// Guard: a hand-bumped Dockerfile JDK fails here loudly — derivation only
+				// refreshes Java on Flutter bumps, so this is what stops a wrong README shipping.
 				{
 					name: input.commandTests[3].name
 					command: input.commandTests[3].command

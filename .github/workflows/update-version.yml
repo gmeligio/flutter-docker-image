@@ -293,7 +293,7 @@ jobs:
         run: |
           rm -rf test_app
 
-      # Derive from the running image so android.java.version can't drift from the JDK it ships.
+      # Auto-refresh Java on the Flutter cadence so version.json (and the README) mirror the shipped JDK with no manual edit.
       - name: Derive installed Java major version
         run: |
           java_major=$(bash script/java_version.sh)
