@@ -15,13 +15,13 @@ The web image's value is the precached web engine (`flutter precache --web`); si
 ## Goals / Non-Goals
 
 **Goals:**
-- README shows, per published Linux image, the headline tools and the exact versions that image ships.
+- README shows, per published Linux image, the main tools and the exact versions that image ships.
 - The Java version is shown and equals the JDK actually installed in the image (no drift, no second hand-maintained pin).
 - All displayed versions remain sourced from `config/version.json`.
 
 **Non-Goals:**
 - Tracking the Dart SDK version (bundled with Flutter; not separately pinned).
-- Showing Build Tools / CMake / Command-line Tools in the headline list (deliberately curated down).
+- Showing Build Tools / CMake / Command-line Tools in the main tools list (deliberately curated down).
 - Parameterizing the Dockerfile's JDK **major** from `version.json` (the Debian package name stays the install source; `version.json` mirrors it).
 - A matrix/combined table or a third Windows column (per-image lists chosen for clarity; Windows is a separate-OS toolchain).
 
@@ -33,9 +33,9 @@ Java is installed only in the `android` image, so it is scoped under the `androi
 - **Alternative rejected — top-level `.java`:** also survives the producers (none touch it), but misrepresents scope — Java is an Android-image tool, not a manifest-wide one, and `flutter-web` ships no JDK.
 
 ### Decision 2: Model the value as a positive-integer major
-`android.java.version` is the **major** only (e.g. `17`), modeled like `android.platforms[].version` (a bare int via `#PlatformVersion`). The full patch (`17.0.19+…`) stays in the Dockerfile ARG (Renovate-managed); the README headline wants the friendly major, and an int is the simplest schema shape that `cue vet` can enforce.
+`android.java.version` is the **major** only (e.g. `17`), modeled like `android.platforms[].version` (a bare int via `#PlatformVersion`). The full patch (`17.0.19+…`) stays in the Dockerfile ARG (Renovate-managed); the README's main tools list shows the friendly major, and an int is the simplest schema shape that `cue vet` can enforce.
 
-- **Alternative rejected — full semver-quad string:** more precise but not what the headline list shows, and it would duplicate the Renovate-managed patch with a second update path.
+- **Alternative rejected — full semver-quad string:** more precise but not what the main tools list shows, and it would duplicate the Renovate-managed patch with a second update path.
 
 ### Decision 3: Derive Java from the live container, not a static pin
 The `update-android-version` job already runs inside the released `flutter-android` image and derives `gradle`/`ndk`/`buildTools` from real tools. Add a step that runs `script/java_version.sh` there to read the installed JDK major and write `android.java.version` via `jq`. This keeps `version.json` a mirror of reality rather than a hand-maintained duplicate of the Dockerfile's `openjdk-17` pin — on-brand with the repo's "derive from the artifact" pattern, and it reuses an existing-but-unused helper.
@@ -47,14 +47,14 @@ The `update-android-version` job already runs inside the released `flutter-andro
 The `flutter-web` list shows the Flutter SDK version and the qualitative line "Web engine — precached (no runtime download)" — no fabricated engine version. The Flutter SDK version already fully determines the engine in the monorepo era; inventing a separate number would be misleading.
 
 ### Decision 5: Two per-image lists; Dart and Build Tools excluded
-The README gets one headline list per image (android, web) rather than a combined matrix — clearest for the two-image case and matches the existing per-image Running-Containers layout. Dart (bundled, untracked) and Build Tools (not decision-headline) are intentionally omitted, per the curated set agreed during exploration.
+The README gets one main tools list per image (android, web) rather than a combined matrix — clearest for the two-image case and matches the existing per-image Running-Containers layout. Dart (bundled, untracked) and Build Tools (not a main tool for image selection) are intentionally omitted, per the curated set agreed during exploration.
 
 ## Automated Test Strategy
 
 - **Critical path:** the Java version the README shows equals the JDK the image ships. Two complementary mechanisms guarantee this: (a) the value is **derived** from the running container (`script/java_version.sh`) and **displayed** from the same `version.json` field, so README ↔ manifest cannot diverge by construction; and (b) a `test/android.yml` structure test asserts the **built** image's `java -version` major equals `android.java.version`, so manifest ↔ image is machine-checked at build time (a Dockerfile JDK-major bump not reflected in the manifest fails the PR's `build.yml` test leg). Together these close README ↔ manifest ↔ image.
 - **Schema gate (existing, now covers Java):** `cue vet config/schema.cue -d '#Version' config/version.json` runs in every producer self-validation step, the `compose-and-open-pr` gate, and `build.yml`'s version-file validation. With `java!` added to `#Version.android`, a missing or non-integer `android.java` turns these red — so a malformed Java field cannot reach a PR or a merge.
 - **Producer self-validation:** if `java_version.sh` yields a non-integer (e.g. unexpected `java -version` format), the `jq` write produces a value `cue vet` rejects, failing the `update-android-version` job *before* it emits `android_block`; the empty output then carries forward the base `android.java` (no corruption propagates) — the same safety pattern the spec already defines for the other android fields.
-- **Docs sync (existing):** `mise run docs` regenerates `readme.md`; the `update-docs` check fails the PR if `content.mdx` changed without a regenerated `readme.md`, catching a stale headline list.
+- **Docs sync (existing):** `mise run docs` regenerates `readme.md`; the `update-docs` check fails the PR if `content.mdx` changed without a regenerated `readme.md`, catching a stale main tools list.
 - **Built-image assertion:** `test/android.yml` gains a "Java is pinned" `container-structure-test` command test (`java -version 2>&1 | awk … → major`, `expectedOutput: [<android.java.version>]`), templated from a new `android_java_version` tag in `config/android.cue` and fed by `script/update_test.sh` — exactly like the existing build-tools / NDK assertions. It runs against the freshly built image in `build.yml`, so it fails the PR if the image's JDK major differs from the manifest. The `validate-generated-config` job keeps the committed `test/android.yml` a fixed point of regeneration (no drift).
 - **Level:** no unit tests apply (config + docs + a CI step); integration is the schema gate, the docs-sync check, and the regenerated structure test described above.
 
@@ -76,7 +76,7 @@ The README gets one headline list per image (android, web) rather than a combine
 
 1. Add `android.java.version` (current major, e.g. `17`) to `config/version.json` and `java!` to `#Version.android` in `config/schema.cue`; confirm `cue vet -d '#Version'` is green locally.
 2. Add the Java-derivation step to `update-android-version` (reuse `script/java_version.sh`, write via `jq`); confirm the emitted `android_block` includes `android.java`.
-3. Update `docs/src/content.mdx`: add the `javaVersion` export and the two per-image headline lists (android + web); run `mise run docs` to regenerate `readme.md`.
+3. Update `docs/src/content.mdx`: add the `javaVersion` export and the two per-image main tool lists (android + web); run `mise run docs` to regenerate `readme.md`.
 4. Confirm the `update-docs` check and `build.yml` version-file validation stay green.
 
 - **Rollback:** remove `java!` from the schema, `android.java` from `version.json`, the derivation step, and revert `content.mdx`; regenerate `readme.md`. No image content changes, so existing `flutter-android` / `flutter-web` images are unaffected.

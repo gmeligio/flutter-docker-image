@@ -15,10 +15,10 @@
 ## 3. README content (docs/src)
 
 - [x] 3.1 In `docs/src/content.mdx`, add a `javaVersion` export reading `versionJson.android.java.version`
-- [x] 3.2 Replace the single "Predownloaded SDKs and tools in Android" block with two per-image headline lists (also dropped the now-redundant top "Installed Flutter SDK" / "Cached Fastlane gem" bullets, whose versions now live in the per-image lists)
+- [x] 3.2 Replace the single "Predownloaded SDKs and tools in Android" block with two per-image main tool lists (also dropped the now-redundant top "Installed Flutter SDK" / "Cached Fastlane gem" bullets, whose versions now live in the per-image lists)
 - [x] 3.3 `flutter-android` list: Flutter SDK `{flutterVersion}`, Java (OpenJDK) `{javaVersion}`, Android SDK Platform `{androidPlatformVersions}`, Android NDK `{androidNdkVersion}`, Gradle `{gradleVersion}`, Fastlane `{fastlaneVersion}`
 - [x] 3.4 `flutter-web` list: Flutter SDK `{flutterVersion}`; a line "Web engine: precached (no runtime download)" with **no** version number
-- [x] 3.5 Do not list the Dart SDK version or Android SDK Build Tools / CMake / Command-line Tools in the headline lists
+- [x] 3.5 Do not list the Dart SDK version or Android SDK Build Tools / CMake / Command-line Tools in the main tool lists
 - [x] 3.6 Regenerate committed docs with `pnpm run build` (the `mise run docs` task); `readme.md` diff shows the two lists and Java `17`; windows.md/contributing.md/LICENSE.md unchanged
 
 ## 4. Verify
