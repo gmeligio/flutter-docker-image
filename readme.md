@@ -82,18 +82,6 @@ build:
     - flutter build apk
 ```
 
-Fastlane:
-
-```bash
-# Ruby bundler is available in the container.
-# The fastlane gem is cached but not installed
-# For more information, see https://docs.fastlane.tools
-
-# Use --prefer-local to download gems only if they are not cached
-bundle install --prefer-local
-bundle exec fastlane
-```
-
 For Flutter web apps, use the `flutter-web` image:
 
 | Registry                  | flutter-web                                                                                                        |
