@@ -8,15 +8,21 @@ The wiki is kept current automatically: DeepWiki re-indexes the repository whene
 
 ## Building the docs locally
 
-The Markdown files at the repository root (`readme.md`, `LICENSE.md`, `docs/contributing.md`, `docs/windows.md`) are generated from the MDX sources under `docs/src/`. The build uses `pnpm`, pinned in `mise.toml` alongside the other CI tools. From `docs/src/`:
+`readme.md` and the per-backend CI examples under `examples/` are code-generated from `config/version.json` (the single source of truth). Do **not** edit those files by hand — edit the generators and regenerate:
+
+- `readme.md` — composed by `docs/build.mjs` (Node standard library only, no dependencies). The same file serves as the GitHub README and the Docker Hub description.
+- `examples/{github-actions,gitlab-ci,gitea-actions,forgejo-actions}.yml` — emitted from `docs/examples.cue` via `cue export`.
+- `config/version.json` — the version values (Flutter, Fastlane, Gradle, NDK, build-tools, platforms) and the image tag injected into both.
+
+`docs/contributing.md`, `docs/windows.md`, and `LICENSE.md` are static Markdown — edit them directly.
+
+Regenerate everything with one task (`node` and `cue` are pinned in `mise.toml`):
 
 ```bash
-pnpm install --frozen-lockfile
-pnpm run build
-
+mise run docs
 ```
 
-`devEngines.packageManager` in `docs/src/package.json` is set to `pnpm` with `onFail: "error"`, so `npm install` will refuse to run.
+CI enforces this: `update-docs.yml` re-runs `mise run docs` and fails with `git diff --exit-code` if the committed `readme.md` or `examples/` drift from the generators. On same-repo PRs the regenerated output is committed back automatically; fork PRs must run `mise run docs` and commit the result.
 
 ## Editing GitHub Actions workflows
 

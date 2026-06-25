@@ -6,7 +6,7 @@
 
 The README SHALL display a DeepWiki badge in the header badge row that links to `https://deepwiki.com/gmeligio/flutter-docker-image`, so a CI engineer reading the repo on GitHub or Docker Hub can reach the AI-generated wiki in one click.
 
-The badge SHALL be authored in `docs/src/badges.mdx` (the source for the existing MDX→MD pipeline) so a recompile keeps `readme.md` in sync.
+The badge SHALL be authored in `docs/build.mjs` (the generator for `readme.md`) so regenerating the docs keeps `readme.md` in sync.
 
 #### Scenario: Reader on GitHub clicks through to the wiki
 
@@ -15,10 +15,10 @@ The badge SHALL be authored in `docs/src/badges.mdx` (the source for the existin
 - **THEN** the browser navigates to the project's DeepWiki page
 - **AND** the page renders the auto-generated wiki for this repository
 
-#### Scenario: Recompiling docs preserves the badge
+#### Scenario: Regenerating docs preserves the badge
 
-- **GIVEN** the maintainer edits any source file under `docs/src/`
-- **WHEN** they run the docs compile script
+- **GIVEN** the maintainer edits `docs/build.mjs` or `config/version.json`
+- **WHEN** they run `mise run docs`
 - **THEN** the regenerated `readme.md` still contains the DeepWiki badge in the header badge row
 
 ### Requirement: Wiki refreshes automatically when the repository changes
@@ -35,7 +35,7 @@ The opt-in mechanism SHALL be the presence of the DeepWiki badge in `readme.md` 
 
 ### Requirement: Contributors are told how the wiki works
 
-`docs/contributing.md` (compiled from `docs/src/contributing.mdx`) SHALL include a short section pointing contributors at the DeepWiki and explaining that the badge in the README is what keeps the wiki fresh.
+`docs/contributing.md` (a static committed Markdown file) SHALL include a short section pointing contributors at the DeepWiki and explaining that the badge in the README is what keeps the wiki fresh.
 
 #### Scenario: New contributor opens contributing.md
 
