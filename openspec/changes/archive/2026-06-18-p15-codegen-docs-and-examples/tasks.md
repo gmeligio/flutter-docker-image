@@ -62,7 +62,7 @@
 
 ## 6. Archive
 
-- [ ] 6.1 After merge, sync the `generated-docs-and-examples` spec to shipped
+- [x] 6.1 After merge, sync the `generated-docs-and-examples` spec to shipped
   behavior and move this change to
   `openspec/changes/archive/<YYYY-MM-DD>-p15-codegen-docs-and-examples/`.
 - [ ] 6.2 Close #493 referencing the shipped `examples/` (Gitea/Forgejo Node
