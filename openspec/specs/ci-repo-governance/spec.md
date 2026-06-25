@@ -29,7 +29,7 @@ The experience context is the maintainer trusting that the protected branch's hi
 
 #### Scenario: A same-repo PR edits documentation source
 
-- **GIVEN** a same-repo pull request (maintainer or `renovate[bot]`) changes a `docs/src/**` source file
+- **GIVEN** a same-repo pull request (maintainer or `renovate[bot]`) changes a docs generator source (`docs/build.mjs`, `docs/examples.cue`, or `config/version.json`)
 - **WHEN** `update-docs.yml` runs
 - **THEN** the `generate` job regenerates the committed docs output and pushes it onto the same PR branch
 - **AND** that push re-triggers the `check` job, which then passes
@@ -37,7 +37,7 @@ The experience context is the maintainer trusting that the protected branch's hi
 
 #### Scenario: A fork PR leaves documentation output stale
 
-- **GIVEN** a pull request from a fork changes `docs/src/**` without regenerating the output
+- **GIVEN** a pull request from a fork changes a docs generator source (`docs/build.mjs`, `docs/examples.cue`, or `config/version.json`) without regenerating the output
 - **WHEN** `update-docs.yml` runs
 - **THEN** the `generate` job is skipped (no secret reaches fork code)
 - **AND** the `check` job fails with an explicit instruction to run the docs build and commit the result
@@ -45,7 +45,7 @@ The experience context is the maintainer trusting that the protected branch's hi
 
 #### Scenario: Documentation output is already in sync
 
-- **GIVEN** a pull request whose `docs/src/**` change produces no output diff
+- **GIVEN** a pull request whose docs generator source change produces no output diff
 - **WHEN** `update-docs.yml` runs
 - **THEN** the `check` job passes and `generate` pushes nothing
 - **AND** the workflow does not re-trigger itself

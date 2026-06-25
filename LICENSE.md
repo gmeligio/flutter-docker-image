@@ -1,5 +1,3 @@
-<!--- This markdown file was auto-generated from "license.mdx" -->
-
 MIT License
 
 Copyright (c) 2023 Eligio Alejandro Mariño Garcés

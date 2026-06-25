@@ -1,4 +1,4 @@
-<!--- This markdown file was auto-generated from "readme.mdx" -->
+<!--- This markdown file was auto-generated from docs/build.mjs -->
 
 [![openssf scorecard](https://api.scorecard.dev/projects/github.com/gmeligio/flutter-docker-image/badge)](https://scorecard.dev/viewer/?uri=github.com/gmeligio/flutter-docker-image) [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/gmeligio/flutter-docker-image) [![channel](https://img.shields.io/static/v1?label=channel&message=stable&color=blue)](https://docs.flutter.dev/release/archive?tab=linux) [![flutter-android version](https://img.shields.io/docker/v/gmeligio/flutter-android?label=flutter-android%20version)](https://hub.docker.com/r/gmeligio/flutter-android/tags) [![flutter-android pulls](https://img.shields.io/docker/pulls/gmeligio/flutter-android?label=flutter-android%20pulls)](https://hub.docker.com/r/gmeligio/flutter-android/tags) [![flutter-web version](https://img.shields.io/docker/v/gmeligio/flutter-web?label=flutter-web%20version)](https://hub.docker.com/r/gmeligio/flutter-web/tags) [![flutter-web pulls](https://img.shields.io/docker/pulls/gmeligio/flutter-web?label=flutter-web%20pulls)](https://hub.docker.com/r/gmeligio/flutter-web/tags)
 
@@ -15,19 +15,19 @@ The images includes the minimum tools to run Flutter and build apps. The version
 * [Tags](#tags)
 * [Building Locally](#building-locally)
 * [Roadmap](#roadmap)
-* [FAQ](#faq)  
-   * [Why the images are not published in the AWS ECR Public registry?](#why-the-images-are-not-published-in-the-aws-ecr-public-registry)  
-   * [Why there is no dynamic tag like latest?](#why-there-is-no-dynamic-tag-like-latest)
+* [FAQ](#faq)
+  * [Why the images are not published in the AWS ECR Public registry?](#why-the-images-are-not-published-in-the-aws-ecr-public-registry)
+  * [Why there is no dynamic tag like `latest`?](#why-there-is-no-dynamic-tag-like-latest)
 * [Contributing](#contributing)
 * [License](#license)
 
 ## Features
 
 * Analytics disabled by default, opt-in if `ENABLE_ANALYTICS` environment variable is passed when running the container.
-* Rootless user `flutter:flutter`, with permissions to run on Github workflows and GitLab CI.
-* Minimal images with predownloaded SDKs and tools ready to run `flutter` commands without further downloads:  
-   * `flutter-android` for the Android platform.  
-   * `flutter-web` for the Web platform.
+* Rootless user `flutter:flutter`, with permissions to run on GitHub workflows and GitLab CI.
+* Minimal images with predownloaded SDKs and tools ready to run `flutter` commands without further downloads:
+  * `flutter-android` for the Android platform.
+  * `flutter-web` for the Web platform.
 
 Main tools in `flutter-android`:
 
@@ -45,11 +45,11 @@ Main tools in `flutter-web`:
 
 ## Running Containers
 
-| Registry                  | flutter-android                                                                                                            |
-| ------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| Docker Hub                | [gmeligio/flutter-android:3.44.4](https://hub.docker.com/r/gmeligio/flutter-android)                                       |
+| Registry                  | flutter-android |
+| ------------------------- | --------------- |
+| Docker Hub                | [gmeligio/flutter-android:3.44.4](https://hub.docker.com/r/gmeligio/flutter-android) |
 | GitHub Container Registry | [ghcr.io/gmeligio/flutter-android:3.44.4](https://github.com/gmeligio/flutter-docker-image/pkgs/container/flutter-android) |
-| Quay                      | [quay.io/gmeligio/flutter-android:3.44.4](https://quay.io/repository/gmeligio/flutter-android)                             |
+| Quay                      | [quay.io/gmeligio/flutter-android:3.44.4](https://quay.io/repository/gmeligio/flutter-android) |
 
 On the terminal:
 
@@ -68,7 +68,7 @@ jobs:
       image: ghcr.io/gmeligio/flutter-android:3.44.4
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Build
         run: flutter build apk
 ```
@@ -84,11 +84,11 @@ build:
 
 For Flutter web apps, use the `flutter-web` image:
 
-| Registry                  | flutter-web                                                                                                        |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| Docker Hub                | [gmeligio/flutter-web:3.44.4](https://hub.docker.com/r/gmeligio/flutter-web)                                       |
+| Registry                  | flutter-web |
+| ------------------------- | --------------- |
+| Docker Hub                | [gmeligio/flutter-web:3.44.4](https://hub.docker.com/r/gmeligio/flutter-web) |
 | GitHub Container Registry | [ghcr.io/gmeligio/flutter-web:3.44.4](https://github.com/gmeligio/flutter-docker-image/pkgs/container/flutter-web) |
-| Quay                      | [quay.io/gmeligio/flutter-web:3.44.4](https://quay.io/repository/gmeligio/flutter-web)                             |
+| Quay                      | [quay.io/gmeligio/flutter-web:3.44.4](https://quay.io/repository/gmeligio/flutter-web) |
 
 ```yaml
 jobs:
@@ -98,10 +98,15 @@ jobs:
       image: ghcr.io/gmeligio/flutter-web:3.44.4
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Build
         run: flutter build web
 ```
+
+These images run on GitHub Actions, GitLab CI, Gitea, and Forgejo. Ready-to-use
+workflows for each backend are in [`examples/`](examples/) — the Gitea and Forgejo
+ones show how to make Node.js available for `actions/checkout` (act-based runners
+do not inject it the way GitHub does).
 
 ## Tags
 
@@ -125,12 +130,12 @@ docker build --target android --build-arg flutter_version=3.44.4 --build-arg fas
 
 ## Roadmap
 
-* Minimal image with predownloaded SDKs and tools ready to run `flutter` commands for the platforms:  
-   * iOS  
-   * Linux  
-   * Windows
-* Android features:  
-   * Android emulator
+* Minimal image with predownloaded SDKs and tools ready to run `flutter` commands for the platforms:
+  * iOS
+  * Linux
+  * Windows
+* Android features:
+  * Android emulator
 
 ## FAQ
 

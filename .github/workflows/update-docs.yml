@@ -1,8 +1,9 @@
 name: Update docs
 
-# docs/src/*.mdx is the source; compile.js generates committed Markdown outputs
-# (readme.md, windows.md, contributing.md, license.md). On a PR that edits the
-# source, two jobs keep source and generated output in sync within the same PR:
+# `mise run docs` code-generates committed outputs from config/version.json:
+# readme.md (Node generator, docs/build.mjs) and examples/*.yml (cue export from
+# docs/examples.cue). On a PR that edits a source, two jobs keep source and
+# generated output in sync within the same PR:
 #   check    — runs everywhere (incl. forks), no token; fails if output is stale
 #              and tells the contributor what to run. The required status check.
 #   generate — same-repo PRs only (maintainer / renovate[bot]); regenerates and
@@ -12,7 +13,9 @@ name: Update docs
 on:
   pull_request:
     paths:
-      - docs/src/**
+      - docs/build.mjs
+      - docs/examples.cue
+      - config/version.json
   workflow_dispatch:
 
 permissions:
@@ -47,7 +50,7 @@ jobs:
         run: |
           if ! git diff --exit-code; then
             {
-              echo "::error::Documentation output is out of date with docs/src/**."
+              echo "::error::Generated docs/examples are out of date with config/version.json, docs/build.mjs, or docs/examples.cue."
               echo "Run 'mise run docs' and commit the result."
             } >&2
             exit 1
