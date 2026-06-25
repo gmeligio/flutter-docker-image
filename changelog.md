@@ -1,3 +1,9 @@
+## [3.44.4] - 2026-06-25
+
+### 📚 Documentation
+
+- Drop outdated fastlane usage block from readme (#505)
+- Correct fastlane stage description in contributing (#507)
 ## [3.44.3] - 2026-06-23
 
 ### 🚀 Features
@@ -16,6 +22,10 @@
 ### 🧪 Testing
 
 - *(release)* Verify released images are anonymously pullable (#492) (#499)
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Upgrade flutter to 3.44.3 (#504)
 ## [3.44.2] - 2026-06-18
 
 ### 🚀 Features
