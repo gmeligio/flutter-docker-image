@@ -43,6 +43,7 @@ import "list"
 
 	android: {
 		platforms!: [...#PlatformVersion] & list.MinItems(1) & list.UniqueItems
+		java!: #PlatformVersion
 		gradle!: #SemverVersion
 		buildTools!: #SemverPatch
 		cmdlineTools!: #SemverMinor

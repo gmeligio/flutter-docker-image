@@ -19,15 +19,26 @@ env:
   FLUTTER_VERSION: ${{ github.ref_name }}
 
 jobs:
-  release-android:
-    name: Release Android
+  release-linux:
+    name: Release ${{ matrix.name }}
     if: github.event_name == 'push'
     permissions:
       # Allow to write packages to push the container image to the Github Container Registry
       packages: write
     runs-on: ubuntu-24.04
+    # One leg per published Linux image, both from android.Dockerfile.
+    # `target` selects the stage; `name` is the published repository. Legs are
+    # independent (fail-fast: false) so one image can publish if another fails.
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: flutter-android
+            target: android
+          - name: flutter-web
+            target: web
     env:
-      IMAGE_REPOSITORY_NAME: flutter-android
+      IMAGE_REPOSITORY_NAME: ${{ matrix.name }}
       ANDROID_BUILD_TOOLS_VERSION: 30.0.3
       VERSION_MANIFEST: config/version.json
     steps:
@@ -91,11 +102,15 @@ jobs:
         with:
           file: android.Dockerfile
           push: true
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          # Scope the gha cache per image so the two matrix legs don't share
+          # (and clobber) one cache key.
+          cache-from: type=gha,scope=${{ matrix.name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.name }}
           labels: ${{ steps.metadata.outputs.labels }}
           tags: ${{ steps.metadata.outputs.tags }}
-          target: android
+          target: ${{ matrix.target }}
+          # The android build-args are inert for the web target (its stage
+          # declares none of them), so a single shared block serves both legs.
           build-args: |
             flutter_version=${{ env.FLUTTER_VERSION }}
             fastlane_version=${{ env.FASTLANE_VERSION }}
@@ -111,7 +126,7 @@ jobs:
       # Allow to write packages to push the container image to the Github Container Registry
       packages: write
     # Push path: build the `flutter` target. Runs in parallel with
-    # release-android (no `needs`).
+    # release-linux (no `needs`).
     uses: ./.github/workflows/windows-image.yml
     with:
       target: flutter
@@ -123,12 +138,26 @@ jobs:
       QUAY_ROBOT_TOKEN: ${{ secrets.QUAY_ROBOT_TOKEN }}
 
   verify-published:
-    name: Verify published images are anonymously pullable
-    needs: [release-android, release-windows]
-    # always() so one platform's failure can't cancel the other's verification;
-    # run whenever at least one release job published.
-    if: ${{ always() && (needs.release-android.result == 'success' || needs.release-windows.result == 'success') }}
+    name: Verify ${{ matrix.name }} is anonymously pullable
+    # "Did it publish?" is read from the registry by an anonymous pull, never
+    # inferred from which release job succeeded — that coupling is what let this
+    # job drift before. With no per-image gating each image verifies on its own
+    # leg, so one platform's failure leaves only its leg red; re-push the tag to
+    # fix it forward.
+    needs: [release-linux, release-windows]
+    # !cancelled() so a failed release job doesn't skip verification of the ones
+    # that succeeded. Scoped to push, the path on which all images are built.
+    if: ${{ github.event_name == 'push' && !cancelled() }}
     runs-on: ubuntu-24.04
+    # One leg per published image. Adding an image to the release is one matrix
+    # entry here. fail-fast: false so every image is checked even if one fails.
+    strategy:
+      fail-fast: false
+      matrix:
+        name:
+          - flutter-android
+          - flutter-web
+          - flutter-windows
     steps:
       - name: Harden runner
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
@@ -140,32 +169,31 @@ jobs:
 
       # No registry login on purpose: this must verify an anonymous `docker pull`
       # succeeds, not pass on the strength of CI's own credentials.
-      - name: Verify flutter-android across all registries
-        if: ${{ needs.release-android.result == 'success' }}
+      - name: Verify ${{ matrix.name }} across all registries
         env:
           TAG: ${{ env.FLUTTER_VERSION }}
           OWNER: ${{ github.repository_owner }}
+          IMAGE: ${{ matrix.name }}
         run: |
           for registry in docker.io ghcr.io quay.io; do
-            ./script/verify_published_image.sh "$registry" "$OWNER/flutter-android" "$TAG"
-          done
-
-      - name: Verify flutter-windows across all registries
-        if: ${{ needs.release-windows.result == 'success' }}
-        env:
-          TAG: ${{ env.FLUTTER_VERSION }}
-          OWNER: ${{ github.repository_owner }}
-        run: |
-          for registry in docker.io ghcr.io quay.io; do
-            ./script/verify_published_image.sh "$registry" "$OWNER/flutter-windows" "$TAG"
+            ./script/verify_published_image.sh "$registry" "$OWNER/$IMAGE" "$TAG"
           done
 
   update-description:
-    name: Update Docker Hub description
+    name: Update Docker Hub description (${{ matrix.name }})
     runs-on: ubuntu-24.04
-    needs: release-android
+    needs: release-linux
+    # !cancelled() (not default success()) so one image's release failure does
+    # not skip the other's description sync. Scoped to push, where release-linux runs.
+    if: ${{ github.event_name == 'push' && !cancelled() }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: flutter-android
+          - name: flutter-web
     env:
-      IMAGE_REPOSITORY_NAME: flutter-android
+      IMAGE_REPOSITORY_NAME: ${{ matrix.name }}
       VERSION_MANIFEST: config/version.json
     steps:
       - name: Harden runner
@@ -197,14 +225,23 @@ jobs:
           readme-filepath: readme.md
 
   record-image:
-    name: Record image in Scout
+    name: Record image in Scout (${{ matrix.name }})
     permissions:
       # Allow to write code scanning results to GitHub's code scanning dashboard
       security-events: write
     runs-on: ubuntu-24.04
-    needs: release-android
+    needs: release-linux
+    # !cancelled() (not default success()) so one image's release failure does
+    # not skip the other's Scout record. Scoped to push, where release-linux runs.
+    if: ${{ github.event_name == 'push' && !cancelled() }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: flutter-android
+          - name: flutter-web
     env:
-      IMAGE_REPOSITORY_NAME: flutter-android
+      IMAGE_REPOSITORY_NAME: ${{ matrix.name }}
     steps:
       - name: Harden runner
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
@@ -234,6 +271,9 @@ jobs:
         uses: github/codeql-action/upload-sarif@cf1bb45a277cb3c205638b2cd5c984db1c46a412 # v4.31.7
         with:
           sarif_file: sarif.json
+          # Distinct category per image so the two matrix legs' SARIF uploads
+          # coexist on the code-scanning dashboard instead of overwriting.
+          category: ${{ matrix.name }}
 
   create-github-release:
     name: Create GitHub release
@@ -241,7 +281,11 @@ jobs:
       # Allow to create releases and upload assets to them
       contents: write
     runs-on: ubuntu-24.04
-    needs: release-android
+    needs: release-linux
+    # The release/changelog is per-version, not per-image, so !cancelled() keeps
+    # it from being skipped when one image's release leg fails. Scoped to push,
+    # where release-linux runs.
+    if: ${{ github.event_name == 'push' && !cancelled() }}
     steps:
       - name: Harden runner
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4

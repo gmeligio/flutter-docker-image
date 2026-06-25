@@ -1,3 +1,31 @@
+## [3.44.4] - 2026-06-25
+
+### 📚 Documentation
+
+- Drop outdated fastlane usage block from readme (#505)
+- Correct fastlane stage description in contributing (#507)
+## [3.44.3] - 2026-06-23
+
+### 🚀 Features
+
+- *(web)* Add minimal flutter-web image (#489)
+
+### 🚜 Refactor
+
+- *(ci)* Build the Windows image in one reusable workflow (#501)
+
+### 📚 Documentation
+
+- Archive single-version-source-of-truth (#500)
+- Per-image "Main tools" lists in README with tracked Java version (#503)
+
+### 🧪 Testing
+
+- *(release)* Verify released images are anonymously pullable (#492) (#499)
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Upgrade flutter to 3.44.3 (#504)
 ## [3.44.2] - 2026-06-18
 
 ### 🚀 Features
@@ -8,6 +36,11 @@
 
 - *(android)* Install multi_json explicitly so fastlane runs (#490) (#491)
 - *(renovate)* Match android.Dockerfile + correct package pin annotations (#488)
+- *(ci)* Make config/version.json the single version source of truth (#498)
+
+### 🚜 Refactor
+
+- *(ci)* Hoist Setup mise tools into the setup block across all jobs (#497)
 
 ### 📚 Documentation
 
@@ -19,6 +52,7 @@
 - *(update-version)* Make platform updaters symmetric via single compose-manifest job (#483)
 - *(update-version)* Gate compose-manifest on Flutter change, not job success (#487)
 - *(update-version)* Provide jq via mise in android job container (#494)
+- *(release)* Upgrade flutter to 3.44.2 (#496)
 ## [3.44.1] - 2026-06-02
 
 ### 🚀 Features

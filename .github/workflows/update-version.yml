@@ -293,6 +293,14 @@ jobs:
         run: |
           rm -rf test_app
 
+      # Auto-refresh Java on the Flutter cadence so version.json (and the README) mirror the shipped JDK with no manual edit.
+      - name: Derive installed Java major version
+        run: |
+          java_major=$(bash script/java_version.sh)
+          echo "Derived Java major: $java_major"
+          jq --argjson java "$java_major" '.android.java = {version: $java}' config/version.json > config/version.json.tmp
+          mv config/version.json.tmp config/version.json
+
       # Producer self-validation: the android + fastlane blocks overlaid onto the
       # schema-valid base must satisfy #Version before they are reported. (No
       # #Android definition exists in the schema, so validate the full manifest.)

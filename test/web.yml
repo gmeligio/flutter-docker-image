@@ -1,0 +1,29 @@
+schemaVersion: 2.0.0
+commandTests:
+  # Building web output proves the platform is enabled and functional; the
+  # excludedOutput assertions prove the engine is precached (no runtime
+  # download) — the distinguishing guarantee of this image.
+  - name: Web build runs with the engine precached
+    setup:
+      - - flutter
+        - create
+        - test_app
+    teardown:
+      - - rm
+        - -r
+        - test_app
+    command: bash
+    args:
+      - -c
+      - |
+        cd test_app \
+        && timeout --preserve-status 480s flutter build web
+    excludedOutput:
+      - Checking
+      - Installing
+      - Downloading
+fileContentTests:
+  - name: Dart and Flutter analytics are disabled
+    path: /home/flutter/.dart-tool/dart-flutter-telemetry.config
+    expectedContents:
+      - reporting=0
