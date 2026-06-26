@@ -1,4 +1,4 @@
-<!--- This markdown file was auto-generated from "readme.mdx" -->
+<!--- This markdown file was auto-generated from docs/build.mjs -->
 
 [![openssf scorecard](https://api.scorecard.dev/projects/github.com/gmeligio/flutter-docker-image/badge)](https://scorecard.dev/viewer/?uri=github.com/gmeligio/flutter-docker-image) [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/gmeligio/flutter-docker-image) [![channel](https://img.shields.io/static/v1?label=channel&message=stable&color=blue)](https://docs.flutter.dev/release/archive?tab=linux) [![flutter-android version](https://img.shields.io/docker/v/gmeligio/flutter-android?label=flutter-android%20version)](https://hub.docker.com/r/gmeligio/flutter-android/tags) [![flutter-android pulls](https://img.shields.io/docker/pulls/gmeligio/flutter-android?label=flutter-android%20pulls)](https://hub.docker.com/r/gmeligio/flutter-android/tags) [![flutter-web version](https://img.shields.io/docker/v/gmeligio/flutter-web?label=flutter-web%20version)](https://hub.docker.com/r/gmeligio/flutter-web/tags) [![flutter-web pulls](https://img.shields.io/docker/pulls/gmeligio/flutter-web?label=flutter-web%20pulls)](https://hub.docker.com/r/gmeligio/flutter-web/tags)
 
@@ -15,23 +15,23 @@ The images includes the minimum tools to run Flutter and build apps. The version
 * [Tags](#tags)
 * [Building Locally](#building-locally)
 * [Roadmap](#roadmap)
-* [FAQ](#faq)  
-   * [Why the images are not published in the AWS ECR Public registry?](#why-the-images-are-not-published-in-the-aws-ecr-public-registry)  
-   * [Why there is no dynamic tag like latest?](#why-there-is-no-dynamic-tag-like-latest)
+* [FAQ](#faq)
+  * [Why the images are not published in the AWS ECR Public registry?](#why-the-images-are-not-published-in-the-aws-ecr-public-registry)
+  * [Why there is no dynamic tag like `latest`?](#why-there-is-no-dynamic-tag-like-latest)
 * [Contributing](#contributing)
 * [License](#license)
 
 ## Features
 
 * Analytics disabled by default, opt-in if `ENABLE_ANALYTICS` environment variable is passed when running the container.
-* Rootless user `flutter:flutter`, with permissions to run on Github workflows and GitLab CI.
-* Minimal images with predownloaded SDKs and tools ready to run `flutter` commands without further downloads:  
-   * `flutter-android` for the Android platform.  
-   * `flutter-web` for the Web platform.
+* Rootless user `flutter:flutter`, with permissions to run on GitHub workflows and GitLab CI.
+* Minimal images with predownloaded SDKs and tools ready to run `flutter` commands without further downloads:
+  * `flutter-android` for the Android platform.
+  * `flutter-web` for the Web platform.
 
 Main tools in `flutter-android`:
 
-* Flutter SDK: 3.44.3
+* Flutter SDK: 3.44.4
 * Java (OpenJDK): 17
 * Android SDK Platform: 36
 * Android NDK: 28.2.13676358
@@ -40,22 +40,22 @@ Main tools in `flutter-android`:
 
 Main tools in `flutter-web`:
 
-* Flutter SDK: 3.44.3
+* Flutter SDK: 3.44.4
 * Web engine: precached (no runtime download)
 
 ## Running Containers
 
-| Registry                  | flutter-android                                                                                                            |
-| ------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| Docker Hub                | [gmeligio/flutter-android:3.44.3](https://hub.docker.com/r/gmeligio/flutter-android)                                       |
-| GitHub Container Registry | [ghcr.io/gmeligio/flutter-android:3.44.3](https://github.com/gmeligio/flutter-docker-image/pkgs/container/flutter-android) |
-| Quay                      | [quay.io/gmeligio/flutter-android:3.44.3](https://quay.io/repository/gmeligio/flutter-android)                             |
+| Registry                  | flutter-android |
+| ------------------------- | --------------- |
+| Docker Hub                | [gmeligio/flutter-android:3.44.4](https://hub.docker.com/r/gmeligio/flutter-android) |
+| GitHub Container Registry | [ghcr.io/gmeligio/flutter-android:3.44.4](https://github.com/gmeligio/flutter-docker-image/pkgs/container/flutter-android) |
+| Quay                      | [quay.io/gmeligio/flutter-android:3.44.4](https://quay.io/repository/gmeligio/flutter-android) |
 
 On the terminal:
 
 ```bash
 # From GitHub Container Registry
-docker run --rm -it ghcr.io/gmeligio/flutter-android:3.44.3 bash
+docker run --rm -it ghcr.io/gmeligio/flutter-android:3.44.4 bash
 ```
 
 On a workflow in GitHub Actions:
@@ -65,10 +65,10 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/gmeligio/flutter-android:3.44.3
+      image: ghcr.io/gmeligio/flutter-android:3.44.4
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Build
         run: flutter build apk
 ```
@@ -77,72 +77,65 @@ On a `.gitlab-ci.yml` in GitLab CI:
 
 ```yaml
 build:
-  image: ghcr.io/gmeligio/flutter-android:3.44.3
+  image: ghcr.io/gmeligio/flutter-android:3.44.4
   script:
     - flutter build apk
 ```
 
-Fastlane:
-
-```bash
-# Ruby bundler is available in the container.
-# The fastlane gem is cached but not installed
-# For more information, see https://docs.fastlane.tools
-
-# Use --prefer-local to download gems only if they are not cached
-bundle install --prefer-local
-bundle exec fastlane
-```
-
 For Flutter web apps, use the `flutter-web` image:
 
-| Registry                  | flutter-web                                                                                                        |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| Docker Hub                | [gmeligio/flutter-web:3.44.3](https://hub.docker.com/r/gmeligio/flutter-web)                                       |
-| GitHub Container Registry | [ghcr.io/gmeligio/flutter-web:3.44.3](https://github.com/gmeligio/flutter-docker-image/pkgs/container/flutter-web) |
-| Quay                      | [quay.io/gmeligio/flutter-web:3.44.3](https://quay.io/repository/gmeligio/flutter-web)                             |
+| Registry                  | flutter-web |
+| ------------------------- | --------------- |
+| Docker Hub                | [gmeligio/flutter-web:3.44.4](https://hub.docker.com/r/gmeligio/flutter-web) |
+| GitHub Container Registry | [ghcr.io/gmeligio/flutter-web:3.44.4](https://github.com/gmeligio/flutter-docker-image/pkgs/container/flutter-web) |
+| Quay                      | [quay.io/gmeligio/flutter-web:3.44.4](https://quay.io/repository/gmeligio/flutter-web) |
 
 ```yaml
 jobs:
   build:
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/gmeligio/flutter-web:3.44.3
+      image: ghcr.io/gmeligio/flutter-web:3.44.4
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Build
         run: flutter build web
 ```
+
+These images run on GitHub Actions, GitLab CI, Gitea, and Forgejo. Ready-to-use
+workflows for each backend are in [`examples/`](examples/) — the Gitea and Forgejo
+ones show how to make Node.js available for `actions/checkout` (act-based runners
+do not inject it the way GitHub does).
 
 ## Tags
 
 Every new tag on the flutter stable channel gets built. The tag is composed of the Flutter version used to build the image:
 
-* Docker image: gmeligio/flutter-android:3.44.3
-* Flutter version: 3.44.3
+* Docker image: gmeligio/flutter-android:3.44.4
+* Flutter version: 3.44.4
 
 ## Building Locally
 
 The android.Dockerfile expects a few arguments:
 
-* `flutter_version <string>`: The version of Flutter to use when building. Example: 3.44.3
+* `flutter_version <string>`: The version of Flutter to use when building. Example: 3.44.4
 * `android_build_tools_version <string>`: The version of the Android SDK Build Tools to install. Example: 36.0.0
 * `android_platform_versions <list>`: The versions of the Android SDK Platforms to install, separated by spaces. Example: 36
 
 ```bash
 # Android
-docker build --target android --build-arg flutter_version=3.44.3 --build-arg fastlane_version=2.236.1 --build-arg android_build_tools_version=36.0.0 --build-arg android_platform_versions="36" -t android-test .
+docker build --target android --build-arg flutter_version=3.44.4 --build-arg fastlane_version=2.236.1 --build-arg android_build_tools_version=36.0.0 --build-arg android_platform_versions="36" -t android-test .
 ```
 
 ## Roadmap
 
-* Minimal image with predownloaded SDKs and tools ready to run `flutter` commands for the platforms:  
-   * iOS  
-   * Linux  
-   * Windows
-* Android features:  
-   * Android emulator
+* Minimal image with predownloaded SDKs and tools ready to run `flutter` commands for the platforms:
+  * iOS
+  * Linux
+  * Windows
+* Android features:
+  * Android emulator
 
 ## FAQ
 
