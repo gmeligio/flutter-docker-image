@@ -2,7 +2,7 @@
 
 `release.yml` publishes three images: `flutter-android` and `flutter-web` from `android.Dockerfile` via the `release-linux` matrix, and `flutter-windows` from `windows.Dockerfile` via the `release-windows` caller of the reusable `windows-image.yml`. A separate `update-description` job (`release.yml:182-225`) syncs Docker Hub metadata with `peter-evans/dockerhub-description@v5`, matrixed over `flutter-android` and `flutter-web` only, with `needs: release-linux` and `if: github.event_name == 'push' && !cancelled()`. It passes `short-description: github.event.repository.description` (the single repo "About" blurb) and `readme-filepath: readme.md`.
 
-`readme.md` is a generated artifact (compiled from `docs/src/readme.mdx` by the MDX→MD pipeline governed by `repository-wiki`); it is a generic multi-image Overview. `peter-evans/dockerhub-description` updates an existing repo's short description (≤100 bytes) and full description (≤25,000 bytes); it requires the repo to already exist and a Docker Hub password or PAT with write + repo Admin.
+`readme.md` is a generated artifact (code-generated from `config/version.json` by `docs/build.mjs` — the `generated-docs-and-examples` capability, whose header states the same `readme.md` serves as both the GitHub README and the Docker Hub description); it is a generic, Linux-image-oriented Overview. `peter-evans/dockerhub-description` updates an existing repo's short description (≤100 bytes) and full description (≤25,000 bytes); it requires the repo to already exist and a Docker Hub password or PAT with write + repo Admin.
 
 Constraints: sole maintainer; descriptions are near-static; `flutter-windows` is built by a different path but its Docker Hub repo already exists (published since 3.44.1); the Windows-only `workflow_dispatch` recovery path (per `windows-image-release`) must keep skipping description sync.
 
@@ -15,7 +15,7 @@ Constraints: sole maintainer; descriptions are near-static; `flutter-windows` is
 - Minimal surface: one matrix + one field, no new job, no new credential.
 
 **Non-Goals:**
-- Per-platform Overviews (deferred; `docs/windows.mdx` exists for later).
+- Per-platform Overviews (deferred; `docs/windows.md` already exists as a committed generated file).
 - Docker Scout coverage for `flutter-windows` ([issue #506](https://github.com/gmeligio/flutter-docker-image/issues/506)).
 - Quay / GHCR description automation (Quay manual; GHCR has no write API).
 - A `config/images.json` manifest / de-duplicating the image set across the other matrices (separate change).
@@ -34,7 +34,7 @@ Carry the short description as a `short:` field on each matrix `include` entry a
 - **Why not a per-image file / `config/images.json`:** the manifest is a deferred, separate change; for one short string per image, an inline matrix field is simpler and migrates cleanly into the manifest later.
 
 ### Decision 3: Keep the shared `readme.md` Overview
-All three repos get `readme-filepath: readme.md`. A per-platform Overview (`docs/windows.mdx` → `docs/windows.md`) is possible later but adds scope without a current need.
+All three repos get `readme-filepath: readme.md`. Note the generated `readme.md` is Linux-image-oriented (it covers `flutter-android` and `flutter-web`), so the `flutter-windows` repo gets a generic — not Windows-specific — Overview for now; that is the accepted trade-off of a single shared Overview. A per-platform Windows Overview (`docs/windows.md`, already a committed generated file) is the natural follow-up but adds scope without a current need.
 
 ### Decision 4: Keep `needs: release-linux` and the `if: github.event_name == 'push'` guard
 The job's `needs:` and `if:` are unchanged. Description sync is repo-level metadata, decoupled from any single run's image push: the three Docker Hub repos already exist, so the `flutter-windows` leg does not need to wait for `release-windows` (avoiding a ~30-minute wait behind the Windows build) and the sync still runs once per push after the Linux build.
