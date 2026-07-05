@@ -1,8 +1,8 @@
 {
     "flutter": {
         "channel": "stable",
-        "commit": "67323de285b00232883f53b84095eb72be97d35c",
-        "version": "3.38.9"
+        "commit": "c6f67dede3d4aa1aa7a69dd56a3494a5cde6cc80",
+        "version": "3.38.10"
     },
     "android": {
         "platforms": [

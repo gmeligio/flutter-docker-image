@@ -5,7 +5,7 @@ SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 ENV LANG=C.UTF-8
 
 # renovate: suite=trixie depName=curl
-ARG CURL_VERSION="8.14.1-2+deb13u2"
+ARG CURL_VERSION="8.14.1-2+deb13u3"
 # renovate: suite=trixie depName=git
 ARG GIT_VERSION="1:2.47.3-0+deb13u1"
 # renovate: suite=trixie depName=lcov
@@ -150,9 +150,9 @@ ENV ANDROID_HOME="$SDK_ROOT/android-sdk" \
 ENV PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$HOME/.local/bin"
 
 # renovate: suite=bookworm depName=openjdk-17-jdk-headless
-ARG OPENJDK_17_JDK_HEADLESS_VERSION="17.0.18+8-1~deb12u1"
+ARG OPENJDK_17_JDK_HEADLESS_VERSION="17.0.19+10-1~deb12u2"
 # renovate: suite=trixie depName=sudo
-ARG SUDO_VERSION="1.9.16p2-3"
+ARG SUDO_VERSION="1.9.16p2-3+deb13u2"
 
 USER root
 # Add debian 12 bookworm repository alongside debian 13 trixie to install Java 17
