@@ -1,8 +1,8 @@
 {
   "flutter": {
     "channel": "stable",
-    "commit": "ad70ec4617166f1c38e5d2bfd388af71fda14f06",
-    "version": "3.44.4"
+    "commit": "f94f4fc76b4d74543ed9b085bbd75341ef65de22",
+    "version": "3.44.5"
   },
   "android": {
     "platforms": [
@@ -30,11 +30,11 @@
     }
   },
   "fastlane": {
-    "version": "2.236.1"
+    "version": "2.237.0"
   },
   "windows": {
     "git": {
-      "version": "2.54.0"
+      "version": "2.55.0"
     },
     "vsBuildTools": {
       "cmakeProject": {

@@ -1,9 +1,18 @@
+## [3.44.5] - 2026-07-08
+
+### 🚀 Features
+
+- *(docs)* Code-generate README + CI examples from version.json (closes #493) (#502)
 ## [3.44.4] - 2026-06-25
 
 ### 📚 Documentation
 
 - Drop outdated fastlane usage block from readme (#505)
 - Correct fastlane stage description in contributing (#507)
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Upgrade flutter to 3.44.4 (#508)
 ## [3.44.3] - 2026-06-23
 
 ### 🚀 Features
