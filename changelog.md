@@ -3,6 +3,10 @@
 ### 🚀 Features
 
 - *(docs)* Code-generate README + CI examples from version.json (closes #493) (#502)
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Upgrade flutter to 3.44.5 (#510)
 ## [3.44.4] - 2026-06-25
 
 ### 📚 Documentation
