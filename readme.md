@@ -31,7 +31,7 @@ The images includes the minimum tools to run Flutter and build apps. The version
 
 Main tools in `flutter-android`:
 
-* Flutter SDK: 3.44.5
+* Flutter SDK: 3.44.6
 * Java (OpenJDK): 17
 * Android SDK Platform: 36
 * Android NDK: 28.2.13676358
@@ -40,22 +40,22 @@ Main tools in `flutter-android`:
 
 Main tools in `flutter-web`:
 
-* Flutter SDK: 3.44.5
+* Flutter SDK: 3.44.6
 * Web engine: precached (no runtime download)
 
 ## Running Containers
 
 | Registry                  | flutter-android |
 | ------------------------- | --------------- |
-| Docker Hub                | [gmeligio/flutter-android:3.44.5](https://hub.docker.com/r/gmeligio/flutter-android) |
-| GitHub Container Registry | [ghcr.io/gmeligio/flutter-android:3.44.5](https://github.com/gmeligio/flutter-docker-image/pkgs/container/flutter-android) |
-| Quay                      | [quay.io/gmeligio/flutter-android:3.44.5](https://quay.io/repository/gmeligio/flutter-android) |
+| Docker Hub                | [gmeligio/flutter-android:3.44.6](https://hub.docker.com/r/gmeligio/flutter-android) |
+| GitHub Container Registry | [ghcr.io/gmeligio/flutter-android:3.44.6](https://github.com/gmeligio/flutter-docker-image/pkgs/container/flutter-android) |
+| Quay                      | [quay.io/gmeligio/flutter-android:3.44.6](https://quay.io/repository/gmeligio/flutter-android) |
 
 On the terminal:
 
 ```bash
 # From GitHub Container Registry
-docker run --rm -it ghcr.io/gmeligio/flutter-android:3.44.5 bash
+docker run --rm -it ghcr.io/gmeligio/flutter-android:3.44.6 bash
 ```
 
 On a workflow in GitHub Actions:
@@ -65,7 +65,7 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/gmeligio/flutter-android:3.44.5
+      image: ghcr.io/gmeligio/flutter-android:3.44.6
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -77,7 +77,7 @@ On a `.gitlab-ci.yml` in GitLab CI:
 
 ```yaml
 build:
-  image: ghcr.io/gmeligio/flutter-android:3.44.5
+  image: ghcr.io/gmeligio/flutter-android:3.44.6
   script:
     - flutter build apk
 ```
@@ -86,16 +86,16 @@ For Flutter web apps, use the `flutter-web` image:
 
 | Registry                  | flutter-web |
 | ------------------------- | --------------- |
-| Docker Hub                | [gmeligio/flutter-web:3.44.5](https://hub.docker.com/r/gmeligio/flutter-web) |
-| GitHub Container Registry | [ghcr.io/gmeligio/flutter-web:3.44.5](https://github.com/gmeligio/flutter-docker-image/pkgs/container/flutter-web) |
-| Quay                      | [quay.io/gmeligio/flutter-web:3.44.5](https://quay.io/repository/gmeligio/flutter-web) |
+| Docker Hub                | [gmeligio/flutter-web:3.44.6](https://hub.docker.com/r/gmeligio/flutter-web) |
+| GitHub Container Registry | [ghcr.io/gmeligio/flutter-web:3.44.6](https://github.com/gmeligio/flutter-docker-image/pkgs/container/flutter-web) |
+| Quay                      | [quay.io/gmeligio/flutter-web:3.44.6](https://quay.io/repository/gmeligio/flutter-web) |
 
 ```yaml
 jobs:
   build:
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/gmeligio/flutter-web:3.44.5
+      image: ghcr.io/gmeligio/flutter-web:3.44.6
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -112,20 +112,20 @@ do not inject it the way GitHub does).
 
 Every new tag on the flutter stable channel gets built. The tag is composed of the Flutter version used to build the image:
 
-* Docker image: gmeligio/flutter-android:3.44.5
-* Flutter version: 3.44.5
+* Docker image: gmeligio/flutter-android:3.44.6
+* Flutter version: 3.44.6
 
 ## Building Locally
 
 The android.Dockerfile expects a few arguments:
 
-* `flutter_version <string>`: The version of Flutter to use when building. Example: 3.44.5
+* `flutter_version <string>`: The version of Flutter to use when building. Example: 3.44.6
 * `android_build_tools_version <string>`: The version of the Android SDK Build Tools to install. Example: 36.0.0
 * `android_platform_versions <list>`: The versions of the Android SDK Platforms to install, separated by spaces. Example: 36
 
 ```bash
 # Android
-docker build --target android --build-arg flutter_version=3.44.5 --build-arg fastlane_version=2.237.0 --build-arg android_build_tools_version=36.0.0 --build-arg android_platform_versions="36" -t android-test .
+docker build --target android --build-arg flutter_version=3.44.6 --build-arg fastlane_version=2.237.0 --build-arg android_build_tools_version=36.0.0 --build-arg android_platform_versions="36" -t android-test .
 ```
 
 ## Roadmap
