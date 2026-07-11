@@ -1,9 +1,9 @@
 [actions]
 "actions/checkout" = "^6"
 "actions/create-github-app-token" = "^2"
-"actions/download-artifact" = "^6"
+"actions/download-artifact" = "^8"
 "actions/github-script" = "^8"
-"actions/upload-artifact" = "^5"
+"actions/upload-artifact" = "^7"
 "docker/build-push-action" = "^6"
 "docker/login-action" = "^3"
 "docker/metadata-action" = "^5"
