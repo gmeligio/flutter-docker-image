@@ -1,6 +1,6 @@
 [actions]
 "actions/checkout" = "^6"
-"actions/create-github-app-token" = "^2"
+"actions/create-github-app-token" = "^3.0.0"
 "actions/download-artifact" = "^6"
 "actions/github-script" = "^8"
 "actions/upload-artifact" = "^5"

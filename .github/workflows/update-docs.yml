@@ -72,10 +72,10 @@ jobs:
           egress-policy: audit
 
       - name: Generate authentication token with GitHub App to trigger Actions
-        uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         id: app-token
         with:
-          app-id: ${{ secrets.VERIFIED_COMMIT_ID }}
+          client-id: ${{ secrets.VERIFIED_COMMIT_CLIENT_ID }}
           private-key: ${{ secrets.VERIFIED_COMMIT_KEY }}
           repositories: ${{ github.event.repository.name }}
           owner: ${{ github.repository_owner }}
