@@ -15,9 +15,10 @@
       "enabled": false
     },
     {
-      "description": "Schedule gx.toml-driven action major upgrades on the first day of the month",
+      "description": "Schedule gx.toml-driven action upgrades on the first day of the month. rangeStrategy 'bump' raises the specifier lower bound for in-range (minor/patch) updates too — 'replace' (the default) only fires on out-of-range majors, so minor/patch bumps would never reach gx.toml or the lock.",
       "matchFileNames": [".github/gx.toml"],
       "groupName": "github-actions",
+      "rangeStrategy": "bump",
       "schedule": ["* 0-3 1 * *"]
     }
   ],
