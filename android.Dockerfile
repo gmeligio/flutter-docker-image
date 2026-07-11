@@ -1,11 +1,11 @@
-FROM debian:13.4-slim@sha256:109e2c65005bf160609e4ba6acf7783752f8502ad218e298253428690b9eaa4b AS flutter
+FROM debian:13.5-slim@sha256:28de0877c2189802884ccd20f15ee41c203573bd87bb6b883f5f46362d24c5c2 AS flutter
 
 SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
 ENV LANG=C.UTF-8
 
 # renovate: suite=trixie depName=curl
-ARG CURL_VERSION="8.14.1-2+deb13u3"
+ARG CURL_VERSION="8.14.1-2+deb13u4"
 # renovate: suite=trixie depName=git
 ARG GIT_VERSION="1:2.47.3-0+deb13u1"
 # renovate: suite=trixie depName=lcov
