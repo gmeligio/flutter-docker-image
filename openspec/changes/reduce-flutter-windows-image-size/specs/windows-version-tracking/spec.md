@@ -9,9 +9,9 @@ The Pester suite at `test/windows/Windows.Tests.ps1` SHALL read `config/version.
 - `git --version` reports a version equal to `windows.git.version`,
 - the `Microsoft.VisualStudio.Component.VC.CMake.Project,version=<x>` directory's `<x>` equals `windows.vsBuildTools.cmakeProject.version`,
 - the `Microsoft.VisualStudio.Component.Windows11SDK.<build>` directory's `<build>` equals `windows.vsBuildTools.windows11Sdk.build`,
-- the `Microsoft.VisualStudio.Workload.NativeDesktop,version=<x>` directory's `<x>` equals `windows.vsBuildTools.vcTools.version`.
+- the `Microsoft.VisualStudio.Component.VC.Tools.x86.x64,version=<x>` directory's `<x>` equals `windows.vsBuildTools.vcTools.version`.
 
-The `windows.vsBuildTools.vcTools.version` field tracks the `Microsoft.VisualStudio.Workload.NativeDesktop` workload version (the C++ desktop toolchain `windows.Dockerfile` installs), which replaced the former `Microsoft.VisualStudio.Workload.VCTools` workload.
+The `windows.vsBuildTools.vcTools.version` field tracks the `Microsoft.VisualStudio.Component.VC.Tools.x86.x64` MSVC compiler version. The Dockerfile installs `Workload.NativeDesktop` (the C++ desktop toolchain Flutter's `vswhere` requires) plus an explicit `--add` of that compiler component, replacing the former `Microsoft.VisualStudio.Workload.VCTools` workload.
 
 The experience context is the reviewer of an upgrade PR: any drift between the manifest the PR proposes and the image actually produced is caught as a hard test failure, not silent semantics drift.
 
@@ -32,7 +32,7 @@ The experience context is the reviewer of an upgrade PR: any drift between the m
 The `update-version.yml` workflow SHALL include a job (`update-windows-version`) that attempts to update the `windows` block in `config/version.json` whenever it runs. The job SHALL:
 
 - read the latest Git for Windows release from `https://api.github.com/repos/git-for-windows/git/releases/latest` and write the resolved version to `windows.git.version`,
-- read VS BuildTools component versions from Microsoft's VS catalog manifest (`VisualStudio.vsman`) reached via the channel manifest at `https://aka.ms/vs/17/release/channel`, resolving `windows.vsBuildTools.vcTools.version` from the `Microsoft.VisualStudio.Workload.NativeDesktop` package (not `Microsoft.VisualStudio.Workload.VCTools`), consistent with the workload the Dockerfile installs,
+- read VS BuildTools component versions from Microsoft's VS catalog manifest (`VisualStudio.vsman`) reached via the channel manifest at `https://aka.ms/vs/17/release/channel`, resolving `windows.vsBuildTools.vcTools.version` from the `Microsoft.VisualStudio.Component.VC.Tools.x86.x64` package (the MSVC compiler the Dockerfile explicitly installs alongside `Workload.NativeDesktop`), not `Microsoft.VisualStudio.Workload.VCTools`,
 - verify upstream consistency by comparing `channel.json.info.productSemanticVersion` against `vsman.json.info.productSemanticVersion`; on equality, write the extracted versions and emit a CUE-validated fragment artifact containing only the `windows` block,
 - on inequality (Microsoft's release pipeline is mid-publish or otherwise inconsistent), skip the version write, emit a `windows_skipped=true` job output, and exit successfully without uploading a fragment artifact.
 
@@ -46,12 +46,12 @@ The experience context is the maintainer reviewing the monthly upgrade PR. They 
 
 - **GIVEN** a scheduled `update-version.yml` run where both Git for Windows and the VS catalog manifest are reachable and internally consistent
 - **WHEN** `update-windows-version` runs
-- **THEN** it resolves `windows.vsBuildTools.vcTools.version` from the `Microsoft.VisualStudio.Workload.NativeDesktop` package
+- **THEN** it resolves `windows.vsBuildTools.vcTools.version` from the `Microsoft.VisualStudio.Component.VC.Tools.x86.x64` package
 - **AND** emits a CUE-validated `windows` fragment that the composed manifest includes in the upgrade PR
 
-#### Scenario: VC tools version resolves from the NativeDesktop workload
+#### Scenario: VC tools version resolves from the compiler component
 
-- **GIVEN** a fetched `vsman.json` containing both a `Microsoft.VisualStudio.Workload.VCTools` package and a `Microsoft.VisualStudio.Workload.NativeDesktop` package with differing versions
+- **GIVEN** a fetched `vsman.json` containing a `Microsoft.VisualStudio.Workload.VCTools` package and a `Microsoft.VisualStudio.Component.VC.Tools.x86.x64` package with differing versions
 - **WHEN** `update-windows-version` extracts the VC tools version
-- **THEN** it selects the `Microsoft.VisualStudio.Workload.NativeDesktop` version
+- **THEN** it selects the `Microsoft.VisualStudio.Component.VC.Tools.x86.x64` version
 - **AND** writes it to `windows.vsBuildTools.vcTools.version`

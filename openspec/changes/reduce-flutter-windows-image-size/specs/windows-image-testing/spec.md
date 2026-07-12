@@ -4,15 +4,15 @@
 
 ### Requirement: Tests assert presence of pinned Visual Studio components
 
-The Pester suite SHALL assert that the directories at `$env:ProgramData\Microsoft\VisualStudio\Packages\` contain entries matching the components installed by `windows.Dockerfile`: `Microsoft.VisualStudio.Component.VC.CMake.Project`, `Microsoft.VisualStudio.Component.Windows11SDK.22621`, and `Microsoft.VisualStudio.Workload.NativeDesktop`. The match pattern SHALL accept any installed `version=...` suffix.
+The Pester suite SHALL assert that the directories at `$env:ProgramData\Microsoft\VisualStudio\Packages\` contain entries matching the components installed by `windows.Dockerfile`: `Microsoft.VisualStudio.Component.VC.CMake.Project`, `Microsoft.VisualStudio.Component.Windows11SDK.22621`, and `Microsoft.VisualStudio.Component.VC.Tools.x86.x64`. The match pattern SHALL accept any installed `version=...` suffix.
 
-The experience context is detecting silent removal or rename of a VS component in the Dockerfile — the package directory is the on-disk evidence that the component installed. After the workload trim, the C++ desktop toolchain is provided by the `Workload.NativeDesktop` workload (Flutter's required toolchain, materially narrower than the former `Workload.VCTools`), so the on-disk evidence the suite checks for is the NativeDesktop workload directory.
+The experience context is detecting silent removal or rename of a VS component in the Dockerfile — the package directory is the on-disk evidence that the component installed. After the workload trim, the C++ desktop toolchain is provided by `Workload.NativeDesktop` plus an explicit `--add` of the `VC.Tools.x86.x64` compiler (Flutter's required toolchain, materially narrower than the former `Workload.VCTools`), so the on-disk evidence the suite asserts is the `VC.Tools.x86.x64` compiler directory.
 
 #### Scenario: All three components match
 
 - **GIVEN** the image was built from the current `windows.Dockerfile`
 - **WHEN** the VS-component Pester tests run
-- **THEN** each of `VC.CMake.Project`, `Windows11SDK.22621`, and `Workload.NativeDesktop` matches `*,version=*`
+- **THEN** each of `VC.CMake.Project`, `Windows11SDK.22621`, and `VC.Tools.x86.x64` matches `*,version=*`
 - **AND** all three tests pass
 
 #### Scenario: Pattern correctly accepts the on-disk format

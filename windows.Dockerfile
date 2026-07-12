@@ -76,7 +76,8 @@ RUN Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vs_buildtools.exe -OutFi
     Start-Process vs_BuildTools.exe -ArgumentList \"--quiet --wait --norestart --nocache `
     --add Microsoft.VisualStudio.Component.VC.CMake.Project `
     --add Microsoft.VisualStudio.Component.Windows11SDK.${env:vs_win11sdk_build} `
-    --add Microsoft.VisualStudio.Workload.NativeDesktop\" `
+    --add Microsoft.VisualStudio.Workload.NativeDesktop `
+    --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64\" `
     -Wait; `
     Remove-Item vs_BuildTools.exe; `
     # Remove VS installer logs in this same layer; a later cleanup layer cannot shrink it.
