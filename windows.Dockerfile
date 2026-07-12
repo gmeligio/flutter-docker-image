@@ -76,21 +76,25 @@ RUN Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vs_buildtools.exe -OutFi
     Start-Process vs_BuildTools.exe -ArgumentList \"--quiet --wait --norestart --nocache `
     --add Microsoft.VisualStudio.Component.VC.CMake.Project `
     --add Microsoft.VisualStudio.Component.Windows11SDK.${env:vs_win11sdk_build} `
-    --add Microsoft.VisualStudio.Workload.VCTools\" `
+    --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64\" `
     -Wait; `
-    Remove-Item vs_BuildTools.exe;
+    Remove-Item vs_BuildTools.exe; `
+    # Remove VS installer logs in this same layer; a later cleanup layer cannot shrink it.
+    Remove-Item -Path \"$env:TEMP\dd_*\" -Recurse -Force -ErrorAction SilentlyContinue;
 USER ContainerUser
 
+# Warm up + validate the toolchain at build time, then delete the throwaway output
+# in the SAME layer so the ~99 MB build_app never commits to a persistent layer.
 WORKDIR "$USERPROFILE/build_app"
-RUN flutter build windows;
+RUN flutter build windows; `
+    Set-Location "$env:USERPROFILE"; `
+    Remove-Item -Recurse -Force build_app;
 
 WORKDIR "$USERPROFILE"
 COPY ./script/docker_windows_entrypoint.ps1 "docker_entrypoint.ps1"
 
 # hadolint ignore=DL3025
 ENTRYPOINT "C:\Users\ContainerUser\docker_entrypoint.ps1"
-
-RUN Remove-Item -Recurse build_app;
 
 #-----------------------------------------------
 #-----------------------------------------------
