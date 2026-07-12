@@ -1,19 +1,41 @@
 # windows-image-testing (delta)
 
+## ADDED Requirements
+
+### Requirement: The suite asserts a Windows app builds with the installed toolchain
+
+The Pester suite SHALL run `flutter create` followed by `flutter build windows` and assert the build exits 0, proving the installed VS toolchain (the NativeDesktop workload, the `VC.Tools.x86.x64` MSVC compiler, the Windows SDK, and CMake) is complete and detectable by Flutter. This mirrors the android suite (`gradlew bundleRelease`) and web suite (`flutter build web`), which make a real build their primary gate.
+
+The experience context is the maintainer who trims or changes the VS component set: an incomplete toolchain that still lets the image build but cannot compile a Windows app is caught here as a named test failure ("flutter build windows must succeed"), rather than surfacing only as a cryptic "Unable to find suitable Visual Studio toolchain" at image-build time.
+
+#### Scenario: A Windows app builds successfully
+
+- **GIVEN** the image built with the pinned VS toolchain
+- **WHEN** the Pester build test runs `flutter create` + `flutter build windows`
+- **THEN** the build exits 0
+- **AND** the test passes
+
+#### Scenario: An incomplete toolchain fails the build test
+
+- **GIVEN** an image whose VS component set omits a piece Flutter's Windows build requires (e.g. the MSVC compiler or the Windows SDK)
+- **WHEN** the Pester build test runs `flutter build windows`
+- **THEN** the build exits non-zero
+- **AND** the test fails, naming that the build did not succeed
+
 ## MODIFIED Requirements
 
 ### Requirement: Tests assert presence of pinned Visual Studio components
 
-The Pester suite SHALL assert that the directories at `$env:ProgramData\Microsoft\VisualStudio\Packages\` contain entries matching the components installed by `windows.Dockerfile`: `Microsoft.VisualStudio.Component.VC.CMake.Project`, `Microsoft.VisualStudio.Component.Windows11SDK.22621`, and `Microsoft.VisualStudio.Component.VC.Tools.x86.x64`. The match pattern SHALL accept any installed `version=...` suffix.
+The Pester suite SHALL assert that the directories at `$env:ProgramData\Microsoft\VisualStudio\Packages\` contain entries matching every VS `--add` directive in `windows.Dockerfile`: `Microsoft.VisualStudio.Component.VC.CMake.Project`, `Microsoft.VisualStudio.Component.Windows11SDK.22621`, `Microsoft.VisualStudio.Component.VC.Tools.x86.x64`, and `Microsoft.VisualStudio.Workload.NativeDesktop`. The match pattern SHALL accept any installed `version=...` suffix. Each asserted package corresponds 1:1 to a field in `config/version.json` `windows.vsBuildTools` (`cmakeProject`, `windows11Sdk`, `vcTools`, `nativeDesktop`).
 
 The experience context is detecting silent removal or rename of a VS component in the Dockerfile — the package directory is the on-disk evidence that the component installed. After the workload trim, the C++ desktop toolchain is provided by `Workload.NativeDesktop` plus an explicit `--add` of the `VC.Tools.x86.x64` compiler (Flutter's required toolchain, materially narrower than the former `Workload.VCTools`), so the on-disk evidence the suite asserts is the `VC.Tools.x86.x64` compiler directory.
 
-#### Scenario: All three components match
+#### Scenario: All four packages match
 
 - **GIVEN** the image was built from the current `windows.Dockerfile`
 - **WHEN** the VS-component Pester tests run
-- **THEN** each of `VC.CMake.Project`, `Windows11SDK.22621`, and `VC.Tools.x86.x64` matches `*,version=*`
-- **AND** all three tests pass
+- **THEN** each of `VC.CMake.Project`, `Windows11SDK.22621`, `VC.Tools.x86.x64`, and `Workload.NativeDesktop` matches `*,version=*`
+- **AND** all four tests pass
 
 #### Scenario: Pattern correctly accepts the on-disk format
 

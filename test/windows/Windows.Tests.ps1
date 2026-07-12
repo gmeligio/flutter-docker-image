@@ -57,6 +57,27 @@ Describe "Flutter doctor" {
     }
 }
 
+# Building a Windows app proves the VS toolchain (MSVC compiler + Windows SDK + CMake)
+# Flutter requires is installed and detectable. This mirrors the android (`gradlew
+# bundleRelease`) and web (`flutter build web`) suites, which make a real build their
+# primary gate. Without it, a missing or incomplete VS component set only surfaces as
+# a cryptic "Unable to find suitable Visual Studio toolchain" at image-build time
+# instead of a named test failure here.
+Describe "Flutter Windows build" {
+    It "Should build a Windows app with the installed toolchain" {
+        flutter create build_smoke_test 2>&1 | Out-Null
+        Push-Location build_smoke_test
+        try {
+            flutter build windows 2>&1 | Out-Null
+            $LASTEXITCODE | Should -Be 0 -Because "flutter build windows must succeed — it proves the VS toolchain (Workload.NativeDesktop + VC.Tools.x86.x64 compiler + Windows11SDK + CMake) Flutter requires is correctly installed"
+        }
+        finally {
+            Pop-Location
+            Remove-Item -Recurse -Force build_smoke_test -ErrorAction SilentlyContinue
+        }
+    }
+}
+
 Describe "Git version" {
     It "Should match windows.git.version in config/version.json" {
         $expectedVersion = $script:manifest.windows.git.version
@@ -95,6 +116,12 @@ Describe "Windows file structure tests" {
             $expectedVersion = $script:manifest.windows.vsBuildTools.vcTools.version
             $directoryName = $visualStudioPackages | Select-String -CaseSensitive Microsoft.VisualStudio.Component.VC.Tools.x86.x64
             $directoryName | Should -BeLikeExactly "Microsoft.VisualStudio.Component.VC.Tools.x86.x64,version=$expectedVersion*"
+        }
+
+        It "NativeDesktop workload version matches" {
+            $expectedVersion = $script:manifest.windows.vsBuildTools.nativeDesktop.version
+            $directoryName = $visualStudioPackages | Select-String -CaseSensitive Microsoft.VisualStudio.Workload.NativeDesktop
+            $directoryName | Should -BeLikeExactly "Microsoft.VisualStudio.Workload.NativeDesktop,version=$expectedVersion*"
         }
     }
 }

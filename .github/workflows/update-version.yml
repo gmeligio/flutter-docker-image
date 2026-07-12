@@ -170,9 +170,11 @@ jobs:
         run: |
           cmake=$(jq -r '.packages[] | select(.id=="Microsoft.VisualStudio.Component.VC.CMake.Project") | .version' vsman.json)
           vctools=$(jq -r '.packages[] | select(.id=="Microsoft.VisualStudio.Component.VC.Tools.x86.x64") | .version' vsman.json)
+          nativedesktop=$(jq -r '.packages[] | select(.id=="Microsoft.VisualStudio.Workload.NativeDesktop") | .version' vsman.json)
           echo "cmake=$cmake" >> "$GITHUB_OUTPUT"
           echo "vctools=$vctools" >> "$GITHUB_OUTPUT"
-          echo "CMake: $cmake; VCTools: $vctools"
+          echo "nativedesktop=$nativedesktop" >> "$GITHUB_OUTPUT"
+          echo "CMake: $cmake; VCTools: $vctools; NativeDesktop: $nativedesktop"
 
       - name: Write windows block into config/version.json
         if: steps.release_identity.outputs.matched == 'true'
@@ -180,19 +182,22 @@ jobs:
           GIT_VERSION: ${{ steps.git_version.outputs.git_version }}
           VS_CMAKE_VERSION: ${{ steps.vs_versions.outputs.cmake }}
           VS_VCTOOLS_VERSION: ${{ steps.vs_versions.outputs.vctools }}
+          VS_NATIVEDESKTOP_VERSION: ${{ steps.vs_versions.outputs.nativedesktop }}
         run: |
           # Win11SDK build id is human-pinned (changes infrequently; tied to OS branding).
           win11sdk_build=$(jq -r '.windows.vsBuildTools.windows11Sdk.build' config/version.json)
           jq --arg git "$GIT_VERSION" \
              --arg cmake "$VS_CMAKE_VERSION" \
              --arg vctools "$VS_VCTOOLS_VERSION" \
+             --arg nativedesktop "$VS_NATIVEDESKTOP_VERSION" \
              --argjson sdkbuild "$win11sdk_build" \
              '.windows = {
                 git: {version: $git},
                 vsBuildTools: {
                   cmakeProject: {version: $cmake},
                   windows11Sdk: {build: $sdkbuild},
-                  vcTools: {version: $vctools}
+                  vcTools: {version: $vctools},
+                  nativeDesktop: {version: $nativedesktop}
                 }
               }' config/version.json > config/version.json.tmp
           mv config/version.json.tmp config/version.json

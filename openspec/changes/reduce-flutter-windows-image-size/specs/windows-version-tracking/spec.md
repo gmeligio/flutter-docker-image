@@ -9,9 +9,10 @@ The Pester suite at `test/windows/Windows.Tests.ps1` SHALL read `config/version.
 - `git --version` reports a version equal to `windows.git.version`,
 - the `Microsoft.VisualStudio.Component.VC.CMake.Project,version=<x>` directory's `<x>` equals `windows.vsBuildTools.cmakeProject.version`,
 - the `Microsoft.VisualStudio.Component.Windows11SDK.<build>` directory's `<build>` equals `windows.vsBuildTools.windows11Sdk.build`,
-- the `Microsoft.VisualStudio.Component.VC.Tools.x86.x64,version=<x>` directory's `<x>` equals `windows.vsBuildTools.vcTools.version`.
+- the `Microsoft.VisualStudio.Component.VC.Tools.x86.x64,version=<x>` directory's `<x>` equals `windows.vsBuildTools.vcTools.version`,
+- the `Microsoft.VisualStudio.Workload.NativeDesktop,version=<x>` directory's `<x>` equals `windows.vsBuildTools.nativeDesktop.version`.
 
-The `windows.vsBuildTools.vcTools.version` field tracks the `Microsoft.VisualStudio.Component.VC.Tools.x86.x64` MSVC compiler version. The Dockerfile installs `Workload.NativeDesktop` (the C++ desktop toolchain Flutter's `vswhere` requires) plus an explicit `--add` of that compiler component, replacing the former `Microsoft.VisualStudio.Workload.VCTools` workload.
+`config/version.json` `windows.vsBuildTools` SHALL hold one field per VS `--add` directive in `windows.Dockerfile`, in 1:1 correspondence: `cmakeProject` ↔ `Component.VC.CMake.Project`, `windows11Sdk` ↔ `Component.Windows11SDK.<build>`, `vcTools` ↔ `Component.VC.Tools.x86.x64` (the MSVC compiler), and `nativeDesktop` ↔ `Workload.NativeDesktop` (the C++ desktop toolchain Flutter's `vswhere` requires). This replaces the former single `Workload.VCTools` install; the 1:1 mapping ensures no installed package is untracked and no field maps to two directives. These versions are on-disk assertions, not install-pins — `vs_buildtools.exe` installs the current channel's build; the manifest records and the Pester suite verifies what landed.
 
 The experience context is the reviewer of an upgrade PR: any drift between the manifest the PR proposes and the image actually produced is caught as a hard test failure, not silent semantics drift.
 
@@ -19,7 +20,7 @@ The experience context is the reviewer of an upgrade PR: any drift between the m
 
 - **GIVEN** the test image was built with the build args derived from the current `config/version.json`
 - **WHEN** the Pester suite runs
-- **THEN** all four version assertions pass
+- **THEN** all five version assertions pass (git, CMake, Win11SDK, VC.Tools compiler, NativeDesktop workload)
 
 #### Scenario: Manifest claims a version the image does not have
 
@@ -32,7 +33,7 @@ The experience context is the reviewer of an upgrade PR: any drift between the m
 The `update-version.yml` workflow SHALL include a job (`update-windows-version`) that attempts to update the `windows` block in `config/version.json` whenever it runs. The job SHALL:
 
 - read the latest Git for Windows release from `https://api.github.com/repos/git-for-windows/git/releases/latest` and write the resolved version to `windows.git.version`,
-- read VS BuildTools component versions from Microsoft's VS catalog manifest (`VisualStudio.vsman`) reached via the channel manifest at `https://aka.ms/vs/17/release/channel`, resolving `windows.vsBuildTools.vcTools.version` from the `Microsoft.VisualStudio.Component.VC.Tools.x86.x64` package (the MSVC compiler the Dockerfile explicitly installs alongside `Workload.NativeDesktop`), not `Microsoft.VisualStudio.Workload.VCTools`,
+- read VS BuildTools component versions from Microsoft's VS catalog manifest (`VisualStudio.vsman`) reached via the channel manifest at `https://aka.ms/vs/17/release/channel`, resolving `windows.vsBuildTools.vcTools.version` from the `Microsoft.VisualStudio.Component.VC.Tools.x86.x64` package (the MSVC compiler) and `windows.vsBuildTools.nativeDesktop.version` from the `Microsoft.VisualStudio.Workload.NativeDesktop` package, one reader per tracked field, not the former `Microsoft.VisualStudio.Workload.VCTools`,
 - verify upstream consistency by comparing `channel.json.info.productSemanticVersion` against `vsman.json.info.productSemanticVersion`; on equality, write the extracted versions and emit a CUE-validated fragment artifact containing only the `windows` block,
 - on inequality (Microsoft's release pipeline is mid-publish or otherwise inconsistent), skip the version write, emit a `windows_skipped=true` job output, and exit successfully without uploading a fragment artifact.
 

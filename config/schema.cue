@@ -24,7 +24,8 @@ import "list"
 		windows11Sdk: {
 			build!: int
 		}
-		vcTools: #SemverQuad
+		vcTools:       #SemverQuad
+		nativeDesktop: #SemverQuad
 	}
 }
 

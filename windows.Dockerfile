@@ -86,8 +86,19 @@ USER ContainerUser
 
 # Warm up + validate the toolchain at build time, then delete the throwaway output
 # in the SAME layer so the ~99 MB build_app never commits to a persistent layer.
+# On failure, dump the toolchain state (doctor + installed VS packages) so a broken
+# component set is diagnosable from the build log, not guessed from install timing.
 WORKDIR "$USERPROFILE/build_app"
 RUN flutter build windows; `
+    if ($LASTEXITCODE -ne 0) { `
+      Write-Host '===== flutter doctor -v ====='; `
+      flutter doctor -v; `
+      Write-Host '===== installed VS packages ====='; `
+      Get-ChildItem 'C:\ProgramData\Microsoft\VisualStudio\Packages' -Directory -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name; `
+      Write-Host '===== vswhere -all ====='; `
+      & 'C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe' -all -products * -format value -property displayName -ErrorAction SilentlyContinue; `
+      exit 1; `
+    } `
     Set-Location "$env:USERPROFILE"; `
     Remove-Item -Recurse -Force build_app;
 

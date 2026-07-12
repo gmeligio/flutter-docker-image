@@ -45,6 +45,9 @@
       },
       "vcTools": {
         "version": "17.14.36510.44"
+      },
+      "nativeDesktop": {
+        "version": "17.14.36517.7"
       }
     }
   }

@@ -40,3 +40,14 @@ The first CI run (PR #518) built the image but failed `flutter build windows` wi
 - [x] 7.3 Re-run `cue vet` (passes) and update proposal/design/specs to reflect NativeDesktop.
 - [x] 7.4 Second CI iteration: `Workload.NativeDesktop` alone (no `--includeRecommended`) ALSO failed — the MSVC compiler `VC.Tools.x86.x64` is a *Recommended*, not Required, dep of NativeDesktop, so the workload shell installed without the compiler. Final fix: `--add Workload.NativeDesktop --add VC.Tools.x86.x64` (workload gives the desktop toolchain `vswhere` needs; explicit component guarantees the compiler). Manifest tracks the `VC.Tools.x86.x64` component version (`17.14.36510.44`).
 - [ ] 7.5 Re-verify on Windows CI (supersedes 5.1-5.4): Pester passes, `flutter doctor [✓] Visual Studio`, warm-up `flutter build windows` succeeds, and `docker history` shows a size reduction vs the pre-change image.
+
+## 8. Add toolchain-completeness coverage (the 3 failures slipped past because tests never built)
+
+The android (`gradlew bundleRelease`) and web (`flutter build web`) suites make a real build their primary gate; the Windows suite only parses `flutter doctor`. Add the missing build gate and make version.json 1:1 with the install so the workload-vs-component ambiguity can't recur.
+
+- [ ] 8.1 Add a `Describe "Flutter Windows build"` block to `test/windows/Windows.Tests.ps1` that runs `flutter create` + `flutter build windows` and asserts exit 0 — mirroring web.yml's `flutter build web` gate. This is the assertion that turns a broken VS toolchain into a named test failure instead of a cryptic image-build error.
+- [ ] 8.2 Add a `nativeDesktop: {version}` field to `config/version.json` `windows.vsBuildTools` and the CUE schema, so every VS `--add` directive has exactly one tracked field (cmakeProject → CMake, windows11Sdk → Win11SDK, vcTools → VC.Tools.x86.x64 compiler, nativeDesktop → Workload.NativeDesktop).
+- [ ] 8.3 Add the `nativeDesktop` reader to `update-version.yml` (resolve `Workload.NativeDesktop` version) and a Pester dir-assertion for `Microsoft.VisualStudio.Workload.NativeDesktop,version=<x>`, mirroring the existing three component assertions.
+- [ ] 8.4 Update `setEnvironmentVariables.js` only if `nativeDesktop` needs a build-arg (it does not — VS versions are test-assertions, not install-pins; document this so the field's purpose is clear).
+- [x] 8.5 Update proposal/design/specs to reflect the build-capability test and the 4-field version.json, and re-validate CUE + openspec.
+- [x] 8.6 Add on-failure diagnostics to the `flutter` stage warm-up build (`flutter doctor -v` + installed VS packages + `vswhere -all`) so a broken component set is diagnosable from the `docker build` log directly — the warm-up fails before the `test` stage runs, so the Pester build test alone cannot surface it. Permanent (helps any future toolchain regression), not throwaway.
