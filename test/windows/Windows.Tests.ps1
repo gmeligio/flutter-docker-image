@@ -93,8 +93,8 @@ Describe "Windows file structure tests" {
 
         It "VCTools version matches" {
             $expectedVersion = $script:manifest.windows.vsBuildTools.vcTools.version
-            $directoryName = $visualStudioPackages | Select-String -CaseSensitive Microsoft.VisualStudio.Workload.VCTools
-            $directoryName | Should -BeLikeExactly "Microsoft.VisualStudio.Workload.VCTools,version=$expectedVersion*"
+            $directoryName = $visualStudioPackages | Select-String -CaseSensitive Microsoft.VisualStudio.Component.VC.Tools.x86.x64
+            $directoryName | Should -BeLikeExactly "Microsoft.VisualStudio.Component.VC.Tools.x86.x64,version=$expectedVersion*"
         }
     }
 }
