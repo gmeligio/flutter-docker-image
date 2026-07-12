@@ -169,7 +169,7 @@ jobs:
         id: vs_versions
         run: |
           cmake=$(jq -r '.packages[] | select(.id=="Microsoft.VisualStudio.Component.VC.CMake.Project") | .version' vsman.json)
-          vctools=$(jq -r '.packages[] | select(.id=="Microsoft.VisualStudio.Component.VC.Tools.x86.x64") | .version' vsman.json)
+          vctools=$(jq -r '.packages[] | select(.id=="Microsoft.VisualStudio.Workload.NativeDesktop") | .version' vsman.json)
           echo "cmake=$cmake" >> "$GITHUB_OUTPUT"
           echo "vctools=$vctools" >> "$GITHUB_OUTPUT"
           echo "CMake: $cmake; VCTools: $vctools"

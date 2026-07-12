@@ -30,3 +30,12 @@
 ## 6. Close out
 
 - [ ] 6.1 Reference issue #517 in the PR; note the measured before/after size and that build speed is unchanged.
+
+## 7. Correction — CI-driven pivot from bare component to NativeDesktop workload
+
+The first CI run (PR #518) built the image but failed `flutter build windows` with "Unable to find suitable Visual Studio toolchain": the bare `VC.Tools.x86.x64` component is not what Flutter's `vswhere` query recognizes. Corrected to the `NativeDesktop` workload (Flutter's documented requirement, still far narrower than the original `VCTools` workload's 20 dependencies).
+
+- [x] 7.1 Change `windows.Dockerfile` `--add` from `Component.VC.Tools.x86.x64` to `Microsoft.VisualStudio.Workload.NativeDesktop` (no `--includeRecommended`).
+- [x] 7.2 Update `update-version.yml` jq selector, `config/version.json` (`vcTools.version` → `17.14.36517.7`, the NativeDesktop version), and the Pester assertion to track `Workload.NativeDesktop`.
+- [x] 7.3 Re-run `cue vet` (passes) and update proposal/design/specs to reflect NativeDesktop.
+- [ ] 7.4 Re-verify on Windows CI (supersedes 5.1-5.4): Pester passes, `flutter doctor [✓] Visual Studio`, warm-up `flutter build windows` succeeds, and `docker history` shows a size reduction vs the pre-change image.
