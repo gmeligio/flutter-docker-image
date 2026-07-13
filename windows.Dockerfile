@@ -74,13 +74,21 @@ USER ContainerAdministrator
 # Download the Build Tools bootstrapper
 # See https://learn.microsoft.com/en-us/visualstudio/install/build-tools-container?view=vs-2022
 RUN Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vs_buildtools.exe -OutFile vs_BuildTools.exe; `
-    Start-Process vs_BuildTools.exe -ArgumentList \"--quiet --wait --norestart --nocache `
+    $p = Start-Process vs_BuildTools.exe -ArgumentList \"--quiet --wait --norestart --nocache `
     --add Microsoft.VisualStudio.Component.VC.CMake.Project `
     --add Microsoft.VisualStudio.Component.Windows11SDK.${env:vs_win11sdk_build} `
     --add Microsoft.VisualStudio.Component.Windows10SDK.${env:vs_win10sdk_build} `
     --add Microsoft.VisualStudio.Workload.NativeDesktop `
     --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64\" `
-    -Wait; `
+    -Wait -PassThru; `
+    # Exit code 3010 = success but reboot required (fine in a container). Any other
+    # non-zero means the install did not complete — fail loudly instead of shipping a
+    # partial VS install that Flutter's vswhere check will later reject as isComplete=false.
+    if ($p.ExitCode -ne 0 -and $p.ExitCode -ne 3010) { `
+      Write-Host \"vs_buildtools.exe failed with exit code $($p.ExitCode); dumping logs:\"; `
+      Get-Content -Path \"$env:TEMP\dd_*.log\" -ErrorAction SilentlyContinue; `
+      exit $p.ExitCode; `
+    } `
     Remove-Item vs_BuildTools.exe; `
     # Remove VS installer logs in this same layer; a later cleanup layer cannot shrink it.
     Remove-Item -Path \"$env:TEMP\dd_*\" -Recurse -Force -ErrorAction SilentlyContinue;
@@ -93,12 +101,20 @@ USER ContainerUser
 WORKDIR "$USERPROFILE/build_app"
 RUN flutter build windows; `
     if ($LASTEXITCODE -ne 0) { `
+      $vswhere = 'C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe'; `
       Write-Host '===== flutter doctor -v ====='; `
       flutter doctor -v; `
-      Write-Host '===== installed VS packages ====='; `
-      Get-ChildItem 'C:\ProgramData\Microsoft\VisualStudio\Packages' -Directory -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name; `
-      Write-Host '===== vswhere -all ====='; `
-      & 'C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe' -all -products * -format value -property displayName -ErrorAction SilentlyContinue; `
+      # Reproduce Flutter's EXACT vswhere query (visual_studio.dart): the -requires AND of the `
+      # workload + VC.Tools + CMake decides `meetsRequirements`; the install's own isComplete `
+      # decides the rest of `isUsable`. Dumping both tells us which gate actually fails. `
+      Write-Host '===== vswhere -requires (Flutter primary query, meetsRequirements) ====='; `
+      & $vswhere -format json -products * -utf8 -latest -version 16 `
+        -requires Microsoft.VisualStudio.Workload.NativeDesktop Microsoft.VisualStudio.Component.VC.Tools.x86.x64 Microsoft.VisualStudio.Component.VC.CMake.Project; `
+      Write-Host '===== vswhere -all (isComplete / isLaunchable / isRebootRequired / installationVersion) ====='; `
+      & $vswhere -all -prerelease -products * -format json -utf8 `
+        | ConvertFrom-Json | ForEach-Object { $_ | Select-Object displayName, installationVersion, isComplete, isLaunchable, isRebootRequired, isPrerelease | Format-List }; `
+      Write-Host '===== MSVC toolset dirs (Flutter reads VC\\Tools\\MSVC) ====='; `
+      Get-ChildItem 'C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC' -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name; `
       exit 1; `
     } `
     Set-Location "$env:USERPROFILE"; `
