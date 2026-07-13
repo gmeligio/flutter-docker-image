@@ -169,12 +169,10 @@ jobs:
         id: vs_versions
         run: |
           cmake=$(jq -r '.packages[] | select(.id=="Microsoft.VisualStudio.Component.VC.CMake.Project") | .version' vsman.json)
-          vctools=$(jq -r '.packages[] | select(.id=="Microsoft.VisualStudio.Component.VC.Tools.x86.x64") | .version' vsman.json)
-          nativedesktop=$(jq -r '.packages[] | select(.id=="Microsoft.VisualStudio.Workload.NativeDesktop") | .version' vsman.json)
+          vctools=$(jq -r '.packages[] | select(.id=="Microsoft.VisualStudio.Workload.VCTools") | .version' vsman.json)
           echo "cmake=$cmake" >> "$GITHUB_OUTPUT"
           echo "vctools=$vctools" >> "$GITHUB_OUTPUT"
-          echo "nativedesktop=$nativedesktop" >> "$GITHUB_OUTPUT"
-          echo "CMake: $cmake; VCTools: $vctools; NativeDesktop: $nativedesktop"
+          echo "CMake: $cmake; VCTools: $vctools"
 
       - name: Write windows block into config/version.json
         if: steps.release_identity.outputs.matched == 'true'
@@ -182,25 +180,19 @@ jobs:
           GIT_VERSION: ${{ steps.git_version.outputs.git_version }}
           VS_CMAKE_VERSION: ${{ steps.vs_versions.outputs.cmake }}
           VS_VCTOOLS_VERSION: ${{ steps.vs_versions.outputs.vctools }}
-          VS_NATIVEDESKTOP_VERSION: ${{ steps.vs_versions.outputs.nativedesktop }}
         run: |
-          # SDK build ids are human-pinned (change infrequently; tied to OS branding).
+          # Win11SDK build id is human-pinned (changes infrequently; tied to OS branding).
           win11sdk_build=$(jq -r '.windows.vsBuildTools.windows11Sdk.build' config/version.json)
-          win10sdk_build=$(jq -r '.windows.vsBuildTools.windows10Sdk.build' config/version.json)
           jq --arg git "$GIT_VERSION" \
              --arg cmake "$VS_CMAKE_VERSION" \
              --arg vctools "$VS_VCTOOLS_VERSION" \
-             --arg nativedesktop "$VS_NATIVEDESKTOP_VERSION" \
              --argjson sdkbuild "$win11sdk_build" \
-             --argjson sdk10build "$win10sdk_build" \
              '.windows = {
                 git: {version: $git},
                 vsBuildTools: {
                   cmakeProject: {version: $cmake},
                   windows11Sdk: {build: $sdkbuild},
-                  windows10Sdk: {build: $sdk10build},
-                  vcTools: {version: $vctools},
-                  nativeDesktop: {version: $nativedesktop}
+                  vcTools: {version: $vctools}
                 }
               }' config/version.json > config/version.json.tmp
           mv config/version.json.tmp config/version.json

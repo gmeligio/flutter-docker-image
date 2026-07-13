@@ -66,7 +66,6 @@ RUN git clone `
 
 ARG vs_cmake_version
 ARG vs_win11sdk_build
-ARG vs_win10sdk_build
 ARG vs_vctools_version
 
 # The user ContainerAdministrator must be used because is the one that has permissions to install with vs_BuildTools
@@ -74,16 +73,19 @@ USER ContainerAdministrator
 # Download the Build Tools bootstrapper
 # See https://learn.microsoft.com/en-us/visualstudio/install/build-tools-container?view=vs-2022
 RUN Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vs_buildtools.exe -OutFile vs_BuildTools.exe; `
+    # Flutter's toolchain detection (vswhere -requires) accepts either the NativeDesktop
+    # or VCTools workload, but on the Build Tools SKU only Workload.VCTools registers as
+    # satisfied — NativeDesktop returns NO MATCH from vswhere even when installed (verified
+    # on PR #518). VCTools pulls the MSVC compiler, CMake, and the Windows 10/11 SDKs that
+    # `flutter build windows` needs; the explicit CMake + Win11SDK adds pin those versions.
     $p = Start-Process vs_BuildTools.exe -ArgumentList \"--quiet --wait --norestart --nocache `
     --add Microsoft.VisualStudio.Component.VC.CMake.Project `
     --add Microsoft.VisualStudio.Component.Windows11SDK.${env:vs_win11sdk_build} `
-    --add Microsoft.VisualStudio.Component.Windows10SDK.${env:vs_win10sdk_build} `
-    --add Microsoft.VisualStudio.Workload.NativeDesktop `
-    --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64\" `
+    --add Microsoft.VisualStudio.Workload.VCTools\" `
     -Wait -PassThru; `
     # Exit code 3010 = success but reboot required (fine in a container). Any other
     # non-zero means the install did not complete — fail loudly instead of shipping a
-    # partial VS install that Flutter's vswhere check will later reject as isComplete=false.
+    # partial VS install that Flutter's vswhere check will later reject.
     if ($p.ExitCode -ne 0 -and $p.ExitCode -ne 3010) { `
       Write-Host \"vs_buildtools.exe failed with exit code $($p.ExitCode); dumping logs:\"; `
       Get-Content -Path \"$env:TEMP\dd_*.log\" -ErrorAction SilentlyContinue; `

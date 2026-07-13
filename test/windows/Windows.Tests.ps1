@@ -69,7 +69,7 @@ Describe "Flutter Windows build" {
         Push-Location build_smoke_test
         try {
             flutter build windows 2>&1 | Out-Null
-            $LASTEXITCODE | Should -Be 0 -Because "flutter build windows must succeed — it proves the VS toolchain (Workload.NativeDesktop + VC.Tools.x86.x64 compiler + Windows11SDK + CMake) Flutter requires is correctly installed"
+            $LASTEXITCODE | Should -Be 0 -Because "flutter build windows must succeed — it proves the VS toolchain (Workload.VCTools + Windows11SDK + CMake) Flutter requires is correctly installed and detectable via vswhere"
         }
         finally {
             Pop-Location
@@ -112,22 +112,10 @@ Describe "Windows file structure tests" {
             $directoryName | Should -BeLikeExactly "Microsoft.VisualStudio.Component.Windows11SDK.$expectedBuild,version=*"
         }
 
-        It "Windows10SDK version matches" {
-            $expectedBuild = $script:manifest.windows.vsBuildTools.windows10Sdk.build
-            $directoryName = $visualStudioPackages | Select-String -CaseSensitive Microsoft.VisualStudio.Component.Windows10SDK
-            $directoryName | Should -BeLikeExactly "Microsoft.VisualStudio.Component.Windows10SDK.$expectedBuild,version=*"
-        }
-
         It "VCTools version matches" {
             $expectedVersion = $script:manifest.windows.vsBuildTools.vcTools.version
-            $directoryName = $visualStudioPackages | Select-String -CaseSensitive Microsoft.VisualStudio.Component.VC.Tools.x86.x64
-            $directoryName | Should -BeLikeExactly "Microsoft.VisualStudio.Component.VC.Tools.x86.x64,version=$expectedVersion*"
-        }
-
-        It "NativeDesktop workload version matches" {
-            $expectedVersion = $script:manifest.windows.vsBuildTools.nativeDesktop.version
-            $directoryName = $visualStudioPackages | Select-String -CaseSensitive Microsoft.VisualStudio.Workload.NativeDesktop
-            $directoryName | Should -BeLikeExactly "Microsoft.VisualStudio.Workload.NativeDesktop,version=$expectedVersion*"
+            $directoryName = $visualStudioPackages | Select-String -CaseSensitive Microsoft.VisualStudio.Workload.VCTools
+            $directoryName | Should -BeLikeExactly "Microsoft.VisualStudio.Workload.VCTools,version=$expectedVersion*"
         }
     }
 }

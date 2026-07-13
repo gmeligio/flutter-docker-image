@@ -1,3 +1,7 @@
+## OUTCOME (resolved on PR #518)
+
+**The VS component trim (D1/D2 below) is impossible and was reverted.** Per-ID `vswhere` diagnostics proved Flutter's toolchain detection (`vswhere -requires <workload> VC.Tools VC.CMake`) accepts `NativeDesktop` or `VCTools`, but on the Build Tools SKU only `Workload.VCTools` registers as satisfied — `NativeDesktop` returns NO MATCH even with `isComplete=true` and the compiler on disk. VCTools is the "broad" workload the trim aimed to remove, so no VS-layer reduction is achievable. **What shipped:** the `flutter build windows` Pester test, the `build_app` squash (~99 MB, D3), the `%TEMP%` cleanup (D4), the `vs_buildtools.exe` exit-code check, and permanent on-failure diagnostics. D1/D2 below are retained as the record of what was tried and why it failed. D3/D4/D5 shipped.
+
 ## Context
 
 The published `flutter-windows` image is 6.32 GB compressed (GHCR manifest, v3.44.6). Layer breakdown: VS BuildTools install **3431 MB (54%)**, servercore base 1523 MB + OS update 607 MB (fixed), Flutter clone+precache 616 MB, and a `build_app` residue layer of **99 MB** that is deleted in a later layer but still ships. The VS install (`windows.Dockerfile:75-81`) uses the broad `Microsoft.VisualStudio.Workload.VCTools` workload, which pulls recommended/optional components beyond the C++ toolchain `flutter build windows` requires.

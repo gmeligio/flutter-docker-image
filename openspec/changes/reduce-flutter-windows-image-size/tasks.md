@@ -60,3 +60,12 @@ The 4th CI run's on-failure `flutter doctor -v` dump named the real gap: Flutter
 - [x] 9.2 Add `windows10Sdk: {build: 19041}` to `config/version.json` + CUE schema; wire the `vs_win10sdk_build` build-arg through `setEnvironmentVariables.js` (VS_WIN10SDK_BUILD) and `windows-image.yml`.
 - [x] 9.3 Carry `windows10Sdk.build` forward in `update-version.yml` (human-pinned like Win11SDK); add the Pester Windows10SDK assertion. Now 5 --add ↔ 5 version.json fields ↔ 5 assertions.
 - [ ] 9.4 Re-verify on Windows CI: `flutter build windows` succeeds, and MEASURE `docker history` size vs the pre-change image to confirm the trim is actually smaller (the open question — the set is NativeDesktop+v143+Win10SDK+Win11SDK+CMake vs the original VCTools' v140+v141+v142+SDKs).
+
+## 10. Root cause resolved — VS workload trim is IMPOSSIBLE; revert it, keep the wins
+
+Per-ID vswhere diagnostics (PR #518) named the exact failure: `vswhere -requires Microsoft.VisualStudio.Workload.NativeDesktop` returns **NO MATCH** on the Build Tools SKU, even though the workload's packages install and `isComplete=true`. Flutter's `_requiredWorkloads` accepts NativeDesktop OR VCTools; only **VCTools registers** on Build Tools. Since VCTools is the "broad" workload the trim aimed to remove, **no VS-layer size reduction is possible** — the narrow workload Flutter can't detect, the detectable workload is the broad one. Premise disproven.
+
+- [x] 10.1 Revert `windows.Dockerfile` VS install to `--add Workload.VCTools` (+ explicit CMake/Win11SDK pins), documenting the NativeDesktop-NO-MATCH finding inline.
+- [x] 10.2 Revert `config/version.json` (drop nativeDesktop + windows10Sdk fields; vcTools tracks the VCTools workload), CUE schema, `setEnvironmentVariables.js` (drop VS_WIN10SDK_BUILD), `windows-image.yml` build-arg, `update-version.yml` reader, and the Pester VCTools assertion.
+- [x] 10.3 KEEP the toolchain-independent wins: `flutter build windows` Pester test (the gate that caught all this), build_app squash (~99 MB), %TEMP% cleanup, vs_buildtools exit-code check, and the on-failure doctor+vswhere diagnostics (permanent debuggability).
+- [ ] 10.4 Verify on Windows CI: build passes on VCTools (proven-working), and confirm the ~99 MB build_app squash actually reduces image size via docker history / GHCR manifest.
