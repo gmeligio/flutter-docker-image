@@ -43,6 +43,9 @@
       "windows11Sdk": {
         "build": 22621
       },
+      "windows10Sdk": {
+        "build": 19041
+      },
       "vcTools": {
         "version": "17.14.36510.44"
       },

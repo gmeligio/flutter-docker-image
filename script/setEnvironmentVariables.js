@@ -44,6 +44,10 @@ module.exports = async ({ core }) => {
     data.windows.vsBuildTools.windows11Sdk.build
   )
   core.exportVariable(
+    'VS_WIN10SDK_BUILD',
+    data.windows.vsBuildTools.windows10Sdk.build
+  )
+  core.exportVariable(
     'VS_VCTOOLS_VERSION',
     data.windows.vsBuildTools.vcTools.version
   )

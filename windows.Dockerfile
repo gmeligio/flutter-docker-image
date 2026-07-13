@@ -66,6 +66,7 @@ RUN git clone `
 
 ARG vs_cmake_version
 ARG vs_win11sdk_build
+ARG vs_win10sdk_build
 ARG vs_vctools_version
 
 # The user ContainerAdministrator must be used because is the one that has permissions to install with vs_BuildTools
@@ -76,6 +77,7 @@ RUN Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vs_buildtools.exe -OutFi
     Start-Process vs_BuildTools.exe -ArgumentList \"--quiet --wait --norestart --nocache `
     --add Microsoft.VisualStudio.Component.VC.CMake.Project `
     --add Microsoft.VisualStudio.Component.Windows11SDK.${env:vs_win11sdk_build} `
+    --add Microsoft.VisualStudio.Component.Windows10SDK.${env:vs_win10sdk_build} `
     --add Microsoft.VisualStudio.Workload.NativeDesktop `
     --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64\" `
     -Wait; `

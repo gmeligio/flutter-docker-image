@@ -51,3 +51,12 @@ The android (`gradlew bundleRelease`) and web (`flutter build web`) suites make 
 - [ ] 8.4 Update `setEnvironmentVariables.js` only if `nativeDesktop` needs a build-arg (it does not — VS versions are test-assertions, not install-pins; document this so the field's purpose is clear).
 - [x] 8.5 Update proposal/design/specs to reflect the build-capability test and the 4-field version.json, and re-validate CUE + openspec.
 - [x] 8.6 Add on-failure diagnostics to the `flutter` stage warm-up build (`flutter doctor -v` + installed VS packages + `vswhere -all`) so a broken component set is diagnosable from the `docker build` log directly — the warm-up fails before the `test` stage runs, so the Pester build test alone cannot surface it. Permanent (helps any future toolchain regression), not throwaway.
+
+## 9. Add Windows 10 SDK — the actual missing component (from doctor diagnostics)
+
+The 4th CI run's on-failure `flutter doctor -v` dump named the real gap: Flutter 3.44.6 needs a **Windows 10 SDK** (the "MSVC v142" line is generic boilerplate — it accepts the latest MSVC, v143 is fine; CMake and Win11SDK installed but doctor still fails without Win10 SDK). The original `Workload.VCTools` bundled `Windows10SDK.19041`; the trim dropped it.
+
+- [x] 9.1 Add `--add Microsoft.VisualStudio.Component.Windows10SDK.${vs_win10sdk_build}` to `windows.Dockerfile` + `ARG vs_win10sdk_build`.
+- [x] 9.2 Add `windows10Sdk: {build: 19041}` to `config/version.json` + CUE schema; wire the `vs_win10sdk_build` build-arg through `setEnvironmentVariables.js` (VS_WIN10SDK_BUILD) and `windows-image.yml`.
+- [x] 9.3 Carry `windows10Sdk.build` forward in `update-version.yml` (human-pinned like Win11SDK); add the Pester Windows10SDK assertion. Now 5 --add ↔ 5 version.json fields ↔ 5 assertions.
+- [ ] 9.4 Re-verify on Windows CI: `flutter build windows` succeeds, and MEASURE `docker history` size vs the pre-change image to confirm the trim is actually smaller (the open question — the set is NativeDesktop+v143+Win10SDK+Win11SDK+CMake vs the original VCTools' v140+v141+v142+SDKs).

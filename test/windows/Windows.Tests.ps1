@@ -112,6 +112,12 @@ Describe "Windows file structure tests" {
             $directoryName | Should -BeLikeExactly "Microsoft.VisualStudio.Component.Windows11SDK.$expectedBuild,version=*"
         }
 
+        It "Windows10SDK version matches" {
+            $expectedBuild = $script:manifest.windows.vsBuildTools.windows10Sdk.build
+            $directoryName = $visualStudioPackages | Select-String -CaseSensitive Microsoft.VisualStudio.Component.Windows10SDK
+            $directoryName | Should -BeLikeExactly "Microsoft.VisualStudio.Component.Windows10SDK.$expectedBuild,version=*"
+        }
+
         It "VCTools version matches" {
             $expectedVersion = $script:manifest.windows.vsBuildTools.vcTools.version
             $directoryName = $visualStudioPackages | Select-String -CaseSensitive Microsoft.VisualStudio.Component.VC.Tools.x86.x64
