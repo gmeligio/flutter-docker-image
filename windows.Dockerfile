@@ -107,8 +107,13 @@ RUN flutter build windows; `
       # Reproduce Flutter's EXACT vswhere query (visual_studio.dart): the -requires AND of the `
       # workload + VC.Tools + CMake decides `meetsRequirements`; the install's own isComplete `
       # decides the rest of `isUsable`. Dumping both tells us which gate actually fails. `
-      Write-Host '===== vswhere -requires (Flutter primary query, meetsRequirements) ====='; `
-      & $vswhere -format json -products * -utf8 -latest -version 16 `
+      Write-Host '===== vswhere -requires per-ID (isolate which requirement fails meetsRequirements) ====='; `
+      foreach ($req in @('Microsoft.VisualStudio.Workload.NativeDesktop', 'Microsoft.VisualStudio.Component.VC.Tools.x86.x64', 'Microsoft.VisualStudio.Component.VC.CMake.Project')) { `
+        $hit = & $vswhere -format value -property installationVersion -products * -utf8 -latest -version 16 -requires $req; `
+        Write-Host \"  requires $req => $(if ($hit) { 'MATCH ' + $hit } else { 'NO MATCH' })\"; `
+      } `
+      Write-Host '===== vswhere -requiresAny fallback + all installed packages under the instance ====='; `
+      & $vswhere -format value -property installationVersion -products * -utf8 -latest -version 16 `
         -requires Microsoft.VisualStudio.Workload.NativeDesktop Microsoft.VisualStudio.Component.VC.Tools.x86.x64 Microsoft.VisualStudio.Component.VC.CMake.Project; `
       Write-Host '===== vswhere -all (isComplete / isLaunchable / isRebootRequired / installationVersion) ====='; `
       & $vswhere -all -prerelease -products * -format json -utf8 `
