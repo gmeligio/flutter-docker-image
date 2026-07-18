@@ -24,7 +24,7 @@
 - [x] 5.1 **(CI-only — requires Windows daemon; runs on `windows-2025` via the `Windows` workflow on PR)** Build the `test` target locally or in CI and run the Pester suite; confirm all version assertions and the VS-component assertions pass.
 - [x] 5.2 **(CI-only)** Confirm `flutter doctor` reports `[✓] Windows Version` and `[✓] Visual Studio - develop Windows apps` (the functional sufficiency gate). If it reports `[!]`/`[✗]`, `--add` the specific missing component and rebuild — do NOT revert to `Workload.VCTools`.
 - [x] 5.3 **(CI-only)** Confirm the `flutter` stage's warm-up `flutter build windows` succeeds (a failing build fails `docker build` and blocks publish).
-- [ ] 5.4 **(CI/manual — needs a built image)** Run `docker history` (or compare GHCR manifest layer sizes) before and after; record the measured size reduction in the PR description.
+- [x] 5.4 **(MOOT — no size reduction to measure)** The size trim (VS components) and the `build_app` squash were both proven impossible (see §10, §11), so there is no before/after delta to record. The PR ships as maintenance+UX, documented in the PR description.
 - [x] 5.5 Run `cue vet config/schema.cue -d '#Version' config/version.json` to confirm the manifest still validates.
 
 ## 6. Close out
