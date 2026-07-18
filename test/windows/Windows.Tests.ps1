@@ -69,7 +69,7 @@ Describe "Flutter Windows build" {
         Push-Location build_smoke_test
         try {
             flutter build windows 2>&1 | Out-Null
-            $LASTEXITCODE | Should -Be 0 -Because "flutter build windows must succeed — it proves the VS toolchain (Workload.VCTools + Windows11SDK + CMake) Flutter requires is correctly installed and detectable via vswhere"
+            $LASTEXITCODE | Should -Be 0 -Because "flutter build windows must succeed - it proves the VS toolchain (Workload.VCTools + Windows11SDK + CMake) Flutter requires is correctly installed and detectable via vswhere"
         }
         finally {
             Pop-Location
