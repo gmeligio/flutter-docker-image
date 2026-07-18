@@ -57,12 +57,8 @@ Describe "Flutter doctor" {
     }
 }
 
-# Building a Windows app proves the VS toolchain (MSVC compiler + Windows SDK + CMake)
-# Flutter requires is installed and detectable. This mirrors the android (`gradlew
-# bundleRelease`) and web (`flutter build web`) suites, which make a real build their
-# primary gate. Without it, a missing or incomplete VS component set only surfaces as
-# a cryptic "Unable to find suitable Visual Studio toolchain" at image-build time
-# instead of a named test failure here.
+# A real build (like the android/web suites) is the strongest toolchain gate: a broken VS
+# component set fails here by name, not as a cryptic error deep in a later image build.
 Describe "Flutter Windows build" {
     It "Should build a Windows app with the installed toolchain" {
         flutter create build_smoke_test 2>&1 | Out-Null

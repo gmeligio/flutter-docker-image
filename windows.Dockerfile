@@ -70,44 +70,34 @@ ARG vs_vctools_version
 
 # The user ContainerAdministrator must be used because is the one that has permissions to install with vs_BuildTools
 USER ContainerAdministrator
-# Download the Build Tools bootstrapper
 # See https://learn.microsoft.com/en-us/visualstudio/install/build-tools-container?view=vs-2022
-RUN Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vs_buildtools.exe -OutFile vs_BuildTools.exe; `
-    # Flutter's toolchain detection (vswhere -requires) accepts either the NativeDesktop
-    # or VCTools workload, but on the Build Tools SKU only Workload.VCTools registers as
-    # satisfied — NativeDesktop returns NO MATCH from vswhere even when installed (verified
-    # on PR #518). VCTools pulls the MSVC compiler, CMake, and the Windows 10/11 SDKs that
-    # `flutter build windows` needs; the explicit CMake + Win11SDK args pin those versions.
+RUN $rebootRequiredExitCode = 3010; `
+    # Only Workload.VCTools is vswhere-detectable on the Build Tools SKU; NativeDesktop
+    # installs but returns NO MATCH, so `flutter build windows` fails to find the toolchain.
+    Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vs_buildtools.exe -OutFile vs_BuildTools.exe; `
     $p = Start-Process vs_BuildTools.exe -ArgumentList \"--quiet --wait --norestart --nocache `
     --add Microsoft.VisualStudio.Component.VC.CMake.Project `
     --add Microsoft.VisualStudio.Component.Windows11SDK.${env:vs_win11sdk_build} `
     --add Microsoft.VisualStudio.Workload.VCTools\" `
     -Wait -PassThru; `
-    # Exit code 3010 = success but reboot required (fine in a container). Any other
-    # non-zero means the install did not complete — fail loudly instead of shipping a
-    # partial VS install that Flutter's vswhere check will later reject.
-    if ($p.ExitCode -ne 0 -and $p.ExitCode -ne 3010) { `
+    # Fail loud on a partial install; vswhere would only reject it later, at build time.
+    if ($p.ExitCode -ne 0 -and $p.ExitCode -ne $rebootRequiredExitCode) { `
       Write-Host \"vs_buildtools.exe failed with exit code $($p.ExitCode); dumping logs:\"; `
       Get-Content -Path \"$env:TEMP\dd_*.log\" -ErrorAction SilentlyContinue; `
       exit $p.ExitCode; `
     } `
     Remove-Item vs_BuildTools.exe; `
-    # Remove VS installer logs in this same layer; a later cleanup layer cannot shrink it.
+    # Delete installer logs in this layer — a later layer can add files but not shrink this one.
     Remove-Item -Path \"$env:TEMP\dd_*\" -Recurse -Force -ErrorAction SilentlyContinue;
 USER ContainerUser
 
-# Warm up the Windows build caches so an end user's first `flutter build windows`
-# in the published image is fast, and fail the image build here (before the multi-hour
-# test stage) if the toolchain is broken — the on-failure block dumps enough state to
-# diagnose it from the build log. The build_app source is deleted in a later RUN (a fresh
-# shell releases the build helper's file handle — an in-layer delete races with "being
-# used by another process").
+# Warm the build cache so an end user's first `flutter build windows` is fast, and fail
+# here — before the multi-hour test stage — if the toolchain is broken.
 WORKDIR "$USERPROFILE/build_app"
 RUN flutter build windows; `
     if ($LASTEXITCODE -ne 0) { `
-      # Toolchain detection failed. Dump the state Flutter's VisualStudio class reads
-      # (visual_studio.dart): flutter doctor, the install's vswhere flags, and the MSVC
-      # toolset dir — enough to tell a missing component from an undetectable workload.
+      # Dump what Flutter's vswhere check reads, to tell a missing component from an
+      # installed-but-undetectable workload (see flutter's visual_studio.dart).
       $vswhere = 'C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe'; `
       Write-Host '===== flutter doctor -v ====='; flutter doctor -v; `
       Write-Host '===== vswhere -all ====='; `
@@ -124,8 +114,8 @@ COPY ./script/docker_windows_entrypoint.ps1 "docker_entrypoint.ps1"
 # hadolint ignore=DL3025
 ENTRYPOINT "C:\Users\ContainerUser\docker_entrypoint.ps1"
 
-# Delete the warm-up scaffold in a separate RUN: a fresh shell no longer holds the
-# build helper's file handle, so this succeeds where an in-layer delete raced.
+# Separate RUN: the build_app helper keeps a file handle open until its shell exits, so
+# an in-layer delete races with "being used by another process".
 RUN Remove-Item -Recurse -Force build_app;
 
 #-----------------------------------------------
