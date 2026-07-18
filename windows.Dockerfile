@@ -70,19 +70,43 @@ ARG vs_vctools_version
 
 # The user ContainerAdministrator must be used because is the one that has permissions to install with vs_BuildTools
 USER ContainerAdministrator
-# Download the Build Tools bootstrapper
 # See https://learn.microsoft.com/en-us/visualstudio/install/build-tools-container?view=vs-2022
-RUN Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vs_buildtools.exe -OutFile vs_BuildTools.exe; `
-    Start-Process vs_BuildTools.exe -ArgumentList \"--quiet --wait --norestart --nocache `
+RUN $rebootRequiredExitCode = 3010; `
+    # Only Workload.VCTools is vswhere-detectable on the Build Tools SKU; NativeDesktop
+    # installs but returns NO MATCH, so `flutter build windows` fails to find the toolchain.
+    Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vs_buildtools.exe -OutFile vs_BuildTools.exe; `
+    $p = Start-Process vs_BuildTools.exe -ArgumentList \"--quiet --wait --norestart --nocache `
     --add Microsoft.VisualStudio.Component.VC.CMake.Project `
     --add Microsoft.VisualStudio.Component.Windows11SDK.${env:vs_win11sdk_build} `
     --add Microsoft.VisualStudio.Workload.VCTools\" `
-    -Wait; `
-    Remove-Item vs_BuildTools.exe;
+    -Wait -PassThru; `
+    # Fail loud on a partial install; vswhere would only reject it later, at build time.
+    if ($p.ExitCode -ne 0 -and $p.ExitCode -ne $rebootRequiredExitCode) { `
+      Write-Host \"vs_buildtools.exe failed with exit code $($p.ExitCode); dumping logs:\"; `
+      Get-Content -Path \"$env:TEMP\dd_*.log\" -ErrorAction SilentlyContinue; `
+      exit $p.ExitCode; `
+    } `
+    Remove-Item vs_BuildTools.exe; `
+    # Delete installer logs in this layer — a later layer can add files but not shrink this one.
+    Remove-Item -Path \"$env:TEMP\dd_*\" -Recurse -Force -ErrorAction SilentlyContinue;
 USER ContainerUser
 
+# Warm the build cache so an end user's first `flutter build windows` is fast, and fail
+# here — before the multi-hour test stage — if the toolchain is broken.
 WORKDIR "$USERPROFILE/build_app"
-RUN flutter build windows;
+RUN flutter build windows; `
+    if ($LASTEXITCODE -ne 0) { `
+      # Dump what Flutter's vswhere check reads, to tell a missing component from an
+      # installed-but-undetectable workload (see flutter's visual_studio.dart).
+      $vswhere = 'C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe'; `
+      Write-Host '===== flutter doctor -v ====='; flutter doctor -v; `
+      Write-Host '===== vswhere -all ====='; `
+      & $vswhere -all -prerelease -products * -format json -utf8 `
+        | ConvertFrom-Json | ForEach-Object { $_ | Select-Object displayName, installationVersion, isComplete, isLaunchable, isRebootRequired | Format-List }; `
+      Write-Host '===== MSVC toolset dirs ====='; `
+      Get-ChildItem 'C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC' -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name; `
+      exit 1; `
+    }
 
 WORKDIR "$USERPROFILE"
 COPY ./script/docker_windows_entrypoint.ps1 "docker_entrypoint.ps1"
@@ -90,7 +114,9 @@ COPY ./script/docker_windows_entrypoint.ps1 "docker_entrypoint.ps1"
 # hadolint ignore=DL3025
 ENTRYPOINT "C:\Users\ContainerUser\docker_entrypoint.ps1"
 
-RUN Remove-Item -Recurse build_app;
+# Separate RUN: the build_app helper keeps a file handle open until its shell exits, so
+# an in-layer delete races with "being used by another process".
+RUN Remove-Item -Recurse -Force build_app;
 
 #-----------------------------------------------
 #-----------------------------------------------
