@@ -96,51 +96,37 @@ RUN Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vs_buildtools.exe -OutFi
     Remove-Item -Path \"$env:TEMP\dd_*\" -Recurse -Force -ErrorAction SilentlyContinue;
 USER ContainerUser
 
-# Warm up + validate the toolchain at build time, then delete the throwaway output
-# in the SAME layer so the ~99 MB build_app never commits to a persistent layer.
-# On failure, dump the toolchain state (doctor + installed VS packages) so a broken
-# component set is diagnosable from the build log, not guessed from install timing.
+# Warm up the Windows build caches so an end user's first `flutter build windows`
+# in the published image is fast. On failure, dump the toolchain state (flutter doctor
+# + the install's vswhere flags + the MSVC toolset dir) so a broken VS component set is
+# diagnosable from the build log rather than guessed. The build_app source is deleted in
+# a later RUN (a fresh shell releases the build helper's file handle — an in-layer delete
+# races with "being used by another process").
 WORKDIR "$USERPROFILE/build_app"
 RUN flutter build windows; `
     if ($LASTEXITCODE -ne 0) { `
+      # Toolchain detection failed. Dump the state Flutter's VisualStudio class reads
+      # (visual_studio.dart): flutter doctor, the install's vswhere flags, and the MSVC
+      # toolset dir — enough to tell a missing component from an undetectable workload.
       $vswhere = 'C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe'; `
-      Write-Host '===== flutter doctor -v ====='; `
-      flutter doctor -v; `
-      # Reproduce Flutter's EXACT vswhere query (visual_studio.dart): the -requires AND of the `
-      # workload + VC.Tools + CMake decides `meetsRequirements`; the install's own isComplete `
-      # decides the rest of `isUsable`. Dumping both tells us which gate actually fails. `
-      Write-Host '===== vswhere -requires per-ID (isolate which requirement fails meetsRequirements) ====='; `
-      foreach ($req in @('Microsoft.VisualStudio.Workload.NativeDesktop', 'Microsoft.VisualStudio.Component.VC.Tools.x86.x64', 'Microsoft.VisualStudio.Component.VC.CMake.Project')) { `
-        $hit = & $vswhere -format value -property installationVersion -products * -utf8 -latest -version 16 -requires $req; `
-        Write-Host \"  requires $req => $(if ($hit) { 'MATCH ' + $hit } else { 'NO MATCH' })\"; `
-      } `
-      Write-Host '===== vswhere -requiresAny fallback + all installed packages under the instance ====='; `
-      & $vswhere -format value -property installationVersion -products * -utf8 -latest -version 16 `
-        -requires Microsoft.VisualStudio.Workload.NativeDesktop Microsoft.VisualStudio.Component.VC.Tools.x86.x64 Microsoft.VisualStudio.Component.VC.CMake.Project; `
-      Write-Host '===== vswhere -all (isComplete / isLaunchable / isRebootRequired / installationVersion) ====='; `
+      Write-Host '===== flutter doctor -v ====='; flutter doctor -v; `
+      Write-Host '===== vswhere -all ====='; `
       & $vswhere -all -prerelease -products * -format json -utf8 `
-        | ConvertFrom-Json | ForEach-Object { $_ | Select-Object displayName, installationVersion, isComplete, isLaunchable, isRebootRequired, isPrerelease | Format-List }; `
-      Write-Host '===== MSVC toolset dirs (Flutter reads VC\\Tools\\MSVC) ====='; `
+        | ConvertFrom-Json | ForEach-Object { $_ | Select-Object displayName, installationVersion, isComplete, isLaunchable, isRebootRequired | Format-List }; `
+      Write-Host '===== MSVC toolset dirs ====='; `
       Get-ChildItem 'C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC' -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name; `
       exit 1; `
-    } `
-    Set-Location "$env:USERPROFILE"; `
-    # `flutter build windows` can leave a build helper briefly holding a handle inside
-    # build_app, so an immediate Remove-Item races with "being used by another process".
-    # Retry a few times with a short wait so the delete stays in THIS layer (keeping the
-    # ~99 MB out of the image) instead of being punted to a later, non-shrinking layer.
-    $deleted = $false; `
-    for ($i = 0; $i -lt 10 -and -not $deleted; $i++) { `
-      try { Remove-Item -Recurse -Force build_app -ErrorAction Stop; $deleted = $true; } `
-      catch { Start-Sleep -Seconds 3; } `
-    } `
-    if (-not $deleted) { Write-Error 'Failed to remove build_app after retries'; exit 1; }
+    }
 
 WORKDIR "$USERPROFILE"
 COPY ./script/docker_windows_entrypoint.ps1 "docker_entrypoint.ps1"
 
 # hadolint ignore=DL3025
 ENTRYPOINT "C:\Users\ContainerUser\docker_entrypoint.ps1"
+
+# Delete the warm-up scaffold in a separate RUN: a fresh shell no longer holds the
+# build helper's file handle, so this succeeds where an in-layer delete raced.
+RUN Remove-Item -Recurse -Force build_app;
 
 #-----------------------------------------------
 #-----------------------------------------------
