@@ -77,7 +77,7 @@ RUN Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vs_buildtools.exe -OutFi
     # or VCTools workload, but on the Build Tools SKU only Workload.VCTools registers as
     # satisfied — NativeDesktop returns NO MATCH from vswhere even when installed (verified
     # on PR #518). VCTools pulls the MSVC compiler, CMake, and the Windows 10/11 SDKs that
-    # `flutter build windows` needs; the explicit CMake + Win11SDK adds pin those versions.
+    # `flutter build windows` needs; the explicit CMake + Win11SDK args pin those versions.
     $p = Start-Process vs_BuildTools.exe -ArgumentList \"--quiet --wait --norestart --nocache `
     --add Microsoft.VisualStudio.Component.VC.CMake.Project `
     --add Microsoft.VisualStudio.Component.Windows11SDK.${env:vs_win11sdk_build} `
@@ -97,11 +97,11 @@ RUN Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vs_buildtools.exe -OutFi
 USER ContainerUser
 
 # Warm up the Windows build caches so an end user's first `flutter build windows`
-# in the published image is fast. On failure, dump the toolchain state (flutter doctor
-# + the install's vswhere flags + the MSVC toolset dir) so a broken VS component set is
-# diagnosable from the build log rather than guessed. The build_app source is deleted in
-# a later RUN (a fresh shell releases the build helper's file handle — an in-layer delete
-# races with "being used by another process").
+# in the published image is fast, and fail the image build here (before the multi-hour
+# test stage) if the toolchain is broken — the on-failure block dumps enough state to
+# diagnose it from the build log. The build_app source is deleted in a later RUN (a fresh
+# shell releases the build helper's file handle — an in-layer delete races with "being
+# used by another process").
 WORKDIR "$USERPROFILE/build_app"
 RUN flutter build windows; `
     if ($LASTEXITCODE -ne 0) { `

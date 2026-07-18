@@ -66,10 +66,11 @@ Describe "Flutter doctor" {
 Describe "Flutter Windows build" {
     It "Should build a Windows app with the installed toolchain" {
         flutter create build_smoke_test 2>&1 | Out-Null
+        $LASTEXITCODE | Should -Be 0 -Because "flutter create must succeed before the build test can run"
         Push-Location build_smoke_test
         try {
             flutter build windows 2>&1 | Out-Null
-            $LASTEXITCODE | Should -Be 0 -Because "flutter build windows must succeed - it proves the VS toolchain (Workload.VCTools + Windows11SDK + CMake) Flutter requires is correctly installed and detectable via vswhere"
+            $LASTEXITCODE | Should -Be 0 -Because "flutter build windows failed - the VS toolchain is missing or undetectable by vswhere"
         }
         finally {
             Pop-Location
