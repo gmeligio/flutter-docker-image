@@ -125,7 +125,16 @@ RUN flutter build windows; `
       exit 1; `
     } `
     Set-Location "$env:USERPROFILE"; `
-    Remove-Item -Recurse -Force build_app;
+    # `flutter build windows` can leave a build helper briefly holding a handle inside
+    # build_app, so an immediate Remove-Item races with "being used by another process".
+    # Retry a few times with a short wait so the delete stays in THIS layer (keeping the
+    # ~99 MB out of the image) instead of being punted to a later, non-shrinking layer.
+    $deleted = $false; `
+    for ($i = 0; $i -lt 10 -and -not $deleted; $i++) { `
+      try { Remove-Item -Recurse -Force build_app -ErrorAction Stop; $deleted = $true; } `
+      catch { Start-Sleep -Seconds 3; } `
+    } `
+    if (-not $deleted) { Write-Error 'Failed to remove build_app after retries'; exit 1; }
 
 WORKDIR "$USERPROFILE"
 COPY ./script/docker_windows_entrypoint.ps1 "docker_entrypoint.ps1"
