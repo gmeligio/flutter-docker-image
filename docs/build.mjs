@@ -83,11 +83,11 @@ Each image is tagged with the Flutter version it ships (\`:${flutter}\`), there 
 
 ## Registries
 
-Every image is published to three registries under the same \`:${flutter}\` tag:
+Every image is published to three registries:
 
 ${registryTable()}
 
-## GitHub Actions
+## Running on CI
 
 The Linux images (\`flutter-android\`, \`flutter-web\`) run as the job container:
 
@@ -96,8 +96,6 @@ ${ghWorkflow('flutter-android', 'flutter build apk')}
 Swap the image and build command for \`flutter-web\` (\`flutter build web\`). Windows containers cannot run under the Linux \`container:\` field, so \`flutter-windows\` runs on a \`windows-2025\` runner and invokes \`docker\` directly:
 
 ${windowsWorkflow('flutter build windows')}
-
-## CI backends
 
 These images run on GitHub Actions, GitLab CI, Gitea, and Forgejo. See example workflows for each backend in [\`examples/\`](examples/).
 

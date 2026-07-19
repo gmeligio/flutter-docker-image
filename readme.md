@@ -14,7 +14,7 @@ Each image is tagged with the Flutter version it ships (`:3.44.6`), there is no 
 
 ## Registries
 
-Every image is published to three registries under the same `:3.44.6` tag:
+Every image is published to three registries:
 
 | Registry | flutter-android | flutter-web | flutter-windows |
 | --- | --- | --- | --- |
@@ -22,7 +22,7 @@ Every image is published to three registries under the same `:3.44.6` tag:
 | GitHub Container Registry | [ghcr.io/gmeligio/flutter-android:3.44.6](https://github.com/gmeligio/flutter-docker-image/pkgs/container/flutter-android) | [ghcr.io/gmeligio/flutter-web:3.44.6](https://github.com/gmeligio/flutter-docker-image/pkgs/container/flutter-web) | [ghcr.io/gmeligio/flutter-windows:3.44.6](https://github.com/gmeligio/flutter-docker-image/pkgs/container/flutter-windows) |
 | Quay | [quay.io/gmeligio/flutter-android:3.44.6](https://quay.io/repository/gmeligio/flutter-android) | [quay.io/gmeligio/flutter-web:3.44.6](https://quay.io/repository/gmeligio/flutter-web) | [quay.io/gmeligio/flutter-windows:3.44.6](https://quay.io/repository/gmeligio/flutter-windows) |
 
-## GitHub Actions
+## Running on CI
 
 The Linux images (`flutter-android`, `flutter-web`) run as the job container:
 
@@ -51,8 +51,6 @@ jobs:
       - name: Build
         run: docker run --rm -v ${{ github.workspace }}:C:\app -w C:\app ghcr.io/gmeligio/flutter-windows:3.44.6 flutter build windows
 ```
-
-## CI backends
 
 These images run on GitHub Actions, GitLab CI, Gitea, and Forgejo. See example workflows for each backend in [`examples/`](examples/).
 
