@@ -1,29 +1,4 @@
-### Requirement: Docs and examples are regenerated from the version manifest and never drift
-
-`mise run docs` SHALL regenerate `readme.md` and `examples/{github-actions,
-gitlab-ci,gitea-actions,forgejo-actions}.yml` from `config/version.json`, and CI
-SHALL fail when any committed output differs from a fresh regeneration. The
-generated `readme.md` SHALL be the file used both as the GitHub repository README
-and as the Docker Hub repository description.
-
-The experience context is the maintainer cutting a Flutter release and the reader
-viewing the README/Docker Hub page: the maintainer never hand-edits versions in
-the docs, and the reader never sees a version that disagrees with what the image
-actually ships.
-
-#### Scenario: Version bump regenerates docs and examples in the same PR
-
-- **GIVEN** `config/version.json` is updated to a new Flutter version
-- **WHEN** the `update-version` workflow runs `mise run docs`
-- **THEN** `readme.md` and every `examples/*.yml` reflect the new version
-- **AND** the regenerated files are part of the same version-bump PR
-
-#### Scenario: Stale committed output fails CI
-
-- **GIVEN** a PR whose committed `readme.md` or `examples/*.yml` does not match a
-  fresh `mise run docs`
-- **WHEN** the docs-in-sync check runs (`mise run docs` then `git diff --exit-code`)
-- **THEN** the check fails with instructions to run `mise run docs`
+## MODIFIED Requirements
 
 ### Requirement: README presents exact predownloaded versions and ready-to-use examples
 
@@ -81,33 +56,6 @@ drifting from the manifest.
 - **WHEN** a reader views `readme.md`
 - **THEN** GitHub Actions, GitLab CI, Gitea, and Forgejo are all named
 - **AND** a link to the `examples/` directory is present
-
-### Requirement: Runnable examples for four CI backends, with Node guidance for non-GitHub runners
-
-The `examples/` directory SHALL contain `github-actions.yml`, `gitlab-ci.yml`,
-`gitea-actions.yml`, and `forgejo-actions.yml`, each valid YAML referencing the
-current image tag. The Gitea and Forgejo examples SHALL demonstrate making Node
-available for JavaScript actions such as `actions/checkout` at the job level, and
-the image itself SHALL NOT bundle Node.js.
-
-The experience context is a Gitea or Forgejo user (issue #493) whose build fails
-with `Cannot find: node in PATH`: they open the matching example and find a
-runnable workflow that makes `actions/checkout` work, while users on GitHub
-Actions and GitLab CI (which need no in-image Node) are unaffected and the image
-stays minimal.
-
-#### Scenario: Gitea/Forgejo examples provide Node; the image does not
-
-- **GIVEN** the generated `examples/gitea-actions.yml` and
-  `examples/forgejo-actions.yml`
-- **THEN** each contains a job-level step that makes Node available before
-  `actions/checkout` runs
-- **AND** neither `android.Dockerfile` nor the published image installs Node.js
-
-#### Scenario: Every example targets the manifest version
-
-- **WHEN** the examples are generated for manifest Flutter version `X.Y.Z`
-- **THEN** each `examples/*.yml` references the image at tag `X.Y.Z`
 
 ### Requirement: Generation is code-generation from a single source on a minimal toolchain
 

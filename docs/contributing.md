@@ -14,7 +14,7 @@ The wiki is kept current automatically: DeepWiki re-indexes the repository whene
 - `examples/{github-actions,gitlab-ci,gitea-actions,forgejo-actions}.yml` — emitted from `docs/examples.cue` via `cue export`.
 - `config/version.json` — the version values (Flutter, Fastlane, Gradle, NDK, build-tools, platforms) and the image tag injected into both.
 
-`docs/contributing.md`, `docs/windows.md`, and `LICENSE.md` are static Markdown — edit them directly.
+`docs/contributing.md`, `docs/faq.md`, `docs/windows.md`, and `LICENSE.md` are static Markdown — edit them directly.
 
 Regenerate everything with one task (`node` and `cue` are pinned in `mise.toml`):
 
@@ -23,6 +23,31 @@ mise run docs
 ```
 
 CI enforces this: `update-docs.yml` re-runs `mise run docs` and fails with `git diff --exit-code` if the committed `readme.md` or `examples/` drift from the generators. On same-repo PRs the regenerated output is committed back automatically; fork PRs must run `mise run docs` and commit the result.
+
+## Building the images locally
+
+The versions below are illustrative — the authoritative values live in `config/version.json` (validated by `config/schema.cue`).
+
+`android.Dockerfile` expects a few build arguments:
+
+- `flutter_version <string>`: the Flutter version to build. Example: `3.44.6`
+- `android_build_tools_version <string>`: the Android SDK Build Tools version. Example: `36.0.0`
+- `android_platform_versions <list>`: the Android SDK Platforms to install, space-separated. Example: `36`
+
+```bash
+# Android
+docker build --target android --build-arg flutter_version=3.44.6 --build-arg fastlane_version=2.237.0 --build-arg android_build_tools_version=36.0.0 --build-arg android_platform_versions="36" -t flutter-android:local -f android.Dockerfile .
+```
+
+`windows.Dockerfile` builds a Windows container (requires a Windows host with Docker in Windows-container mode) and expects:
+
+- `flutter_version <string>`: the Flutter version to build. Example: `3.44.6`
+- `git_version <string>`, `vs_cmake_version`, `vs_win11sdk_build`, `vs_vctools_version`: the Windows toolchain versions pinned under the `windows` block in `config/version.json`.
+
+```powershell
+# Windows (run on a Windows host in Windows-container mode)
+docker build --target flutter --build-arg flutter_version=3.44.6 -t flutter-windows:local -f windows.Dockerfile .
+```
 
 ## Editing GitHub Actions workflows
 
