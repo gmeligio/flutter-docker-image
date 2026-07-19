@@ -10,7 +10,7 @@ Minimal Docker images for building Flutter apps in Continuous Integration (CI), 
 docker run --rm -it ghcr.io/gmeligio/flutter-android:3.44.6 flutter build apk
 ```
 
-Each image is tagged with the Flutter version it ships (`:3.44.6`), there is no `latest` tag ([see more on the why](docs/faq.md#why-there-is-no-dynamic-tag-like-latest)). All tools running in the image have analytics opt-in with `ENABLE_ANALYTICS=true` and a rootless `flutter:flutter` user.
+Each image is tagged with the Flutter version it ships (`:3.44.6`), there is no `latest` tag ([see more on the why](docs/faq.md#why-there-is-no-dynamic-tag-like-latest)). All tools running in the image have analytics disabled and opt-in with `ENABLE_ANALYTICS=true`, and a rootless `flutter:flutter` user.
 
 ### flutter-android
 
