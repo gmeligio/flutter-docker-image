@@ -52,7 +52,7 @@ jobs:
         run: docker run --rm -v ${{ github.workspace }}:C:\app -w C:\app ghcr.io/gmeligio/flutter-windows:3.44.6 flutter build windows
 ```
 
-These images run on GitHub Actions, GitLab CI, Gitea, and Forgejo. See example workflows for each backend in [`examples/`](examples/).
+See example workflows for GitHub Actions, GitLab CI, Gitea, and Forgejo in [`examples/`](examples/).
 
 ## More
 

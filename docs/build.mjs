@@ -97,7 +97,7 @@ For \`flutter-web\`, use the same workflow with \`image: ${ghcr('flutter-web')}\
 
 ${windowsWorkflow('flutter build windows')}
 
-These images run on GitHub Actions, GitLab CI, Gitea, and Forgejo. See example workflows for each backend in [\`examples/\`](examples/).
+See example workflows for GitHub Actions, GitLab CI, Gitea, and Forgejo in [\`examples/\`](examples/).
 
 ## More
 
