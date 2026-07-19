@@ -12,13 +12,19 @@ docker run --rm -it ghcr.io/gmeligio/flutter-android:3.44.6 flutter build apk
 
 Each image is tagged with the Flutter version it ships (`:3.44.6`), there is no `latest` tag ([see more on the why](docs/faq.md#why-there-is-no-dynamic-tag-like-latest)). All tools running in the image have analytics disabled and opt-in with `ENABLE_ANALYTICS=true`, and a rootless `flutter:flutter` user.
 
-### flutter-android
+## Registries
 
-| Registry                  | flutter-android |
-| ------------------------- | --------------- |
-| Docker Hub                | [gmeligio/flutter-android:3.44.6](https://hub.docker.com/r/gmeligio/flutter-android) |
-| GitHub Container Registry | [ghcr.io/gmeligio/flutter-android:3.44.6](https://github.com/gmeligio/flutter-docker-image/pkgs/container/flutter-android) |
-| Quay                      | [quay.io/gmeligio/flutter-android:3.44.6](https://quay.io/repository/gmeligio/flutter-android) |
+Every image is published to three registries under the same `:3.44.6` tag:
+
+| Registry | flutter-android | flutter-web | flutter-windows |
+| --- | --- | --- | --- |
+| Docker Hub | [gmeligio/flutter-android:3.44.6](https://hub.docker.com/r/gmeligio/flutter-android) | [gmeligio/flutter-web:3.44.6](https://hub.docker.com/r/gmeligio/flutter-web) | [gmeligio/flutter-windows:3.44.6](https://hub.docker.com/r/gmeligio/flutter-windows) |
+| GitHub Container Registry | [ghcr.io/gmeligio/flutter-android:3.44.6](https://github.com/gmeligio/flutter-docker-image/pkgs/container/flutter-android) | [ghcr.io/gmeligio/flutter-web:3.44.6](https://github.com/gmeligio/flutter-docker-image/pkgs/container/flutter-web) | [ghcr.io/gmeligio/flutter-windows:3.44.6](https://github.com/gmeligio/flutter-docker-image/pkgs/container/flutter-windows) |
+| Quay | [quay.io/gmeligio/flutter-android:3.44.6](https://quay.io/repository/gmeligio/flutter-android) | [quay.io/gmeligio/flutter-web:3.44.6](https://quay.io/repository/gmeligio/flutter-web) | [quay.io/gmeligio/flutter-windows:3.44.6](https://quay.io/repository/gmeligio/flutter-windows) |
+
+## GitHub Actions
+
+The Linux images (`flutter-android`, `flutter-web`) run as the job container:
 
 ```yaml
 jobs:
@@ -33,36 +39,7 @@ jobs:
         run: flutter build apk
 ```
 
-### flutter-web
-
-| Registry                  | flutter-web |
-| ------------------------- | --------------- |
-| Docker Hub                | [gmeligio/flutter-web:3.44.6](https://hub.docker.com/r/gmeligio/flutter-web) |
-| GitHub Container Registry | [ghcr.io/gmeligio/flutter-web:3.44.6](https://github.com/gmeligio/flutter-docker-image/pkgs/container/flutter-web) |
-| Quay                      | [quay.io/gmeligio/flutter-web:3.44.6](https://quay.io/repository/gmeligio/flutter-web) |
-
-```yaml
-jobs:
-  build:
-    runs-on: ubuntu-22.04
-    container:
-      image: ghcr.io/gmeligio/flutter-web:3.44.6
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Build
-        run: flutter build web
-```
-
-### flutter-windows
-
-Windows containers cannot run under the Linux `container:` field, so run on a `windows-2025` runner and invoke `docker` directly.
-
-| Registry                  | flutter-windows |
-| ------------------------- | --------------- |
-| Docker Hub                | [gmeligio/flutter-windows:3.44.6](https://hub.docker.com/r/gmeligio/flutter-windows) |
-| GitHub Container Registry | [ghcr.io/gmeligio/flutter-windows:3.44.6](https://github.com/gmeligio/flutter-docker-image/pkgs/container/flutter-windows) |
-| Quay                      | [quay.io/gmeligio/flutter-windows:3.44.6](https://quay.io/repository/gmeligio/flutter-windows) |
+Swap the image and build command for `flutter-web` (`flutter build web`). Windows containers cannot run under the Linux `container:` field, so `flutter-windows` runs on a `windows-2025` runner and invokes `docker` directly:
 
 ```yaml
 jobs:

@@ -30,14 +30,23 @@ const ghcr = (name) => `ghcr.io/${tag(name)}`
 const pullsBadge = (name, label) =>
   `[![${name} pulls](https://img.shields.io/docker/pulls/${repo(name)}?label=${encodeURIComponent(label)})](https://hub.docker.com/r/${repo(name)}/tags)`
 
-const registryTable = (name) =>
-  [
-    `| Registry                  | ${name} |`,
-    `| ------------------------- | ${'-'.repeat(Math.max(name.length, 15))} |`,
-    `| Docker Hub                | [${tag(name)}](https://hub.docker.com/r/${repo(name)}) |`,
-    `| GitHub Container Registry | [${ghcr(name)}](https://github.com/${owner}/flutter-docker-image/pkgs/container/${name}) |`,
-    `| Quay                      | [quay.io/${tag(name)}](https://quay.io/repository/${repo(name)}) |`,
+// One registry table covering every image: rows are registries, columns are
+// the images. Cells are per-registry pull references, so the three images share
+// a single table instead of repeating Docker Hub / GHCR / Quay once each.
+const images = ['flutter-android', 'flutter-web', 'flutter-windows']
+const registryTable = () => {
+  const dockerHub = (name) => `[${tag(name)}](https://hub.docker.com/r/${repo(name)})`
+  const githubCR = (name) => `[${ghcr(name)}](https://github.com/${owner}/flutter-docker-image/pkgs/container/${name})`
+  const quay = (name) => `[quay.io/${tag(name)}](https://quay.io/repository/${repo(name)})`
+  const row = (label, cell) => `| ${label} | ${images.map(cell).join(' | ')} |`
+  return [
+    `| Registry | ${images.join(' | ')} |`,
+    `| --- | ${images.map(() => '---').join(' | ')} |`,
+    row('Docker Hub', dockerHub),
+    row('GitHub Container Registry', githubCR),
+    row('Quay', quay),
   ].join('\n')
+}
 
 const ghWorkflow = (name, buildCmd) =>
   ['```yaml', 'jobs:', '  build:', '    runs-on: ubuntu-22.04', '    container:',
@@ -72,23 +81,19 @@ docker run --rm -it ${ghcr('flutter-android')} flutter build apk
 
 Each image is tagged with the Flutter version it ships (\`:${flutter}\`), there is no \`latest\` tag ([see more on the why](docs/faq.md#why-there-is-no-dynamic-tag-like-latest)). All tools running in the image have analytics disabled and opt-in with \`ENABLE_ANALYTICS=true\`, and a rootless \`flutter:flutter\` user.
 
-### flutter-android
+## Registries
 
-${registryTable('flutter-android')}
+Every image is published to three registries under the same \`:${flutter}\` tag:
+
+${registryTable()}
+
+## GitHub Actions
+
+The Linux images (\`flutter-android\`, \`flutter-web\`) run as the job container:
 
 ${ghWorkflow('flutter-android', 'flutter build apk')}
 
-### flutter-web
-
-${registryTable('flutter-web')}
-
-${ghWorkflow('flutter-web', 'flutter build web')}
-
-### flutter-windows
-
-Windows containers cannot run under the Linux \`container:\` field, so run on a \`windows-2025\` runner and invoke \`docker\` directly.
-
-${registryTable('flutter-windows')}
+Swap the image and build command for \`flutter-web\` (\`flutter build web\`). Windows containers cannot run under the Linux \`container:\` field, so \`flutter-windows\` runs on a \`windows-2025\` runner and invokes \`docker\` directly:
 
 ${windowsWorkflow('flutter build windows')}
 
