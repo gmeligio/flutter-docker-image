@@ -10,7 +10,9 @@ Minimal Docker images for building Flutter apps in Continuous Integration (CI), 
 docker run --rm -it ghcr.io/gmeligio/flutter-android:3.44.6 flutter build apk
 ```
 
-Each image is tagged with the Flutter version it ships (`:3.44.6`), there is no `latest` tag ([see more on the why](docs/faq.md#why-there-is-no-dynamic-tag-like-latest)). All tools running in the image have analytics disabled and opt-in with `ENABLE_ANALYTICS=true`, and a rootless `flutter:flutter` user.
+Each image is tagged with the Flutter version it ships (`:3.44.6`), there is no `latest` tag ([see more on the why](https://github.com/gmeligio/flutter-docker-image/blob/main/docs/faq.md#why-there-is-no-dynamic-tag-like-latest)). All tools running in the image have analytics disabled and opt-in with `ENABLE_ANALYTICS=true`, and a rootless `flutter:flutter` user.
+
+Exact pinned tool versions (Java, Android SDK, NDK, Gradle, Fastlane, and the Windows toolchain) live in [`config/version.json`](https://github.com/gmeligio/flutter-docker-image/blob/main/config/version.json).
 
 ## Registries
 
@@ -52,13 +54,13 @@ jobs:
         run: docker run --rm -v ${{ github.workspace }}:C:\app -w C:\app ghcr.io/gmeligio/flutter-windows:3.44.6 flutter build windows
 ```
 
-See example workflows for GitHub Actions, GitLab CI, Gitea, and Forgejo in [`examples/`](examples/).
+See example workflows for GitHub Actions, GitLab CI, Gitea, and Forgejo in [`examples/`](https://github.com/gmeligio/flutter-docker-image/tree/main/examples).
 
 ## More
 
-* [Building the images locally](docs/contributing.md#building-the-images-locally)
-* [FAQ](docs/faq.md)
-* [Contributing](docs/contributing.md)
+* [Building the images locally](https://github.com/gmeligio/flutter-docker-image/blob/main/docs/contributing.md#building-the-images-locally)
+* [FAQ](https://github.com/gmeligio/flutter-docker-image/blob/main/docs/faq.md)
+* [Contributing](https://github.com/gmeligio/flutter-docker-image/blob/main/docs/contributing.md)
 
 ## License
 
@@ -68,4 +70,4 @@ As with all Docker images, these likely also contain other software which may be
 
 As for any pre-built image usage, it is the image user's responsibility to ensure that any use of this image complies with any relevant licenses for all software contained within.
 
-The [sources](https://github.com/gmeligio/flutter-docker-image) for producing these Docker images are licensed under [MIT License](LICENSE.md).
+The [sources](https://github.com/gmeligio/flutter-docker-image) for producing these Docker images are licensed under [MIT License](https://github.com/gmeligio/flutter-docker-image/blob/main/LICENSE.md).

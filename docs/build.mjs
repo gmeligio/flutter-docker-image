@@ -24,6 +24,13 @@ const repo = (name) => `${owner}/${name}`
 const tag = (name) => `${repo(name)}:${flutter}`
 const ghcr = (name) => `ghcr.io/${tag(name)}`
 
+// Absolute in-repo links. This readme.md is also the Docker Hub description,
+// where relative links (docs/…, LICENSE.md) do not resolve — so every in-repo
+// link points at github.com. `blob` for files, `tree` for directories.
+const ghUrl = `https://github.com/${owner}/flutter-docker-image`
+const blob = (path) => `${ghUrl}/blob/main/${path}`
+const tree = (path) => `${ghUrl}/tree/main/${path}`
+
 // ---- helpers ---------------------------------------------------------------
 // Docker Hub pull-count badge. All images share the manifest Flutter version, so
 // the version is a single static badge (below), not one docker/v badge per image.
@@ -79,7 +86,9 @@ const body = `Minimal Docker images for building Flutter apps in Continuous Inte
 docker run --rm -it ${ghcr('flutter-android')} flutter build apk
 \`\`\`
 
-Each image is tagged with the Flutter version it ships (\`:${flutter}\`), there is no \`latest\` tag ([see more on the why](docs/faq.md#why-there-is-no-dynamic-tag-like-latest)). All tools running in the image have analytics disabled and opt-in with \`ENABLE_ANALYTICS=true\`, and a rootless \`flutter:flutter\` user.
+Each image is tagged with the Flutter version it ships (\`:${flutter}\`), there is no \`latest\` tag ([see more on the why](${blob('docs/faq.md')}#why-there-is-no-dynamic-tag-like-latest)). All tools running in the image have analytics disabled and opt-in with \`ENABLE_ANALYTICS=true\`, and a rootless \`flutter:flutter\` user.
+
+Exact pinned tool versions (Java, Android SDK, NDK, Gradle, Fastlane, and the Windows toolchain) live in [\`config/version.json\`](${blob('config/version.json')}).
 
 ## Registries
 
@@ -97,13 +106,13 @@ For \`flutter-web\`, use the same workflow with \`image: ${ghcr('flutter-web')}\
 
 ${windowsWorkflow('flutter build windows')}
 
-See example workflows for GitHub Actions, GitLab CI, Gitea, and Forgejo in [\`examples/\`](examples/).
+See example workflows for GitHub Actions, GitLab CI, Gitea, and Forgejo in [\`examples/\`](${tree('examples')}).
 
 ## More
 
-* [Building the images locally](docs/contributing.md#building-the-images-locally)
-* [FAQ](docs/faq.md)
-* [Contributing](docs/contributing.md)
+* [Building the images locally](${blob('docs/contributing.md')}#building-the-images-locally)
+* [FAQ](${blob('docs/faq.md')})
+* [Contributing](${blob('docs/contributing.md')})
 
 ## License
 
@@ -113,7 +122,7 @@ As with all Docker images, these likely also contain other software which may be
 
 As for any pre-built image usage, it is the image user's responsibility to ensure that any use of this image complies with any relevant licenses for all software contained within.
 
-The [sources](https://github.com/${owner}/flutter-docker-image) for producing these Docker images are licensed under [MIT License](LICENSE.md).`
+The [sources](${ghUrl}) for producing these Docker images are licensed under [MIT License](${blob('LICENSE.md')}).`
 
 const readme = `<!--- This markdown file was auto-generated from docs/build.mjs -->
 
