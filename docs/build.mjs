@@ -88,7 +88,7 @@ docker run --rm -it ${ghcr('flutter-android')} flutter build apk
 
 Each image is tagged with the Flutter version it ships (\`:${flutter}\`), there is no \`latest\` tag ([see more on the why](${blob('docs/faq.md')}#why-there-is-no-dynamic-tag-like-latest)). All tools running in the image have analytics disabled and opt-in with \`ENABLE_ANALYTICS=true\`, and a rootless \`flutter:flutter\` user.
 
-Exact pinned tool versions (Java, Android SDK, NDK, Gradle, Fastlane, and the Windows toolchain) live in [\`config/version.json\`](${blob('config/version.json')}).
+[\`config/version.json\`](${blob('config/version.json')}) contains the versions of the tools included in the images like Android SDK, Fastlane and Windows toolchain.
 
 ## Registries
 
