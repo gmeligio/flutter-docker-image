@@ -1,7 +1,7 @@
 ## 1. Relocate reference/contributor content (static markdown)
 
-- [ ] 1.1 Append a "Building locally" section to `docs/contributing.md` with the Android and Windows `docker build` invocations (keep the version literal/illustrative, not manifest-interpolated).
-- [ ] 1.2 Create `docs/faq.md` with the two existing FAQ entries (why no AWS ECR Public registry; why no dynamic `:latest` tag), preserving the current wording and links.
+- [x] 1.1 Append a "Building locally" section to `docs/contributing.md` with the Android and Windows `docker build` invocations (keep the version literal/illustrative, not manifest-interpolated).
+- [x] 1.2 Create `docs/faq.md` with the two existing FAQ entries (why no AWS ECR Public registry; why no dynamic `:latest` tag), preserving the current wording and links.
 
 ## 2. Rewrite the generator badges (`docs/build.mjs`)
 
