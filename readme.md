@@ -4,21 +4,13 @@
 
 # Flutter Docker Image
 
-Minimal Docker images for building Flutter apps in CI — Android, Web, and Windows, with the SDK and toolchain predownloaded so `flutter` runs without extra downloads. Images track the Flutter **stable** channel; the current version is **3.44.6**.
+Minimal Docker images for building Flutter apps in Continuous Integration (CI), for Android, Web, and Windows platforms, with the SDK and toolchain predownloaded so `flutter` runs without extra downloads. Images track the Flutter **stable** channel and the current version is **3.44.6**.
 
 ```bash
 docker run --rm -it ghcr.io/gmeligio/flutter-android:3.44.6 flutter build apk
 ```
 
-Each image is tagged with the Flutter version it ships (`:3.44.6`); there is no `latest` tag ([why](docs/faq.md#why-there-is-no-dynamic-tag-like-latest)). Images run analytics-disabled by default (opt in with `ENABLE_ANALYTICS=true`) as a rootless `flutter` user.
-
-## Images
-
-| Image | Platform | Build command |
-| ----- | -------- | ------------- |
-| `flutter-android` | Android | `flutter build apk` |
-| `flutter-web` | Web | `flutter build web` |
-| `flutter-windows` | Windows | `flutter build windows` |
+Each image is tagged with the Flutter version it ships (`:3.44.6`), there is no `latest` tag ([see more on the why](docs/faq.md#why-there-is-no-dynamic-tag-like-latest)). All tools running in the image have analytics opt-in with `ENABLE_ANALYTICS=true` and a rootless `flutter:flutter` user.
 
 ### flutter-android
 
@@ -85,7 +77,7 @@ jobs:
 
 ## CI backends
 
-These images run on GitHub Actions, GitLab CI, Gitea, and Forgejo. Ready-to-use workflows for each backend are in [`examples/`](examples/) — the Gitea and Forgejo ones show how to make Node.js available for `actions/checkout` (act-based runners do not inject it the way GitHub does).
+These images run on GitHub Actions, GitLab CI, Gitea, and Forgejo. See example workflows for each backend in [`examples/`](examples/).
 
 ## More
 
