@@ -93,7 +93,7 @@ The Linux images (\`flutter-android\`, \`flutter-web\`) run as the job container
 
 ${ghWorkflow('flutter-android', 'flutter build apk')}
 
-Swap the image and build command for \`flutter-web\` (\`flutter build web\`). Windows containers cannot run under the Linux \`container:\` field, so \`flutter-windows\` runs on a \`windows-2025\` runner and invokes \`docker\` directly:
+For \`flutter-web\`, use the same workflow with \`image: ${ghcr('flutter-web')}\` and \`run: flutter build web\`. Windows containers cannot run under the Linux \`container:\` field, so \`flutter-windows\` runs on a \`windows-2025\` runner and invokes \`docker\` directly:
 
 ${windowsWorkflow('flutter build windows')}
 
