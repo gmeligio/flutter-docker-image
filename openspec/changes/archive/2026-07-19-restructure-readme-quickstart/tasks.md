@@ -28,4 +28,4 @@
 
 ## 5. Spec sync (at archive)
 
-- [ ] 5.1 On archive, sync `generated-docs-and-examples` to the shipped README shape and remove the `image-tool-inventory` capability from `openspec/specs/`.
+- [x] 5.1 On archive, sync `generated-docs-and-examples` to the shipped README shape and remove the `image-tool-inventory` capability from `openspec/specs/`.
