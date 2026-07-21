@@ -1,3 +1,21 @@
+## [3.44.7] - 2026-07-21
+
+### 🚀 Features
+
+- *(ci)* Adopt create-github-app-token v3 client-id input (#515)
+
+### 📚 Documentation
+
+- *(readme)* Quick-start covering android, web, and windows (#522)
+
+### 🧪 Testing
+
+- *(windows)* Add flutter build windows gate (#518)
+## [3.44.6] - 2026-07-10
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Upgrade flutter to 3.44.6 (#511)
 ## [3.44.5] - 2026-07-08
 
 ### 🚀 Features

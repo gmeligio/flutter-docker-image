@@ -1,16 +1,16 @@
 <!--- This markdown file was auto-generated from docs/build.mjs -->
 
-[![openssf scorecard](https://api.scorecard.dev/projects/github.com/gmeligio/flutter-docker-image/badge)](https://scorecard.dev/viewer/?uri=github.com/gmeligio/flutter-docker-image) [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/gmeligio/flutter-docker-image) [![version](https://img.shields.io/static/v1?label=version&message=3.44.6&color=blue)](https://docs.flutter.dev/release/archive?tab=linux) [![channel](https://img.shields.io/static/v1?label=channel&message=stable&color=blue)](https://docs.flutter.dev/release/archive?tab=linux) [![flutter-android pulls](https://img.shields.io/docker/pulls/gmeligio/flutter-android?label=flutter-android%20pulls)](https://hub.docker.com/r/gmeligio/flutter-android/tags) [![flutter-web pulls](https://img.shields.io/docker/pulls/gmeligio/flutter-web?label=flutter-web%20pulls)](https://hub.docker.com/r/gmeligio/flutter-web/tags) [![flutter-windows pulls](https://img.shields.io/docker/pulls/gmeligio/flutter-windows?label=flutter-windows%20pulls)](https://hub.docker.com/r/gmeligio/flutter-windows/tags)
+[![openssf scorecard](https://api.scorecard.dev/projects/github.com/gmeligio/flutter-docker-image/badge)](https://scorecard.dev/viewer/?uri=github.com/gmeligio/flutter-docker-image) [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/gmeligio/flutter-docker-image) [![version](https://img.shields.io/static/v1?label=version&message=3.44.7&color=blue)](https://docs.flutter.dev/release/archive?tab=linux) [![channel](https://img.shields.io/static/v1?label=channel&message=stable&color=blue)](https://docs.flutter.dev/release/archive?tab=linux) [![flutter-android pulls](https://img.shields.io/docker/pulls/gmeligio/flutter-android?label=flutter-android%20pulls)](https://hub.docker.com/r/gmeligio/flutter-android/tags) [![flutter-web pulls](https://img.shields.io/docker/pulls/gmeligio/flutter-web?label=flutter-web%20pulls)](https://hub.docker.com/r/gmeligio/flutter-web/tags) [![flutter-windows pulls](https://img.shields.io/docker/pulls/gmeligio/flutter-windows?label=flutter-windows%20pulls)](https://hub.docker.com/r/gmeligio/flutter-windows/tags)
 
 # Flutter Docker Image
 
-Minimal Docker images for building Flutter apps in Continuous Integration (CI), for Android, Web, and Windows platforms, with the SDK and toolchain predownloaded so `flutter` runs without extra downloads. Images track the Flutter **stable** channel and the current version is **3.44.6**.
+Minimal Docker images for building Flutter apps in Continuous Integration (CI), for Android, Web, and Windows platforms, with the SDK and toolchain predownloaded so `flutter` runs without extra downloads. Images track the Flutter **stable** channel and the current version is **3.44.7**.
 
 ```bash
-docker run --rm -it ghcr.io/gmeligio/flutter-android:3.44.6 flutter build apk
+docker run --rm -it ghcr.io/gmeligio/flutter-android:3.44.7 flutter build apk
 ```
 
-Each image is tagged with the Flutter version it ships (`:3.44.6`), there is no `latest` tag ([see more on the why](https://github.com/gmeligio/flutter-docker-image/blob/main/docs/faq.md#why-there-is-no-dynamic-tag-like-latest)). All tools running in the image have analytics disabled and opt-in with `ENABLE_ANALYTICS=true`, and a rootless `flutter:flutter` user.
+Each image is tagged with the Flutter version it ships (`:3.44.7`), there is no `latest` tag ([see more on the why](https://github.com/gmeligio/flutter-docker-image/blob/main/docs/faq.md#why-there-is-no-dynamic-tag-like-latest)). All tools running in the image have analytics disabled and opt-in with `ENABLE_ANALYTICS=true`, and a rootless `flutter:flutter` user.
 
 [`config/version.json`](https://github.com/gmeligio/flutter-docker-image/blob/main/config/version.json) contains the versions of the tools included in the images like Android SDK, Fastlane and Windows toolchain.
 
@@ -20,9 +20,9 @@ Every image is published to three registries:
 
 | Registry | flutter-android | flutter-web | flutter-windows |
 | --- | --- | --- | --- |
-| Docker Hub | [gmeligio/flutter-android:3.44.6](https://hub.docker.com/r/gmeligio/flutter-android) | [gmeligio/flutter-web:3.44.6](https://hub.docker.com/r/gmeligio/flutter-web) | [gmeligio/flutter-windows:3.44.6](https://hub.docker.com/r/gmeligio/flutter-windows) |
-| GitHub Container Registry | [ghcr.io/gmeligio/flutter-android:3.44.6](https://github.com/gmeligio/flutter-docker-image/pkgs/container/flutter-android) | [ghcr.io/gmeligio/flutter-web:3.44.6](https://github.com/gmeligio/flutter-docker-image/pkgs/container/flutter-web) | [ghcr.io/gmeligio/flutter-windows:3.44.6](https://github.com/gmeligio/flutter-docker-image/pkgs/container/flutter-windows) |
-| Quay | [quay.io/gmeligio/flutter-android:3.44.6](https://quay.io/repository/gmeligio/flutter-android) | [quay.io/gmeligio/flutter-web:3.44.6](https://quay.io/repository/gmeligio/flutter-web) | [quay.io/gmeligio/flutter-windows:3.44.6](https://quay.io/repository/gmeligio/flutter-windows) |
+| Docker Hub | [gmeligio/flutter-android:3.44.7](https://hub.docker.com/r/gmeligio/flutter-android) | [gmeligio/flutter-web:3.44.7](https://hub.docker.com/r/gmeligio/flutter-web) | [gmeligio/flutter-windows:3.44.7](https://hub.docker.com/r/gmeligio/flutter-windows) |
+| GitHub Container Registry | [ghcr.io/gmeligio/flutter-android:3.44.7](https://github.com/gmeligio/flutter-docker-image/pkgs/container/flutter-android) | [ghcr.io/gmeligio/flutter-web:3.44.7](https://github.com/gmeligio/flutter-docker-image/pkgs/container/flutter-web) | [ghcr.io/gmeligio/flutter-windows:3.44.7](https://github.com/gmeligio/flutter-docker-image/pkgs/container/flutter-windows) |
+| Quay | [quay.io/gmeligio/flutter-android:3.44.7](https://quay.io/repository/gmeligio/flutter-android) | [quay.io/gmeligio/flutter-web:3.44.7](https://quay.io/repository/gmeligio/flutter-web) | [quay.io/gmeligio/flutter-windows:3.44.7](https://quay.io/repository/gmeligio/flutter-windows) |
 
 ## Running on CI
 
@@ -33,7 +33,7 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/gmeligio/flutter-android:3.44.6
+      image: ghcr.io/gmeligio/flutter-android:3.44.7
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -41,7 +41,7 @@ jobs:
         run: flutter build apk
 ```
 
-For `flutter-web`, use the same workflow with `image: ghcr.io/gmeligio/flutter-web:3.44.6` and `run: flutter build web`. Windows containers cannot run under the Linux `container:` field, so `flutter-windows` runs on a `windows-2025` runner and invokes `docker` directly:
+For `flutter-web`, use the same workflow with `image: ghcr.io/gmeligio/flutter-web:3.44.7` and `run: flutter build web`. Windows containers cannot run under the Linux `container:` field, so `flutter-windows` runs on a `windows-2025` runner and invokes `docker` directly:
 
 ```yaml
 jobs:
@@ -51,7 +51,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Build
-        run: docker run --rm -v ${{ github.workspace }}:C:\app -w C:\app ghcr.io/gmeligio/flutter-windows:3.44.6 flutter build windows
+        run: docker run --rm -v ${{ github.workspace }}:C:\app -w C:\app ghcr.io/gmeligio/flutter-windows:3.44.7 flutter build windows
 ```
 
 See example workflows for GitHub Actions, GitLab CI, Gitea, and Forgejo in [`examples/`](https://github.com/gmeligio/flutter-docker-image/tree/main/examples).
