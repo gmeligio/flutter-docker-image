@@ -11,6 +11,10 @@
 ### 🧪 Testing
 
 - *(windows)* Add flutter build windows gate (#518)
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Upgrade flutter to 3.44.7 (#523)
 ## [3.44.6] - 2026-07-10
 
 ### ⚙️ Miscellaneous Tasks

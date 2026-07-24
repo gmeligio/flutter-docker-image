@@ -5,7 +5,7 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/gmeligio/flutter-android:3.44.7
+      image: ghcr.io/gmeligio/flutter-android:3.44.8
     steps:
       - name: Set up Node.js for actions/checkout (act-based runners don't provide it)
         run: |-
