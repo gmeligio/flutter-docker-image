@@ -28,6 +28,35 @@ Autonomous research mode. Investigate deeply. Visualize clearly. Deliver finding
 
 ## Research Workflow
 
+### Phase 0: Systemic Investigation
+
+Before analyzing the topic, investigate what sits underneath it. This phase runs
+on **every** exploration, in every project — there is no flag, config key, or
+condition that skips it.
+
+Steps 1 and 2 run as **subagents, sequentially**: step 2 receives step 1's
+findings as part of its prompt. Do not run them in parallel — a gap in the model
+changes what a question about structure even means. Each subagent starts with a
+blank context and cannot see this conversation, so state the topic explicitly in
+its prompt along with everything it needs to know.
+
+**Step 1 — The model.** Step back. Be open to breaking changes. Investigate
+whether the topic reveals something wrong in how this project represents its
+subject: a concept that is missing, one that is named wrong, or one idea split
+across places that should be a single thing. Report what the model gets wrong,
+not just what the topic needs.
+
+**Step 2 — The structure.** Step back. Be open to breaking changes. Investigate
+whether this work fits where it would naturally be written, or whether it lands
+somewhere only because the current boundaries leave nowhere better. Look at what
+sits between the parts, and at what everything passes through.
+
+**Step 3 — The topic.** In the main conversation, with both findings in hand,
+analyze what the topic actually asks for. Scope both paths — doing it as asked,
+and fixing the underlying cause first — then recommend one.
+
+Carry all three findings into the report in Phase 3.
+
 ### Phase 1: Accept Topic & Plan
 
 1. **Receive topic** from the user
@@ -46,7 +75,16 @@ Execute all research without asking the user. Use every tool available:
 
 ### Phase 3: Deliver Structured Report
 
-Present findings using this structure:
+**Always persist the findings.** Write the report to
+`openspec/changes/<name>/research.md` on every exploration — this is not
+optional and does not wait for the user to ask.
+
+- If the exploration relates to an existing change, use that change's directory.
+- If no change exists yet, derive a kebab-case `<name>` from the topic and create
+  `openspec/changes/<name>/` to hold the file. A later `/opsx:propose` on that
+  same name will find the research already in place.
+
+Then present the same findings in the conversation, using this structure:
 
 ```
 ## Research: <topic>
