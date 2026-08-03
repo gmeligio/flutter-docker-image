@@ -118,13 +118,28 @@ the relevance gate. The verify step will check for them.
 
 **Git: Commit the proposal**
 
-After all artifacts are created, stage and commit:
+After all artifacts are created, stage and commit. Build a Conventional
+Commit prefix from the staged change — do not hardcode the type, and do not
+use the change-id as the scope:
+
+- **type**: infer from the diff's user-facing *outcome*, not the technique
+  used (a refactor that fixes a bug is `fix`, not `refactor`). Choose one of:
+  `feat`, `fix`, `docs`, `chore`, `ci`, `refactor`, `perf`, `test`, `build`,
+  `style`, `revert`. A proposal that only adds artifacts under
+  `openspec/changes/<n>/` is `docs`.
+- **scope**: the affected code area, derived from the primary top-level
+  directory or module the diff touches — use the existing directory/module
+  name, not an invented synonym, and not the change-id. A proposal touching
+  only `openspec/changes/<n>/` yields scope `openspec`. When the diff spans
+  multiple unrelated areas, pick the dominant area.
+- **subject**: `propose <n>`.
+
+Print the chosen `type(scope): subject` before committing, then:
 
 ```bash
 git add openspec/changes/<n>/
-git diff --cached --quiet || git commit -m "docs(openspec): propose <n>"
+git diff --cached --quiet || git commit -m "<type>(<scope>): propose <n>"
 ```
-
 **Guardrails**
 - Create ALL artifacts needed for implementation (as defined by schema's `apply.requires`)
 - Always read dependency artifacts before creating a new one

@@ -76,9 +76,26 @@ Implement tasks from an OpenSpec change.
 
    <!-- opsx-git-commit-patch -->
    - **Git: Commit the task**
+
+     Build a Conventional Commit prefix from the staged change — do not
+     hardcode `feat`, and do not use the change-id as the scope:
+
+     - **type**: infer from the diff's user-facing *outcome*, not the
+       technique used (a refactor that fixes a bug is `fix`, not
+       `refactor`). Choose one of: `feat`, `fix`, `docs`, `chore`, `ci`,
+       `refactor`, `perf`, `test`, `build`, `style`, `revert`.
+     - **scope**: the affected code area, derived from the primary
+       top-level directory or module the diff touches (e.g. `hooks`,
+       `lint`, `ci`, `skills`) — use the existing directory/module name,
+       not an invented synonym, and not the change-id. When the diff spans
+       multiple unrelated areas, pick the dominant area.
+     - **subject**: `task N/M — <task description>`.
+
+     Print the chosen `type(scope): subject` before committing, then:
+
      ```bash
      git add -A
-     git diff --cached --quiet || git commit -m "feat(<n>): task N/M — <task description>"
+     git diff --cached --quiet || git commit -m "<type>(<scope>): task N/M — <task description>"
      ```
 
    **Pause if:**
