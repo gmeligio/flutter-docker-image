@@ -4,7 +4,7 @@ git-cliff = "2.13.1"
 # For update-android-version: the flutter-android container lacks jq.
 jq = "1.8.2"
 node = "lts"
-"github:gmeligio/gx" = "0.8.3"
+"github:gmeligio/gx" = "0.8.4"
 "github:GoogleContainerTools/container-structure-test[exe=container-structure-test-linux-amd64]" = "1.22.1"
 
 # Code-generate the committed docs output from config/version.json (the single
