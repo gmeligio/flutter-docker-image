@@ -2,8 +2,9 @@
 model: opus
 name: "OPSX: Explore"
 description: "Enter explore mode - think through ideas, investigate problems, clarify requirements"
-category: Workflow
-tags: [workflow, explore, experimental, thinking]
+allowed-tools: Bash(openspec:*)
+category: "Workflow"
+tags: ["workflow", "explore", "experimental", "thinking"]
 ---
 
 <!-- opsx-explore-research-patch -->
@@ -31,10 +32,9 @@ on **every** exploration, in every project — there is no flag, config key, or
 condition that skips it.
 
 Steps 1 and 2 run as **subagents, sequentially**: step 2 receives step 1's
-findings as part of its prompt. Do not run them in parallel — a gap in the model
-changes what a question about structure even means. Each subagent starts with a
-blank context and cannot see this conversation, so state the topic explicitly in
-its prompt along with everything it needs to know.
+findings as part of its prompt. Each subagent starts with a blank context and
+cannot see this conversation, so state the topic explicitly in its prompt along
+with everything it needs to know.
 
 **Step 1 — The model.** Step back. Be open to breaking changes. Investigate
 whether the topic reveals something wrong in how this project represents its
@@ -147,16 +147,9 @@ Each must state what was already tried.
 
 ## Visualization
 
-ASCII diagrams are a first-class element of the report, not an afterthought.
-
-**"A good diagram is worth many paragraphs."**
-
-- **Context** — Diagram the current architecture/flow relevant to the topic
-- **Findings** — Visualize relationships, data flows, or dependency graphs discovered during research
-- **Options** — Side-by-side diagrams comparing approaches when the difference is structural
-- **Recommendation** — Diagram the proposed end-state (before vs after)
-
-Default to drawing when explaining structure, flow, or comparison. Use text when explaining reasoning or tradeoffs.
+Draw an ASCII diagram in each of the four report sections that calls for one, as
+shown in the template above. Default to drawing when explaining structure, flow,
+or comparison. Use text when explaining reasoning or tradeoffs.
 
 ---
 
@@ -174,14 +167,21 @@ This tells you:
 - Their names, schemas, and status
 - What artifacts already exist
 
-If a related change exists, read its artifacts (`proposal.md`, `design.md`, `tasks.md`, specs) and reference them naturally in the report.
+Then read the project's own context from the resolved root — `<root.path>/openspec/config.yaml` (or `config.yml`). Use the `root.path` returned above, and skip this if neither file exists:
+
+- `context`: project background — tech stack, conventions, constraints
+- `rules`: keyed by artifact id — the entries for an artifact apply only when you write that artifact
+
+Ground your research in these. They are constraints for you to follow, not content to reproduce: do NOT copy them into the conversation or into any artifact you create.
+
+If a related change exists, read its artifacts (`proposal.md`, `design.md`, `tasks.md`, specs) and reference them naturally in the report. Resolve their paths with `openspec status --change "<name>" --json` (`changeRoot`, `artifactPaths`) rather than assuming `openspec/changes/<name>/`.
 
 ---
 
 ## Guardrails
 
 - **No implementation** — Never write application code. Creating OpenSpec artifacts is fine if the user approves.
-- **No premature questions** — Whether asking the user or writing an "Open Question" in the report, exhaust the codebase and web first. If you can name a concrete next step (grep, file read, fetch) that would answer it, take that step instead.
-- **Cite sources** — Every finding must reference where it came from (URL for web, `file:line` for code). No unsourced claims.
-- **Stay grounded** — Prefer concrete evidence (code, docs, examples) over speculation. Label uncertain findings as such.
-- **Offer next steps, don't auto-proceed** — End with a recommendation for what to do next, but let the user decide.
+- **No premature questions** — Before asking the user or writing an "Open Question", exhaust the codebase and web. When you can name a concrete next step (grep, file read, fetch) that would answer it, take that step instead.
+- **Cite sources** — Every finding references where it came from: a URL for web, `file:line` for code.
+- **Stay grounded** — Prefer concrete evidence over speculation. Label uncertain findings as uncertain.
+- **Offer next steps** — End with a recommendation and let the user decide.
