@@ -19,6 +19,25 @@
       "matchFileNames": [".github/gx.toml"],
       "groupName": "github-actions",
       "schedule": ["* 0-3 1 * *"]
+    },
+    {
+      "description": "Default apt suites: one registryUrl per stanza of debian:13-slim's own sources (trixie, trixie-updates, trixie-security; main only). The deb datasource merges releases across them, so Renovate's candidate is the one apt would install.",
+      "matchDatasources": ["deb"],
+      "registryUrls": [
+        "https://deb.debian.org/debian?suite=trixie&components=main&binaryArch=amd64",
+        "https://deb.debian.org/debian?suite=trixie-updates&components=main&binaryArch=amd64",
+        "https://deb.debian.org/debian-security?suite=trixie-security&components=main&binaryArch=amd64"
+      ]
+    },
+    {
+      "description": "openjdk-17 is not in trixie; the android stage adds Debian 12 bookworm to install it. Mirrors config/debian_12_bookworm.sources. Must stay after the trixie rule — a later matching rule replaces registryUrls.",
+      "matchDatasources": ["deb"],
+      "matchPackageNames": ["openjdk-17-jdk-headless"],
+      "registryUrls": [
+        "https://deb.debian.org/debian?suite=bookworm&components=main,contrib,non-free,non-free-firmware&binaryArch=amd64",
+        "https://deb.debian.org/debian?suite=bookworm-updates&components=main,contrib,non-free,non-free-firmware&binaryArch=amd64",
+        "https://deb.debian.org/debian-security?suite=bookworm-security&components=main,contrib,non-free,non-free-firmware&binaryArch=amd64"
+      ]
     }
   ],
   "customManagers": [
@@ -35,11 +54,11 @@
     },
     {
       "customType": "regex",
+      "description": "Read Debian apt-package pins from *.Dockerfile. Which suites a pin resolves against is owned by the deb packageRules above — deliberately not by this manager, because a registryUrlTemplate can only ever emit one URL and correctness needs a set.",
       "managerFilePatterns": ["**/*.Dockerfile"],
       "matchStrings": [
-        "#\\s*renovate:\\s*suite=(?<suite>.*?) depName=(?<depName>.*?)\\sARG .*?_VERSION=\"(?<currentValue>.*)\"\\s"
+        "#\\s*renovate:\\s*depName=(?<depName>.*?)\\sARG .*?_VERSION=\"(?<currentValue>.*)\"\\s"
       ],
-      "registryUrlTemplate": "https://deb.debian.org/debian?{{#if release }}release={{release}}{{else}}suite=stable{{/if}}&components=main,contrib,non-free&binaryArch=amd64",
       "datasourceTemplate": "deb"
     }
   ]
