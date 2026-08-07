@@ -5,7 +5,7 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/gmeligio/flutter-android:3.44.8
+      image: ghcr.io/gmeligio/flutter-android:3.44.9
     steps:
       - name: Checkout
         uses: actions/checkout@v4
