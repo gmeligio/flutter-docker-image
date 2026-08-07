@@ -1,3 +1,14 @@
+## [3.44.9] - 2026-08-07
+
+### 📚 Documentation
+
+- *(.entire)* Enable entire (#526)
+- *(openspec)* Add research phase to explore mode (#527)
+## [3.44.8] - 2026-07-24
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Upgrade flutter to 3.44.8 (#524)
 ## [3.44.7] - 2026-07-21
 
 ### 🚀 Features
