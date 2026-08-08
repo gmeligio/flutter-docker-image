@@ -243,6 +243,39 @@ The floor assertion (D5) is self-testing: it runs on every
 `JAVA_HOME` disagreeing with the installed JDK — is closed by D4, since both now
 derive from one value.
 
+**What a maintainer actually sees when Flutter renames the constant.** Three
+signals, in descending reliability:
+
+1. **The workflow run goes red.** `update-android-version` has no
+   `continue-on-error`, and a failed producer fails the run even though
+   `compose-and-open-pr` continues under `!cancelled()`. Verified against four
+   historical runs where exactly this happened — `27658604759`, `27587077891`,
+   `27517986487`, `27387574884`, all `OVERALL=failure`. The workflow runs nightly
+   (`cron: '0 0 * * MON-FRI'`), so the signal arrives within a day.
+2. **The job log names the cause.** The `error(...)` prints the sorted member
+   list, which is what separates "Flutter renamed the constant" from a transient
+   container-pull or network failure. Without opening the log the two are
+   indistinguishable.
+3. **The PR body annotates the empty block** (`update-version.yml:428-431`),
+   linking the failed job. Weak on its own: the wording is *"Android toolchain
+   unchanged this cycle"* whether the producer skipped or failed. Treat it as a
+   breadcrumb, not a diagnosis.
+
+**Non-blocking, deliberately.** PR #483 made the three platform updaters
+structurally symmetric, explicitly removing the old asymmetry where "Windows-job
+failure was soft […]; Android-job failure was hard (PR blocked)." A producer that
+emits no block is a carry-forward, not a halt — so the upgrade PR still opens with
+the previous `android.java`. That is the right trade-off here: a rename can only
+land on a Flutter version bump, which is exactly when a human is reviewing the
+upgrade PR, and one stale Java major does not justify forfeiting the Flutter bump.
+No change to that model is proposed; a reflection failure is just another
+empty-block cycle.
+
+**Residual gap, accepted.** If the red run is ignored *and* the PR merged, the
+image ships the previous Java major. `test/android.yml`'s "Java is pinned"
+assertion does **not** catch this — manifest and image would agree on the stale
+value. The red run is the only guard on that path.
+
 **Logging**: the Gradle task should print the derived constant and the resolved
 getter name (`Derived Java major from errorJavaVersion (getErrorJavaVersion$gradle): 17`)
 so a job log shows the value, its provenance, *and* the mangled name it matched —
