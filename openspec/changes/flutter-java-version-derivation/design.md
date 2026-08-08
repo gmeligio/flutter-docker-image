@@ -14,9 +14,11 @@ hand-typed strings — `JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64`
 (`android.Dockerfile:140`) and the `openjdk-17-jdk-headless` package name (`:164`)
 — neither of which any check covers.
 
-The blocker on fixing this was cost: `script/setEnvironmentVariables.js` hand-lists
-ten `core.exportVariable` calls and the build-args block is copy-pasted four times,
-so carrying one more value is a five-file edit. Full findings in
+The blocker on fixing this was cost: carrying one more value to the build is a
+five-file edit. That cost is real but it is a separate concern with its own user
+impact, and it is now the change `manifest-build-arg-wiring`. This design assumes
+nothing about it: `android_java_version` is passed the way build arguments are
+passed at the time of implementation. Full findings in
 `../loud-deb-pin-resolution/research.md` (F6, F6b, F7, F10).
 
 ## Goals / Non-Goals
@@ -27,10 +29,12 @@ so carrying one more value is a five-file edit. Full findings in
   on Flutter's cadence rather than the maintainer's.
 - The two hand-typed Java strings in `android.Dockerfile` disappear; both follow
   the manifest.
-- Adding any future manifest field costs one edit, not five.
 - Per-ARG Docker layer-cache granularity is preserved exactly as today.
 
 **Non-Goals:**
+
+- Reducing the cost of adding a manifest field. Split out as
+  `manifest-build-arg-wiring`; this change does not depend on it.
 
 - Migrating to Java 21. Decided against (research F6); Flutter scaffolds 17 and
   publishes no recommended version above the floor.
@@ -141,27 +145,40 @@ entirely is hand-declaring the value in `config/version.json` and relying on D5'
 floor assertion, which reintroduces the maintainer-in-the-loop cost this change
 exists to remove.
 
-### D3 — Mechanical ARG-name derivation, single emission point
+### D3 — The wiring refactor is a separate change
 
-`setEnvironmentVariables.js` walks the manifest and derives each ARG name from its
-JSON path (`android.ndk.version` → `android_ndk_version`), emitting the entire
-build-args block as one `BUILD_ARGS` value. The four call sites become
-`build-args: ${{ env.BUILD_ARGS }}`.
+An earlier draft of this design bundled a rewrite of
+`script/setEnvironmentVariables.js`, deriving each ARG name mechanically from its
+JSON path. That is split out as `manifest-build-arg-wiring`, for two reasons.
 
-**Layer caching is the constraint that shapes this.** The tempting simplification
-— pass the manifest as one JSON build-arg, or `COPY config/version.json` into the
-build — would make any version change invalidate every layer below. Builds run
-15–25 minutes and lean on registry buildcache (`build.yml:151-152`), so a fastlane
-bump must not rebuild the Flutter clone. Emitting N newline-separated
-`name=value` pairs keeps BuildKit seeing N distinct build-args exactly as today.
-Only *authoring* is centralized; the wire format is unchanged.
+The mechanical rule does not exist. Checked against the names actually in use,
+`android.cmake.version` → `cmake_version` drops a segment,
+`windows.vsBuildTools.cmakeProject.version` → `vs_cmake_version` abbreviates two,
+and `android.ndk.version` → `android_ndk_version` retains the trailing `version`
+that a drop-the-suffix rule removes. Any single rule contradicts at least half the
+set. Getting that wrong inside this change would have broken every build argument
+while nominally shipping a Java fix.
 
-The manifest has nested shapes that do not map to a scalar (`android.platforms` is
-an array joined with spaces; `windows.vsBuildTools.*` nests two deep). Derivation
-handles the flat `{version: X}` and `{build: X}` leaf shapes mechanically and
-keeps an explicit table for the handful that need transformation — smaller than
-today's ten hand-listed exports, and the exceptions are visible rather than
-implied.
+And the two concerns are independent. This change needs `android_java_version` to
+reach the Linux build; it does not care whether that costs one table row or four
+inline `--build-arg` lines. Keeping them separate means the Java derivation can be
+reviewed, landed and reverted on its own.
+
+What this change therefore does: declare `ARG android_java_version` in
+`android.Dockerfile`, export `ANDROID_JAVA_VERSION` from
+`script/setEnvironmentVariables.js`, and add one `--build-arg` line to each of the
+four blocks — the same five edits this repository charges for any manifest field.
+It pays that cost rather than pretending it away, which is precisely the argument
+for `manifest-build-arg-wiring` existing; if that change lands first, the five
+become one table row.
+
+Layer-cache granularity is unaffected: one more scalar build-arg is one more
+distinct BuildKit input, exactly like the six today. Two blocks
+(`build.yml:156-157`, `release.yml:112-113`) are shared between the android and
+web targets, and their comment already records that the android args "are inert
+for the web target (its stage declares none of them)". `android_java_version`
+joins on those terms — an `UnusedBuildArgs` warning on the web leg, identical in
+kind to the six existing ones. Pre-existing condition, not introduced here.
 
 ### D4 — Dockerfile follows the derived value
 
@@ -180,10 +197,17 @@ RUN apt-get install -y --no-install-recommends \
 
 ARG→ENV interpolation within a stage was **verified empirically** in this session
 (`RUNTIME_ENV=[/usr/lib/jvm/java-17-openjdk-amd64]`, confirmed baked into the image
-config via `docker inspect` and present at runtime). The `moby/moby#29110` TODOs at
-`:136-138` concern a different limitation — capturing shell command *output* in
-`ENV` — which remains unsupported; those TODOs are resolved by this change only in
-the sense that the value now arrives from CI rather than needing runtime discovery.
+config via `docker inspect` and present at runtime).
+
+The `moby/moby#29110` TODOs at `:136-138` ask for something else: deriving
+`JAVA_HOME` at build time from `dirname $(dirname $(readlink -f $(which javac)))`,
+i.e. capturing shell command *output* into `ENV`. moby#29110 still blocks that and
+this change does not unblock it. What changes is that the question stops mattering
+— the value arrives as a build argument from a manifest that is itself derived, so
+there is nothing left to discover at runtime. The TODOs are therefore **obsoleted
+by a different route, not resolved**, and they are replaced by a one-line note
+saying so rather than silently deleted. Deleting them outright would read as a
+claim that runtime discovery now works.
 
 `ARG android_java_version` must move **above** the `ENV` block (it currently sits
 at `:176`, after it).
@@ -197,8 +221,23 @@ loudly on divergence instead of shipping silently.
 
 `check(JavaVersion.current().majorVersion.toInt() >= javaMajor)` in
 `updateAndroidVersions.gradle.kts`, where `javaMajor` is the value D2 just
-derived. Circular as a *derivation*, but valid as an *assertion*: it fails the
-task if the JDK the container installed drops below what Flutter enforces.
+derived. Circular as a *derivation*, but valid as an *assertion*.
+
+**It is narrower than it looks, and worth being precise about.** Both invocation
+sites — `update-version.yml:286-290` and `build.yml:494-498` — run the task inside
+`ghcr.io/<owner>/flutter-android:<version>`, an image whose JDK this change makes
+derive from the very field being asserted. So in steady state the check compares a
+value against itself and can never fire. What it actually guards is the **lag
+window on a floor bump**: the container is the *previously published* image, so on
+the cycle where Flutter raises `errorJavaVersion` from N to N+1, the task derives
+N+1 while running on a JDK N container and fails immediately, naming the required
+minimum. Without it, that cycle instead fails deeper inside Flutter's own
+`checkJavaVersion` with a less direct message, or — if nothing in the task happens
+to invoke that path — writes a manifest the running toolchain cannot satisfy.
+
+That is one cycle per floor bump, which is rare. The assertion is cheap and the
+failure it converts is confusing, so it earns its place; it is not a general
+guard on the installed JDK.
 
 Because D2 puts the derivation in this same task, the assertion compares against
 the derived value rather than a restated literal — so there is no second `17` to
@@ -214,15 +253,18 @@ No new test infrastructure. The change is covered by three gates that already ru
    read `android.java.version`. This is the critical path: it is what turns a
    wrong `JAVA_HOME` or a wrong package name red, and it needs no edit.
 2. **`cue vet config/schema.cue -d '#Version'`** — `android.java` is already
-   `#PlatformVersion` (an int) at `config/schema.cue:47`; a non-integer derivation
+   `#PlatformVersion` (an int) at `config/schema.cue:46`; a non-integer derivation
    fails the producer before it emits.
 3. **`git diff --exit-code`** after `script/update_test.sh` (`build.yml:412-414`)
    — catches a manifest change not reflected in the regenerated test.
 
-For D3, the meaningful check is that the emitted `BUILD_ARGS` produces the same
-`--build-arg` set as today. Verify by comparing the `docker buildx build` command
-line in a CI run against the current baseline (run `31194164846` shows the
-present form) — same six args, same values, before adding the seventh.
+Beyond those, the only check this change adds is that `android_java_version`
+actually reaches the build: the Linux build's `--build-arg` set goes from the
+current six (run `31194164846` shows the present form) to seven, with the six
+existing names and values untouched. If `manifest-build-arg-wiring` has landed
+first, its own byte-identical baseline check covers the six; this change is then
+purely the seventh. Either ordering, the assertion is the same — six unchanged,
+one added.
 
 The floor assertion (D5) is self-testing: it runs on every
 `update-android-version` and `test-gradle` invocation.
@@ -236,8 +278,8 @@ The floor assertion (D5) is self-testing: it runs on every
 | Upstream renames/removes `errorJavaVersion` | Reflection lookup throws with the available member list → Gradle task fails → producer fails → base block carried forward |
 | Derived value is not a positive integer | `cue vet` non-zero in the producer's own validation step |
 | Dockerfile ships a JDK major ≠ manifest | `test/android.yml` "Java is pinned" turns the PR check red |
-| `BUILD_ARGS` omits a value | Empty `ARG` → build fails at the consuming `RUN` |
-| Installed JDK below Flutter's floor | `check(...)` fails the Gradle task |
+| `android_java_version` not passed to the build | Empty `ARG` → `apt-get install openjdk--jdk-headless=…` fails at the consuming `RUN` |
+| Flutter raises its floor above the JDK in the *previously published* image the task runs inside | `check(...)` fails the Gradle task, naming the minimum (D5 — the lag-window case, not a general JDK guard) |
 
 **Cannot fail silently.** The one previously-silent path — a hand-typed
 `JAVA_HOME` disagreeing with the installed JDK — is closed by D4, since both now
@@ -276,6 +318,20 @@ image ships the previous Java major. `test/android.yml`'s "Java is pinned"
 assertion does **not** catch this — manifest and image would agree on the stale
 value. The red run is the only guard on that path.
 
+Two ways to narrow it were considered and both declined, for different reasons:
+
+- **Fail `compose-and-open-pr` when the block is empty *and* a producer failed.**
+  This would close the gap outright, but it re-splits the three platform updaters
+  that PR #483 deliberately made symmetric — Android failure would block the PR
+  again while Windows failure did not. Reintroducing that asymmetry to guard one
+  rare field is the wrong trade.
+- **Word the PR annotation differently for failure vs. skip.** Cheaper, and it
+  addresses the "breadcrumb, not a diagnosis" complaint directly: the reader would
+  see *"Android toolchain producer failed"* rather than *"unchanged this cycle."*
+  Declined here only because it changes shared workflow text on behalf of all
+  three producers, which is a separate concern from Java derivation and should be
+  proposed as one. Worth doing.
+
 **Logging**: the Gradle task should print the derived constant and the resolved
 getter name (`Derived Java major from errorJavaVersion (getErrorJavaVersion$gradle): 17`)
 so a job log shows the value, its provenance, *and* the mangled name it matched —
@@ -299,14 +355,15 @@ long-stable and the prefix match covers both mangled and unmangled forms. If
 Kotlin ever changed it, the lookup throws rather than silently returning a wrong
 value.
 
-**[`BUILD_ARGS` becomes an opaque blob in workflow YAML]** → The four call sites no
-longer show which args are passed. Mitigated by the job log printing the resolved
-value, and by the manifest itself being the readable list. Net legibility improves:
-one authoritative list replaces four copies that could disagree.
-
-**[Derivation logic must handle nested manifest shapes]** → D3 keeps an explicit
-table for the non-scalar cases rather than over-generalizing. Risk is bounded: the
-manifest has 16 values and changes rarely.
+**[The ARG name outlives the major it carries]** → `android_java_version` becomes
+`21` when Flutter's floor moves, while the patch pin is still named
+`OPENJDK_17_JDK_HEADLESS_VERSION` with a `suite=bookworm depName=openjdk-17-…`
+annotation. Renovate keeps tracking openjdk **17** patches while the image installs
+**21**, so the pin goes stale under a name that looks current. Nothing catches it:
+`test/android.yml` asserts the major, not the patch. A major bump is therefore a
+deliberate multi-line edit — rename the ARG, update the annotation — and this is
+recorded as a follow-up issue rather than solved here, because solving it means
+deriving the ARG name too, which breaks Renovate's regex-adjacency requirement.
 
 **[Renovate's regex must still match the openjdk ARG]** → The `# renovate:`
 annotation and `ARG OPENJDK_17_JDK_HEADLESS_VERSION="…"` line are untouched by D4;
@@ -322,27 +379,47 @@ interpolation and a `JAVA_HOME` of `/usr/lib/jvm/java--openjdk-amd64`. The
 
 Sequenced so each step is independently revertable:
 
-1. **D3 first** (self-wiring build-args), verifying the emitted `--build-arg` set
-   is byte-identical to today's. No behaviour change — pure refactor, easy to
-   confirm and revert.
-2. **D1/D2/D5** (derive Java in the Gradle task, plus the floor assertion) — move
-   the derivation into `updateAndroidVersions.gradle.kts` alongside the other four
-   Android values, delete `script/java_version.sh` and the workflow step that ran
-   it. `version.json` should still read `17`, so the diff on the manifest is
-   empty. That empty diff *is* the validation. D5 lands here rather than last
+1. **D1/D2/D5 — add** the derivation to `updateAndroidVersions.gradle.kts`
+   alongside the other four Android values, plus the floor assertion, **leaving
+   the old `script/java_version.sh` step in place**. Both write
+   `android.java.version` on the same run, so agreement shows up as an empty diff
+   and disagreement as a visible one. That empty diff *is* the validation, and it
+   is a stronger check with the old path still present than without. D5 lands here
    because it consumes D2's derived value in the same task.
+2. **Delete the old path** — `script/java_version.sh` and the workflow step that
+   ran it — once step 1 has confirmed agreement.
 3. **D4** (Dockerfile follows) — the first step that can change the built image.
    `test/android.yml` gates it.
 
 Rollback: each step is a separate commit; step 3 is the only one that touches the
 published image, and reverting it restores the hand-typed strings.
 
+`manifest-build-arg-wiring` is not in this sequence and does not gate it (D3).
+
 ## Open Questions
 
-1. **Should `readme.md` publish the Java version?** It currently never mentions
-   Java (grepped). Once `version.json` is a real declaration, `docs/build.mjs`
-   could surface it nearly free. Maintainer call, not blocking.
-2. **Does `windows.Dockerfile` adopt D3's `BUILD_ARGS`?** The Windows leg builds
-   without buildx (`windows-image.yml:130-149` hand-assembles a PowerShell array),
-   so it needs a different shape. Out of scope here; the Linux legs are the four
-   duplicated blocks this change targets.
+None. Both questions this change raised are answered below.
+
+## Resolved
+
+**Does the Windows image need a Java major? No.** Grepping `windows.Dockerfile`
+and `.github/workflows/windows-image.yml` for `java`/`jdk` returns nothing — the
+Windows leg installs no JDK, so there is no second hand-typed major to unify. The
+ADDED requirement *"The image's JDK major follows the manifest"* names
+`android.Dockerfile` explicitly for that reason, rather than binding both
+Dockerfiles. If the Windows image ever grows a JDK it should read the same
+manifest field.
+
+
+**Should `readme.md` publish the Java version? No.** The README never mentions
+Java — grepping `readme.md` and `docs/*.mjs` returns nothing — so there is no
+published value to keep in step, and adding one would create a fourth place the
+Java major has to agree. The manifest and the image are the two that matter, and
+`test/android.yml` already binds them.
+
+This matters beyond the README, because the main spec's requirement *"Android
+producer derives the installed Java major version"* currently states its
+experience context as *"the CI engineer reading the README's Java version"*
+(`openspec/specs/flutter-version-update/spec.md:192`) — a reader who does not
+exist. The delta replaces that context rather than inheriting it, so archiving
+this change also corrects a spec that described a README section never written.

@@ -8,10 +8,12 @@ installed — the actual JDK is fixed by two hand-typed strings in
 `android.Dockerfile` (`JAVA_HOME` at `:140` and the `openjdk-17-…` package name at
 `:164`), neither of which anything checks. It is a mirror labelled as a dial.
 
-Wiring a real value through exposed a second problem: adding **any** field to the
-manifest costs five file edits, because `script/setEnvironmentVariables.js`
-hand-lists every export and the build-args block is copy-pasted four times. That
-cost is why Java was left as a special case in the first place.
+Wiring a real value through exposed a second problem — adding any field to the
+manifest costs five file edits — but that is a separate concern with its own
+user impact, and it is now the change `manifest-build-arg-wiring`. This change
+declares `ARG android_java_version` and passes it the way the build passes
+arguments today; if the wiring change lands first, that is one table row instead
+of four inline edits. Neither blocks the other.
 
 Relevance gate: this changes observable behaviour a CI engineer depends on — which
 JDK the published image ships, and how it is kept in step with Flutter. Two
@@ -33,29 +35,21 @@ cannot be changed silently.
 - `android.Dockerfile` gains `ARG android_java_version`; `JAVA_HOME` and the apt
   package name are both interpolated from it, so the two hand-typed Java strings
   disappear. The apt *patch* pin stays owned by Renovate.
-- `script/setEnvironmentVariables.js` derives ARG names mechanically from the
-  manifest and emits the whole build-args block as one value; the four copy-pasted
-  blocks (`build.yml:158-164`, `build.yml:180-186`, `ci.yml:84-90`,
-  `release.yml:112-118`) collapse to `build-args: ${{ env.BUILD_ARGS }}`.
 - `script/updateAndroidVersions.gradle.kts` gains a floor assertion —
-  `check(JavaVersion.current().majorVersion.toInt() >= javaMajor)` — failing the
-  task if the installed JDK ever drops below what Flutter enforces. It compares
+  `check(JavaVersion.current().majorVersion.toInt() >= javaMajor)` — comparing
   against the value derived in that same task, so there is no second literal to
-  drift.
+  drift. Narrow by construction: the task runs inside the previously published
+  image, so the assertion fires only on the cycle where Flutter raises its floor
+  above the JDK that image shipped, converting a confusing downstream failure into
+  a named one.
 
-Not in scope, and stated so it is not mistaken for an omission: the Renovate
+Not in scope, and stated so it is not mistaken for an omission: the build-argument
+wiring refactor (split out as `manifest-build-arg-wiring`), the Renovate
 `mode: full` and PR #531 work (Track A in
 `../loud-deb-pin-resolution/research.md`), the nine dead scripts, the
 `cmdlineTools` mirror, and the dead `30.0.3` job-env lines.
 
 ## Capabilities
-
-### New Capabilities
-
-- `manifest-build-arg-wiring`: `config/version.json` fields reach the Docker build
-  as build-args by mechanical name derivation, declared once rather than restated
-  per workflow. Covers the naming contract, the single emission point, and the
-  per-ARG granularity that keeps layer caching intact.
 
 ### Modified Capabilities
 
@@ -71,23 +65,44 @@ Not in scope, and stated so it is not mistaken for an omission: the Renovate
   values are declared with `ARG`, never `ENV`"* needs to accommodate `JAVA_HOME`
   being an `ENV` **interpolated from** an `ARG` — the value is still ARG-declared,
   but it is consumed by an ENV, which the current wording does not anticipate.
+  The exemption is narrow and stated as a rule, not as a special case for this
+  one variable: an `ENV` may embed an `ARG` value when the `ENV` is a **runtime
+  path or setting the image must expose**, and the `ARG` it embeds is not itself
+  a package pin. `JAVA_HOME` qualifies — it must be in the environment for Gradle
+  to find the JDK, and `android_java_version` is a major, not a version pin. The
+  nine `*_VERSION` apt pins do not qualify and stay ARG-only, unchanged; they are
+  pins, and leaking them into `Env` is what the original requirement forbids.
 
 ## Impact
 
 **Deleted**: `script/java_version.sh`; `update-version.yml:296-303`.
 
-**Modified**: `android.Dockerfile` (`ARG` added above the `ENV` block at
-`:139-140`; `JAVA_HOME` and the apt package name interpolated);
-`script/setEnvironmentVariables.js` (mechanical derivation + `BUILD_ARGS`);
-`script/updateAndroidVersions.gradle.kts` (reflective Java derivation + floor
-assertion); `.github/workflows/update-version.yml` (derivation step removed, not
-replaced); `build.yml`, `ci.yml`, `release.yml` (build-args blocks collapse).
+**Modified**: `android.Dockerfile` (`ARG` moved above the `ENV` block at
+`:139-140`; `JAVA_HOME` and the apt package name interpolated; the three
+`moby/moby#29110` TODOs at `:136-138` replaced by a one-line note — see Impact
+note below); `script/updateAndroidVersions.gradle.kts` (reflective Java
+derivation + floor assertion); `.github/workflows/update-version.yml` (derivation
+step removed, not replaced).
+
+**Wiring the value to the build** costs the five edits this repository charges for
+any manifest field, and this proposal counts all five rather than eliding them:
+one `core.exportVariable('ANDROID_JAVA_VERSION', …)` in
+`script/setEnvironmentVariables.js`, plus one `--build-arg` line in each of the
+four blocks (`build.yml:158-164`, `build.yml:180-186`, `ci.yml:84-90`,
+`release.yml:114-120`). If `manifest-build-arg-wiring` lands first, all five
+collapse to one table row. Either way, `android.Dockerfile` declares the `ARG`.
+
+**Comment-only edit, stated for scope completeness**: the three
+`moby/moby#29110` TODOs are replaced rather than deleted, because they ask for
+*runtime* discovery that moby still blocks. Deleting them silently would read as a
+claim that runtime discovery now works. No behaviour change.
 
 **Unchanged by design**: `config/schema.cue` (`android.java` is already
 `#PlatformVersion`, an int — all sources satisfy it); `config/android.cue` and
 `script/update_test.sh` (already read `android.java.version`, so
 `test/android.yml:34-40` keeps asserting correctly and becomes the runtime
-confirmation); the nine Renovate-owned apt pins.
+confirmation); the nine Renovate-owned apt pins, including
+`OPENJDK_17_JDK_HEADLESS_VERSION` and its `# renovate:` annotation.
 
 **Risk**: `errorJavaVersion` is declared `@VisibleForTesting internal`, which is
 not a supported upstream API — Flutter may rename or relocate it without a
@@ -117,6 +132,6 @@ upgrade PR, and one stale Java major is not worth forfeiting the Flutter bump fo
 that cycle.
 
 Residual gap, accepted: if the red run is ignored *and* the PR merged, the image
-ships the previous Java major. `test/android.yml`'s "Java is pinned" assertion
-does not catch this, because the manifest and the image would agree on the stale
-value. The red run is the only guard on that path.
+ships the previous Java major, and `test/android.yml` does not catch it because
+the manifest and the image agree on the stale value. Two ways to narrow it were
+weighed and declined — see design.md's Observability section.

@@ -54,6 +54,24 @@ The experience context is the CI engineer who needs the image's JDK to track wha
 Flutter actually requires, on Flutter's release cadence, without a maintainer
 deciding the number each cycle.
 
+**What this replaces, and why.** The prior derivation ran `script/java_version.sh`
+(`java -version`) inside the *previously published* container, so
+`android.java.version` described the last build rather than determining the next
+one, and lagged one release cycle by construction. It could not influence what the
+image installed — the JDK was fixed by hand-typed strings in `android.Dockerfile`
+— making the field a mirror labelled as a dial. `script/java_version.sh` and the
+`Derive installed Java major version` step (`update-version.yml:296-303`) are
+deleted; because the derivation moves into the Gradle task that already writes the
+other four Android values, no replacement workflow step is added.
+
+No consumer changes: `config/schema.cue`, `config/android.cue`,
+`script/update_test.sh` and `test/android.yml` all continue to read
+`android.java.version` unchanged, and the separate requirement *"Schema requires
+the Android Java major version"* is unaffected — the field's name, type and
+required-ness are identical. The committed manifest value does not change (both
+the old and new sources yield `17`), so the migration produces no diff in
+`config/version.json`.
+
 #### Scenario: Java major is derived from the pinned Flutter checkout and emitted
 
 - **GIVEN** the pinned Flutter checkout declares `errorJavaVersion = JavaVersion.VERSION_N`
@@ -169,44 +187,31 @@ is at least Flutter's enforced floor, failing the task otherwise. The assertion
 SHALL compare against the value derived in that same task, not a restated literal,
 so the floor cannot drift from the derived version.
 
-**Experience context:** A CI engineer whose build would fail deep inside Flutter's
+**Experience context:** On the cycle where Flutter raises its floor, the task runs
+inside the *previously published* image, whose JDK is one major behind the value
+just derived. A CI engineer who would otherwise hit a failure deep inside Flutter's
 own dependency check instead gets an immediate, named failure at the point the
 toolchain is interrogated. This is an assertion, not a derivation — reading the
 running JDK to *decide* the version would be circular, but reading it to *check* a
 floor is sound.
 
-#### Scenario: JDK below the floor fails fast
+The scope is deliberately narrow: in steady state the container's JDK and the
+derived value both come from the same manifest field, so the assertion compares a
+value against itself and cannot fire. It guards the lag window on a floor bump,
+not the installed JDK generally.
 
-- **GIVEN** the container's JDK major is below Flutter's `errorJavaVersion`
-- **WHEN** the `updateAndroidVersions` task runs
-- **THEN** the task fails with a message naming the required minimum
-- **AND** the failure occurs before any manifest value is written
+#### Scenario: Flutter raises its floor above the running container's JDK
+
+- **GIVEN** the previously published image installed JDK major `M`
+- **AND** the pinned Flutter checkout now enforces `errorJavaVersion` major `N` where `N > M`
+- **WHEN** the `updateAndroidVersions` task runs inside that image
+- **THEN** the task fails with a message naming `N` as the required minimum
+- **AND** the failure occurs before `config/version.json` is written
 
 #### Scenario: JDK at or above the floor proceeds
 
 - **GIVEN** the container's JDK major is at or above Flutter's `errorJavaVersion`
 - **WHEN** the `updateAndroidVersions` task runs
 - **THEN** the assertion passes and the task writes the manifest as normal
+- **AND** in steady state this is the case, because both values derive from the same manifest field
 
-## REMOVED Requirements
-
-### Requirement: Android producer derives Java from the running container via `script/java_version.sh`
-
-**Reason**: The derivation was backwards. `script/java_version.sh` ran
-`java -version` inside the *previously published* image, so `android.java.version`
-described the last build rather than determining the next one, and lagged one
-release cycle by construction. It could not influence what the image installed —
-the JDK was fixed by hand-typed strings in `android.Dockerfile` — making the field
-a mirror labelled as a dial.
-
-**Migration**: The value now derives reflectively from Flutter's
-`errorJavaVersion` on the plugin compiled from the pinned checkout, inside
-`script/updateAndroidVersions.gradle.kts` (see the modified requirement above).
-`script/java_version.sh` and the `Derive installed Java major version` step in
-`update-version.yml` are deleted — the derivation joins the four Android values
-that task already writes, so no replacement workflow step is added.
-No consumer changes: `config/schema.cue`, `config/android.cue`,
-`script/update_test.sh` and `test/android.yml` all continue to read
-`android.java.version` unchanged. The committed manifest value does not change
-(both the old and new sources yield `17`), so the migration produces no diff in
-`config/version.json`.

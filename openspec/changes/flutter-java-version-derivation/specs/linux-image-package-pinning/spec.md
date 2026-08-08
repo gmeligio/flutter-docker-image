@@ -12,6 +12,22 @@ rather than a second pin. Such an `ENV` SHALL NOT introduce a literal version th
 duplicates a value already carried by a build argument, and the interpolated `ARG`
 SHALL be declared before the `ENV` that consumes it.
 
+The allowance is bounded on both sides, and the boundary is the point of the
+requirement rather than an incidental consequence of it. An `ENV` MAY interpolate
+an `ARG` only when **both** hold: the `ENV` is a runtime path or setting the image
+must expose for a tool to function, and the `ARG` it interpolates is not itself a
+Renovate-managed `*_VERSION` pin. A `# renovate:`-annotated pin SHALL NOT reach an
+`ENV` by any route — neither as a literal nor by interpolation. Interpolating one
+would put the pin in the image's `Env` and in `docker inspect` output, which is
+exactly what the `ARG`-only rule exists to prevent; the rule would otherwise be
+trivially circumventable by wrapping the pin in an `ENV`.
+
+`JAVA_HOME` satisfies both conditions: Gradle and the Android toolchain read it
+from the environment, and `android_java_version` is a major supplied from the
+manifest via `--build-arg`, not a pin. `OPENJDK_17_JDK_HEADLESS_VERSION` satisfies
+neither and stays confined to the `RUN` that consumes it, as do the other eight
+apt pins.
+
 **Experience context:** A maintainer reading `android.Dockerfile` sees one keyword convention for self-pinned versions, with no `ENV` exceptions to explain. Build-only version strings do not leak into the final image's runtime environment or `docker inspect` metadata, and cannot collide with a real runtime variable a tool might read from the environment. Runtime variables that a tool genuinely needs — `JAVA_HOME` is read by Gradle and the Android toolchain — remain `ENV`, but derive their version component from the build argument rather than restating it, so the image cannot ship a `JAVA_HOME` pointing at a JDK major different from the one installed. The uppercase/lowercase `ARG` distinction is preserved and orthogonal: UPPERCASE-with-default names are self-pinned and Renovate-managed; lowercase names without a default are injected at build time via `--build-arg` from CI and are intentionally outside Renovate's scope.
 
 #### Scenario: A managed version pin uses ARG
@@ -41,6 +57,14 @@ SHALL be declared before the `ENV` that consumes it.
 - **THEN** it interpolates `${android_java_version}` rather than a literal JDK major
 - **AND** the `ARG` is declared before the `ENV` that consumes it
 - **AND** the built image's `JAVA_HOME` resolves to the JDK major that was actually installed
+
+#### Scenario: A managed pin cannot reach ENV by interpolation
+
+- **GIVEN** a `# renovate:`-annotated `*_VERSION` `ARG` such as `OPENJDK_17_JDK_HEADLESS_VERSION`
+- **WHEN** a maintainer reads `android.Dockerfile`
+- **THEN** no `ENV` interpolates it
+- **AND** it appears only in the `RUN` instruction that consumes it
+- **AND** `docker inspect` on the built image shows it in neither `Env` nor any derived `Env` value
 
 #### Scenario: No literal duplicates a build-argument value
 
