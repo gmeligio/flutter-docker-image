@@ -2,7 +2,7 @@
   "cli_version": "0.9.0",
   "checkpoint_id": "01KZH77JR7D1CZXVES1FH9069G",
   "strategy": "manual-commit",
-  "checkpoints_count": 15,
+  "checkpoints_count": 16,
   "files_touched": [
     "android.Dockerfile",
     "openspec/changes/flutter-java-version-derivation/tasks.md"
@@ -14,13 +14,20 @@
       "compact_transcript": "/0/transcript.jsonl",
       "content_hash": "/0/content_hash.txt",
       "prompt": ""
+    },
+    {
+      "metadata": "/1/metadata.json",
+      "transcript": "/1/full.jsonl",
+      "compact_transcript": "/1/transcript.jsonl",
+      "content_hash": "/1/content_hash.txt",
+      "prompt": ""
     }
   ],
   "token_usage": {
-    "input_tokens": 0,
-    "cache_creation_tokens": 0,
-    "cache_read_tokens": 0,
-    "output_tokens": 0,
-    "api_call_count": 0
+    "input_tokens": 9,
+    "cache_creation_tokens": 2427,
+    "cache_read_tokens": 324012,
+    "output_tokens": 1478,
+    "api_call_count": 5
   }
 }
