@@ -1,0 +1,93 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "01KZGNCNN3M69V58FHKTSGJN30",
+  "session_id": "390ab778-0d42-4dd4-936d-f11014a7a76a",
+  "strategy": "manual-commit",
+  "created_at": "2026-08-08T12:26:00.531537834Z",
+  "checkpoints_count": 15,
+  "save_step_count": 3,
+  "files_touched": [
+    "openspec/changes/loud-deb-pin-resolution/research.md"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-5[1m]",
+  "turn_id": "147b8113d2fe",
+  "compact_transcript_start": 0,
+  "token_usage": {
+    "input_tokens": 3067,
+    "cache_creation_tokens": 427967,
+    "cache_read_tokens": 12109674,
+    "output_tokens": 75639,
+    "api_call_count": 94
+  },
+  "skill_events_version": 1,
+  "skill_events": [
+    {
+      "id": "prompt-skill-claude-code-opsx:explore-2026-08-07T16:21:48.881680266Z",
+      "event_type": "prompt_invocation",
+      "skill": {
+        "name": "opsx:explore"
+      },
+      "source": {
+        "agent": "claude-code",
+        "signal": "prompt_slash_command",
+        "confidence": "explicit"
+      },
+      "turn_id": "bbf76c80175e",
+      "timestamp": "2026-08-07T16:21:48.881680266Z",
+      "native": {
+        "command": "/opsx:explore"
+      },
+      "collapse": {
+        "target": "user_message",
+        "label": "/opsx:explore",
+        "default_collapsed": true
+      }
+    }
+  ],
+  "session_metrics": {
+    "turn_count": 15
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-08-08T12:26:00.452666705Z",
+    "agent_lines": 451,
+    "agent_removed": 0,
+    "human_added": 836,
+    "human_modified": 37,
+    "human_removed": 0,
+    "total_committed": 1324,
+    "total_lines_changed": 1324,
+    "agent_percentage": 34.06344410876133,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    },
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 330,
+      "agent_lines_removed": 0
+    },
+    {
+      "checkpoint_number": 3,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 381,
+      "agent_lines_removed": 0
+    },
+    {
+      "checkpoint_number": 4,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 488,
+      "agent_lines_removed": 0
+    }
+  ]
+}

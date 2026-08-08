@@ -1,0 +1,69 @@
+/opsx:explore https://github.com/gmeligio/flutter-docker-image/issues/532
+
+---
+
+The log file is in /home/eligio/Downloads/gmeligio_flutter-docker-image_2026-08-07_14-50_019fdc2a-e895-710a-91be-a9580b10aaaf.log
+
+---
+
+Does renovate has a terraform provider so we correct easier when mode silent is enabled again in the future?
+
+---
+
+So. Should I do the toggle in the portal, the renovate.json or both? Explain clearly and concise.
+
+---
+
+I don't care about the effect right now, I care about understanding what's the real config we should add or touch the UI if needed.
+
+---
+
+OK. Let's think on doing "mode: full". What else did you find in the investigation?
+
+---
+
+I mean the rest of the exploration phase and research.md. "mode: full" is settled already, don't look into modes anymore. What else? Be concise.
+
+---
+
+Please, make a simple list, with concise root cause so I can understand. That's too verbose.
+
+---
+
+I'll tell you multiple things. Please merge my thoughts, research and explain extremely concise the findings and proposal, so I can evaluate.
+
+1. Doesn't renovate github app do validation automatically when there are changes in the branch? Should we enforce that renovate validation automatically? We want whatever is simpler to reduce maintenance long-term.
+2. We should find a way to read it from somewhere in the flutter project or binary. See script/updateAndroidVersions.gradle.kts for example. Maybe the flutter binary, or some binary, or some source code, or some URL (see update_flutter_version in .github/workflows/update-version.yml)
+3. What would give us the best UX to know the java version, and how we can implement it with the simplest solution to reduce maintenance long-term.
+4. I don't understand.
+5. What would give us the best DevEx for debian, and how we can implement it with the simplest solution to reduce maintenance
+  long-term.
+6. I don't understand.
+7. Leave a note in whatever PR with do, even if we use an existing PR. Don't open upstream PR for now.
+
+We have openjdk 21 because that's what flutter supports https://github.com/flutter/flutter/blob/3594a632450f5c1563636e97f34ef05203b2e8c8/packages/flutter_tools/gradle/src/test/kotlin/DependencyVersionCheckerTest.kt#L56 . Does Flutter supports java 21?
+
+---
+
+1. Research again, what about some prefix in the branch like "renovate/reconfigure"?
+2. That sounds good. Would this give the best UX in terms of knowing the java version?
+4. OK. Then let's see if we can use what we learned in "2 + 3", to have everything connected in the right way.
+5+6. I'm not still certain that Flutter supports Java 21 officially. Please research properly in documentation, official blogs, issues, source code, we should follow the java version that the flutter project recommends officially.
+
+---
+
+Ok. Java 21 seems sensible.
+
+We should find a way to extract the official java version automatically, as the flutter project changes it. Similar to how we do with other components in @config/version.json . Once we know how to extract it, that will go to version.json and to the Dockerfile, the same that the other components. Let's research what are the possible source of truth that we have officially available from the flutter project.
+
+OK. Let's think how to enforce "renovate/reconfigure" so renovate changes always have that branch name.
+
+---
+
+1. If flutter create is using Java 17, then we should use java 17. Is the gradle snippet you suggest taking into account what flutter create does or what? We should first get a good design before looking into implementation.
+
+2. We can enforce "renovate/reconfigure" in CLAUDE.md and AGENTS.md, with a clear and extremely concise rule, no jargon, easy to read, no historical reference.
+
+---
+
+OK. Yes, update research.md. Should we continue 531, or should we close it, or is it benefitial for the renovate changes we want to do?
