@@ -1,0 +1,1 @@
+Make the AGENTS.md extremely concise since we only want to have a concise instruction about the branch name and no explanation.
