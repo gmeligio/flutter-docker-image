@@ -136,8 +136,9 @@ SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 # TODO: Get JAVA_HOME dinamically from a JDK binary
 # TODO: Use `dirname $(dirname $(readlink -f $(which javac)))` after the following issue is fixed
 # TODO: https://github.com/moby/moby/issues/29110
+ARG android_java_version
 ENV ANDROID_HOME="$SDK_ROOT/android-sdk" \
-    JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+    JAVA_HOME="/usr/lib/jvm/java-${android_java_version}-openjdk-amd64"
 ENV PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$HOME/.local/bin"
 
 # renovate: suite=bookworm depName=openjdk-17-jdk-headless
@@ -161,7 +162,7 @@ RUN apt-get update \
     # libgdk-pixbuf2.0-0=2.40.2-2build4 \
     # Android SDK dependencies
     ## JDK needs to be used instead of JRE because it provides the jlink tool used by the Android build
-    openjdk-17-jdk-headless="$OPENJDK_17_JDK_HEADLESS_VERSION" \
+    "openjdk-${android_java_version}-jdk-headless=$OPENJDK_17_JDK_HEADLESS_VERSION" \
     # To allow changing ownership in GitLab CI /builds
     sudo="$SUDO_VERSION" \
     && rm -rf /var/lib/apt/lists/* \
