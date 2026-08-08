@@ -1,1 +1,1 @@
-npx --yes --package renovate -- renovate-config-validator --strict
+npx --yes --package renovate -- renovate-config-validator --strict .github/renovate.json

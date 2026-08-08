@@ -84,13 +84,7 @@ Every workflow MUST satisfy:
 
 The authoritative source is [openspec/specs/ci-workflow-hardening/spec.md](https://github.com/gmeligio/flutter-docker-image/blob/main/openspec/specs/ci-workflow-hardening/spec.md).
 
-## Adding new Github Actions
-
-When adding new Github Actions the `.github\renovate.json` needs to be checked and add the new action to:
-
-* the automerge array if it's not an important action
-
-### Dockerfile stages
+## Dockerfile stages
 
 1. `flutter` stage has only the dependencies required to install flutter and common tools used by flutter internal commands, like `git`.
 2. `fastlane` stage installs Ruby and the build tools fastlane needs, then installs the fastlane gem.
