@@ -1,0 +1,41 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "01KZHAQ4ZZRJ87KQ7CJT3CNP8Z",
+  "strategy": "manual-commit",
+  "branch": "feat/flutter-java-version-derivation",
+  "checkpoints_count": 15,
+  "files_touched": [
+    "openspec/changes/archive/2026-08-08-flutter-java-version-derivation/.openspec.yaml",
+    "openspec/changes/archive/2026-08-08-flutter-java-version-derivation/.review-passed",
+    "openspec/changes/archive/2026-08-08-flutter-java-version-derivation/design.md",
+    "openspec/changes/archive/2026-08-08-flutter-java-version-derivation/proposal.md",
+    "openspec/changes/archive/2026-08-08-flutter-java-version-derivation/specs/flutter-version-update/spec.md",
+    "openspec/changes/archive/2026-08-08-flutter-java-version-derivation/specs/linux-image-package-pinning/spec.md",
+    "openspec/changes/archive/2026-08-08-flutter-java-version-derivation/tasks.md",
+    "openspec/changes/flutter-java-version-derivation/.openspec.yaml",
+    "openspec/changes/flutter-java-version-derivation/.review-passed",
+    "openspec/changes/flutter-java-version-derivation/design.md",
+    "openspec/changes/flutter-java-version-derivation/proposal.md",
+    "openspec/changes/flutter-java-version-derivation/specs/flutter-version-update/spec.md",
+    "openspec/changes/flutter-java-version-derivation/specs/linux-image-package-pinning/spec.md",
+    "openspec/changes/flutter-java-version-derivation/tasks.md",
+    "openspec/specs/flutter-version-update/spec.md",
+    "openspec/specs/linux-image-package-pinning/spec.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": ""
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 0,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 0,
+    "output_tokens": 0,
+    "api_call_count": 0
+  }
+}
