@@ -3,7 +3,7 @@
   "checkpoint_id": "01KZH7N2FX8CMZE6YS0HPNYHWJ",
   "session_id": "ef137a9a-6d56-4e0f-a553-38a9ebdce1b1",
   "strategy": "manual-commit",
-  "created_at": "2026-08-08T17:45:13.066122997Z",
+  "created_at": "2026-08-08T17:45:29.824226095Z",
   "branch": "renovate/reconfigure",
   "checkpoints_count": 2,
   "save_step_count": 1,
@@ -13,11 +13,11 @@
   "turn_id": "02fce79938f7",
   "compact_transcript_start": 0,
   "token_usage": {
-    "input_tokens": 114,
-    "cache_creation_tokens": 216184,
-    "cache_read_tokens": 7278774,
-    "output_tokens": 45549,
-    "api_call_count": 63
+    "input_tokens": 117,
+    "cache_creation_tokens": 217470,
+    "cache_read_tokens": 7582459,
+    "output_tokens": 45930,
+    "api_call_count": 65
   },
   "skill_events_version": 1,
   "skill_events": [
@@ -46,21 +46,5 @@
   ],
   "session_metrics": {
     "turn_count": 2
-  },
-  "prompt_attributions": [
-    {
-      "checkpoint_number": 1,
-      "user_lines_added": 0,
-      "user_lines_removed": 0,
-      "agent_lines_added": 0,
-      "agent_lines_removed": 0
-    },
-    {
-      "checkpoint_number": 2,
-      "user_lines_added": 0,
-      "user_lines_removed": 0,
-      "agent_lines_added": 496,
-      "agent_lines_removed": 0
-    }
-  ]
+  }
 }
