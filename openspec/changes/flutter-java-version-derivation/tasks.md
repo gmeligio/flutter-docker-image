@@ -10,11 +10,11 @@ table row. Neither change blocks the other.
 
 ## 1. Derive Java from Flutter's floor (design D1, D2)
 
-- [ ] 1.1 In `script/updateAndroidVersions.gradle.kts`, resolve `com.flutter.gradle.DependencyVersionChecker` via `Class.forName` and get its `INSTANCE` field (Kotlin `object` singleton)
-- [ ] 1.2 Find the zero-arg getter whose name is `getErrorJavaVersion` or starts with `getErrorJavaVersion$` (prefix match — do NOT hardcode the `$gradle` module suffix); `error(...)` with the sorted member list if absent
-- [ ] 1.3 Invoke it, cast to `org.gradle.api.JavaVersion`, and take `.majorVersion.toInt()` — not `toString()`, which returns `"1.8"` for Java 8
-- [ ] 1.4 Add `"java" to mapOf("version" to javaMajor)` to the task's `newJsonMap`, alongside the existing `platforms`/`gradle`/`buildTools`/`ndk` entries
-- [ ] 1.5 Print the derived value, its provenance, and the resolved getter name (`Derived Java major from errorJavaVersion (getErrorJavaVersion$gradle): 17`)
+- [x] 1.1 In `script/updateAndroidVersions.gradle.kts`, resolve `com.flutter.gradle.DependencyVersionChecker` via `Class.forName` and get its `INSTANCE` field (Kotlin `object` singleton)
+- [x] 1.2 Find the zero-arg getter whose name is `getErrorJavaVersion` or starts with `getErrorJavaVersion$` (prefix match — do NOT hardcode the `$gradle` module suffix); `error(...)` with the sorted member list if absent
+- [x] 1.3 Invoke it, cast to `org.gradle.api.JavaVersion`, and take `.majorVersion.toInt()` — not `toString()`, which returns `"1.8"` for Java 8
+- [x] 1.4 Add `"java" to mapOf("version" to javaMajor)` to the task's `newJsonMap`, alongside the existing `platforms`/`gradle`/`buildTools`/`ndk` entries
+- [x] 1.5 Print the derived value, its provenance, and the resolved getter name (`Derived Java major from errorJavaVersion (getErrorJavaVersion$gradle): 17`)
 - [ ] 1.6 Confirm the derivation resolves against the **currently pinned** Flutter (`flutter.version` in `config/version.json`, `3.44.9` at time of writing) — not only against the commit the design cites — and yields `17`, producing **no diff** in `config/version.json`. Run this with the old `java_version.sh` step still in place: both sources then write `android.java.version` on the same run, so agreement shows up as an empty diff and disagreement as a visible one. The empty diff is the validation
 - [ ] 1.7 If the pinned Flutter's floor is not 17, stop and reassess before continuing. The "no diff" premise collapses: the change becomes a manifest-value change with image consequences, group 3 would ship a different JDK, and that needs its own review rather than riding along on a derivation refactor
 - [ ] 1.8 Only once 1.6 confirms agreement, delete the `Derive installed Java major version` step in `update-version.yml` (`:296-303`) and `script/java_version.sh` (referenced only there)
@@ -22,8 +22,8 @@ table row. Neither change blocks the other.
 
 ## 2. Floor assertion (design D5)
 
-- [ ] 2.1 Add `check(JavaVersion.current().majorVersion.toInt() >= javaMajor)` to `script/updateAndroidVersions.gradle.kts`, reusing the value derived in group 1 rather than a literal, with a failure message naming the required minimum
-- [ ] 2.2 Place the assertion between the derivation (group 1) and the `jsonFile.writeText` at `script/updateAndroidVersions.gradle.kts:50`, so a below-floor JDK fails before `config/version.json` is mutated. The natural place to add the `newJsonMap` entry in task 1.4 is adjacent to that write — the assertion must precede it, not merely follow the derivation
+- [x] 2.1 Add `check(JavaVersion.current().majorVersion.toInt() >= javaMajor)` to `script/updateAndroidVersions.gradle.kts`, reusing the value derived in group 1 rather than a literal, with a failure message naming the required minimum
+- [x] 2.2 Place the assertion between the derivation (group 1) and the `jsonFile.writeText` at `script/updateAndroidVersions.gradle.kts:50`, so a below-floor JDK fails before `config/version.json` is mutated. The natural place to add the `newJsonMap` entry in task 1.4 is adjacent to that write — the assertion must precede it, not merely follow the derivation
 
 ## 3. Dockerfile follows the manifest (design D4)
 
