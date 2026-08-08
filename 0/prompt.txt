@@ -1,0 +1,5 @@
+I'm not sure I see the benefit of what we are adding in `.github/renovate.json`? Why the two sources, how would that work when debian releases new versions? Will it be detected somehow in CI and we could see the failed job and do something?
+
+---
+
+Is "config/debian_13_trixie.sources" valuable or can we delete it? Let's research here how we'd caught a failure here, first let's clarify what failure modes we want to catch. The same PR, no new ones.

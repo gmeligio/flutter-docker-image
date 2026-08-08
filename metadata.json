@@ -1,0 +1,31 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "01KZHANPYAD8WSC1Y548MRKC1K",
+  "strategy": "manual-commit",
+  "branch": "claude/flutter-docker-build-failure-vs3sjg",
+  "checkpoints_count": 2,
+  "files_touched": [
+    ".github/renovate.json",
+    "openspec/changes/renovate-deb-registry-sets/design.md",
+    "openspec/changes/renovate-deb-registry-sets/proposal.md",
+    "openspec/changes/renovate-deb-registry-sets/research.md",
+    "openspec/changes/renovate-deb-registry-sets/specs/linux-image-package-pinning/spec.md",
+    "openspec/changes/renovate-deb-registry-sets/tasks.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 39,
+    "cache_creation_tokens": 18279,
+    "cache_read_tokens": 2343478,
+    "output_tokens": 12179,
+    "api_call_count": 21
+  }
+}
