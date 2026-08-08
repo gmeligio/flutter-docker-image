@@ -36,9 +36,10 @@ on **every** exploration, in every project — there is no flag, config key, or
 condition that skips it.
 
 Steps 1 and 2 run as **subagents, sequentially**: step 2 receives step 1's
-findings as part of its prompt. Each subagent starts with a blank context and
-cannot see this conversation, so state the topic explicitly in its prompt along
-with everything it needs to know.
+findings as part of its prompt. Do not run them in parallel — a gap in the model
+changes what a question about structure even means. Each subagent starts with a
+blank context and cannot see this conversation, so state the topic explicitly in
+its prompt along with everything it needs to know.
 
 **Step 1 — The model.** Step back. Be open to breaking changes. Investigate
 whether the topic reveals something wrong in how this project represents its
