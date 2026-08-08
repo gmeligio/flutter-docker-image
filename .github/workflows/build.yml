@@ -158,6 +158,7 @@ jobs:
           build-args: |
             flutter_version=${{ env.FLUTTER_VERSION }}
             fastlane_version=${{ env.FASTLANE_VERSION }}
+            android_java_version=${{ env.ANDROID_JAVA_VERSION }}
             android_build_tools_version=${{ env.ANDROID_BUILD_TOOLS_VERSION }}
             android_platform_versions=${{ env.ANDROID_PLATFORM_VERSIONS }}
             android_ndk_version=${{ env.ANDROID_NDK_VERSION }}
@@ -180,6 +181,7 @@ jobs:
           build-args: |
             flutter_version=${{ env.FLUTTER_VERSION }}
             fastlane_version=${{ env.FASTLANE_VERSION }}
+            android_java_version=${{ env.ANDROID_JAVA_VERSION }}
             android_build_tools_version=${{ env.ANDROID_BUILD_TOOLS_VERSION }}
             android_platform_versions=${{ env.ANDROID_PLATFORM_VERSIONS }}
             android_ndk_version=${{ env.ANDROID_NDK_VERSION }}

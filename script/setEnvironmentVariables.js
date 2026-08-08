@@ -31,6 +31,7 @@ module.exports = async ({ core }) => {
     'ANDROID_BUILD_TOOLS_VERSION',
     data.android.buildTools.version
   )
+  core.exportVariable('ANDROID_JAVA_VERSION', data.android.java.version)
   core.exportVariable('ANDROID_PLATFORM_VERSIONS', platforms)
   core.exportVariable('ANDROID_NDK_VERSION', data.android.ndk.version)
   core.exportVariable('CMAKE_VERSION', data.android.cmake.version)
