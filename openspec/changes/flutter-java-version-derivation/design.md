@@ -96,12 +96,29 @@ val cls = Class.forName("com.flutter.gradle.DependencyVersionChecker")
 val instance = cls.getField("INSTANCE").get(null)          // Kotlin object singleton
 val getter = cls.methods.firstOrNull {
     it.parameterCount == 0 &&
+        JavaVersion::class.java == it.returnType &&          // see below: not optional
         (it.name == "getErrorJavaVersion" || it.name.startsWith("getErrorJavaVersion$"))
 } ?: error(
     "Could not find errorJavaVersion getter on DependencyVersionChecker. " +
         "Available: " + cls.methods.map { it.name }.sorted()
 )
 val javaMajor = (getter.invoke(instance) as JavaVersion).majorVersion.toInt()
+```
+
+**The return-type filter is load-bearing, not defensive.** The property is
+`@VisibleForTesting`, and Kotlin emits a second method to carry that annotation:
+`getErrorJavaVersion$gradle$annotations` — zero-arg, sharing the name prefix,
+`static`, returning `void`. `Class.methods` order is unspecified by the JVM, so a
+name-only match can select the annotation holder instead of the getter; it
+returns `null`, and the cast then fails with `null cannot be cast to non-null
+type org.gradle.api.JavaVersion`. This is not hypothetical — it is exactly how
+the first implementation failed on the `test-gradle` leg, having passed a local
+harness whose mimicked declaration omitted `@VisibleForTesting` and so generated
+no holder. Confirmed by `javap` on the real declaration shape:
+
+```
+public final org.gradle.api.JavaVersion getErrorJavaVersion$gradle();
+public static void getErrorJavaVersion$gradle$annotations();
 ```
 
 `.majorVersion` is the correct accessor, not `toString()`: the two diverge for
@@ -343,8 +360,9 @@ glance.
 **[Reflection targets an `internal`, unsupported member]** → Accepted, with eyes
 open. `internal` signals "not upstream API", and Flutter can rename or relocate
 `errorJavaVersion` without a deprecation. Mitigated three ways: the prefix match
-tolerates a module rename (the most likely churn, since the suffix is the
-included build's project name); the lookup throws with the available member list,
+plus return-type filter tolerates a module rename (the most likely churn, since
+the suffix is the included build's project name) while still distinguishing the
+getter from its `@VisibleForTesting` annotation holder; the lookup throws with the available member list,
 so the fix is obvious from the log; and the pinned tag means it cannot break
 spontaneously — only when the Flutter version bumps, which is exactly when a human
 is reviewing the upgrade PR. The rejected text-parse carried the same coupling

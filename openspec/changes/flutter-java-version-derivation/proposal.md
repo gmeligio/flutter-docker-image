@@ -110,7 +110,11 @@ deprecation. It is read reflectively rather than parsed from source text: Kotlin
 `internal` compiles to a `public` JVM getter with a `$<module-name>` suffix, so
 the compiled constant is reachable without `setAccessible` (verified by compiling
 the declaration shape and reflecting on it). The getter is matched by name prefix
-so an upstream module rename does not break it.
+so an upstream module rename does not break it, **and by its `JavaVersion` return
+type** — `@VisibleForTesting` makes Kotlin emit a second zero-arg method with the
+same prefix (`…$annotations`, `static`, returning `void`), and `Class.methods`
+order is unspecified, so the type filter is what keeps the real getter from being
+shadowed by the annotation holder.
 
 **How a rename surfaces.** The reflective lookup throws, listing the members it
 did find. That fails the `updateAndroidVersions` task, which fails

@@ -18,7 +18,11 @@ composite included build compiled at the pinned tag. Since Kotlin's `internal`
 compiles to a `public` JVM getter with a `$<module-name>` suffix, the value is
 reachable by ordinary reflection without `setAccessible`. The lookup SHALL match
 the getter by name prefix rather than hardcoding the mangled suffix, so that a
-rename of the upstream Gradle module does not break it, and SHALL use
+rename of the upstream Gradle module does not break it; SHALL additionally
+require the `org.gradle.api.JavaVersion` return type, so the `@VisibleForTesting`
+annotation-holder method (`get<Name>$<module>$annotations` — zero-arg, same
+prefix, `static`, returning `void`) cannot be selected in its place, since
+`Class.methods` order is unspecified; and SHALL use
 `JavaVersion.majorVersion` rather than `toString()`, which diverge for Java 8
 (`"8"` vs `"1.8"`).
 
@@ -95,6 +99,14 @@ the old and new sources yield `17`), so the migration produces no diff in
 - **WHEN** the derivation resolves the getter by name prefix
 - **THEN** it matches regardless of the suffix
 - **AND** it also matches an unmangled `getErrorJavaVersion`
+
+#### Scenario: The `@VisibleForTesting` annotation holder is never selected
+
+- **GIVEN** the property is annotated `@VisibleForTesting`, so Kotlin emits both `getErrorJavaVersion$<module>` (returning `JavaVersion`) and `getErrorJavaVersion$<module>$annotations` (`static`, returning `void`)
+- **AND** both are zero-arg and share the matched name prefix
+- **WHEN** the derivation resolves the getter, in any `Class.methods` order
+- **THEN** it selects the one returning `org.gradle.api.JavaVersion`
+- **AND** it never returns `null`, so the `JavaVersion` cast cannot fail
 
 #### Scenario: Derivation is independent of the container's installed JDK
 
