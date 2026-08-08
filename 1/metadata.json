@@ -1,0 +1,84 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "01KZGPFFTQ8XTZXMKVMWNQJHK1",
+  "session_id": "aba9151e-9900-4227-9be2-735c5d04d586",
+  "strategy": "manual-commit",
+  "created_at": "2026-08-08T12:45:11.869088968Z",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "openspec/changes/flutter-java-version-derivation/design.md",
+    "openspec/changes/flutter-java-version-derivation/specs/flutter-version-update/spec.md",
+    "openspec/changes/flutter-java-version-derivation/tasks.md"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-5",
+  "turn_id": "260161df3ed5",
+  "checkpoint_transcript_start": 721,
+  "transcript_lines_at_start": 721,
+  "compact_transcript_start": 189,
+  "token_usage": {
+    "input_tokens": 86,
+    "cache_creation_tokens": 75840,
+    "cache_read_tokens": 4106276,
+    "output_tokens": 24838,
+    "api_call_count": 47
+  },
+  "skill_events_version": 1,
+  "skill_events": [
+    {
+      "id": "claude-skill-toolu_01CtZvDyHALC1YxXgocaWQXk",
+      "event_type": "tool_invocation",
+      "skill": {
+        "name": "opsx:propose"
+      },
+      "source": {
+        "agent": "claude-code",
+        "signal": "skill_tool_use",
+        "confidence": "explicit"
+      },
+      "turn_id": "260161df3ed5",
+      "transcript_anchor": {
+        "unit": "line",
+        "start": 604,
+        "end": 605,
+        "entry_ids": [
+          "63b72e06-f0f5-4c09-b929-7f0854b4601f"
+        ],
+        "tool_use_id": "toolu_01CtZvDyHALC1YxXgocaWQXk"
+      },
+      "native": {
+        "tool_name": "Skill",
+        "tool_use_id": "toolu_01CtZvDyHALC1YxXgocaWQXk"
+      },
+      "collapse": {
+        "target": "tool_pair",
+        "label": "Skill: opsx:propose",
+        "default_collapsed": true
+      }
+    }
+  ],
+  "session_metrics": {
+    "turn_count": 5
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-08-08T12:45:11.695592904Z",
+    "agent_lines": 174,
+    "agent_removed": 56,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 174,
+    "total_lines_changed": 230,
+    "agent_percentage": 100,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+I don't like the text parsing, isn't a more idiomatic and programmatic way to get the right value?
