@@ -1,0 +1,1 @@
+/opsx:explore https://github.com/gmeligio/flutter-docker-image/issues/532 . A job log is in /home/eligio/Downloads/gmeligio_flutter-docker-image_2026-08-07_14-50_019fdc2a-e895-710a-91be-a9580b10aaaf.log . This should be scoped to the renovate improvements as a whole. The java version wiring and number is being changed in a separate PR. Assume Java 17 for now.
