@@ -96,5 +96,32 @@ The experience context is the maintainer who wants lockfile bumps and routine re
 - **WHEN** the required-status-checks configuration is reviewed
 - **THEN** at least one required check is present
 - **AND** auto-merge therefore cannot merge a PR with failing or absent checks
+
+### Requirement: Renovate's operating mode is declared in the repository
+
+`.github/renovate.json` SHALL set `"mode": "full"`. The hosted Renovate app injects `mode=silent` as global configuration; `mode` is a repository-level option merged after global config, so the in-repo value overrides it. This requirement is the in-repo contract that Renovate's output is observable — the setting itself is administered outside this repository, and without an in-repo declaration a portal toggle can disable every guarantee the other Renovate requirements make, invisibly to code review.
+
+The experience context is the maintainer who expects a stale dependency to arrive as a pull request. Under `mode=silent` Renovate still computes updates and then discards them: no PRs, no branches, no Dependency Dashboard. A dependency that stops resolving is recorded internally but only ever rendered into a dashboard or PR body, so silent mode makes the failure structurally unreachable and it surfaces as nothing happening at all. This is how the `openjdk-17-jdk-headless` pin went unmaintained for ten weeks and then broke the image build on `main`. Note also that `mode=silent` composes with `automerge` into "changes merge without producing a PR trail" — a property neither setting reveals on its own.
+
+#### Scenario: A dependency update is available
+
+- **GIVEN** `.github/renovate.json` sets `"mode": "full"`
+- **WHEN** Renovate finds an update on its weekly schedule
+- **THEN** it creates the branch and opens a pull request
+- **AND** the update is visible without anyone reading a job log
+
+#### Scenario: A pinned dependency stops resolving
+
+- **GIVEN** a pin whose lookup returns no result
+- **WHEN** Renovate runs
+- **THEN** the failure is reported on the Dependency Dashboard issue
+- **AND** the maintainer learns of it before the next image build fails
+
+#### Scenario: The hosted app sets a conflicting mode
+
+- **GIVEN** the hosted app injects `mode=silent` as global configuration
+- **WHEN** Renovate resolves configuration for this repository
+- **THEN** the repository's `"mode": "full"` takes precedence
+- **AND** the job log does not report `Repository is running with mode=silent`
 </content>
 </invoke>

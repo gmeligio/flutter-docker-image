@@ -7,3 +7,5 @@
 !/.claude/commands/
 !/.claude/skills/
 !/.claude/settings.json
+# Symlink to /AGENTS.md so Claude Code loads the same conventions.
+!/.claude/CLAUDE.md
