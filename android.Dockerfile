@@ -133,9 +133,10 @@ FROM fastlane AS android
 
 SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
-# TODO: Get JAVA_HOME dinamically from a JDK binary
-# TODO: Use `dirname $(dirname $(readlink -f $(which javac)))` after the following issue is fixed
-# TODO: https://github.com/moby/moby/issues/29110
+# The Java major now arrives as a build argument, derived from Flutter's
+# enforced floor. Runtime discovery via `readlink -f $(which javac)` is still
+# blocked by https://github.com/moby/moby/issues/29110 — this sidesteps that,
+# rather than resolving it.
 ARG android_java_version
 ENV ANDROID_HOME="$SDK_ROOT/android-sdk" \
     JAVA_HOME="/usr/lib/jvm/java-${android_java_version}-openjdk-amd64"

@@ -48,7 +48,7 @@ if a local build is impractical.
 
 ## 5. Wrap-up
 
-- [ ] 5.1 Replace the three `moby/moby#29110` TODO comments at `android.Dockerfile:136-138` with a one-line note that the value now arrives as a build argument. They asked for *runtime* discovery via `readlink`, which moby#29110 still blocks — so they are obsoleted by a different route, not resolved, and deleting them without a note would read as a claim that runtime discovery works. Comment-only, no behaviour change, so it sits outside group 3's revert surface
+- [x] 5.1 Replace the three `moby/moby#29110` TODO comments at `android.Dockerfile:136-138` with a one-line note that the value now arrives as a build argument. They asked for *runtime* discovery via `readlink`, which moby#29110 still blocks — so they are obsoleted by a different route, not resolved, and deleting them without a note would read as a claim that runtime discovery works. Comment-only, no behaviour change, so it sits outside group 3's revert surface
 - [ ] 5.2 Open the PR with a Conventional Commit title, one logical concern
 - [ ] 5.3 Note in the PR that `config/version.json` is intentionally unchanged, and why (both sources yield 17)
 - [ ] 5.4 Open a GitHub issue for the deferred cleanup recorded in research F10: nine dead scripts, the `cmdlineTools` mirror, the dead `30.0.3` job-env lines
