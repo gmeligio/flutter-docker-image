@@ -1,0 +1,29 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "01KZH79X107YWG5F4MMPW5KM0Y",
+  "strategy": "manual-commit",
+  "checkpoints_count": 15,
+  "files_touched": [
+    ".github/workflows/build.yml",
+    ".github/workflows/ci.yml",
+    ".github/workflows/release.yml",
+    "openspec/changes/flutter-java-version-derivation/tasks.md",
+    "script/setEnvironmentVariables.js"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": ""
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 0,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 0,
+    "output_tokens": 0,
+    "api_call_count": 0
+  }
+}
