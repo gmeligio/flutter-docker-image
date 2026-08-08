@@ -35,10 +35,18 @@ tasks.register<DefaultTask>("updateAndroidVersions") {
         // module concept, not a JVM one: it compiles to a public getter mangled
         // as `getErrorJavaVersion$<module>`. Match by prefix rather than
         // hardcoding the suffix, so an upstream module rename doesn't break us.
+        //
+        // The property is also `@VisibleForTesting`, and Kotlin emits a second
+        // method to hold that annotation: `getErrorJavaVersion$<module>$annotations`,
+        // a static returning void. It is zero-arg and shares the prefix, so a
+        // name match alone can select it -- `Class.methods` order is unspecified,
+        // and it does differ between JDKs. Filtering on the JavaVersion return
+        // type is what separates the real getter from the annotation holder.
         val checker = Class.forName("com.flutter.gradle.DependencyVersionChecker")
         val checkerInstance = checker.getField("INSTANCE").get(null)
         val errorJavaVersionGetter = checker.methods
             .filter { it.parameterCount == 0 }
+            .filter { JavaVersion::class.java == it.returnType }
             .firstOrNull {
                 it.name == "getErrorJavaVersion" || it.name.startsWith("getErrorJavaVersion$")
             }
