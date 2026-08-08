@@ -5,7 +5,7 @@
   "branch": "renovate/reconfigure",
   "checkpoints_count": 2,
   "files_touched": [
-    "openspec/changes/renovate-pin-provenance/research.md"
+    ".gitignore"
   ],
   "sessions": [
     {
@@ -13,14 +13,14 @@
       "transcript": "/0/full.jsonl",
       "compact_transcript": "/0/transcript.jsonl",
       "content_hash": "/0/content_hash.txt",
-      "prompt": "/0/prompt.txt"
+      "prompt": ""
     }
   ],
   "token_usage": {
-    "input_tokens": 119,
-    "cache_creation_tokens": 217818,
-    "cache_read_tokens": 7735213,
-    "output_tokens": 46957,
-    "api_call_count": 66
+    "input_tokens": 6,
+    "cache_creation_tokens": 1976,
+    "cache_read_tokens": 462184,
+    "output_tokens": 736,
+    "api_call_count": 3
   }
 }
