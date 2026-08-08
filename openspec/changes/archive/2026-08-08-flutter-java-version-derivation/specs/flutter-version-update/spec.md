@@ -167,7 +167,7 @@ The apt *patch* pin (`OPENJDK_17_JDK_HEADLESS_VERSION`) remains Renovate-managed
 and is unaffected: the manifest owns the major, Renovate owns the patch.
 
 **Experience context:** A CI engineer pulling the image gets a JDK whose version
-matches what the manifest and README report. Before this requirement, the shipped
+matches what the manifest reports. Before this requirement, the shipped
 JDK was fixed by two hand-typed strings that nothing checked, while
 `config/version.json` merely reported what a prior build happened to contain — so
 the manifest could disagree with the image indefinitely and silently.
