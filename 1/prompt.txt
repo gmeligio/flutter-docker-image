@@ -1,0 +1,13 @@
+The reflection is fine. Would CI detect it somehow when it fails, if Flutter changes the name or anything?
+
+---
+
+Step back, why is the workflow like that? Maybe there is a reason.
+
+---
+
+OK. So to be clear, would CI detect if flutter renames the function?
+
+---
+
+OK. Good. Write in the proposal whatever is needed so is up to date.
