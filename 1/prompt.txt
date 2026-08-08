@@ -1,0 +1,15 @@
+OK. I like the proposal wiring. Renovate would be separate. Let's continue focusing into the java 17 and the args wiring. Do we have everything we need to improve the wiring and do java 17?
+
+---
+
+Give me the link so I can read A's code
+
+---
+
+Please let's find out what Java version does the Android project recommends now, I see tests for Java 21 https://github.com/flutter/flutter/blob/3594a632450f5c1563636e97f34ef05203b2e8c8/packages/flutter_tools/test/general.shard/android/java_test.dart#L314
+
+What would be the right way to follow the Java version of the Flutter project, the minimum vs the Android recommended?
+
+---
+
+Yes, do both
