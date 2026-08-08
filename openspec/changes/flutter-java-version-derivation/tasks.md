@@ -27,7 +27,7 @@ table row. Neither change blocks the other.
 
 ## 3. Dockerfile follows the manifest (design D4)
 
-- [x] 3.1 Move `ARG android_java_version` above the `ENV` block at `android.Dockerfile:139-140` (it currently sits at ~:176, after it)
+- [x] 3.1 Declare `ARG android_java_version` above the `ENV` block at `android.Dockerfile:139-140`. Written as "move ... it currently sits at ~:176" — that was wrong: no such ARG existed. The `:176` block holds the other four android args (`android_build_tools_version`, `android_platform_versions`, `android_ndk_version`, `cmake_version`), all declared after the `ENV` because none is consumed by it. This one must precede the `ENV`, so it is declared at `:139` rather than joining them
 - [x] 3.2 Change `JAVA_HOME` to `"/usr/lib/jvm/java-${android_java_version}-openjdk-amd64"`
 - [x] 3.3 Change the apt install at `:164` to `"openjdk-${android_java_version}-jdk-headless=$OPENJDK_17_JDK_HEADLESS_VERSION"`, leaving the `# renovate:` annotation and the `ARG OPENJDK_17_JDK_HEADLESS_VERSION` declaration untouched
 - [x] 3.4 Export the value from `script/setEnvironmentVariables.js`: `core.exportVariable('ANDROID_JAVA_VERSION', data.android.java.version)`, alongside the eleven existing exports. This is the edit that makes `${{ env.ANDROID_JAVA_VERSION }}` resolve — without it the build-arg lines in 3.5 expand to empty. Skip only if `manifest-build-arg-wiring` has landed and a table row covers it
@@ -39,12 +39,12 @@ table row. Neither change blocks the other.
 Cheap and local: 4.1, 4.2, 4.5, 4.6. The rest need a built image and are CI-verified
 if a local build is impractical.
 
-- [ ] 4.1 `cue vet config/schema.cue -d '#Version' config/version.json` exits 0
-- [ ] 4.2 `script/update_test.sh` regenerates `test/android.yml` with no diff (fixed point)
-- [ ] 4.3 `container-structure-test` passes `test/android.yml`, including the "Java is pinned" assertion. This is the primary image check and subsumes inspecting `JAVA_HOME`: it asserts the runtime `java -version` major, which a correct `JAVA_HOME` is necessary but not sufficient for
-- [ ] 4.4 Confirm `docker inspect` shows no `*_VERSION` apt-package pin in the image's `Env` — neither as a literal nor interpolated into another value. This is the checkable form of the modified `linux-image-package-pinning` requirement; `JAVA_HOME` is expected in `Env` and is not a pin
-- [ ] 4.5 Confirm Renovate's regex still matches the openjdk ARG — run `script/renovate_validate.sh` and check the annotation/ARG pair at `android.Dockerfile:143-144` is unchanged
-- [ ] 4.6 Grep `android.Dockerfile` for literal `17`. Expected hits, and no others: the patch pin default and its ARG name (`:144`), the `# renovate:` annotation's `depName` (`:143`), and the two bookworm-repository prose comments (`:149`, `:168`). The two that must disappear are `JAVA_HOME` (`:140`) and the apt package name (`:164`)
+- [x] 4.1 `cue vet config/schema.cue -d '#Version' config/version.json` exits 0
+- [x] 4.2 `script/update_test.sh` regenerates `test/android.yml` with no diff (fixed point)
+- [ ] 4.3 **CI-verified — a local build is impractical here.** `container-structure-test` passes `test/android.yml`, including the "Java is pinned" assertion. This is the primary image check and subsumes inspecting `JAVA_HOME`: it asserts the runtime `java -version` major, which a correct `JAVA_HOME` is necessary but not sufficient for. The local build fails in the *first* stage (`flutter`), where a TLS-intercepting self-signed certificate blocks the Dart SDK download — an environment quirk unrelated to this change, and upstream of the `android` stage it touches. Left unchecked deliberately: `ci.yml` runs it on the PR
+- [x] 4.4 Confirm `docker inspect` shows no `*_VERSION` apt-package pin in the image's `Env` — neither as a literal nor interpolated into another value. This is the checkable form of the modified `linux-image-package-pinning` requirement; `JAVA_HOME` is expected in `Env` and is not a pin. Verified on a standalone image reproducing the same ARG/ENV shape: `Env` held `JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64` and `ANDROID_HOME`, no pin. Structurally guaranteed too — `OPENJDK_17_JDK_HEADLESS_VERSION` is consumed only inside the `RUN`, never assigned to an `ENV`
+- [x] 4.5 Confirm Renovate's regex still matches the openjdk ARG — run `script/renovate_validate.sh` and check the annotation/ARG pair at `android.Dockerfile:144-145` is unchanged. Config validates; `git diff main -- android.Dockerfile` touches neither line, so the manager matches the same pair
+- [x] 4.6 Grep `android.Dockerfile` for literal `17`. Expected hits, and no others: the patch pin default and its ARG name (`:145`), the `# renovate:` annotation's `depName` (`:144`), and the two bookworm-repository prose comments (`:150`, `:169`). The two that must disappear are `JAVA_HOME` (`:141`) and the apt package name (`:165`) — both confirmed gone. Line numbers shifted by one from the pre-change file when `ARG android_java_version` was inserted at `:139`
 
 ## 5. Wrap-up
 
