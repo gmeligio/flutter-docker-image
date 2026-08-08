@@ -3,13 +3,28 @@
 ### Requirement: Android producer derives the installed Java major version
 
 The `update-android-version` job SHALL derive the Java major version from the
-**pinned Flutter checkout** — the `errorJavaVersion` constant in
-`$FLUTTER_ROOT/packages/flutter_tools/gradle/src/main/kotlin/DependencyVersionChecker.kt`
-at the Flutter tag being built — and write it into `config/version.json` at
-`android.java.version` as a positive integer, before it emits `android_block`. The
-derivation SHALL NOT read the JDK installed in the running container: that value
-describes the previously published image and cannot determine what the next image
-should install.
+**pinned Flutter checkout** — the `errorJavaVersion` constant on
+`com.flutter.gradle.DependencyVersionChecker`, as compiled from the Flutter tag
+being built — and write it into `config/version.json` at `android.java.version` as
+a positive integer, before it emits `android_block`. The derivation SHALL NOT read
+the JDK installed in the running container: that value describes the previously
+published image and cannot determine what the next image should install.
+
+The derivation SHALL read the **compiled constant** from the Flutter Gradle plugin
+on the task's classpath, not the source text of the file that declares it. The
+plugin is on that classpath because the generated app's `settings.gradle.kts` does
+`includeBuild("$flutterSdkPath/packages/flutter_tools/gradle")`, making it a
+composite included build compiled at the pinned tag. Since Kotlin's `internal`
+compiles to a `public` JVM getter with a `$<module-name>` suffix, the value is
+reachable by ordinary reflection without `setAccessible`. The lookup SHALL match
+the getter by name prefix rather than hardcoding the mangled suffix, so that a
+rename of the upstream Gradle module does not break it, and SHALL use
+`JavaVersion.majorVersion` rather than `toString()`, which diverge for Java 8
+(`"8"` vs `"1.8"`).
+
+The derivation SHALL live in `script/updateAndroidVersions.gradle.kts` alongside
+the other four Android values that task already derives (`platforms`, `gradle`,
+`buildTools`, `ndk`), rather than in a separate workflow step.
 
 `errorJavaVersion` is Flutter's enforced floor — the version below which
 `checkJavaVersion` fails the build. It is the only Java version Flutter defines:
@@ -23,8 +38,10 @@ lives in a generated file that application authors are invited to edit.
 Because `android.java` lives in the `android` block, the emitted `android_block`
 (`{android, fastlane}`) SHALL include it, and on an Android-skip cycle the
 base-branch `android.java` SHALL carry forward unchanged with the rest of the
-`android` block. A derivation that yields no match — because upstream moved or
-renamed the constant — SHALL fail the step rather than emit a stale or empty value.
+`android` block. A derivation that resolves no getter — because upstream renamed
+or removed the constant — SHALL fail the task rather than emit a stale or empty
+value, and the failure message SHALL list the members it did find, so the upstream
+change is diagnosable from the job log alone.
 
 The regenerated `test/android.yml` SHALL include a structure-test assertion that
 the built `flutter-android` image's `java -version` major equals
@@ -44,7 +61,22 @@ deciding the number each cycle.
 - **THEN** `config/version.json` gets `android.java.version == N` (an integer)
 - **AND** the emitted `android_block` contains `android.java`
 - **AND** the producer's `cue vet config/schema.cue -d '#Version' config/version.json` step exits 0
-- **AND** the job log records the derived value and that it came from `errorJavaVersion`
+- **AND** the job log records the derived value, that it came from `errorJavaVersion`, and the mangled getter name that was resolved
+
+#### Scenario: Derivation reads the compiled constant, not the source text
+
+- **GIVEN** the Flutter Gradle plugin is on the task's classpath as a composite included build
+- **WHEN** the derivation resolves `errorJavaVersion`
+- **THEN** it reflects over `com.flutter.gradle.DependencyVersionChecker`
+- **AND** it does not read the text of `DependencyVersionChecker.kt`
+- **AND** it succeeds without calling `setAccessible`, requiring no JVM `--add-opens`
+
+#### Scenario: Upstream Gradle module rename does not break the lookup
+
+- **GIVEN** the compiled getter is mangled as `getErrorJavaVersion$<module>` for any module name
+- **WHEN** the derivation resolves the getter by name prefix
+- **THEN** it matches regardless of the suffix
+- **AND** it also matches an unmangled `getErrorJavaVersion`
 
 #### Scenario: Derivation is independent of the container's installed JDK
 
@@ -54,11 +86,12 @@ deciding the number each cycle.
 - **THEN** `config/version.json` gets `android.java.version == N`
 - **AND** the value of `M` does not influence the result
 
-#### Scenario: Upstream constant missing fails the producer, base value carried forward
+#### Scenario: Upstream constant renamed or removed fails the producer, base value carried forward
 
-- **GIVEN** the pinned Flutter checkout no longer contains a parsable `errorJavaVersion`
-- **WHEN** the derivation step runs
-- **THEN** the step exits non-zero and `update-android-version` is marked failed
+- **GIVEN** the pinned Flutter checkout's `DependencyVersionChecker` exposes no `errorJavaVersion` getter
+- **WHEN** the derivation runs
+- **THEN** the `updateAndroidVersions` task fails and `update-android-version` is marked failed
+- **AND** the failure message lists the members that were found
 - **AND** `android_block` is not emitted (empty)
 - **AND** `compose-and-open-pr` carries forward the base-branch `android` block (including `android.java`) unchanged
 
@@ -132,7 +165,9 @@ the manifest could disagree with the image indefinitely and silently.
 ### Requirement: The Gradle task asserts the installed JDK meets Flutter's floor
 
 `script/updateAndroidVersions.gradle.kts` SHALL assert that the JDK running Gradle
-is at least Flutter's enforced floor, failing the task otherwise.
+is at least Flutter's enforced floor, failing the task otherwise. The assertion
+SHALL compare against the value derived in that same task, not a restated literal,
+so the floor cannot drift from the derived version.
 
 **Experience context:** A CI engineer whose build would fail deep inside Flutter's
 own dependency check instead gets an immediate, named failure at the point the
@@ -164,9 +199,12 @@ release cycle by construction. It could not influence what the image installed �
 the JDK was fixed by hand-typed strings in `android.Dockerfile` — making the field
 a mirror labelled as a dial.
 
-**Migration**: The value now derives from Flutter's `errorJavaVersion` in the
-pinned checkout (see the modified requirement above). `script/java_version.sh` and
-the `Derive installed Java major version` step in `update-version.yml` are deleted.
+**Migration**: The value now derives reflectively from Flutter's
+`errorJavaVersion` on the plugin compiled from the pinned checkout, inside
+`script/updateAndroidVersions.gradle.kts` (see the modified requirement above).
+`script/java_version.sh` and the `Derive installed Java major version` step in
+`update-version.yml` are deleted — the derivation joins the four Android values
+that task already writes, so no replacement workflow step is added.
 No consumer changes: `config/schema.cue`, `config/android.cue`,
 `script/update_test.sh` and `test/android.yml` all continue to read
 `android.java.version` unchanged. The committed manifest value does not change

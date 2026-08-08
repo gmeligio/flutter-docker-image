@@ -62,24 +62,84 @@ after the `warn` bump telegraphs the change
 (`DependencyVersionChecker.kt:87-91`). Tracking anything else puts the maintainer
 back in the loop, which is the cost this change exists to remove.
 
-### D2 — Text-parse the pinned checkout, not an API call
+### D2 — Read the constant reflectively from the loaded plugin, not by text-parsing
 
-`errorJavaVersion` is `internal` + `@VisibleForTesting`, and
-`checkDependencyVersions()` returns `Unit`. The only externally observable output
-is the boolean `usesUnsupportedDependencyVersions` extra property, which reports
-*that* something is out of range, never *what is required*. There is no API to
-call.
+`errorJavaVersion` is declared `@VisibleForTesting internal val` on `object
+DependencyVersionChecker`. Kotlin's `internal` is a *module*-scoped compiler
+concept, not a JVM one: it compiles to a **`public final`** JVM getter with a
+`$<module-name>` mangling suffix. So the value is reachable by ordinary
+reflection — no `setAccessible`, therefore no JPMS `--add-opens` and no
+illegal-access warnings.
 
-So `update-android-version` greps the constant out of
-`$FLUTTER_ROOT/packages/flutter_tools/gradle/src/main/kotlin/DependencyVersionChecker.kt`
-— already on disk in the container, at the exact pinned tag. This matches the
-upstream-parsing pattern the same workflow already runs for the Windows vsman
-(`update-version.yml:171-172`).
+Verified empirically in this session by compiling the exact declaration shape
+(`object` + `internal val` of type `org.gradle.api.JavaVersion`) with
+`-module-name gradle` and reflecting on it:
 
-Failure mode is loud by construction: an upstream file move or constant rename
-yields an empty match, which fails the step, which fails the producer, which per
-the existing carry-forward requirement leaves the base-branch `android` block
+```
+mangled getters present: [getErrorJavaVersion$gradle, getWarnJavaVersion$gradle]
+flutterMinJavaMajor() = 17
+```
+
+The class is on the task's own classpath. `flutter create`'s
+`settings.gradle.kts` does
+`includeBuild("$flutterSdkPath/packages/flutter_tools/gradle")`, so the plugin is
+a **composite included build** compiled from source at the pinned tag — which is
+also why the mangling suffix is `gradle` (the included build's project name) and
+why the lookup must match by prefix rather than hardcode it.
+
+```kotlin
+val cls = Class.forName("com.flutter.gradle.DependencyVersionChecker")
+val instance = cls.getField("INSTANCE").get(null)          // Kotlin object singleton
+val getter = cls.methods.firstOrNull {
+    it.parameterCount == 0 &&
+        (it.name == "getErrorJavaVersion" || it.name.startsWith("getErrorJavaVersion$"))
+} ?: error(
+    "Could not find errorJavaVersion getter on DependencyVersionChecker. " +
+        "Available: " + cls.methods.map { it.name }.sorted()
+)
+val javaMajor = (getter.invoke(instance) as JavaVersion).majorVersion.toInt()
+```
+
+`.majorVersion` is the correct accessor, not `toString()`: the two diverge for
+Java 8 (`toString()` → `"1.8"`, `majorVersion` → `"8"`). Verified.
+
+This belongs in `updateAndroidVersions.gradle.kts`, not a separate workflow step.
+That task already derives the other four Android values (`platforms`, `gradle`,
+`buildTools`, `ndk`) from the live Gradle model, and already reflects over the
+AGP extension via `findByType` with a dual-DSL fallback. Java was the only
+Android value derived out-of-band by a shell script; this makes it consistent
+with its four siblings and deletes a whole workflow step rather than rewriting
+one.
+
+Rejected text-parsing
+`$FLUTTER_ROOT/packages/flutter_tools/gradle/src/main/kotlin/DependencyVersionChecker.kt`:
+it reads the *source text* of a file that happens to be on disk, so it breaks on
+a file move, a reformat, or a change from `JavaVersion.VERSION_17` to any other
+literal form — none of which change the actual value. Reflection reads the
+*compiled value the plugin will really enforce*.
+
+Failure mode stays loud, and is more diagnostic than a grep miss. An upstream
+rename throws with the available member list — verified by compiling a renamed
+variant:
+
+```
+IllegalStateException: Could not find errorJavaVersion getter on
+DependencyVersionChecker. Available: [equals, getClass,
+getMinimumJavaVersion$gradle, hashCode, ...]
+```
+
+A thrown exception fails the task, which fails the producer, which per the
+existing carry-forward requirement leaves the base-branch `android` block
 untouched. No stale value can slip through.
+
+**Trade-off accepted:** reflection over an `internal` member is not a supported
+upstream API, and Flutter may rename or relocate it without notice. That is true
+of the text-parse too — this change swaps one unsupported read for a
+strictly more robust one, and both fail loudly at exactly the moment a human is
+reviewing a Flutter upgrade PR. The alternative that avoids upstream coupling
+entirely is hand-declaring the value in `config/version.json` and relying on D5's
+floor assertion, which reintroduces the maintainer-in-the-loop cost this change
+exists to remove.
 
 ### D3 — Mechanical ARG-name derivation, single emission point
 
@@ -135,10 +195,14 @@ loudly on divergence instead of shipping silently.
 
 ### D5 — Floor assertion in the Gradle task
 
-`check(JavaVersion.current() >= JavaVersion.VERSION_17)` in
-`updateAndroidVersions.gradle.kts`. Circular as a *derivation*, but valid as an
-*assertion*: it fails the build if the installed JDK drops below what Flutter
-enforces. One line, catches the failure mode that actually matters.
+`check(JavaVersion.current().majorVersion.toInt() >= javaMajor)` in
+`updateAndroidVersions.gradle.kts`, where `javaMajor` is the value D2 just
+derived. Circular as a *derivation*, but valid as an *assertion*: it fails the
+task if the JDK the container installed drops below what Flutter enforces.
+
+Because D2 puts the derivation in this same task, the assertion compares against
+the derived value rather than a restated literal — so there is no second `17` to
+drift.
 
 ## Automated Test Strategy
 
@@ -169,7 +233,7 @@ The floor assertion (D5) is self-testing: it runs on every
 
 | Failure | Surfaces as |
 |---|---|
-| Upstream moves/renames `errorJavaVersion` | Empty grep match → step fails → producer fails → base block carried forward |
+| Upstream renames/removes `errorJavaVersion` | Reflection lookup throws with the available member list → Gradle task fails → producer fails → base block carried forward |
 | Derived value is not a positive integer | `cue vet` non-zero in the producer's own validation step |
 | Dockerfile ships a JDK major ≠ manifest | `test/android.yml` "Java is pinned" turns the PR check red |
 | `BUILD_ARGS` omits a value | Empty `ARG` → build fails at the consuming `RUN` |
@@ -179,17 +243,28 @@ The floor assertion (D5) is self-testing: it runs on every
 `JAVA_HOME` disagreeing with the installed JDK — is closed by D4, since both now
 derive from one value.
 
-**Logging**: the derivation step should echo the parsed constant
-(`Derived Java major from errorJavaVersion: 17`) so a job log shows the value and
-its provenance, matching the existing `echo "Derived Java major: $java_major"` it
-replaces.
+**Logging**: the Gradle task should print the derived constant and the resolved
+getter name (`Derived Java major from errorJavaVersion (getErrorJavaVersion$gradle): 17`)
+so a job log shows the value, its provenance, *and* the mangled name it matched —
+the last being the detail that makes a future upstream rename diagnosable at a
+glance.
 
 ## Risks / Trade-offs
 
-**[Upstream file move breaks the grep]** → Fails loudly (empty match → failed
-step), never silently stale. The pinned tag means it cannot break spontaneously —
-only when the Flutter version bumps, which is exactly when a human is reviewing the
-upgrade PR.
+**[Reflection targets an `internal`, unsupported member]** → Accepted, with eyes
+open. `internal` signals "not upstream API", and Flutter can rename or relocate
+`errorJavaVersion` without a deprecation. Mitigated three ways: the prefix match
+tolerates a module rename (the most likely churn, since the suffix is the
+included build's project name); the lookup throws with the available member list,
+so the fix is obvious from the log; and the pinned tag means it cannot break
+spontaneously — only when the Flutter version bumps, which is exactly when a human
+is reviewing the upgrade PR. The rejected text-parse carried the same coupling
+with a worse failure signal.
+
+**[Kotlin name mangling changes shape]** → The `$<module>` suffix convention is
+long-stable and the prefix match covers both mangled and unmangled forms. If
+Kotlin ever changed it, the lookup throws rather than silently returning a wrong
+value.
 
 **[`BUILD_ARGS` becomes an opaque blob in workflow YAML]** → The four call sites no
 longer show which args are passed. Mitigated by the job log printing the resolved
@@ -217,12 +292,14 @@ Sequenced so each step is independently revertable:
 1. **D3 first** (self-wiring build-args), verifying the emitted `--build-arg` set
    is byte-identical to today's. No behaviour change — pure refactor, easy to
    confirm and revert.
-2. **D1/D2** (derive Java) — swap the derivation source; `version.json` should
-   still read `17`, so the diff on the manifest is empty. That empty diff *is* the
-   validation.
+2. **D1/D2/D5** (derive Java in the Gradle task, plus the floor assertion) — move
+   the derivation into `updateAndroidVersions.gradle.kts` alongside the other four
+   Android values, delete `script/java_version.sh` and the workflow step that ran
+   it. `version.json` should still read `17`, so the diff on the manifest is
+   empty. That empty diff *is* the validation. D5 lands here rather than last
+   because it consumes D2's derived value in the same task.
 3. **D4** (Dockerfile follows) — the first step that can change the built image.
    `test/android.yml` gates it.
-4. **D5** (floor assertion) — additive.
 
 Rollback: each step is a separate commit; step 3 is the only one that touches the
 published image, and reverting it restores the hand-typed strings.

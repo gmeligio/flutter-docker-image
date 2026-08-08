@@ -12,16 +12,19 @@ revertable, and only group 4 can change the published image.
 
 ## 2. Derive Java from Flutter's floor (design D1, D2)
 
-- [ ] 2.1 Replace the `Derive installed Java major version` step in `update-version.yml` (~:296-303) with a grep of `errorJavaVersion` from `$FLUTTER_ROOT/packages/flutter_tools/gradle/src/main/kotlin/DependencyVersionChecker.kt`
-- [ ] 2.2 Parse `JavaVersion.VERSION_<N>` to the integer `N`; fail the step on an empty or non-integer match
-- [ ] 2.3 Echo the derived value and its provenance (`Derived Java major from errorJavaVersion: N`) so the job log shows both
-- [ ] 2.4 Delete `script/java_version.sh`
-- [ ] 2.5 Confirm the derivation yields `17` and produces **no diff** in `config/version.json` — the empty diff is the validation that old and new sources agree
+- [ ] 2.1 In `script/updateAndroidVersions.gradle.kts`, resolve `com.flutter.gradle.DependencyVersionChecker` via `Class.forName` and get its `INSTANCE` field (Kotlin `object` singleton)
+- [ ] 2.2 Find the zero-arg getter whose name is `getErrorJavaVersion` or starts with `getErrorJavaVersion$` (prefix match — do NOT hardcode the `$gradle` module suffix); `error(...)` with the sorted member list if absent
+- [ ] 2.3 Invoke it, cast to `org.gradle.api.JavaVersion`, and take `.majorVersion.toInt()` — not `toString()`, which returns `"1.8"` for Java 8
+- [ ] 2.4 Add `"java" to mapOf("version" to javaMajor)` to the task's `newJsonMap`, alongside the existing `platforms`/`gradle`/`buildTools`/`ndk` entries
+- [ ] 2.5 Print the derived value, its provenance, and the resolved getter name (`Derived Java major from errorJavaVersion (getErrorJavaVersion$gradle): 17`)
+- [ ] 2.6 Delete the `Derive installed Java major version` step in `update-version.yml` (~:296-303) and `script/java_version.sh`
+- [ ] 2.7 Confirm the derivation yields `17` and produces **no diff** in `config/version.json` — the empty diff is the validation that old and new sources agree
+- [ ] 2.8 Confirm the same task still runs in `build.yml:497-498`, which appends the script identically — the added Java write must not break that leg
 
 ## 3. Floor assertion (design D5)
 
-- [ ] 3.1 Add `check(JavaVersion.current() >= JavaVersion.VERSION_17)` to `script/updateAndroidVersions.gradle.kts`, with a failure message naming the required minimum
-- [ ] 3.2 Place the assertion before any manifest write so a below-floor JDK fails before mutating `config/version.json`
+- [ ] 3.1 Add `check(JavaVersion.current().majorVersion.toInt() >= javaMajor)` to `script/updateAndroidVersions.gradle.kts`, reusing the value derived in group 2 rather than a literal, with a failure message naming the required minimum
+- [ ] 3.2 Place the assertion after the derivation but before any manifest write, so a below-floor JDK fails before mutating `config/version.json`
 
 ## 4. Dockerfile follows the manifest (design D4)
 
