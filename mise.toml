@@ -21,3 +21,13 @@ run = [
   "cue export docs/examples.cue config/version.json -e forgejo --out yaml > examples/forgejo-actions.yml",
   "node docs/build.mjs",
 ]
+
+# Local-only pre-flight for .github/renovate.json. Deliberately not a CI job:
+# Renovate config changes go out on a renovate/reconfigure branch, where the
+# Renovate app validates the config itself and reports failures back, so a
+# workflow running the same validator would only duplicate it. This task is the
+# faster loop — check before pushing. Syntax-only: it does not verify that a pin
+# resolves against the right suite.
+[tasks.lint]
+description = "Validate .github/renovate.json (local pre-flight; CI relies on the Renovate app)"
+run = ["./script/renovate_validate.sh"]

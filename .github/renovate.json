@@ -21,7 +21,7 @@
       "schedule": ["* 0-3 1 * *"]
     },
     {
-      "description": "Default apt suites: one registryUrl per stanza of debian:13-slim's own sources (trixie, trixie-updates, trixie-security; main only). The deb datasource merges releases across them, so Renovate's candidate is the one apt would install.",
+      "description": "Default apt suites: one registryUrl per stanza of debian:13-slim's own sources (trixie, trixie-updates, trixie-security; main only). The deb datasource merges releases across them, so Renovate's candidate is the one apt would install. Update these together with the base image in android.Dockerfile — a Debian release bump makes them stale.",
       "matchDatasources": ["deb"],
       "registryUrls": [
         "https://deb.debian.org/debian?suite=trixie&components=main&binaryArch=amd64",

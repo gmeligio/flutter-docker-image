@@ -27,6 +27,25 @@ Every `deb`-datasource pin SHALL be resolved against the full set of apt suites 
 - **THEN** each names a Debian codename (e.g. `trixie`, `bookworm-security`)
 - **AND** none uses a floating alias such as `stable` or `oldstable`, which would silently retarget every pin when Debian promotes a new release
 
+### Requirement: Renovate configuration is syntax-validated before it is pushed
+
+`.github/renovate.json` SHALL be syntax-validatable through a documented repository task that a maintainer can run locally. That task SHALL NOT be duplicated as a CI job.
+
+**Experience context:** A maintainer editing Renovate config wants to know the config parses before pushing, and the validator script for that already existed in `script/` — unreferenced by any task, workflow or doc, and without an executable bit, so nothing could run it. Wiring it to a task closes that loop. It stays out of CI on purpose: Renovate config changes ship on a `renovate/reconfigure` branch, where the Renovate app validates the config itself and reports failures back, so a workflow running the same validator would add a job without adding a signal. The check is syntax-only either way — `renovate-config-validator` does not evaluate enum values or verify that a pin resolves against the right suite, so it catches malformed config, not wrong config.
+
+#### Scenario: A maintainer validates config before pushing
+
+- **GIVEN** a maintainer editing `.github/renovate.json`
+- **WHEN** they run the repository's lint task
+- **THEN** it validates the config and reports any syntax error, with no setup beyond the repository's own tooling
+
+#### Scenario: Validation is not duplicated in CI
+
+- **GIVEN** a Renovate config change pushed on a `renovate/reconfigure` branch
+- **WHEN** it is opened for review
+- **THEN** the Renovate app performs the authoritative validation and reports failures
+- **AND** no repository workflow runs `renovate-config-validator` in addition
+
 ## MODIFIED Requirements
 
 ### Requirement: Debian apt-package pins in `android.Dockerfile` are matched by Renovate's deb custom manager

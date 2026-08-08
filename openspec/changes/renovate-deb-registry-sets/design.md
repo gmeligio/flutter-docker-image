@@ -65,10 +65,41 @@ Locality is not lost. A maintainer asking which suite a pin resolves against has
 
 Suite *and* component list are copied from the sources the image actually enables, rather than using one convenient superset for both families. A superset would make Renovate fetch indexes apt never sees; missing components would hide packages apt can install. Both failures are silent — the deb datasource logs a failed component fetch at debug and continues. Mirroring keeps the invariant checkable by eye: every URL corresponds to one `Types/URIs/Suites/Components` stanza in either `debian:13-slim`'s sources or `config/debian_12_bookworm.sources`.
 
+### The base image's suites are not mirrored into a second file
+
+A checked-in `config/debian_13_trixie.sources`, recording the suites `debian:13-slim` already ships, was written and then deleted. Recording it does not make the invariant *checked* — nothing would read the file. It would be inert documentation whose agreement with `renovate.json` is maintained only by a maintainer noticing, and it adds a second copy to keep in sync while offering no signal the `FROM` line does not already offer. `android.Dockerfile:1` is the authoritative statement of which Debian release is in play; a reviewer comparing `registryUrls` against that line has the same information. The trixie rule's `description` now carries the co-update instruction instead, which costs nothing and sits where the URLs are edited.
+
+The real question it was meant to answer — *what catches a stale suite set?* — is answered below on its merits.
+
+### What a Debian release bump actually does, and what catches it
+
+Renovate's docker manager bumps `FROM debian:*-slim` unattended, and `automerge: true` is global. Precedent exists for both scales: `8476e0c` (13.4→13.6), `d301c28`, `3ca7c22` are minors, and `4cddcea` was a **major**, 12→13.
+
+That major bump is the useful evidence, because it is the exact scenario in question and it is in the history. It did not merge silently. `4cddcea` carries a human co-author alongside `renovate[bot]`, and in the same PR the pins were rewritten (`7.88.1-10+deb12u14` → `8.14.1-2`), the annotations retargeted `release=bullseye` → `suite=trixie`, `config/debian_12_bookworm.sources` was created, and `renovate.json` was edited. A Debian major bump is not a quiet one-line change: **it breaks the build loudly and immediately**, because every apt pin is an exact-version match (`curl="$CURL_VERSION"`) against an archive that no longer carries those versions, and `apt-get install` fails hard. `build.yml` builds both image targets on every pull request, so this surfaces as a red PR before merge.
+
+So the feared "silent rot" splits into two failure modes with different answers:
+
+| Failure mode | Silent? | Caught by |
+|---|---|---|
+| Base image moves to a new Debian release; `registryUrls` still name the old suites | **No** | The PR build fails — pinned versions are absent from the new release, `apt-get install` errors, and the pins must be rewritten by hand in that same PR (as in `4cddcea`) |
+| `registryUrls` name a suite that never resolves, while the pinned versions still install | **Yes** | Nothing today. Renovate logs `no-result` at debug level; the build stays green because the pinned versions remain in the archive. This is precisely the ten-week `openjdk-17-jdk-headless` bug |
+
+Only the second is genuinely undetectable, and a mirrored sources file would not have caught it either — the bookworm half *was* mirrored by `config/debian_12_bookworm.sources` throughout, and the bug still ran for ten weeks. What catches it is a lookup-result assertion, which needs network egress to `deb.debian.org`; that remains the deferred follow-up in Non-Goals, now with a sharper justification.
+
+**Alternative rejected:** *generate the `registryUrls` from a manifest.* The repo has manifest→codegen→git-diff-gate machinery (`config/version.json`, `config/schema.cue`, `mise run docs`, the `validate-generated-config` job). It does not fit here. `config/schema.cue` models no OS concept at all, and `FROM debian:13.6-slim` is bumped by Renovate's docker manager entirely outside the `version.json` update path — so generating six URLs would mean inventing a `debian` manifest dimension *and* rewiring `update-version.yml` to own the base-image bump. It would also break a repo convention: everything under `.github/` is hand-written (`gx.toml` is hand-maintained, `gx.lock` is its generated artifact; `docs/contributing.md:89` instructs humans to edit `.github/renovate.json`), while generated output lands at repo root, `examples/`, and `test/`. Order-of-magnitude cost, and it would not catch the one failure mode that is actually silent.
+
+### Renovate config validation stays local
+
+`script/renovate_validate.sh` existed before this change, referenced by nothing — no workflow, no task, no doc — and carrying mode 644 while every script CI runs is 755. It was unrunnable dead code. `mise run lint` makes it reachable and the mode bit is fixed.
+
+It is **not** promoted to a CI job. Renovate config changes ship on a `renovate/reconfigure` branch, where the Renovate app validates the config itself and reports failures back on the PR. A workflow running `renovate-config-validator` would re-run the authoritative check and add a job without adding a signal. The local task is the faster loop for the maintainer, not a second gate.
+
+Either way the check is syntax-only — it does not evaluate enum values and cannot tell whether a pin resolves against the right suite. It would not have caught the bug this change fixes, and is not claimed to.
+
 ## Risks / Trade-offs
 
 - **More index fetches.** The bookworm pin now costs 12 component fetches instead of 3. Indexes are fetched once per run and shared across dependencies (the prior job log shows 8 of 9 lookups served from cache), and only `main` is large — bookworm-updates was 6.9 kB, bookworm-security 325 kB in the build log. Acceptable for correctness.
-- **Base-image upgrades need a config edit.** Moving to Debian 14 requires updating three URLs. This is deliberate (see the alias alternative above), and the failure mode is loud in a way `suite=stable` was not: pins resolve against a suite the image no longer has and stop matching, rather than quietly retargeting.
+- **Base-image upgrades need a config edit.** Moving to Debian 14 requires updating three URLs. This is deliberate (see the alias alternative above), and the failure mode is loud — not by assertion but by mechanism: the exact-version apt pins stop installing on the new release, so `apt-get install` fails and the PR build goes red before merge. `4cddcea` (the 12→13 major bump) is the worked precedent — it rewrote every pin, the annotations, and `renovate.json` in one human-reviewed PR. Contrast `suite=stable`, which retargeted silently and kept building.
 - **The silent `no-result` remains silent.** This change removes the *cause*, not the *class*. A future misconfiguration could still produce an unresolvable pin that only debug logs mention. That is what the deferred CI guard is for.
 
 ## Verification
