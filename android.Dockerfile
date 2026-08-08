@@ -133,11 +133,10 @@ FROM fastlane AS android
 
 SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
-# TODO: Get JAVA_HOME dinamically from a JDK binary
-# TODO: Use `dirname $(dirname $(readlink -f $(which javac)))` after the following issue is fixed
-# TODO: https://github.com/moby/moby/issues/29110
+# Passed in rather than discovered at runtime, which moby/moby#29110 still blocks.
+ARG android_java_version
 ENV ANDROID_HOME="$SDK_ROOT/android-sdk" \
-    JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+    JAVA_HOME="/usr/lib/jvm/java-${android_java_version}-openjdk-amd64"
 ENV PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$HOME/.local/bin"
 
 # renovate: suite=bookworm depName=openjdk-17-jdk-headless
@@ -146,7 +145,7 @@ ARG OPENJDK_17_JDK_HEADLESS_VERSION="17.0.20+8-1~deb12u1"
 ARG SUDO_VERSION="1.9.16p2-3+deb13u2"
 
 USER root
-# Add debian 12 bookworm repository alongside debian 13 trixie to install Java 17
+# Trixie has no openjdk-17; bookworm does.
 COPY config/debian_12_bookworm.sources /etc/apt/sources.list.d/debian_12_bookworm.sources
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
@@ -159,15 +158,12 @@ RUN apt-get update \
     # libatk-bridge2.0-0=2.38.0-3 \
     # libgtk-3-0=3.24.33-1ubuntu2 \
     # libgdk-pixbuf2.0-0=2.40.2-2build4 \
-    # Android SDK dependencies
-    ## JDK needs to be used instead of JRE because it provides the jlink tool used by the Android build
-    openjdk-17-jdk-headless="$OPENJDK_17_JDK_HEADLESS_VERSION" \
+    # JDK, not JRE: the Android build needs jlink
+    "openjdk-${android_java_version}-jdk-headless=$OPENJDK_17_JDK_HEADLESS_VERSION" \
     # To allow changing ownership in GitLab CI /builds
     sudo="$SUDO_VERSION" \
     && rm -rf /var/lib/apt/lists/* \
-    # Delete debian 12 bookworm repository after installing Java 17
     && rm /etc/apt/sources.list.d/debian_12_bookworm.sources \
-    # To allow changing ownership in GitLab CI /builds
     && echo "flutter ALL= NOPASSWD:/bin/chown -R flutter /builds, /bin/chown -R flutter /builds/*" >> /etc/sudoers.d/flutter
 
 USER flutter:flutter
