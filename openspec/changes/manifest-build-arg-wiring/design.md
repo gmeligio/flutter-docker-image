@@ -26,7 +26,7 @@ whose proposed shape this change supersedes.
 
 ## Decisions
 
-### D1 — A reusable workflow, not a `BUILD_ARGS` environment string
+### D1 — A composite action, not a `BUILD_ARGS` string and not a reusable workflow
 
 The superseded design collapsed the four `build-args:` blocks to
 `build-args: ${{ env.BUILD_ARGS }}`, emitted from a declarative
@@ -38,33 +38,63 @@ manifest-path→ARG-name table. Three findings retired it:
 | `windows.git.version` → `git_version` vs `android.Dockerfile:10` `ARG GIT_VERSION` (apt pin) | Table rows for Windows values would reach Linux builds; safe only because ARG names are case-sensitive — an undocumented accident |
 | An unmatched `--build-arg` warns, it does not fail | A wrong table partition is silent, not loud |
 
-The reusable workflow removes all three by construction. A workflow that builds
+A single callable unit removes all three by construction. Whatever builds
 `android.Dockerfile` names only android arguments, so a Windows value cannot
 reach it — there is no partition to get wrong, because there is no shared list.
 
-`windows-image.yml` is the in-repo precedent: a `workflow_call` workflow owning a
-whole build behind typed inputs. Verified inventory: `.github/actions/` holds one
-composite action (`clean-runner-disk`) and `windows-image.yml` is the only
-`workflow_call` workflow. This change makes Linux consistent with Windows rather
-than introducing a third pattern.
+**A reusable workflow was the first choice here and is wrong.** Reading the four
+legs in full — not just their `build-args:` blocks — showed that a
+`workflow_call` workflow is a separate *job*, and all four Linux legs depend on
+job-local state that cannot cross a job boundary:
+
+| Obstacle | Evidence |
+|---|---|
+| `ci.yml` builds with `load: true` into the local Docker daemon and tests it in the next step of the same job | `ci.yml:74-94` — a locally-loaded image does not survive a job boundary, so the call could not return it |
+| `ci.yml` has no separate build job to replace | build and `container-structure-test` are steps of one `test-image` job |
+| `build.yml` interleaves the build with fork-handoff machinery sharing `steps.handoff`/`steps.metadata` | `build.yml:109-122` (handoff tag), `:195-201` (re-tag), `:203-216` (save + upload) |
+
+A composite action runs **inside** the calling job, so the local daemon,
+`steps.metadata`, and the fork handoff keep working untouched. It removes the
+same duplication without restructuring any job graph.
+
+`.github/actions/clean-runner-disk` is the in-repo precedent, used by all four
+Linux legs already (`build.yml:87`, `ci.yml:60`, plus `windows-image.yml:51`).
+`windows-image.yml` remains a reusable workflow because the Windows path has no
+equivalent constraint — it is one job that builds, pushes, and tests, with
+nothing to hand across a boundary.
 
 ### D2 — Callers declare only genuine differences
 
-Comparing the four legs, they differ in exactly five dimensions, each a
-`workflow_call` input:
+The composite action owns the `docker/build-push-action` invocation — the seven
+`build-args` lines, `file: android.Dockerfile`, `labels`, and `tags`. Callers
+pass only what genuinely differs:
 
 | Input | Values | Source today |
 |---|---|---|
 | `target` | `android` \| `web` | `build.yml:155`, `ci.yml:83`, `release.yml:111` |
-| `push` | bool | `build.yml:148` vs `ci.yml` `load:` |
-| `cache-backend` | `registry` \| `gha` | `build.yml:151-152` vs `ci.yml:107` |
-| `attestations` | bool | `build.yml:149-150` only |
-| `registries` | which logins run | `release.yml:93` adds Quay; `ci.yml` has no GHCR |
+| `cache-from` / `cache-to` | passed through verbatim | see below |
+| `push` / `load` / `outputs` | output mode | `build.yml:148` vs `:176` vs `ci.yml:78` |
+| `sbom` / `provenance` | attestations | `build.yml:149-150` only |
+| `tags` / `labels` | from the caller's own `metadata` step | each leg's `steps.metadata` |
 
-Everything else — the seven `build-args` lines, the Dockerfile path, buildx
-setup, metadata — is identical and moves into the workflow. The fork/non-fork
-split (`build.yml:143` vs `:172`) becomes `push: false` plus an output-mode input
-rather than a duplicated step.
+**Cache is passed through, not enumerated.** The four legs use three different
+shapes, so a `registry|gha` enum cannot express them:
+
+| Leg | cache |
+|---|---|
+| `build.yml` push/fork | `type=registry,ref=ghcr.io/<owner>/<name>:buildcache` |
+| `ci.yml` | `type=gha` (unscoped) |
+| `release.yml` | `type=gha,scope=<name>` (`release.yml:107-108`) |
+
+Both the registry ref and the gha scope vary per image, so the value is
+caller-specific either way. Passing the string through keeps each leg's current
+behaviour exactly and avoids an enum that would need a ref/scope parameter to be
+useful — at which point it is just the string again.
+
+Registry logins, buildx setup, and `metadata-action` stay in the callers. They
+run before the build, differ per leg (`release.yml:93` adds Quay; `ci.yml` has no
+GHCR; `build.yml` gates both on non-fork), and — unlike the build step — are not
+where the drift risk that motivates this change lives.
 
 **Layer caching is the constraint that shapes the build-args handling.** The
 tempting simplification — one JSON build-arg, or `COPY config/version.json` into
@@ -116,7 +146,7 @@ against `test/android.yml` remains the backstop that the built image is correct.
 | Manifest path unresolvable | Emitter throws → step fails before any build starts |
 | A build-arg the Dockerfile needs is absent | Empty `ARG` → build fails at the consuming `RUN` (android stages) |
 | A build-arg no `ARG` declares is passed | BuildKit **warning only** — does not fail |
-| Caller passes a wrong input value | `workflow_call` type checking rejects it at parse time |
+| Caller omits a required input | Composite action input validation fails the step |
 | A leg still builds inline | Caught in review; the delta forbids it |
 
 **Not silent, with one exception**: a missing build argument becomes an empty
@@ -129,31 +159,30 @@ ARG↔build-arg parity check is worth doing, and why it is tracked separately.
 ## Risks / Trade-offs
 
 **[The build step is no longer inline in the caller]** → A reader of `ci.yml` sees
-a call, not a build. Mitigated by this being the repository's own established
-pattern (`windows-image.yml`), so the indirection is one a maintainer already
-navigates, not a new concept.
+a `uses:`, not a `build-args:` list. Mitigated by this being the repository's own
+established pattern (`.github/actions/clean-runner-disk`, already used by every
+Linux leg), so the indirection is one a maintainer already navigates.
 
 **[Refactor touches three workflow files plus a new one]** → Unavoidable, since
 the point is removing duplication. Bounded by the per-leg command-line check.
 
-**[`workflow_call` output plumbing]** → `build.yml:59-62` exposes job outputs to
-`test-image`/`scan-image`. Reusable workflows support outputs, but they must be
-promoted from step → job → workflow explicitly, and under a matrix the value is
-that of the last successful run that set one. `build.yml` builds a matrix of
-targets, so outputs must be keyed per target or the callers restructured to
-consume them per leg. This is the main implementation risk and is called out as
-its own task.
+**[A composite action cannot gate on `if:` at job level]** → Not a problem here:
+`build.yml`'s fork/non-fork gate stays on the caller's step
+(`build.yml:143`/`:172`), which is where it already lives. The action is invoked
+by whichever step's condition matches.
+
+**[Secrets are not implicitly available]** → Composite actions cannot read
+`secrets` directly. Not a problem here either: all registry logins stay in the
+callers (D2), so the action never needs a credential.
 
 ## Migration Plan
 
-1. Add `linux-image.yml` reproducing the `build.yml` push path exactly, plus the
-   emitter's fail-loud and logging changes. Nothing calls it yet — inert and
-   independently revertable.
-2. Switch `ci.yml` first: it is the simplest leg (no GHCR, no attestations, `gha`
-   cache) and its failure is cheapest to observe. Verify its command line against
-   the baseline.
-3. Switch `build.yml` (both paths, including matrix output plumbing), then
-   `release.yml` (Quay, `--debug`). Verify each against its baseline.
+1. Add `.github/actions/build-linux-image` plus the emitter's fail-loud and
+   logging changes. Nothing uses it yet — inert and independently revertable.
+2. Switch `ci.yml` first: it is the simplest leg (one build step, no fork gate)
+   and its failure is cheapest to observe. Verify against the baseline.
+3. Switch `build.yml` (both push and fork steps), then `release.yml`. Verify each
+   against its baseline.
 4. Confirm no workflow still contains an inline `build-args:` block for
    `android.Dockerfile`.
 

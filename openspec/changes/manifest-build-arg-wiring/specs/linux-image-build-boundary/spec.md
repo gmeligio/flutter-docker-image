@@ -2,23 +2,27 @@
 
 ### Requirement: The Linux image build exists once, as a callable unit
 
-The procedure for building the Linux image SHALL be defined once, in a reusable
-workflow invoked via `workflow_call`. Every workflow that builds
-`android.Dockerfile` SHALL call it rather than restate the build inline.
+The step that builds the Linux image SHALL be defined once, as a composite action
+under `.github/actions/`. Every workflow step that builds `android.Dockerfile`
+SHALL use it rather than restate the build inline.
 
-The callable unit SHALL own everything the legs have in common: the manifest
-read, runner disk cleanup, Buildx setup, registry logins, image metadata, and the
-`docker/build-push-action` invocation including its build arguments.
+The callable unit SHALL own the `docker/build-push-action` invocation, including
+the Dockerfile path and every build argument.
 
-Callers SHALL declare only the dimensions in which their leg legitimately
-differs — the build target, whether the result is pushed, which cache backend is
-used, whether attestations are produced, and which registries are logged into.
-A caller SHALL NOT restate a build argument.
+Callers SHALL pass only the values in which their leg legitimately differs — the
+build target, cache configuration, output mode, whether attestations are
+produced, and the tags and labels from their own metadata step. A caller SHALL
+NOT restate a build argument.
 
-This mirrors the boundary the Windows image build already uses
-(`windows-image.yml:7-27`, called from `windows.yml:19` and `release.yml:131`),
-so the repository has one pattern for "a build as a callable unit" rather than
-two.
+The unit SHALL be a composite action rather than a reusable workflow, because a
+reusable workflow is a separate job and the legs depend on job-local state:
+`ci.yml` builds with `load: true` into the local Docker daemon and tests it in a
+later step of the same job, and `build.yml` interleaves the build with
+fork-handoff steps that share `steps.handoff` and `steps.metadata`. A composite
+action runs inside the calling job, so that state is preserved.
+
+This follows the boundary the repository already uses for shared steps
+(`.github/actions/clean-runner-disk`, used by every Linux leg).
 
 **Experience context:** A CI engineer trusts that the image validated on a pull
 request is built the same way as the image published on release. Before this
@@ -33,13 +37,13 @@ four files by hand.
 
 - **GIVEN** the `build.yml` push path, the `build.yml` fork path, `ci.yml`, and `release.yml`
 - **WHEN** a maintainer reads how each builds the image
-- **THEN** each is a call to the reusable Linux image workflow
+- **THEN** each uses the shared Linux image build action
 - **AND** no workflow file contains an inline `build-args:` block naming `flutter_version` or `android_ndk_version` for `android.Dockerfile`
 
-#### Scenario: A change to the build procedure reaches every leg
+#### Scenario: A change to the build arguments reaches every leg
 
-- **GIVEN** a maintainer changes how the image is built — a new build argument, a different cache setting, an added label
-- **WHEN** the change is made in the reusable workflow
+- **GIVEN** a maintainer adds a build argument the image needs
+- **WHEN** the change is made in the shared action
 - **THEN** all four legs build with it
 - **AND** no leg can be left behind, because no leg carries its own copy
 
@@ -48,14 +52,14 @@ four files by hand.
 - **GIVEN** a pull request from a fork, which builds but cannot push
 - **WHEN** the fork build path runs
 - **THEN** it receives the identical build-argument set as the push path
-- **AND** the two paths cannot drift, because they call one workflow
+- **AND** the two paths cannot drift, because they use one action
 
 #### Scenario: A leg's genuine difference is declared, not duplicated
 
 - **GIVEN** `ci.yml` uses the `gha` cache backend and produces no attestations, while `build.yml` uses the registry cache and does
-- **WHEN** each calls the reusable workflow
+- **WHEN** each uses the shared action
 - **THEN** the difference is expressed as input values
-- **AND** neither leg restates the build step to express it
+- **AND** neither leg restates the build arguments to express it
 
 ### Requirement: Build arguments are declared where the Dockerfile they feed is named
 
@@ -77,7 +81,7 @@ which Dockerfile without following an indirection. This matters because
 collide by name once flattened: `windows.git.version` is the Git for Windows
 release (`2.55.0`), while `android.Dockerfile:10` declares `ARG GIT_VERSION` as a
 Debian apt pin (`1:2.47.3-0+deb13u1`) for a different tool with a different
-version grammar. Keeping each image's arguments in the workflow that builds it
+version grammar. Keeping each image's arguments in the unit that builds it
 means the wrong value cannot be routed to the wrong build — and a mistake would
 not be silent, since BuildKit only *warns* about a build argument no `ARG`
 declares.
@@ -91,7 +95,7 @@ declares.
 
 #### Scenario: Established names are preserved exactly
 
-- **GIVEN** the build moves into the reusable workflow
+- **GIVEN** the build moves into the shared action
 - **WHEN** the resolved `docker buildx build` command line is compared to the previous one for the same leg
 - **THEN** the build-argument names and values are identical
 - **AND** no `ARG` declaration in any Dockerfile required an edit
@@ -124,7 +128,7 @@ ignored rather than failing at a consuming `RUN`.
 
 ### Requirement: The callable unit preserves per-argument layer caching
 
-The reusable workflow SHALL pass one `--build-arg` flag per value. The manifest
+The shared action SHALL pass one `--build-arg` flag per value. The manifest
 SHALL NOT be passed as a single serialized build argument, and
 `config/version.json` SHALL NOT be `COPY`-ed into any build stage for the purpose
 of supplying versions.
