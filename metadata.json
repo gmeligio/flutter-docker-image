@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "01KZKE4NXN2E62YAW0GM7B0N6J",
+  "strategy": "manual-commit",
+  "branch": "refactor/linux-image-reusable-workflow",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".github/workflows/release.yml"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": ""
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 9,
+    "cache_creation_tokens": 4487,
+    "cache_read_tokens": 1000524,
+    "output_tokens": 3861,
+    "api_call_count": 5
+  }
+}
