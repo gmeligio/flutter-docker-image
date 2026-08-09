@@ -21,3 +21,8 @@ run = [
   "cue export docs/examples.cue config/version.json -e forgejo --out yaml > examples/forgejo-actions.yml",
   "node docs/build.mjs",
 ]
+
+# Not in CI: Renovate itself validates the config on renovate/reconfigure.
+[tasks.lint]
+description = "Check .github/renovate.json before pushing"
+run = ["./script/renovate_validate.sh"]

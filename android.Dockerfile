@@ -4,15 +4,15 @@ SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
 ENV LANG=C.UTF-8
 
-# renovate: suite=trixie depName=curl
+# renovate: depName=curl
 ARG CURL_VERSION="8.14.1-2+deb13u4"
-# renovate: suite=trixie depName=git
+# renovate: depName=git
 ARG GIT_VERSION="1:2.47.3-0+deb13u1"
-# renovate: suite=trixie depName=lcov
+# renovate: depName=lcov
 ARG LCOV_VERSION="2.3.1-1"
-# renovate: suite=trixie depName=ca-certificates
+# renovate: depName=ca-certificates
 ARG CA_CERTIFICATES_VERSION="20250419"
-# renovate: suite=trixie depName=unzip
+# renovate: depName=unzip
 ARG UNZIP_VERSION="6.0-29"
 
 USER root
@@ -93,9 +93,9 @@ FROM flutter AS fastlane
 
 SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
-# renovate: suite=trixie depName=ruby-full
+# renovate: depName=ruby-full
 ARG RUBY_VERSION="1:3.3"
-# renovate: suite=trixie depName=build-essential
+# renovate: depName=build-essential
 ARG BUILD_ESSENTIAL_VERSION="12.12"
 
 USER root
@@ -139,9 +139,9 @@ ENV ANDROID_HOME="$SDK_ROOT/android-sdk" \
     JAVA_HOME="/usr/lib/jvm/java-${android_java_version}-openjdk-amd64"
 ENV PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$HOME/.local/bin"
 
-# renovate: suite=bookworm depName=openjdk-17-jdk-headless
+# renovate: depName=openjdk-17-jdk-headless
 ARG OPENJDK_17_JDK_HEADLESS_VERSION="17.0.20+8-1~deb12u1"
-# renovate: suite=trixie depName=sudo
+# renovate: depName=sudo
 ARG SUDO_VERSION="1.9.16p2-3+deb13u2"
 
 USER root
