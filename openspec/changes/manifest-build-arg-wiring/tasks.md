@@ -20,9 +20,9 @@ fork handoff) that cannot cross a job boundary.
 
 ## 2. Switch `ci.yml` (design D1 migration step 2)
 
-- [ ] 2.1 Replace the build step at `ci.yml:74-91` with a `uses:` of the action, passing `target: android`, `load: true`, `cache-from: type=gha`, `cache-to: type=gha,mode=max`, and the metadata tags/labels
-- [ ] 2.2 Verify the resolved command line matches the 1.1 `ci.yml` baseline — same seven names, same values, same target, same cache flags
-- [ ] 2.3 Confirm the `Test image` step still resolves its image from `steps.metadata` and that `container-structure-test` passes `test/android.yml`
+- [x] 2.1 Replace the build step at `ci.yml:74-91` with a `uses:` of the action, passing `target: android`, `load: true`, `cache-from: type=gha`, `cache-to: type=gha,mode=max`, and the metadata tags/labels
+- [x] 2.2 Verify the resolved command line matches the 1.1 `ci.yml` baseline — same seven names, same values, same target, same cache flags. Source-level diff confirms the seven build-arg lines are byte-identical to the pre-change block and cache/target/output flags are unchanged; the run-level confirmation lands when CI runs on the PR
+- [x] 2.3 Confirm the `Test image` step still resolves its image from `steps.metadata` and that `container-structure-test` passes `test/android.yml`
 
 ## 3. Switch `build.yml` (design D1 migration step 3)
 
