@@ -3,7 +3,7 @@ revertable, and each group after 1 switches exactly one build leg.
 
 ## 1. The reusable workflow and emitter hardening (design D1, D2, D3)
 
-- [ ] 1.1 Capture a per-leg baseline from a recent CI run: the resolved `docker buildx build` command line for `build.yml` push path, `build.yml` fork path, `ci.yml`, and `release.yml` — seven build-args each, plus target, cache and output flags
+- [x] 1.1 Capture a per-leg baseline from a recent CI run: the resolved `docker buildx build` command line for `build.yml` push path, `build.yml` fork path, `ci.yml`, and `release.yml` — seven build-args each, plus target, cache and output flags
 - [ ] 1.2 Add `.github/workflows/linux-image.yml` as a `workflow_call` workflow modelled on `windows-image.yml:7-27`, owning: manifest read, `clean-runner-disk`, buildx setup, registry logins, `metadata-action`, and `docker/build-push-action` with `file: android.Dockerfile`
 - [ ] 1.3 Declare the seven `build-args` lines **once** inside it, reproducing current names and values exactly (`flutter_version`, `fastlane_version`, `android_java_version`, `android_build_tools_version`, `android_platform_versions`, `android_ndk_version`, `cmake_version`) — note this is seven, not six; `android_java_version` was wired by PR #537
 - [ ] 1.4 Declare typed inputs for the five dimensions the legs legitimately differ in: `target`, `push`, `cache-backend` (`registry`|`gha`), `attestations`, `registries` (design D2)
