@@ -21,26 +21,19 @@ module.exports = async ({ core }) => {
   const text = fs.readFileSync(VERSION_MANIFEST, 'utf8')
   const data = JSON.parse(text)
 
-  // Reading through this helper rather than dotting into `data` directly means a
-  // renamed, removed, or blank manifest field fails here, naming the path,
-  // instead of exporting an empty string and surfacing 15 minutes later as an
-  // empty ARG — or not at all, since the `web` stage declares none of these
-  // arguments.
-  //
-  // config/schema.cue is the real guard and rejects far more (semver shapes,
-  // non-empty platform lists). It runs in its own job, so it gates the merge but
-  // not this step. These checks are the last line before a bad value reaches a
-  // build arg.
+  // Backstop only. config/schema.cue is the real guard and also checks semver
+  // shapes, but runs in a separate step — these throws are the last chance
+  // before a bad value becomes a build arg.
+  const isBlank = (value) =>
+    value === undefined || value === null || value === ''
+
   const read = (path) => {
     const value = path
       .split('.')
       .reduce((node, key) => (node == null ? node : node[key]), data)
 
-    if (value === undefined || value === null || value === '') {
-      throw new Error(
-        `${VERSION_MANIFEST} has no value at '${path}'. ` +
-          'Add the field, or remove the export that reads it.'
-      )
+    if (isBlank(value)) {
+      throw new Error(`${VERSION_MANIFEST} has no value at '${path}'.`)
     }
 
     return value
@@ -51,23 +44,19 @@ module.exports = async ({ core }) => {
 
     if (!Array.isArray(platforms) || platforms.length === 0) {
       throw new Error(
-        `${VERSION_MANIFEST} needs a non-empty array at 'android.platforms'. ` +
-          'The android stage installs one SDK platform per entry.'
+        `${VERSION_MANIFEST} needs a non-empty array at 'android.platforms'.`
       )
     }
 
     return platforms
       .map((platform, index) => {
-        const version = platform?.version
-
-        if (version === undefined || version === null || version === '') {
+        if (isBlank(platform?.version)) {
           throw new Error(
-            `${VERSION_MANIFEST} has no value at ` +
-              `'android.platforms[${index}].version'.`
+            `${VERSION_MANIFEST} has no value at 'android.platforms[${index}].version'.`
           )
         }
 
-        return version
+        return platform.version
       })
       .join(' ')
   }
@@ -101,8 +90,7 @@ module.exports = async ({ core }) => {
     `${GITHUB_REPOSITORY_OWNER}/${IMAGE_REPOSITORY_NAME}`
   )
 
-  // Once the build legs stop listing build arguments inline, this log is where a
-  // job run records which manifest values it actually built with.
+  // The only run-level record of what a build actually used.
   core.startGroup(`Versions read from ${VERSION_MANIFEST}`)
   for (const [name, value] of Object.entries(exports)) {
     core.info(`${name}=${value}`)

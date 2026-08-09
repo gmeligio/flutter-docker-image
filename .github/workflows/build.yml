@@ -366,9 +366,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
-      # config/version.json is the single source of truth. Every job that reads
-      # it validates first; this job is the standalone check on PRs that touch
-      # the manifest without building an image.
+      # Standalone check for PRs that touch the manifest without building.
+      # Jobs that read it validate inline.
       - name: Validate version manifest
         uses: ./.github/actions/validate-version-manifest
 

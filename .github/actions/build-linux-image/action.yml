@@ -1,51 +1,41 @@
 name: 'Build Linux Image'
 description: >-
-  Builds a stage of android.Dockerfile with the manifest-derived build
-  arguments. Owns the seven build-args so the four Linux build legs
-  (build.yml push, build.yml fork, ci.yml, release.yml) cannot drift apart.
-  Callers pass only what genuinely differs: target, tags, labels, cache
-  configuration, output mode, and attestations.
+  Builds an android.Dockerfile stage with the manifest build args, shared by
+  every Linux leg so they cannot drift. Reads the manifest from the env that
+  script/setEnvironmentVariables.js exports.
 
-  Reads the manifest values from the environment, which the calling job
-  populates via script/setEnvironmentVariables.js.
+  Composite, not a reusable workflow: the legs need job-local state (ci.yml's
+  loaded image, build.yml's steps.handoff/steps.metadata) that a job boundary
+  would break.
 
-  Deliberately a composite action, not a reusable workflow: a workflow_call
-  workflow is a separate job, and the legs depend on job-local state a job
-  boundary would break (ci.yml's `load: true` local daemon and its structure
-  test, build.yml's fork handoff via steps.handoff/steps.metadata).
-
-  Deliberately names no Windows build argument. `windows.git.version` and
-  android.Dockerfile's Debian `git` apt pin are both spelled GIT_VERSION in
-  the flat environment namespace; keeping this action android-only means the
-  wrong one cannot be routed here.
+  Android-only on purpose. `windows.git.version` and the Debian `git` apt pin
+  are both GIT_VERSION in the env, so a Windows arg here could route the wrong
+  one.
 
 inputs:
   target:
-    description: 'Dockerfile stage to build (`android` or `web`).'
+    description: 'Dockerfile stage: `android` or `web`.'
     required: true
   tags:
-    description: 'Newline-separated image tags, from the caller''s metadata step.'
+    description: 'Newline-separated tags.'
     required: true
   labels:
-    description: 'Newline-separated image labels, from the caller''s metadata step.'
+    description: 'Newline-separated labels.'
     required: true
   cache-from:
-    description: >-
-      Passed to buildx verbatim. The legs use three different shapes
-      (registry ref, bare gha, per-image scoped gha), and both the ref and the
-      scope vary per image, so this is caller-specific by nature.
+    description: 'buildx cache-from. Shape and scope vary per leg.'
     required: false
     default: ''
   cache-to:
-    description: 'Passed to buildx verbatim. Empty on legs that only read cache.'
+    description: 'buildx cache-to. Empty on read-only legs.'
     required: false
     default: ''
   push:
-    description: 'Push the built tags to their registries.'
+    description: 'Push tags to their registries.'
     required: false
     default: 'false'
   load:
-    description: 'Load the result into the local Docker daemon.'
+    description: 'Load into the local Docker daemon.'
     required: false
     default: 'false'
   sbom:
@@ -53,18 +43,16 @@ inputs:
     required: false
     default: 'false'
   provenance:
-    description: >-
-      Provenance attestation setting (e.g. `mode=max`). Empty leaves the
-      buildx default.
+    description: 'Provenance setting (e.g. `mode=max`). Empty keeps the default.'
     required: false
     default: ''
 
 outputs:
   imageid:
-    description: 'Image ID of the built image.'
+    description: 'Built image ID.'
     value: ${{ steps.build.outputs.imageid }}
   digest:
-    description: 'Digest of the built image.'
+    description: 'Built image digest.'
     value: ${{ steps.build.outputs.digest }}
   metadata:
     description: 'Build result metadata.'
@@ -87,9 +75,7 @@ runs:
         load: ${{ inputs.load }}
         sbom: ${{ inputs.sbom }}
         provenance: ${{ inputs.provenance }}
-        # The single authoritative build-argument list for every Linux leg.
-        # The android args are inert for the web target (its stage declares
-        # none of them), so one shared list serves both targets.
+        # Inert for the web target, which declares none of these args.
         build-args: |
           flutter_version=${{ env.FLUTTER_VERSION }}
           fastlane_version=${{ env.FASTLANE_VERSION }}
