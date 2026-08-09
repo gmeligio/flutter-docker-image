@@ -35,3 +35,11 @@ archive now
 ---
 
 defer 6.6
+
+---
+
+commit and push
+
+---
+
+The comment in `mise.toml` is too big. The code should be semantic so the comment doesn't say the "what", only the why and extremely concise, no jargon and easy to read.
