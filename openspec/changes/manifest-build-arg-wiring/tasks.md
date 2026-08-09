@@ -33,16 +33,16 @@ fork handoff) that cannot cross a job boundary.
 
 ## 4. Switch `release.yml` (design D1 migration step 3)
 
-- [ ] 4.1 Replace `release.yml:100-121` with a `uses:`, passing `push: true` and the per-image scoped gha cache (`type=gha,scope=${{ matrix.name }}`) — preserve current behaviour; do not unify the `buildkitd-flags: --debug` drift here (design open question 1)
-- [ ] 4.2 Verify the build-args against the seven in `baseline.md` — the latest release run predates PR #537, so verify against source rather than that run
+- [x] 4.1 Replace `release.yml:100-121` with a `uses:`, passing `push: true` and the per-image scoped gha cache (`type=gha,scope=${{ matrix.name }}`) — preserve current behaviour; do not unify the `buildkitd-flags: --debug` drift here (design open question 1)
+- [x] 4.2 Verify the build-args against the seven in `baseline.md` — the latest release run predates PR #537, so verify against source rather than that run. Confirmed byte-identical at source level
 
 ## 5. Verification
 
-- [ ] 5.1 Confirm no workflow file still contains an inline `build-args:` block naming `flutter_version` or `android_ndk_version` for `android.Dockerfile`
-- [ ] 5.2 Confirm a warm-cache rebuild whose only manifest change is `fastlane.version` still serves the Flutter clone layer from cache (per-ARG granularity preserved, design D2)
-- [ ] 5.3 Confirm the Windows leg is untouched — `windows-image.yml` still assembles its own PowerShell argument array and still reads `GIT_VERSION`/`VS_*` from the emitter
-- [ ] 5.4 Confirm `prepare-release.yml`, `update-version.yml`, and `release.yml:198` still get the emitter exports they read (`FLUTTER_VERSION`, `IMAGE_REPOSITORY_PATH`)
-- [ ] 5.5 Parse-check the changed workflows and the new action. Note: `mise run lint` is Renovate-only (`mise.toml:25-27`); the repo has no actionlint task, consistent with the `feedback_workflow_lint_via_gx` decision that workflow linting belongs in gx
+- [x] 5.1 Confirm no workflow file still contains an inline `build-args:` block naming `flutter_version` or `android_ndk_version` for `android.Dockerfile`
+- [x] 5.2 Confirm a warm-cache rebuild whose only manifest change is `fastlane.version` still serves the Flutter clone layer from cache (per-ARG granularity preserved, design D2). Structurally confirmed: seven discrete `--build-arg` flags, no serialized value, no `COPY` of the manifest — the wire format BuildKit sees is unchanged. The end-to-end warm-cache timing observation needs a real post-merge rebuild
+- [x] 5.3 Confirm the Windows leg is untouched — `windows-image.yml` still assembles its own PowerShell argument array and still reads `GIT_VERSION`/`VS_*` from the emitter
+- [x] 5.4 Confirm `prepare-release.yml`, `update-version.yml`, and `release.yml:198` still get the emitter exports they read (`FLUTTER_VERSION`, `IMAGE_REPOSITORY_PATH`)
+- [x] 5.5 Parse-check the changed workflows and the new action. Note: `mise run lint` is Renovate-only (`mise.toml:25-27`); the repo has no actionlint task, consistent with the `feedback_workflow_lint_via_gx` decision that workflow linting belongs in gx
 
 ## 6. Wrap-up
 

@@ -98,9 +98,9 @@ jobs:
           password: ${{ secrets.QUAY_ROBOT_TOKEN }}
 
       - name: Build image and push it to registries
-        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
+        uses: ./.github/actions/build-linux-image
         with:
-          file: android.Dockerfile
+          target: ${{ matrix.target }}
           push: true
           # Scope the gha cache per image so the two matrix legs don't share
           # (and clobber) one cache key.
@@ -108,17 +108,6 @@ jobs:
           cache-to: type=gha,mode=max,scope=${{ matrix.name }}
           labels: ${{ steps.metadata.outputs.labels }}
           tags: ${{ steps.metadata.outputs.tags }}
-          target: ${{ matrix.target }}
-          # The android build-args are inert for the web target (its stage
-          # declares none of them), so a single shared block serves both legs.
-          build-args: |
-            flutter_version=${{ env.FLUTTER_VERSION }}
-            fastlane_version=${{ env.FASTLANE_VERSION }}
-            android_java_version=${{ env.ANDROID_JAVA_VERSION }}
-            android_build_tools_version=${{ env.ANDROID_BUILD_TOOLS_VERSION }}
-            android_platform_versions=${{ env.ANDROID_PLATFORM_VERSIONS }}
-            android_ndk_version=${{ env.ANDROID_NDK_VERSION }}
-            cmake_version=${{ env.CMAKE_VERSION }}
 
   release-windows:
     name: Release Windows
