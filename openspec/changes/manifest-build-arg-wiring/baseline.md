@@ -54,3 +54,30 @@ the image name. Task 1.4 must account for this.
 
 This gap is why task 5.1's source-level grep matters: for two of the five legs it
 is the only pre-merge check available.
+
+## Post-refactor confirmation (run 31318147664, PR #540)
+
+Run-level diff of the resolved `docker buildx build` command line, captured after
+the switch. Both `build.yml` push legs:
+
+| Leg | build-args | target | output | cache |
+|---|---|---|---|---|
+| web | 7, identical to baseline (order + values) | `web` | `--push` | `type=registry,ref=ghcr.io/gmeligio/flutter-web:buildcache` (+`mode=max`) |
+| android | 7, identical to baseline (order + values) | `android` | `--push` | `type=registry,ref=ghcr.io/gmeligio/flutter-android:buildcache` (+`mode=max`) |
+
+Attestations present on both, as before. The emitter's new log group appears in
+each build job:
+
+```
+##[group]Versions read from config/version.json
+FLUTTER_VERSION=3.44.9
+...
+##[endgroup]
+```
+
+All 11 jobs in the run succeeded, including `Test image` and `Scan image` for
+both images — which confirms the fork-handoff outputs and the SBOM attestation
+path still work through the shared action.
+
+Still verified against source only, per the gaps noted above: the `build.yml`
+fork path (needs a fork PR) and `release.yml` (runs only on release).
