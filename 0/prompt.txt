@@ -1,0 +1,160 @@
+<task-notification>
+<task-id>b3fbr23t0</task-id>
+<summary>Monitor event: "PR #540 CI checks"</summary>
+<event>Build docs: pass
+Lint workflows: pass
+Tidy lockfile: pass
+Validate generated config: pass
+Validate version files: pass</event>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b468x1tm2</task-id>
+<summary>Monitor event: "PR #540 final round incl. Windows"</summary>
+<event>Build docs: pass
+Lint workflows: pass
+Read latest release: pass
+Tidy lockfile: pass
+Validate generated config: pass
+Validate version files: pass</event>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b3fbr23t0</task-id>
+<summary>Monitor event: "PR #540 CI checks"</summary>
+<event>Test Gradle: pass</event>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b468x1tm2</task-id>
+<summary>Monitor event: "PR #540 final round incl. Windows"</summary>
+<event>Build and push image (flutter-web): pass</event>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b468x1tm2</task-id>
+<summary>Monitor event: "PR #540 final round incl. Windows"</summary>
+<event>Build and push image (flutter-android): pass</event>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b468x1tm2</task-id>
+<summary>Monitor event: "PR #540 final round incl. Windows"</summary>
+<event>Test image (flutter-web): pass</event>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b468x1tm2</task-id>
+<summary>Monitor event: "PR #540 final round incl. Windows"</summary>
+<event>Scan image (flutter-web): pass</event>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b468x1tm2</task-id>
+<summary>Monitor event: "PR #540 final round incl. Windows"</summary>
+<event>Scan image (flutter-android): pass</event>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b468x1tm2</task-id>
+<summary>Monitor event: "PR #540 final round incl. Windows"</summary>
+<event>Test image (flutter-android): pass</event>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b468x1tm2</task-id>
+<summary>Monitor event: "PR #540 final round incl. Windows"</summary>
+<event>Test Windows image / Build Windows image: pass
+ALL SETTLED: 0 non-pass</event>
+</task-notification>
+
+---
+
+/opsx:archive
+
+---
+
+<task-notification>
+<task-id>b0r0v28sd</task-id>
+<summary>Monitor event: "PR #540 post-archive CI"</summary>
+<event>Build docs: pass
+Lint workflows: pass
+Read latest release: pass
+Tidy lockfile: pass
+Validate generated config: pass
+Validate version files: pass</event>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b0r0v28sd</task-id>
+<summary>Monitor event: "PR #540 post-archive CI"</summary>
+<event>Build and push image (flutter-web): pass</event>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b0r0v28sd</task-id>
+<summary>Monitor event: "PR #540 post-archive CI"</summary>
+<event>Test Gradle: pass</event>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b0r0v28sd</task-id>
+<summary>Monitor event: "PR #540 post-archive CI"</summary>
+<event>Build and push image (flutter-android): pass</event>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b0r0v28sd</task-id>
+<summary>Monitor event: "PR #540 post-archive CI"</summary>
+<event>Test image (flutter-web): pass</event>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b0r0v28sd</task-id>
+<summary>Monitor event: "PR #540 post-archive CI"</summary>
+<event>Scan image (flutter-web): pass</event>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b0r0v28sd</task-id>
+<summary>Monitor event: "PR #540 post-archive CI"</summary>
+<event>Scan image (flutter-android): pass</event>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b0r0v28sd</task-id>
+<summary>Monitor event: "PR #540 post-archive CI"</summary>
+<event>Test image (flutter-android): pass</event>
+</task-notification>
