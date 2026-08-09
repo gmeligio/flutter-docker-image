@@ -38,9 +38,21 @@
 - [x] 6.3 Run `LOG_LEVEL=debug npx renovate --platform=local --dry-run=lookup` and confirm the constructed component URLs are exactly the intended set: 3 trixie (`main`) and 12 bookworm (4 components × 3 suites), with both families present so both rules demonstrably fired
 - [x] 6.4 Confirm no URL outside that set is constructed — in particular no `dists/stable/…`, the suite every pin previously resolved against
 - [x] 6.5 Run `gx lint` — no issues (workflows unchanged in the end; the lint job was reverted after the maintainer noted `renovate/reconfigure` already covers validation)
-- [ ] 6.6 After merge, check the next Renovate job log: the `getReleases` summary lists more than one deb `registryUrl`, and no `Failed to look up deb package openjdk-17-jdk-headless: no-result` warning appears — **cannot be done pre-merge; egress to `deb.debian.org` is blocked in the sandbox, so lookups cannot succeed locally and only URL construction is verifiable**
+- [x] 6.6 Deferred out of this change — see "Deferred verification" below. Every locally-verifiable property is checked above; the remaining one needs network egress this environment does not have
 
 ## 7. Wrap up
 
 - [x] 7.1 Open as a draft PR describing the root cause, the structural argument for removing `registryUrlTemplate`, and the breaking annotation change
 - [x] 7.2 Record two follow-ups in the PR description: the CI guard asserting every deb pin resolves (the `2026-06-08` deferral, re-motivated — extraction succeeded here and resolution failed afterwards), and the openjdk-17 → trixie openjdk-21 migration that would delete this special case entirely
+
+## Deferred verification
+
+**Not done, and not doable in this change.** This change is archived with its central behaviour — that a pin now *resolves* — unobserved. What was verified is URL construction, not resolution: `deb.debian.org` egress is blocked in the sandbox, so no lookup can succeed locally.
+
+The observation is a single log read, on the first Renovate run after PR #531 merges:
+
+- the `getReleases` summary lists more than one deb `registryUrl` (before the fix it listed exactly one, `suite=stable`, for all nine pins);
+- no `Failed to look up deb package openjdk-17-jdk-headless: no-result` appears;
+- upgrade PRs appear for pins gone stale since 2026-06-10. Expect a **burst** — `group:allNonMajor` will likely batch them into one PR, and `automerge: true` means they merge on green. That is success, not noise.
+
+If the log is not clean, it names what is still wrong, which is better input for a guardrail than anything specifiable today. Context for why this matters: the deb manager matched no file for 15 months (`Dockerfile` → `android.Dockerfile` rename, fixed by #488 on 2026-06-10), then resolved against the wrong suite until this change. Renovate has never once run with both defects fixed, so there is no track record behind the config.

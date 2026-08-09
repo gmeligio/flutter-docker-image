@@ -168,32 +168,35 @@ it is right for reasons the design doc argues correctly. Do not restructure it,
 and specifically do not generate `renovate.json`: the manifest has no OS
 dimension, and adding one costs far more than it saves for six URLs.
 
-Two additive closes are worth folding in, because they are cheap and they blunt
-the exact failure class this PR is about:
+Two additive closes were proposed here. **Both were later revised — read the
+addendum below before acting on either.** Recorded as written, for the reasoning
+trail:
 
-1. **Add `config/debian_13_trixie.sources`** — trixie / trixie-updates /
-   trixie-security, `main` only. Not `COPY`'d (the base image already ships it);
-   it exists so both halves of the deb `packageRules` mirror a checked-in file,
-   and so a Debian 14 bump has an obvious neighbour file to edit. Reference it
-   from the trixie rule's `description`, the way the bookworm rule already
-   references its sources file.
-2. **Wire `script/renovate_validate.sh` into `[tasks.lint]` in `mise.toml` and a
-   CI job.** It is already written, it is one line, and it is currently dead
-   code. Syntax-only, but free.
+1. ~~**Add `config/debian_13_trixie.sources`**~~ — *rejected.* Implemented, then
+   deleted. Nothing would read the file, so it could not make any invariant
+   checked, and the bookworm half *was* mirrored throughout the ten weeks the
+   bug ran. See the addendum.
+2. **Wire `script/renovate_validate.sh` into `[tasks.lint]` in `mise.toml`** —
+   *adopted, without the CI job.* The script was dead code and, at mode 644
+   versus 755 for every script CI runs, could not even be executed. It stays
+   local: Renovate config changes ship on a `renovate/reconfigure` branch where
+   the Renovate app validates the config and reports back, so a workflow running
+   the same validator would duplicate the authoritative check.
 
 ```
-  BEFORE (PR as-is)                    AFTER (Option B)
+  BEFORE (PR as-is)                    AFTER (as shipped)
   ┌──────────────────┐                 ┌──────────────────────┐
-  │ trixie: unwritten│                 │ debian_13_trixie     │
-  │ bookworm: .sources│                │ debian_12_bookworm   │
+  │ trixie: unwritten│                 │ trixie: FROM line    │
+  │ bookworm: .sources│                │ bookworm: .sources   │
   └────────┬─────────┘                 └──────────┬───────────┘
-           │                                      │ mirrored, both halves
-           ▼                                      ▼
+           │                                      │ co-update noted in
+           ▼                                      ▼ the rule description
   ┌──────────────────┐                 ┌──────────────────────┐
   │ renovate.json    │                 │ renovate.json        │
   └──────────────────┘                 └──────────┬───────────┘
-       (no CI check)                              ▼
-                                          mise run lint ──▶ CI
+       (no check at all)                          ▼
+                                        mise run lint (local only;
+                                        renovate/reconfigure covers CI)
 ```
 
 On devex specifically: the annotation grammar after this PR is
@@ -202,24 +205,28 @@ annotation can get without deriving `depName` from the `ARG` name entirely — a
 possible future simplification, out of scope here, and worth noting the
 annotation was never the right home for suite data in the first place.
 
-## Follow-ups already recorded in the PR (both still correct)
+## Follow-ups already recorded in the PR
 
 - CI guard asserting every deb pin resolves (needs network dry-run against
   `deb.debian.org`). Re-motivated: extraction succeeded here and *resolution*
   failed afterwards, so the deferred "assert ≥1 deb dependency extracted" guard
-  would not have caught this.
+  would not have caught this. **Deliberately not built yet** — see the addendum:
+  the deb manager has never once run with both known defects fixed, so there is
+  no baseline to guard. Read the first post-merge job log first.
 - openjdk-17 → trixie openjdk-21 migration. This deletes
   `config/debian_12_bookworm.sources`, the cross-suite pin, the override
   packageRule and this whole bug class — the single largest long-term
   maintenance reduction available. Product decision; correctly out of scope.
+  Note `depName=openjdk-17-jdk-headless` can never propose it: `openjdk-21-*` is
+  a different package name, so no config change makes this visible to Renovate.
 
 ## Open Questions
 
 None that research could not settle. The one thing not verifiable pre-merge is
-task 4.5 (the next Renovate job log showing >1 deb `registryUrl` and no
-`no-result` for `openjdk-17-jdk-headless`) — egress to `deb.debian.org` is
-blocked in the sandbox, so only URL construction is locally checkable. This is
-already documented in `tasks.md:4.5`.
+the post-merge job-log check (>1 deb `registryUrl`, and no `no-result` for
+`openjdk-17-jdk-headless`) — egress to `deb.debian.org` is blocked in the
+sandbox, so only URL construction is locally checkable. Deferred out of the
+change; see "Deferred verification" in `tasks.md`.
 
 ## Addendum: failure-mode analysis (supersedes the trixie-sources recommendation above)
 
