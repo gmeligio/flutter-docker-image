@@ -409,17 +409,36 @@ Each value is also renamed **three times** — `android.ndk.version` →
 `ANDROID_NDK_VERSION` → `android_ndk_version` — with nothing checking the three
 agree. A typo yields an empty ARG and a build that fails far from its cause.
 
-**Proposal: make the manifest self-wiring.** Have `setEnvironmentVariables.js` walk
-the manifest and derive ARG names mechanically from the JSON path, emitting the
-entire build-args block as one output. Every workflow becomes:
+**Proposal: make the manifest self-wiring.** ~~Have `setEnvironmentVariables.js`
+walk the manifest and derive ARG names mechanically from the JSON path, emitting
+the entire build-args block as one output. Every workflow becomes
+`build-args: ${{ env.BUILD_ARGS }}`.~~
 
-```yaml
-build-args: ${{ env.BUILD_ARGS }}
-```
+**SUPERSEDED TWICE (2026-08-09).** First, mechanical derivation was shown
+impossible: the established names drop path segments
+(`android.cmake.version` → `cmake_version`), abbreviate them
+(`windows.vsBuildTools.cmakeProject.version` → `vs_cmake_version`), and retain
+the trailing segment (`android.ndk.version` → `android_ndk_version`). No single
+rule generates that set.
 
-Adding a field then wires itself: put it in `version.json`, declare the `ARG`, done.
-Java 17 stops being a special case and becomes an ordinary field — which is the
-point.
+Second, the `BUILD_ARGS` shape that replaced it was itself retired. See
+`../manifest-build-arg-wiring/research.md` — in summary: the `build-args:` blocks
+are only ~16% of what the four legs duplicate (~7 of ~45 lines each) and are the
+one part that has *not* drifted; and routing all manifest values through one
+environment value would carry `windows.git.version` into Linux builds, where
+`android.Dockerfile:10` declares `ARG GIT_VERSION` as an unrelated Debian apt
+pin — safe only because ARG names are case-sensitive, and silent if got wrong,
+since BuildKit only warns about an unmatched `--build-arg`.
+
+The change now adopts a `linux-image.yml` reusable workflow owning the whole
+Linux build, mirroring `windows-image.yml:7-27`. Build arguments are declared
+once, in the workflow that names the Dockerfile they feed — so Windows values
+cannot reach a Linux build at all.
+
+Note also that the premise below is now historical: `android.java.version` was
+wired end to end by commit `0c9b3ff` (PR #537), *without* the self-wiring change.
+Java 17 stopped being a special case on its own, which is why the remaining
+argument is build-step drift rather than authoring cost.
 
 **Layer-caching caveat.** Keep the derived-lowercase-name scheme rather than
 collapsing to a single JSON blob: BuildKit still receives N distinct `--build-arg`
@@ -450,6 +469,31 @@ matters — builds run 15–25 min and lean on registry buildcache
   developer.android.com for whatever is *currently latest*. It passes by
   coincidence and breaks when Google ships 23.0 — a mirror labelled as a dial,
   the same defect as F6b's Java value.
+
+**Local-path drift (added 2026-08-09, from `../manifest-build-arg-wiring/research.md` F8).**
+The five-edit count above is really six: `docker-compose.yml` is a fifth
+hand-maintained copy of the build-args set, and it is the one already wrong.
+Verified against the tree at `f006815`:
+
+- **`docker-compose.yml:24-30` is missing `android_java_version`.** It lists the
+  other six android args but never got the one PR #537 added, so a local
+  `docker compose build android` builds with an empty `android_java_version` —
+  `JAVA_HOME` (`android.Dockerfile:139`) points at a nonexistent path and the apt
+  line (`:162`) requests `openjdk--jdk-headless`. The documented local build path
+  (`docs/contributing.md:29-49`) is broken for the android target.
+- **`.env.example` is years stale**: `FLUTTER_VERSION=3.7.7` against a manifest at
+  `3.44.9`, `ANDROID_BUILD_TOOLS_VERSION=30.0.3` against `36.0.0`,
+  `ANDROID_PLATFORM_VERSIONS=28 31 33` against `36`.
+- **`android.gradle.version` has zero consumers.** Grepped repo-wide excluding
+  `openspec/` and `changelog.md`: written by `updateAndroidVersions.gradle.kts:60`,
+  constrained by `config/schema.cue:47`, read by nothing — not the emitter, not
+  `update_test.sh`, not `docs/build.mjs`, not any workflow. Pure reporting, with
+  nothing marking it as such.
+
+These are not in scope for the reusable-workflow change (they are the *local*
+path, not the CI legs), but they are the sharpest evidence for this section's
+claim: every hand-maintained copy of the build-args set eventually drifts, and
+the copy nobody runs in CI drifted first and silently.
 
 ### F9 — The `release` typo came from Renovate's own docs
 

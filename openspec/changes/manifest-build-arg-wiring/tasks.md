@@ -1,35 +1,44 @@
 Ordered by the migration plan in `design.md`: each group is independently
-revertable, and only group 2 changes what a build receives.
+revertable, and each group after 1 switches exactly one build leg.
 
-## 1. Table-driven emitter (design D1, D2)
+## 1. The reusable workflow and emitter hardening (design D1, D2, D3)
 
-- [ ] 1.1 Capture the current `--build-arg` set as a baseline from a recent CI run's `docker buildx build` command line — six args with their values — to diff against after the refactor
-- [ ] 1.2 Add the mapping table to `script/setEnvironmentVariables.js`: one row per manifest path → build-argument name, reproducing all current names exactly (`android.ndk.version` → `android_ndk_version`, `android.cmake.version` → `cmake_version`, `windows.git.version` → `git_version`, `windows.vsBuildTools.cmakeProject.version` → `vs_cmake_version`, `windows.vsBuildTools.windows11Sdk.build` → `vs_win11sdk_build`, `windows.vsBuildTools.vcTools.version` → `vs_vctools_version`)
-- [ ] 1.3 Give `android.platforms` a declared transform in the same table (array of `{version}` → space-joined string), so the one non-scalar shape is visible rather than special-cased in code
-- [ ] 1.4 Emit `BUILD_ARGS` as newline-separated `name=value` pairs via `core.exportVariable`, restricted to the Linux build's six manifest-derived arguments
-- [ ] 1.5 Fail the emitter with a named error if a table row references a manifest path that does not resolve, rather than exporting an empty value
-- [ ] 1.6 Log the resolved `BUILD_ARGS` so the job log shows what was passed once the call sites stop listing arguments (design D1 legibility mitigation)
-- [ ] 1.7 Keep every existing per-name export in place for now — this group is inert and nothing reads `BUILD_ARGS` yet
+- [ ] 1.1 Capture a per-leg baseline from a recent CI run: the resolved `docker buildx build` command line for `build.yml` push path, `build.yml` fork path, `ci.yml`, and `release.yml` — seven build-args each, plus target, cache and output flags
+- [ ] 1.2 Add `.github/workflows/linux-image.yml` as a `workflow_call` workflow modelled on `windows-image.yml:7-27`, owning: manifest read, `clean-runner-disk`, buildx setup, registry logins, `metadata-action`, and `docker/build-push-action` with `file: android.Dockerfile`
+- [ ] 1.3 Declare the seven `build-args` lines **once** inside it, reproducing current names and values exactly (`flutter_version`, `fastlane_version`, `android_java_version`, `android_build_tools_version`, `android_platform_versions`, `android_ndk_version`, `cmake_version`) — note this is seven, not six; `android_java_version` was wired by PR #537
+- [ ] 1.4 Declare typed inputs for the five dimensions the legs legitimately differ in: `target`, `push`, `cache-backend` (`registry`|`gha`), `attestations`, `registries` (design D2)
+- [ ] 1.5 Declare `workflow_call` outputs carrying what `build.yml:59-62` exposes to `test-image`/`scan-image`, keyed so a matrix build does not collapse them to the last successful run (design D2 risk)
+- [ ] 1.6 Omit every Windows value — the workflow must never name `git_version`, `vs_cmake_version`, `vs_win11sdk_build`, or `vs_vctools_version`, so the `GIT_VERSION` collision cannot arise (design D1)
+- [ ] 1.7 Fail `script/setEnvironmentVariables.js` with a named error if a manifest path does not resolve, rather than exporting `undefined` (design D3)
+- [ ] 1.8 Log the resolved manifest-derived values so the job log shows what was passed (design D3)
+- [ ] 1.9 Leave all four callers untouched in this group — nothing calls the new workflow yet, so it is inert
 
-## 2. Collapse the four call sites (design D2)
+## 2. Switch `ci.yml` (design D1 migration step 2)
 
-- [ ] 2.1 Replace the build-args block with `build-args: ${{ env.BUILD_ARGS }}` in `build.yml` push path (~:158-164), `build.yml` fork path (~:180-186), `ci.yml` (~:84-90), `release.yml` (~:112-118)
-- [ ] 2.2 Verify the emitted `--build-arg` set is byte-identical to the 1.1 baseline — same six names, same values, same count, no behaviour change
-- [ ] 2.3 Confirm no workflow file still contains an inline `flutter_version=` or `android_ndk_version=` build-arg line
+- [ ] 2.1 Replace `ci.yml:74-91` with a call to `linux-image.yml` passing `cache-backend: gha`, no attestations, no GHCR login, load-only output
+- [ ] 2.2 Verify the resolved command line matches the 1.1 `ci.yml` baseline — same seven names, same values, same target, same cache flags
+- [ ] 2.3 Confirm `container-structure-test` still passes `test/android.yml` on the resulting image
 
-## 3. Retire the superseded exports (design D3)
+## 3. Switch `build.yml` (design D1 migration step 3)
 
-- [ ] 3.1 Grep the workflows for each per-name export (`FASTLANE_VERSION`, `ANDROID_BUILD_TOOLS_VERSION`, `ANDROID_PLATFORM_VERSIONS`, `ANDROID_NDK_VERSION`, `CMAKE_VERSION`) and confirm the build step was its only reader
-- [ ] 3.2 Delete the exports that group 2 made redundant
-- [ ] 3.3 Keep `FLUTTER_VERSION` (read by tagging and test steps) and `IMAGE_REPOSITORY_PATH` (not manifest-derived) — confirm by grep that both still have readers
+- [ ] 3.1 Replace the push path (`build.yml:142-165`) with a call passing `push: true`, `attestations: true`, `cache-backend: registry`
+- [ ] 3.2 Replace the fork path (`build.yml:171-188`) with a call passing `push: false` and local-artifact output, preserving the `is_fork` condition
+- [ ] 3.3 Rewire `test-image` and `scan-image` to the reusable workflow's outputs, confirming the matrix does not collapse them (task 1.5)
+- [ ] 3.4 Verify both legs' command lines against their 1.1 baselines
 
-## 4. Verification
+## 4. Switch `release.yml` (design D1 migration step 3)
 
-- [ ] 4.1 `container-structure-test` passes `test/android.yml` against an image built through the new path
-- [ ] 4.2 Confirm a warm-cache rebuild whose only manifest change is `fastlane.version` still serves the Flutter clone layer from cache (per-ARG granularity preserved, design D2)
-- [ ] 4.3 Confirm the Windows leg is untouched — `windows-image.yml` still assembles its own PowerShell argument array
+- [ ] 4.1 Replace `release.yml:100-121` with a call, preserving the Quay login (`release.yml:93`) and `buildkitd-flags: --debug` (`release.yml:78`) via inputs — preserve current behaviour; do not unify drift here (design open question 1)
+- [ ] 4.2 Verify the command line against the 1.1 `release.yml` baseline
 
-## 5. Wrap-up
+## 5. Verification
 
-- [ ] 5.1 Open the PR with a Conventional Commit title, one logical concern
-- [ ] 5.2 Note in the PR that no build-argument name or value changed, and that the resolved command line was diffed against the pre-refactor baseline
+- [ ] 5.1 Confirm no workflow file still contains an inline `build-args:` block naming `flutter_version` or `android_ndk_version` for `android.Dockerfile`
+- [ ] 5.2 Confirm a warm-cache rebuild whose only manifest change is `fastlane.version` still serves the Flutter clone layer from cache (per-ARG granularity preserved, design D2)
+- [ ] 5.3 Confirm the Windows leg is untouched — `windows-image.yml` still assembles its own PowerShell argument array and still reads `GIT_VERSION`/`VS_*` from the emitter
+- [ ] 5.4 Confirm `prepare-release.yml`, `update-version.yml`, and `release.yml:198` still get the emitter exports they read (`FLUTTER_VERSION`, `IMAGE_REPOSITORY_PATH`)
+
+## 6. Wrap-up
+
+- [ ] 6.1 Open the PR with a Conventional Commit title, one logical concern
+- [ ] 6.2 Note in the PR that no build-argument name or value changed, and that each leg's resolved command line was diffed against its pre-refactor baseline
