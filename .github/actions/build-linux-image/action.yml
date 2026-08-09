@@ -1,0 +1,105 @@
+name: 'Build Linux Image'
+description: >-
+  Builds a stage of android.Dockerfile with the manifest-derived build
+  arguments. Owns the seven build-args so the four Linux build legs
+  (build.yml push, build.yml fork, ci.yml, release.yml) cannot drift apart.
+  Callers pass only what genuinely differs: target, tags, labels, cache
+  configuration, output mode, and attestations.
+
+  Reads the manifest values from the environment, which the calling job
+  populates via script/setEnvironmentVariables.js.
+
+  Deliberately a composite action, not a reusable workflow: a workflow_call
+  workflow is a separate job, and the legs depend on job-local state a job
+  boundary would break (ci.yml's `load: true` local daemon and its structure
+  test, build.yml's fork handoff via steps.handoff/steps.metadata).
+
+  Deliberately names no Windows build argument. `windows.git.version` and
+  android.Dockerfile's Debian `git` apt pin are both spelled GIT_VERSION in
+  the flat environment namespace; keeping this action android-only means the
+  wrong one cannot be routed here.
+
+inputs:
+  target:
+    description: 'Dockerfile stage to build (`android` or `web`).'
+    required: true
+  tags:
+    description: 'Newline-separated image tags, from the caller''s metadata step.'
+    required: true
+  labels:
+    description: 'Newline-separated image labels, from the caller''s metadata step.'
+    required: true
+  cache-from:
+    description: >-
+      Passed to buildx verbatim. The legs use three different shapes
+      (registry ref, bare gha, per-image scoped gha), and both the ref and the
+      scope vary per image, so this is caller-specific by nature.
+    required: false
+    default: ''
+  cache-to:
+    description: 'Passed to buildx verbatim. Empty on legs that only read cache.'
+    required: false
+    default: ''
+  push:
+    description: 'Push the built tags to their registries.'
+    required: false
+    default: 'false'
+  load:
+    description: 'Load the result into the local Docker daemon.'
+    required: false
+    default: 'false'
+  outputs:
+    description: 'Buildx --output value. Used by the fork path (`type=docker`).'
+    required: false
+    default: ''
+  sbom:
+    description: 'Attach an SBOM attestation.'
+    required: false
+    default: 'false'
+  provenance:
+    description: >-
+      Provenance attestation setting (e.g. `mode=max`). Empty leaves the
+      buildx default.
+    required: false
+    default: ''
+
+outputs:
+  imageid:
+    description: 'Image ID of the built image.'
+    value: ${{ steps.build.outputs.imageid }}
+  digest:
+    description: 'Digest of the built image.'
+    value: ${{ steps.build.outputs.digest }}
+  metadata:
+    description: 'Build result metadata.'
+    value: ${{ steps.build.outputs.metadata }}
+
+runs:
+  using: composite
+  steps:
+    - name: Build image
+      id: build
+      uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
+      with:
+        file: android.Dockerfile
+        target: ${{ inputs.target }}
+        tags: ${{ inputs.tags }}
+        labels: ${{ inputs.labels }}
+        cache-from: ${{ inputs.cache-from }}
+        cache-to: ${{ inputs.cache-to }}
+        push: ${{ inputs.push }}
+        load: ${{ inputs.load }}
+        outputs: ${{ inputs.outputs }}
+        sbom: ${{ inputs.sbom }}
+        provenance: ${{ inputs.provenance }}
+        # The single authoritative build-argument list for every Linux leg.
+        # The android args are inert for the web target (its stage declares
+        # none of them), so one shared list serves both targets.
+        build-args: |
+          flutter_version=${{ env.FLUTTER_VERSION }}
+          fastlane_version=${{ env.FASTLANE_VERSION }}
+          android_java_version=${{ env.ANDROID_JAVA_VERSION }}
+          android_build_tools_version=${{ env.ANDROID_BUILD_TOOLS_VERSION }}
+          android_platform_versions=${{ env.ANDROID_PLATFORM_VERSIONS }}
+          android_ndk_version=${{ env.ANDROID_NDK_VERSION }}
+          cmake_version=${{ env.CMAKE_VERSION }}

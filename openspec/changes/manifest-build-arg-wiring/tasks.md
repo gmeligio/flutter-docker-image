@@ -9,11 +9,11 @@ fork handoff) that cannot cross a job boundary.
 ## 1. The shared action and emitter hardening (design D1, D2, D3)
 
 - [x] 1.1 Capture a per-leg baseline from a recent CI run: the resolved `docker buildx build` command line for `build.yml` push path, `build.yml` fork path, `ci.yml`, and `release.yml` — seven build-args each, plus target, cache and output flags
-- [ ] 1.2 Add `.github/actions/build-linux-image/action.yml` as a composite action modelled on `.github/actions/clean-runner-disk`, wrapping `docker/build-push-action` with `file: android.Dockerfile`
-- [ ] 1.3 Declare the seven `build-args` lines **once** inside it, reproducing current names and values exactly (`flutter_version`, `fastlane_version`, `android_java_version`, `android_build_tools_version`, `android_platform_versions`, `android_ndk_version`, `cmake_version`) — note this is seven, not six; `android_java_version` was wired by PR #537
-- [ ] 1.4 Declare inputs for what the legs legitimately differ in: `target`, `tags`, `labels`, `cache-from`, `cache-to`, `push`, `load`, `outputs`, `sbom`, `provenance` — cache values pass through verbatim, since the four legs use three different shapes (design D2)
-- [ ] 1.5 Expose the build's `imageid`/`digest` as action outputs so a caller can consume them as it does from the inline step today (`build.yml` `id: build`)
-- [ ] 1.6 Omit every Windows value — the action must never name `git_version`, `vs_cmake_version`, `vs_win11sdk_build`, or `vs_vctools_version`, so the `GIT_VERSION` collision cannot arise (design D1)
+- [x] 1.2 Add `.github/actions/build-linux-image/action.yml` as a composite action modelled on `.github/actions/clean-runner-disk`, wrapping `docker/build-push-action` with `file: android.Dockerfile`
+- [x] 1.3 Declare the seven `build-args` lines **once** inside it, reproducing current names and values exactly (`flutter_version`, `fastlane_version`, `android_java_version`, `android_build_tools_version`, `android_platform_versions`, `android_ndk_version`, `cmake_version`) — note this is seven, not six; `android_java_version` was wired by PR #537
+- [x] 1.4 Declare inputs for what the legs legitimately differ in: `target`, `tags`, `labels`, `cache-from`, `cache-to`, `push`, `load`, `outputs`, `sbom`, `provenance` — cache values pass through verbatim, since the four legs use three different shapes (design D2)
+- [x] 1.5 Expose the build's `imageid`/`digest` as action outputs so a caller can consume them as it does from the inline step today (`build.yml` `id: build`)
+- [x] 1.6 Omit every Windows value — the action must never name `git_version`, `vs_cmake_version`, `vs_win11sdk_build`, or `vs_vctools_version`, so the `GIT_VERSION` collision cannot arise (design D1)
 - [ ] 1.7 Fail `script/setEnvironmentVariables.js` with a named error if a manifest path does not resolve, rather than exporting `undefined` (design D3)
 - [ ] 1.8 Log the resolved manifest-derived values so the job log shows what was passed (design D3)
 - [ ] 1.9 Leave all four callers untouched in this group — nothing uses the new action yet, so it is inert
@@ -42,7 +42,7 @@ fork handoff) that cannot cross a job boundary.
 - [ ] 5.2 Confirm a warm-cache rebuild whose only manifest change is `fastlane.version` still serves the Flutter clone layer from cache (per-ARG granularity preserved, design D2)
 - [ ] 5.3 Confirm the Windows leg is untouched — `windows-image.yml` still assembles its own PowerShell argument array and still reads `GIT_VERSION`/`VS_*` from the emitter
 - [ ] 5.4 Confirm `prepare-release.yml`, `update-version.yml`, and `release.yml:198` still get the emitter exports they read (`FLUTTER_VERSION`, `IMAGE_REPOSITORY_PATH`)
-- [ ] 5.5 Lint the changed workflows and the new action (`mise run lint` or the repo's actionlint equivalent) before opening the PR
+- [ ] 5.5 Parse-check the changed workflows and the new action. Note: `mise run lint` is Renovate-only (`mise.toml:25-27`); the repo has no actionlint task, consistent with the `feedback_workflow_lint_via_gx` decision that workflow linting belongs in gx
 
 ## 6. Wrap-up
 
