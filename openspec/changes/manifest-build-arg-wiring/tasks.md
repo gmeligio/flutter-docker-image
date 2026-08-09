@@ -42,7 +42,7 @@ fork handoff) that cannot cross a job boundary.
 - [x] 5.2 Confirm a warm-cache rebuild whose only manifest change is `fastlane.version` still serves the Flutter clone layer from cache (per-ARG granularity preserved, design D2). Structurally confirmed: seven discrete `--build-arg` flags, no serialized value, no `COPY` of the manifest — the wire format BuildKit sees is unchanged. The end-to-end warm-cache timing observation needs a real post-merge rebuild
 - [x] 5.3 Confirm the Windows leg is untouched — `windows-image.yml` still assembles its own PowerShell argument array and still reads `GIT_VERSION`/`VS_*` from the emitter
 - [x] 5.4 Confirm `prepare-release.yml`, `update-version.yml`, and `release.yml:198` still get the emitter exports they read (`FLUTTER_VERSION`, `IMAGE_REPOSITORY_PATH`)
-- [x] 5.5 Parse-check the changed workflows and the new action. Note: `mise run lint` is Renovate-only (`mise.toml:25-27`); the repo has no actionlint task, consistent with the `feedback_workflow_lint_via_gx` decision that workflow linting belongs in gx
+- [x] 5.5 Parse-check the changed workflows and the new action. `mise run lint` is Renovate-only (`mise.toml:25-27`), but workflow linting does run in CI as the `Lint workflows` job in `gx.yml:22` — the gx-native check per `feedback_workflow_lint_via_gx`. Its verdict on this PR is the authoritative lint result
 
 ## 6. Wrap-up
 
