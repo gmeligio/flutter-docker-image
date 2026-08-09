@@ -1,0 +1,13 @@
+/change-review and fix all findings
+
+---
+
+Dive deep into these findings and see if there is a systemic issue that is causing them, so we can analyze. Here are my answers:
+1. Reject empty strings.
+2. android.platforms shouldn't be empty.
+3. android.platforms shouldn't be malformed.
+4. Verify and apply now.
+
+---
+
+Fix the recommendations and findings
