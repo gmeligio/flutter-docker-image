@@ -162,7 +162,7 @@ jobs:
         uses: ./.github/actions/build-linux-image
         with:
           target: ${{ matrix.target }}
-          outputs: type=docker
+          load: true
           cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/${{ matrix.name }}:buildcache
           labels: ${{ steps.metadata.outputs.labels }}
           tags: ${{ steps.metadata.outputs.tags }}

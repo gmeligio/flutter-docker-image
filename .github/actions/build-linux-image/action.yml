@@ -48,10 +48,6 @@ inputs:
     description: 'Load the result into the local Docker daemon.'
     required: false
     default: 'false'
-  outputs:
-    description: 'Buildx --output value. Used by the fork path (`type=docker`).'
-    required: false
-    default: ''
   sbom:
     description: 'Attach an SBOM attestation.'
     required: false
@@ -89,7 +85,6 @@ runs:
         cache-to: ${{ inputs.cache-to }}
         push: ${{ inputs.push }}
         load: ${{ inputs.load }}
-        outputs: ${{ inputs.outputs }}
         sbom: ${{ inputs.sbom }}
         provenance: ${{ inputs.provenance }}
         # The single authoritative build-argument list for every Linux leg.

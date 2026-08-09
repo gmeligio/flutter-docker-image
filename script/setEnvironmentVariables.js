@@ -22,15 +22,21 @@ module.exports = async ({ core }) => {
   const data = JSON.parse(text)
 
   // Reading through this helper rather than dotting into `data` directly means a
-  // renamed or removed manifest field fails here, naming the path, instead of
-  // exporting `undefined` and surfacing 15 minutes later as an empty ARG — or
-  // not at all, since the `web` stage declares none of these arguments.
+  // renamed, removed, or blank manifest field fails here, naming the path,
+  // instead of exporting an empty string and surfacing 15 minutes later as an
+  // empty ARG — or not at all, since the `web` stage declares none of these
+  // arguments.
+  //
+  // config/schema.cue is the real guard and rejects far more (semver shapes,
+  // non-empty platform lists). It runs in its own job, so it gates the merge but
+  // not this step. These checks are the last line before a bad value reaches a
+  // build arg.
   const read = (path) => {
     const value = path
       .split('.')
       .reduce((node, key) => (node == null ? node : node[key]), data)
 
-    if (value === undefined || value === null) {
+    if (value === undefined || value === null || value === '') {
       throw new Error(
         `${VERSION_MANIFEST} has no value at '${path}'. ` +
           'Add the field, or remove the export that reads it.'
@@ -40,6 +46,32 @@ module.exports = async ({ core }) => {
     return value
   }
 
+  const readPlatformVersions = () => {
+    const platforms = read('android.platforms')
+
+    if (!Array.isArray(platforms) || platforms.length === 0) {
+      throw new Error(
+        `${VERSION_MANIFEST} needs a non-empty array at 'android.platforms'. ` +
+          'The android stage installs one SDK platform per entry.'
+      )
+    }
+
+    return platforms
+      .map((platform, index) => {
+        const version = platform?.version
+
+        if (version === undefined || version === null || version === '') {
+          throw new Error(
+            `${VERSION_MANIFEST} has no value at ` +
+              `'android.platforms[${index}].version'.`
+          )
+        }
+
+        return version
+      })
+      .join(' ')
+  }
+
   let exports
   try {
     exports = {
@@ -47,9 +79,7 @@ module.exports = async ({ core }) => {
       FASTLANE_VERSION: read('fastlane.version'),
       ANDROID_BUILD_TOOLS_VERSION: read('android.buildTools.version'),
       ANDROID_JAVA_VERSION: read('android.java.version'),
-      ANDROID_PLATFORM_VERSIONS: read('android.platforms')
-        .map((platform) => platform.version)
-        .join(' '),
+      ANDROID_PLATFORM_VERSIONS: readPlatformVersions(),
       ANDROID_NDK_VERSION: read('android.ndk.version'),
       CMAKE_VERSION: read('android.cmake.version'),
       GIT_VERSION: read('windows.git.version'),
