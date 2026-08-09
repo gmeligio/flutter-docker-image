@@ -72,6 +72,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
+      - name: Validate version manifest
+        uses: ./.github/actions/validate-version-manifest
+
       - name: Read environment variables from the version manifest
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         env:
@@ -142,9 +145,9 @@ jobs:
       - name: Build image (push to GHCR with attestations)
         if: steps.handoff.outputs.is_fork != 'true'
         id: build
-        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
+        uses: ./.github/actions/build-linux-image
         with:
-          file: android.Dockerfile
+          target: ${{ matrix.target }}
           push: true
           sbom: true
           provenance: mode=max
@@ -152,17 +155,6 @@ jobs:
           cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/${{ matrix.name }}:buildcache,mode=max
           labels: ${{ steps.metadata.outputs.labels }}
           tags: ${{ steps.metadata.outputs.tags }}
-          target: ${{ matrix.target }}
-          # The android build-args are inert for the web target (its stage
-          # declares none of them), so a single shared block serves both legs.
-          build-args: |
-            flutter_version=${{ env.FLUTTER_VERSION }}
-            fastlane_version=${{ env.FASTLANE_VERSION }}
-            android_java_version=${{ env.ANDROID_JAVA_VERSION }}
-            android_build_tools_version=${{ env.ANDROID_BUILD_TOOLS_VERSION }}
-            android_platform_versions=${{ env.ANDROID_PLATFORM_VERSIONS }}
-            android_ndk_version=${{ env.ANDROID_NDK_VERSION }}
-            cmake_version=${{ env.CMAKE_VERSION }}
 
       # Fork path: forks can't push to GHCR or Docker Hub, so build into
       # the local Docker daemon and hand off via artifact (steps below).
@@ -170,22 +162,13 @@ jobs:
       # `ci-parallel-image-validation`, so no SBOM is needed.
       - name: Build image (local artifact only)
         if: steps.handoff.outputs.is_fork == 'true'
-        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
+        uses: ./.github/actions/build-linux-image
         with:
-          file: android.Dockerfile
-          outputs: type=docker
+          target: ${{ matrix.target }}
+          load: true
           cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/${{ matrix.name }}:buildcache
           labels: ${{ steps.metadata.outputs.labels }}
           tags: ${{ steps.metadata.outputs.tags }}
-          target: ${{ matrix.target }}
-          build-args: |
-            flutter_version=${{ env.FLUTTER_VERSION }}
-            fastlane_version=${{ env.FASTLANE_VERSION }}
-            android_java_version=${{ env.ANDROID_JAVA_VERSION }}
-            android_build_tools_version=${{ env.ANDROID_BUILD_TOOLS_VERSION }}
-            android_platform_versions=${{ env.ANDROID_PLATFORM_VERSIONS }}
-            android_ndk_version=${{ env.ANDROID_NDK_VERSION }}
-            cmake_version=${{ env.CMAKE_VERSION }}
 
       # Re-tag to an owner-less `<name>:<version>` so test-image can rebuild the
       # ref from flutter_version; a job output carrying the owner would be masked
@@ -383,13 +366,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
-      - name: Setup mise tools
-        uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
-
-      # config/version.json is the single source of truth; #Version embeds
-      # #FlutterVersion, so this validates the Flutter block too.
-      - name: Validate version.json with CUE
-        run: cue vet config/schema.cue -d '#Version' config/version.json
+      # Standalone check for PRs that touch the manifest without building.
+      # Jobs that read it validate inline.
+      - name: Validate version manifest
+        uses: ./.github/actions/validate-version-manifest
 
   validate-generated-config:
     name: Validate generated config

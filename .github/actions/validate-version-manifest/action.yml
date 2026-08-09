@@ -1,0 +1,17 @@
+name: 'Validate Version Manifest'
+description: >-
+  Validates config/version.json against config/schema.cue. Run before any step
+  that reads the manifest: otherwise a bad value fails minutes later against a
+  Dockerfile ARG, naming a package instead of the field.
+
+  Installs mise itself, so it works on Windows and on jobs without mise.
+
+runs:
+  using: composite
+  steps:
+    - name: Setup mise tools
+      uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
+
+    - name: Validate version.json with CUE
+      shell: bash
+      run: cue vet config/schema.cue -d '#Version' config/version.json
