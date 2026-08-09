@@ -1,0 +1,115 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "01KZKDDBW0KNWG4KRPZCDH5K6X",
+  "session_id": "124dbff1-ebd2-4a58-9741-edba00b889b6",
+  "strategy": "manual-commit",
+  "created_at": "2026-08-09T14:04:20.784074086Z",
+  "branch": "refactor/linux-image-reusable-workflow",
+  "checkpoints_count": 2,
+  "save_step_count": 2,
+  "files_touched": [
+    "openspec/changes/loud-deb-pin-resolution/research.md",
+    "openspec/changes/manifest-build-arg-wiring/design.md",
+    "openspec/changes/manifest-build-arg-wiring/proposal.md",
+    "openspec/changes/manifest-build-arg-wiring/research.md",
+    "openspec/changes/manifest-build-arg-wiring/specs/linux-image-build-boundary/spec.md",
+    "openspec/changes/manifest-build-arg-wiring/specs/manifest-build-arg-wiring/spec.md",
+    "openspec/changes/manifest-build-arg-wiring/tasks.md"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-5[1m]",
+  "turn_id": "21519c7438a3",
+  "compact_transcript_start": 0,
+  "token_usage": {
+    "input_tokens": 92,
+    "cache_creation_tokens": 109235,
+    "cache_read_tokens": 5002304,
+    "output_tokens": 40430,
+    "api_call_count": 51
+  },
+  "skill_events_version": 1,
+  "skill_events": [
+    {
+      "id": "prompt-skill-claude-code-opsx:explore-2026-08-09T13:39:44.714240684Z",
+      "event_type": "prompt_invocation",
+      "skill": {
+        "name": "opsx:explore"
+      },
+      "source": {
+        "agent": "claude-code",
+        "signal": "prompt_slash_command",
+        "confidence": "explicit"
+      },
+      "turn_id": "803397101a70",
+      "timestamp": "2026-08-09T13:39:44.714240684Z",
+      "native": {
+        "command": "/opsx:explore"
+      },
+      "collapse": {
+        "target": "user_message",
+        "label": "/opsx:explore",
+        "default_collapsed": true
+      }
+    },
+    {
+      "id": "prompt-skill-claude-code-opsx:apply-2026-08-09T14:03:49.240464859Z",
+      "event_type": "prompt_invocation",
+      "skill": {
+        "name": "opsx:apply"
+      },
+      "source": {
+        "agent": "claude-code",
+        "signal": "prompt_slash_command",
+        "confidence": "explicit"
+      },
+      "turn_id": "21519c7438a3",
+      "timestamp": "2026-08-09T14:03:49.240464859Z",
+      "native": {
+        "command": "/opsx:apply"
+      },
+      "collapse": {
+        "target": "user_message",
+        "label": "/opsx:apply",
+        "default_collapsed": true
+      }
+    }
+  ],
+  "session_metrics": {
+    "turn_count": 2
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-08-09T14:04:20.743070926Z",
+    "agent_lines": 730,
+    "agent_removed": 293,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 730,
+    "total_lines_changed": 1023,
+    "agent_percentage": 100,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    },
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 300,
+      "agent_lines_removed": 0
+    },
+    {
+      "checkpoint_number": 3,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 730,
+      "agent_lines_removed": 293
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "01KZKDDBW0KNWG4KRPZCDH5K6X",
+  "strategy": "manual-commit",
+  "branch": "refactor/linux-image-reusable-workflow",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "openspec/changes/loud-deb-pin-resolution/research.md",
+    "openspec/changes/manifest-build-arg-wiring/design.md",
+    "openspec/changes/manifest-build-arg-wiring/proposal.md",
+    "openspec/changes/manifest-build-arg-wiring/research.md",
+    "openspec/changes/manifest-build-arg-wiring/specs/linux-image-build-boundary/spec.md",
+    "openspec/changes/manifest-build-arg-wiring/specs/manifest-build-arg-wiring/spec.md",
+    "openspec/changes/manifest-build-arg-wiring/tasks.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 92,
+    "cache_creation_tokens": 109235,
+    "cache_read_tokens": 5002304,
+    "output_tokens": 40430,
+    "api_call_count": 51
+  }
+}
