@@ -72,6 +72,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
+      - name: Validate version manifest
+        uses: ./.github/actions/validate-version-manifest
+
       - name: Read environment variables from the version manifest
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         env:
@@ -363,13 +366,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
-      - name: Setup mise tools
-        uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
-
-      # config/version.json is the single source of truth; #Version embeds
-      # #FlutterVersion, so this validates the Flutter block too.
-      - name: Validate version.json with CUE
-        run: cue vet config/schema.cue -d '#Version' config/version.json
+      # config/version.json is the single source of truth. Every job that reads
+      # it validates first; this job is the standalone check on PRs that touch
+      # the manifest without building an image.
+      - name: Validate version manifest
+        uses: ./.github/actions/validate-version-manifest
 
   validate-generated-config:
     name: Validate generated config

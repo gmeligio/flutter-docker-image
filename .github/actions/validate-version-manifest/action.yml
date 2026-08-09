@@ -1,0 +1,24 @@
+name: 'Validate Version Manifest'
+description: >-
+  Validates config/version.json against config/schema.cue (#Version). The schema
+  owns the real rules — semver shapes, required fields, a non-empty unique
+  platform list — so every job that reads the manifest gets the same verdict
+  from one place.
+
+  Run this before any step that consumes the manifest. A build that starts from
+  an invalid manifest fails minutes later against a Dockerfile ARG, where the
+  error names a package instead of the field that caused it.
+
+  Installs its own toolchain via mise, so it works on jobs that do not otherwise
+  set mise up, and on both Linux and Windows runners.
+
+runs:
+  using: composite
+  steps:
+    - name: Setup mise tools
+      uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
+
+    # #Version embeds #FlutterVersion, so this validates the Flutter block too.
+    - name: Validate version.json with CUE
+      shell: bash
+      run: cue vet config/schema.cue -d '#Version' config/version.json
