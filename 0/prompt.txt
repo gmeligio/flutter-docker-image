@@ -1,0 +1,37 @@
+I mean, if debian releases a new version that we don't have configured in Dockerfile, how will that fail? I still don't see the failure modes.
+
+---
+
+How should we find a safe way for renovate proposing major upgrades? Is it happening for all packages?
+
+---
+
+So, are major working today?
+
+---
+
+OK. So going back to the guardrail for debian changes, do we have them? Do we have also guardrail for when openjdk is not using the latest?
+
+---
+
+Let investigate for only one guardrail that would have the most impact and detect the most important issue. Research all of them and prioritize to recommend me concisely.
+
+---
+
+What about if we ignore the guardrail for now, since we are trying to fix renovate? What about if we focus on configuring renovate properly without guardrailing it?
+
+---
+
+Ok. So summarized concisely, should we add something to #531 to have the best renovate config according to our goal, or is it complete?
+
+---
+
+/opsx:archive openspec/changes/renovate-deb-registry-sets
+
+---
+
+archive now
+
+---
+
+defer 6.6
