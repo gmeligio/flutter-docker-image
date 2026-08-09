@@ -1,0 +1,32 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "01KZKT9B5S9YBY6ACHC27C2AQ1",
+  "strategy": "manual-commit",
+  "branch": "refactor/shared-linux-image-build-action",
+  "checkpoints_count": 11,
+  "files_touched": [
+    "openspec/changes/manifest-build-arg-wiring/baseline.md",
+    "openspec/changes/manifest-build-arg-wiring/design.md",
+    "openspec/changes/manifest-build-arg-wiring/proposal.md",
+    "openspec/changes/manifest-build-arg-wiring/research.md",
+    "openspec/changes/manifest-build-arg-wiring/specs/linux-image-build-boundary/spec.md",
+    "openspec/changes/manifest-build-arg-wiring/tasks.md",
+    "openspec/specs/linux-image-build-boundary/spec.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 63,
+    "cache_creation_tokens": 245334,
+    "cache_read_tokens": 8153154,
+    "output_tokens": 10878,
+    "api_call_count": 34
+  }
+}
