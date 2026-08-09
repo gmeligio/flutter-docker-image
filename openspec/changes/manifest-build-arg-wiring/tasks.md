@@ -46,5 +46,5 @@ fork handoff) that cannot cross a job boundary.
 
 ## 6. Wrap-up
 
-- [ ] 6.1 Open the PR with a Conventional Commit title, one logical concern
-- [ ] 6.2 Note in the PR that no build-argument name or value changed, that each leg was diffed against its pre-refactor baseline, and that the shape changed from a reusable workflow to a composite action during implementation (design D1)
+- [x] 6.1 Open the PR with a Conventional Commit title, one logical concern
+- [x] 6.2 Note in the PR that no build-argument name or value changed, that each leg was diffed against its pre-refactor baseline, and that the shape changed from a reusable workflow to a composite action during implementation (design D1)
