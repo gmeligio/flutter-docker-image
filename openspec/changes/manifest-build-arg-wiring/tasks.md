@@ -26,10 +26,10 @@ fork handoff) that cannot cross a job boundary.
 
 ## 3. Switch `build.yml` (design D1 migration step 3)
 
-- [ ] 3.1 Replace the push step (`build.yml:142-165`) with a `uses:`, passing `push: true`, `sbom: true`, `provenance: mode=max`, and the registry cache refs — keeping `id: build` and the `is_fork != 'true'` condition on the caller's step
-- [ ] 3.2 Replace the fork step (`build.yml:171-188`) with a `uses:`, passing `outputs: type=docker` and `cache-from` only, keeping the `is_fork == 'true'` condition
-- [ ] 3.3 Confirm the fork handoff still works unchanged — `steps.handoff`, the re-tag at `:195-201`, `docker save`, and the artifact upload all stay in the same job and need no edit
-- [ ] 3.4 Verify both legs' build-args against the 1.1 baseline (push path from a run; fork path against source, per `baseline.md`)
+- [x] 3.1 Replace the push step (`build.yml:142-165`) with a `uses:`, passing `push: true`, `sbom: true`, `provenance: mode=max`, and the registry cache refs — keeping `id: build` and the `is_fork != 'true'` condition on the caller's step
+- [x] 3.2 Replace the fork step (`build.yml:171-188`) with a `uses:`, passing `outputs: type=docker` and `cache-from` only, keeping the `is_fork == 'true'` condition
+- [x] 3.3 Confirm the fork handoff still works unchanged — `steps.handoff`, the re-tag at `:195-201`, `docker save`, and the artifact upload all stay in the same job and need no edit
+- [x] 3.4 Verify both legs' build-args against the 1.1 baseline (push path from a run; fork path against source, per `baseline.md`). Both legs' seven lines confirmed byte-identical to the action at source level; the push-path run-level confirmation lands when CI runs on the PR
 
 ## 4. Switch `release.yml` (design D1 migration step 3)
 
