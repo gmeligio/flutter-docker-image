@@ -1,0 +1,100 @@
+<task-notification>
+<task-id>b3fbr23t0</task-id>
+<summary>Monitor event: "PR #540 CI checks"</summary>
+<event>Build docs: pass
+Read latest release: pass
+Tidy lockfile: pass
+Validate generated config: pass
+Validate version files: pass</event>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b3fbr23t0</task-id>
+<summary>Monitor event: "PR #540 CI checks"</summary>
+<event>Build docs: pass
+Read latest release: pass
+Validate generated config: pass
+Validate version files: pass</event>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b3fbr23t0</task-id>
+<summary>Monitor event: "PR #540 CI checks"</summary>
+<event>Build and push image (flutter-web): pass</event>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b3fbr23t0</task-id>
+<summary>Monitor event: "PR #540 CI checks"</summary>
+<event>Build and push image (flutter-android): pass</event>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bh1xk592k</task-id>
+<summary>Monitor event: "PR #540 downstream test/scan jobs"</summary>
+<event>Build and push image (flutter-android): success
+Build and push image (flutter-web): success
+Build docs: success
+Read latest release: success
+Test Gradle: success
+Validate generated config: success
+Validate version files: success</event>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bh1xk592k</task-id>
+<summary>Monitor event: "PR #540 downstream test/scan jobs"</summary>
+<event>Test image (flutter-web): success</event>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b3fbr23t0</task-id>
+<summary>Monitor event: "PR #540 CI checks"</summary>
+<event>Scan image (flutter-web): pass
+Test image (flutter-web): pass</event>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bh1xk592k</task-id>
+<summary>Monitor event: "PR #540 downstream test/scan jobs"</summary>
+<event>Scan image (flutter-web): success</event>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b3fbr23t0</task-id>
+<summary>Monitor event: "PR #540 CI checks"</summary>
+<event>Scan image (flutter-android): pass</event>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bh1xk592k</task-id>
+<summary>Monitor event: "PR #540 downstream test/scan jobs"</summary>
+<event>Scan image (flutter-android): success</event>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bh1xk592k</task-id>
+<summary>Monitor event: "PR #540 downstream test/scan jobs"</summary>
+<event>Test image (flutter-android): success
+RUN COMPLETE: success</event>
+</task-notification>
