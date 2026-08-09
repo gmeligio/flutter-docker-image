@@ -1,0 +1,28 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "01KZKW1BW88GCD34D1ZH7CA94K",
+  "strategy": "manual-commit",
+  "branch": "refactor/shared-linux-image-build-action",
+  "checkpoints_count": 9,
+  "files_touched": [
+    ".github/workflows/build.yml",
+    ".github/workflows/ci.yml",
+    ".github/workflows/release.yml"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 380,
+    "cache_creation_tokens": 459056,
+    "cache_read_tokens": 37618036,
+    "output_tokens": 104693,
+    "api_call_count": 208
+  }
+}
