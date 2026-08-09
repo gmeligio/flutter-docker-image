@@ -14,9 +14,9 @@ fork handoff) that cannot cross a job boundary.
 - [x] 1.4 Declare inputs for what the legs legitimately differ in: `target`, `tags`, `labels`, `cache-from`, `cache-to`, `push`, `load`, `outputs`, `sbom`, `provenance` — cache values pass through verbatim, since the four legs use three different shapes (design D2)
 - [x] 1.5 Expose the build's `imageid`/`digest` as action outputs so a caller can consume them as it does from the inline step today (`build.yml` `id: build`)
 - [x] 1.6 Omit every Windows value — the action must never name `git_version`, `vs_cmake_version`, `vs_win11sdk_build`, or `vs_vctools_version`, so the `GIT_VERSION` collision cannot arise (design D1)
-- [ ] 1.7 Fail `script/setEnvironmentVariables.js` with a named error if a manifest path does not resolve, rather than exporting `undefined` (design D3)
-- [ ] 1.8 Log the resolved manifest-derived values so the job log shows what was passed (design D3)
-- [ ] 1.9 Leave all four callers untouched in this group — nothing uses the new action yet, so it is inert
+- [x] 1.7 Fail `script/setEnvironmentVariables.js` with a named error if a manifest path does not resolve, rather than exporting `undefined` (design D3)
+- [x] 1.8 Log the resolved manifest-derived values so the job log shows what was passed (design D3)
+- [x] 1.9 Leave all four callers untouched in this group — nothing uses the new action yet, so it is inert
 
 ## 2. Switch `ci.yml` (design D1 migration step 2)
 
