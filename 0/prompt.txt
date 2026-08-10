@@ -1,0 +1,17 @@
+Is @openspec/changes/loud-deb-pin-resolution/research.md already done?
+
+---
+
+Is it implemented already I meant.
+
+---
+
+OK. verify those two
+
+---
+
+yes
+
+---
+
+yes, update the memory. Delete the dir, don't archive
