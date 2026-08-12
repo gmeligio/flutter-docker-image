@@ -1,0 +1,31 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "01KZVE2T5TJ5XYEQ944NZSSBV7",
+  "strategy": "manual-commit",
+  "branch": "fix/cleanup-pr-tags-all-images",
+  "checkpoints_count": 32,
+  "files_touched": [
+    ".github/workflows/cleanup-pr-image.yml",
+    "openspec/changes/pr-tag-cleanup-all-images/.openspec.yaml",
+    "openspec/changes/pr-tag-cleanup-all-images/.review-passed",
+    "openspec/changes/pr-tag-cleanup-all-images/proposal.md",
+    "openspec/changes/pr-tag-cleanup-all-images/specs/ci-image-tag-lifecycle/spec.md",
+    "openspec/changes/pr-tag-cleanup-all-images/tasks.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 2408,
+    "cache_creation_tokens": 1269948,
+    "cache_read_tokens": 45699379,
+    "output_tokens": 177245,
+    "api_call_count": 270
+  }
+}

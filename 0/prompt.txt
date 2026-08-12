@@ -1,0 +1,143 @@
+/opsx:explore https://github.com/gmeligio/flutter-docker-image/issues/506
+
+---
+
+Let's focus on option C. Would it be better to do manifest-build-arg-wiring before option C? What's the natural order?
+
+---
+
+What's MBAW?
+
+---
+
+Merged the wirning. What should we do now?
+
+---
+
+Yes. Do that
+
+---
+
+What's "The flutter-web PR tag leak"?
+
+---
+
+Yes, verify
+
+---
+
+OK. Good. Now verify "whether the image set lives in config/version.json" and let me know what's missing to verify.
+
+---
+
+Verify all that.
+
+---
+
+Analyze deeper A and verify yourself. What do you need "images" for in config?
+
+---
+
+OK for config/images.json
+
+---
+
+do a proposal
+
+---
+
+Do a proposal for the 3 steps
+
+---
+
+Only one proposal for the 3 steps
+
+---
+
+Create independent PRs if there are independent steps
+
+---
+
+/opsx:review published-image-set
+
+---
+
+repair all of that and re-review
+
+---
+
+OK. Do the 3 changes that you suggest separately.
+
+---
+
+/opsx:review windows-scout-scope
+
+---
+
+Fix all and re-review
+
+---
+
+renovate rules "servercore digest pin". See https://github.com/gmeligio/flutter-docker-image/pull/542 . After updating whatever is needed.
+
+/opsx:review pr-tag-cleanup-all-images
+
+---
+
+/opsx:review windows-description-sync
+
+---
+
+Fix all findings
+
+---
+
+Fix all findings in windows-description-sync
+
+---
+
+What's the next step for pr-tag-cleanup-all-images?
+
+---
+
+Are you sure that the proposal is correct? How many tags have we left behind?
+
+---
+
+Find out if we are creating new "branch-" tags.
+
+---
+
+Apply the corrections
+
+---
+
+Whats the value of deleting branch-main?
+
+---
+
+Leave a note saying that branch-main is untouched
+
+---
+
+Now check if there are others "branch-ref" different than "branch-main".
+
+---
+
+make the edits and also fix the proposal
+
+---
+
+I still see "branch-ref" in openspec/changes/pr-tag-cleanup-all-images/proposal.md . Is that valuable tehre?
+
+---
+
+/opsx:apply pr-tag-cleanup-all-images
+
+---
+
+Yes
+
+---
+
+option 2.
