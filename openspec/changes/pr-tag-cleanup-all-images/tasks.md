@@ -33,8 +33,8 @@ are against `ae870a0`.
 
 ## 5. Wrap-up
 
-- [ ] 5.1 Open the PR with a Conventional Commit title, one logical concern. The group-2 sweep is not part of the PR — it is a manual registry operation with no diff, tracked here and recorded in the PR body
-- [ ] 5.2 Note in the PR the orphan count swept and that deletion resolved version IDs rather than filtering on empty tags
+- [x] 5.1 (PR #546) Open the PR with a Conventional Commit title, one logical concern. The group-2 sweep is not part of the PR — it is a manual registry operation with no diff, tracked here and recorded in the PR body
+- [x] 5.2 Note in the PR the orphan count swept and that deletion resolved version IDs rather than filtering on empty tags
 - [x] 5.3 (filed: #544) File an issue for the same defect one capability upstream: `ci-image-handoff/spec.md:13,15,26,27` hardcodes `flutter-android` in the outputs that *produce* the tags this change deletes, while `web-image-testing/spec.md:52` already asserts `ghcr.io/<owner>/flutter-web:pr-<N>` exists. The two main specs contradict each other today, independent of this change. Out of scope here — fixing it would break the one-logical-concern rule
 - [x] 5.4 (filed: #545) File an issue for `flutter-android`'s 59 legacy tags — 28 `<semver>-<sha>`, 31 bare `<sha>`, all 3.7.x–3.10.x, produced by no current workflow. Whether they should be retired is a real question (they may be pinned by old docs or downstream users) and is not this change's concern; recording them stops the next audit from rediscovering them cold
 - [x] 5.5 If a `branch-main` tag turns up during the sweep, leave it. Cleanup cannot reach it — `main` is never deleted, so the `delete` event never fires — but it is one mutable tag that each dispatch overwrites, not an accumulating orphan, and it holds the latest `main` build. Nothing to fix; noted so a future sweep does not rediscover it as a leak
