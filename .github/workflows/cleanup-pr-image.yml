@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   cleanup:
-    name: Cleanup PR image
+    name: Cleanup PR image (${{ matrix.package_name }})
     # On `delete` events, only act on branch deletions (not tag deletions).
     # `pull_request: closed` is always in scope.
     if: ${{ github.event_name == 'pull_request' || github.event.ref_type == 'branch' }}
@@ -22,8 +22,21 @@ jobs:
     permissions:
       packages: write
       contents: read
+    # One leg per image that produces a handoff tag. `build.yml`'s matrix
+    # pushes `pr-<N>` (or `branch-<ref>`) for both Linux images, so cleanup
+    # must cover both — naming only one is what let `flutter-web` accumulate
+    # an orphan per PR. `flutter-windows` is absent on purpose: `windows.yml`
+    # calls `windows-image.yml` with `push: false`, so a PR builds it without
+    # pushing anything to delete.
+    strategy:
+      # One image's cleanup failing must not skip the other's.
+      fail-fast: false
+      matrix:
+        package_name:
+          - flutter-android
+          - flutter-web
     env:
-      PACKAGE_NAME: flutter-android
+      PACKAGE_NAME: ${{ matrix.package_name }}
     steps:
       - name: Harden runner
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
