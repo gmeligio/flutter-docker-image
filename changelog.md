@@ -1,9 +1,35 @@
+## [3.47.0] - 2026-08-13
+
+### 🚀 Features
+
+- *(android)* Derive the Java major from Flutter's enforced floor (#537)
+
+### 🐛 Bug Fixes
+
+- *(renovate)* Set mode=full and document the reconfigure convention (#538)
+- *(renovate)* Resolve apt pins against every suite the image enables (#531)
+
+### 🚜 Refactor
+
+- *(ci)* Share one Linux image build step across the four build legs (#540)
+
+### ⚙️ Miscellaneous Tasks
+
+- *(openspec)* Retire spent Renovate research docs (#543)
 ## [3.44.9] - 2026-08-07
+
+### 🐛 Bug Fixes
+
+- *(android)* Bump pinned openjdk-17-jdk-headless to 17.0.20+8-1~deb12u1 (#529)
 
 ### 📚 Documentation
 
 - *(.entire)* Enable entire (#526)
 - *(openspec)* Add research phase to explore mode (#527)
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Upgrade flutter to 3.44.9 (#530)
 ## [3.44.8] - 2026-07-24
 
 ### ⚙️ Miscellaneous Tasks
