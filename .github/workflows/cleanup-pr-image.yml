@@ -22,14 +22,11 @@ jobs:
     permissions:
       packages: write
       contents: read
-    # One leg per image that produces a handoff tag. `build.yml`'s matrix
-    # pushes `pr-<N>` (or `branch-<ref>`) for both Linux images, so cleanup
-    # must cover both — naming only one is what let `flutter-web` accumulate
-    # an orphan per PR. `flutter-windows` is absent on purpose: `windows.yml`
-    # calls `windows-image.yml` with `push: false`, so a PR builds it without
-    # pushing anything to delete.
+    # One leg per image that produces a handoff tag: `build.yml`'s matrix pushes
+    # `pr-<N>` (or `branch-<ref>`) for both Linux images. `flutter-windows` is
+    # absent on purpose — `windows.yml` calls `windows-image.yml` with
+    # `push: false`, so a PR builds it without pushing anything to delete.
     strategy:
-      # One image's cleanup failing must not skip the other's.
       fail-fast: false
       matrix:
         package_name:
