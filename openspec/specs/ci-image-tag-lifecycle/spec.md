@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Delete temporary handoff tags (`pr-<N>` and `branch-<branch>`) on `ghcr.io/<owner>/flutter-android` when the PR closes or the branch is deleted, so the registry does not accumulate dead-weight tags while leaving release tags untouched.
+Delete temporary handoff tags (`pr-<N>` and `branch-<branch>`) on every image that produces them when the PR closes or the branch is deleted, so the registry does not accumulate dead-weight tags while leaving release tags untouched.
 
 ## Requirements
 
