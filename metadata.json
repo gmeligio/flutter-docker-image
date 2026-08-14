@@ -1,0 +1,29 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "01M0016RKMCR8SGDGDNPVHBH17",
+  "strategy": "manual-commit",
+  "branch": "chore/archive-pr-tag-cleanup",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "openspec/changes/pr-tag-cleanup-all-images/proposal.md",
+    "openspec/changes/pr-tag-cleanup-all-images/specs/ci-image-tag-lifecycle/spec.md",
+    "openspec/changes/pr-tag-cleanup-all-images/tasks.md",
+    "openspec/specs/ci-image-tag-lifecycle/spec.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 2527,
+    "cache_creation_tokens": 1358478,
+    "cache_read_tokens": 52217633,
+    "output_tokens": 208443,
+    "api_call_count": 332
+  }
+}
