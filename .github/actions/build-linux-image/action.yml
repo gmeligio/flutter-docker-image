@@ -8,13 +8,13 @@ description: >-
   loaded image, build.yml's steps.handoff/steps.metadata) that a job boundary
   would break.
 
-  Android-only on purpose. `windows.git.version` and the Debian `git` apt pin
-  are both GIT_VERSION in the env, so a Windows arg here could route the wrong
-  one.
+  The extra build args are Android-only on purpose and inert for the web and
+  Linux targets. `windows.git.version` and the Debian `git` apt pin are both
+  GIT_VERSION in the env, so a Windows arg here could route the wrong one.
 
 inputs:
   target:
-    description: 'Dockerfile stage: `android` or `web`.'
+    description: 'Dockerfile stage: `android`, `web`, or `linux`.'
     required: true
   tags:
     description: 'Newline-separated tags.'
@@ -75,7 +75,7 @@ runs:
         load: ${{ inputs.load }}
         sbom: ${{ inputs.sbom }}
         provenance: ${{ inputs.provenance }}
-        # Inert for the web target, which declares none of these args.
+        # Android-specific args are inert for the web and Linux targets.
         build-args: |
           flutter_version=${{ env.FLUTTER_VERSION }}
           fastlane_version=${{ env.FASTLANE_VERSION }}
