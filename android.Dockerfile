@@ -230,3 +230,59 @@ SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 # runs in the container without any runtime download.
 RUN flutter config --enable-web \
     && flutter precache --web
+
+#-----------------------------------------------
+#-----------------------------------------------
+#-----------------------------------------------
+
+# Linux desktop image: branches from `flutter` so it shares the same rootless
+# user, SDK paths, analytics defaults, and entrypoint as Android and web.
+FROM flutter AS linux
+
+SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
+
+# renovate: depName=clang
+ARG CLANG_VERSION="1:19.0-63"
+# renovate: depName=lld
+ARG LLD_VERSION="1:19.0-63"
+# renovate: depName=cmake
+ARG LINUX_CMAKE_VERSION="3.31.6-2"
+# renovate: depName=ninja-build
+ARG NINJA_BUILD_VERSION="1.12.1-1"
+# renovate: depName=pkg-config
+ARG PKG_CONFIG_VERSION="1.8.1-4"
+# renovate: depName=libgtk-3-dev
+ARG LIBGTK_3_DEV_VERSION="3.24.49-3"
+# renovate: depName=libstdc++-12-dev
+ARG LIBSTDCXX_12_DEV_VERSION="12.4.0-5"
+# renovate: depName=liblzma-dev
+ARG LIBLZMA_DEV_VERSION="5.8.1-1+deb13u1"
+# renovate: depName=libsecret-1-dev
+ARG LIBSECRET_1_DEV_VERSION="0.21.7-1"
+
+USER root
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+    clang="$CLANG_VERSION" \
+    lld="$LLD_VERSION" \
+    cmake="$LINUX_CMAKE_VERSION" \
+    ninja-build="$NINJA_BUILD_VERSION" \
+    pkg-config="$PKG_CONFIG_VERSION" \
+    libgtk-3-dev="$LIBGTK_3_DEV_VERSION" \
+    libstdc++-12-dev="$LIBSTDCXX_12_DEV_VERSION" \
+    liblzma-dev="$LIBLZMA_DEV_VERSION" \
+    libsecret-1-dev="$LIBSECRET_1_DEV_VERSION" \
+    && rm -rf /var/lib/apt/lists/*
+
+USER flutter:flutter
+WORKDIR "$HOME"
+
+# Predownload the Linux engine and compile the generated app once so a broken
+# or incomplete desktop toolchain fails while the image is built.
+RUN flutter config --enable-linux-desktop \
+    && flutter precache --linux \
+    && flutter create build_app \
+    && cd build_app \
+    && flutter build linux \
+    && cd .. \
+    && rm -rf build_app

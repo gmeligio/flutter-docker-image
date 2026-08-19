@@ -39,6 +39,13 @@ The versions below are illustrative — the authoritative values live in `config
 docker build --target android --build-arg flutter_version=3.44.6 --build-arg fastlane_version=2.237.0 --build-arg android_build_tools_version=36.0.0 --build-arg android_platform_versions="36" -t flutter-android:local -f android.Dockerfile .
 ```
 
+The `linux` stage in `android.Dockerfile` installs the Linux desktop compiler, CMake/Ninja, GTK development headers, and common plugin development libraries. It only expects the Flutter version:
+
+```bash
+# Linux desktop
+docker build --target linux --build-arg flutter_version=3.44.6 -t flutter-linux:local -f android.Dockerfile .
+```
+
 `windows.Dockerfile` builds a Windows container (requires a Windows host with Docker in Windows-container mode) and expects:
 
 - `flutter_version <string>`: the Flutter version to build. Example: `3.44.6`
@@ -89,3 +96,4 @@ The authoritative source is [openspec/specs/ci-workflow-hardening/spec.md](https
 1. `flutter` stage has only the dependencies required to install flutter and common tools used by flutter internal commands, like `git`.
 2. `fastlane` stage installs Ruby and the build tools fastlane needs, then installs the fastlane gem.
 3. `android` stage has the dependencies required to install the Android SDK and to develop Flutter apps for Android.
+4. `linux` stage installs the Linux desktop toolchain and pre-caches the Linux engine.
