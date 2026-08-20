@@ -1,3 +1,8 @@
+## [3.47.1] - 2026-08-20
+
+### 🐛 Bug Fixes
+
+- *(ci)* Clean handoff tags on every image that produces them (#546)
 ## [3.47.0] - 2026-08-13
 
 ### 🚀 Features
@@ -16,6 +21,7 @@
 ### ⚙️ Miscellaneous Tasks
 
 - *(openspec)* Retire spent Renovate research docs (#543)
+- *(release)* Upgrade flutter to 3.47.0 (#547)
 ## [3.44.9] - 2026-08-07
 
 ### 🐛 Bug Fixes
