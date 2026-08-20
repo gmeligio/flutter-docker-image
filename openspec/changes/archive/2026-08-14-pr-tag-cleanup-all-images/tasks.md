@@ -27,8 +27,8 @@ are against `ae870a0`.
 
 ## 4. Verification
 
-- [ ] 4.1 Close a PR after the change lands and confirm neither image retains its `pr-<N>` tag
-- [ ] 4.2 Confirm the run shows exactly two legs (`flutter-android`, `flutter-web`), and that a leg with nothing to delete is green rather than red — asserting the count catches a future image that silently fails to appear
+- [x] 4.1 Close a PR after the change lands and confirm neither image retains its `pr-<N>` tag — verified on this PR's own merge (run `31794376008`): both legs logged `Deleted pr-546`, `flutter-android` version `1132705915` and `flutter-web` version `1132689160`. Neither image retains `pr-546`; the remaining handoff tags on both are `pr-533` and `pr-548`, exactly the still-open PRs. The pre-fix contrast is on record: PR #547 merged 2026-08-13 under the single-image workflow (run `31677540144`, `PACKAGE_NAME: flutter-android`), which deleted `flutter-android:pr-547` and orphaned `flutter-web:pr-547` — swept manually afterwards
+- [x] 4.2 Confirm the run shows exactly two legs (`flutter-android`, `flutter-web`), and that a leg with nothing to delete is green rather than red — asserting the count catches a future image that silently fails to appear. Run `31794376008` reported exactly 2 jobs, `Cleanup PR image (flutter-android)` and `Cleanup PR image (flutter-web)`, both `success`. Both legs found their tag, so the empty-leg-green path was not exercised here; it stays covered by the "tag not found" branch (`:81-84`) and the 404-idempotency case (`:98-100`) confirmed in 1.4
 - [x] 4.3 Confirm the sweep and the workflow touched nothing outside the handoff-tag regex. Check every non-handoff category, not just releases and `buildcache`: `flutter-android`'s 59 legacy `<semver>-<sha>` and bare-`<sha>` tags must also be intact. Diff the full tag list against the pre-sweep capture from 2.1 — the deleted set should be exactly the orphan list and nothing else
 
 ## 5. Wrap-up
