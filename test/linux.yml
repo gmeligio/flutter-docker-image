@@ -31,8 +31,9 @@ commandTests:
     command: flutter
     args:
       - config
+      - --list
     expectedOutput:
-      - enable-linux-desktop: true
+      - "enable-linux-desktop: true"
 fileContentTests:
   - name: Dart and Flutter analytics are disabled
     path: /home/flutter/.dart-tool/dart-flutter-telemetry.config
