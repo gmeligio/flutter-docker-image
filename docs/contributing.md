@@ -39,7 +39,7 @@ The versions below are illustrative — the authoritative values live in `config
 docker build --target android --build-arg flutter_version=3.44.6 --build-arg fastlane_version=2.237.0 --build-arg android_build_tools_version=36.0.0 --build-arg android_platform_versions="36" -t flutter-android:local -f android.Dockerfile .
 ```
 
-The `linux` stage in `android.Dockerfile` installs the Linux desktop compiler, CMake/Ninja, GTK development headers, and common plugin development libraries. It only expects the Flutter version:
+The `linux` stage in `android.Dockerfile` installs the minimum Linux desktop toolchain: Clang, CMake/Ninja, pkg-config, and GTK development headers. It only expects the Flutter version:
 
 ```bash
 # Linux desktop
