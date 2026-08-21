@@ -1,0 +1,57 @@
+schemaVersion: 2.0.0
+commandTests:
+  # Based on https://github.com/flutter/flutter/blob/6ce8fc4006ada6660b983d095436cf44187dfdef/packages/flutter_tools/lib/src/cache.dart#L1241
+  #
+  # A bracketed `[n/m]` counter is emitted for any artifact, whatever it is
+  # called. That counter is the signature to exclude.
+  - name: Linux desktop build runs with the engine precached
+    setup:
+      - - flutter
+        - create
+        - test_app
+    teardown:
+      - - rm
+        - -r
+        - test_app
+    command: bash
+    args:
+      - -c
+      - |
+        cd test_app \
+        && timeout --preserve-status 480s flutter build linux --debug \
+        && timeout --preserve-status 480s flutter build linux --profile \
+        && timeout --preserve-status 480s flutter build linux --release
+    # All three modes: each needs its own engine artifact, so a partial
+    # precache would download for profile/release while debug stays quiet.
+    excludedOutput:
+      # Any artifact download's progress counter, e.g.
+      #   [1/1] Linux SDK
+      #   ├─ [2/3] linux-x64-profile/linux-x64-flutter-gtk
+      - '\[[0-9]+/[0-9]+\]'
+      # The tool's own hard failure when an artifact is missing and
+      # unreachable, e.g. when the network is unavailable.
+      - 'Failed to download'
+    expectedOutput:
+      - Built build/linux/x64/debug/bundle/test_app
+      - Built build/linux/x64/profile/bundle/test_app
+      - Built build/linux/x64/release/bundle/test_app
+    exitCode: 0
+  - name: Linux desktop toolchain is installed
+    command: bash
+    args:
+      - -c
+      - |
+        command -v clang clang++ cmake ninja pkg-config \
+        && pkg-config --exists gtk+-3.0
+  - name: Linux desktop configuration is enabled
+    command: flutter
+    args:
+      - config
+      - --list
+    expectedOutput:
+      - "enable-linux-desktop: true"
+fileContentTests:
+  - name: Dart and Flutter analytics are disabled
+    path: /home/flutter/.dart-tool/dart-flutter-telemetry.config
+    expectedContents:
+      - reporting=0

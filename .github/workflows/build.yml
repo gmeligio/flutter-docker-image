@@ -43,8 +43,8 @@ jobs:
     permissions:
       packages: write
     runs-on: ubuntu-24.04
-    # One leg per published Linux image, both from android.Dockerfile: `target`
-    # picks the stage, `name` the published repository.
+    # One leg per published Linux-hosted image from android.Dockerfile. `target`
+    # selects its stage and `name` the published repository.
     strategy:
       fail-fast: false
       matrix:
@@ -53,8 +53,10 @@ jobs:
             target: android
           - name: flutter-web
             target: web
+          - name: flutter-linux
+            target: linux
     # These are image-independent, so the last-leg-wins behaviour of matrix job
-    # outputs is harmless: both legs compute the same handoff for test/scan. The
+    # outputs is harmless: every leg computes the same handoff for test/scan. The
     # per-image digest is not image-independent, so scan-image recomputes it.
     outputs:
       tag: ${{ steps.handoff.outputs.tag }}
@@ -187,7 +189,7 @@ jobs:
         if: steps.handoff.outputs.is_fork == 'true'
         run: docker save "${{ steps.local_tag.outputs.ref }}" | gzip > image.tar.gz
 
-      # Artifact name is suffixed with the image name so the two matrix legs
+      # Artifact name is suffixed with the image name so the matrix legs
       # do not overwrite each other's upload (artifact names are run-global).
       - name: Upload image artifact
         if: steps.handoff.outputs.is_fork == 'true'
@@ -214,6 +216,8 @@ jobs:
             config: test/android.yml
           - name: flutter-web
             config: test/web.yml
+          - name: flutter-linux
+            config: test/linux.yml
     env:
       # build-image's handoff: non-fork legs pull GHCR under TAG; forks load the
       # local artifact built under flutter_version.
@@ -285,6 +289,7 @@ jobs:
         include:
           - name: flutter-android
           - name: flutter-web
+          - name: flutter-linux
     env:
       TAG: ${{ needs.build-image.outputs.tag }}
     steps:
@@ -324,7 +329,7 @@ jobs:
           echo "value=$digest" >> "$GITHUB_OUTPUT"
 
       # Skip the compare until this image has a published release to compare
-      # against: a brand-new image (e.g. flutter-web's first PR) would otherwise
+      # against: a brand-new image would otherwise
       # hard-fail with MANIFEST_UNKNOWN.
       - name: Check baseline exists
         id: baseline

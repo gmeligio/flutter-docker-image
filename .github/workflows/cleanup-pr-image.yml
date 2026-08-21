@@ -23,7 +23,7 @@ jobs:
       packages: write
       contents: read
     # One leg per image that produces a handoff tag: `build.yml`'s matrix pushes
-    # `pr-<N>` (or `branch-<ref>`) for both Linux images. `flutter-windows` is
+    # `pr-<N>` (or `branch-<ref>`) for every Linux-hosted image. `flutter-windows` is
     # absent on purpose — `windows.yml` calls `windows-image.yml` with
     # `push: false`, so a PR builds it without pushing anything to delete.
     strategy:
@@ -32,6 +32,7 @@ jobs:
         package_name:
           - flutter-android
           - flutter-web
+          - flutter-linux
     env:
       PACKAGE_NAME: ${{ matrix.package_name }}
     steps:
