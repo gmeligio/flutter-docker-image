@@ -1,0 +1,42 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "01M0SZPG7DP5Z1TC4AWM280Q2F",
+  "strategy": "manual-commit",
+  "branch": "claude/automerge-approved-prs-design-mfoeu5",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "openspec/changes/archive/2026-08-24-automerge-approved-automation-prs/.verify-passed",
+    "openspec/changes/archive/2026-08-24-automerge-approved-automation-prs/design.md",
+    "openspec/changes/archive/2026-08-24-automerge-approved-automation-prs/proposal.md",
+    "openspec/changes/archive/2026-08-24-automerge-approved-automation-prs/research.md",
+    "openspec/changes/archive/2026-08-24-automerge-approved-automation-prs/specs/ci-repo-governance/spec.md",
+    "openspec/changes/archive/2026-08-24-automerge-approved-automation-prs/specs/ci-workflow-readability/spec.md",
+    "openspec/changes/archive/2026-08-24-automerge-approved-automation-prs/specs/flutter-version-update/spec.md",
+    "openspec/changes/archive/2026-08-24-automerge-approved-automation-prs/specs/windows-version-tracking/spec.md",
+    "openspec/changes/archive/2026-08-24-automerge-approved-automation-prs/tasks.md",
+    "openspec/changes/automerge-approved-automation-prs/design.md",
+    "openspec/changes/automerge-approved-automation-prs/proposal.md",
+    "openspec/changes/automerge-approved-automation-prs/research.md",
+    "openspec/changes/automerge-approved-automation-prs/specs/ci-repo-governance/spec.md",
+    "openspec/changes/automerge-approved-automation-prs/specs/ci-workflow-readability/spec.md",
+    "openspec/changes/automerge-approved-automation-prs/specs/flutter-version-update/spec.md",
+    "openspec/changes/automerge-approved-automation-prs/specs/windows-version-tracking/spec.md",
+    "openspec/changes/automerge-approved-automation-prs/tasks.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 8,
+    "cache_creation_tokens": 1590,
+    "cache_read_tokens": 879324,
+    "output_tokens": 905,
+    "api_call_count": 4
+  }
+}
