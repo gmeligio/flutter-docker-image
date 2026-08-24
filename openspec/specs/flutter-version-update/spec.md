@@ -2,11 +2,13 @@
 
 ## Purpose
 
-The scheduled `update-version.yml` workflow opens monthly upgrade pull requests that bump the pinned Flutter stable release together with the Android and Windows toolchain blocks in `config/version.json`. The capability covers when an upgrade PR opens, what the PR's `version.json` must contain to be coherent and schema-valid, how each producer job validates its own output before handoff, how producer-job failure surfaces in the Actions tab, and how partial-update cycles (Windows-skip, Android-skip) carry the corresponding block forward from the base branch unchanged.
+The scheduled `update-version.yml` workflow opens weekday upgrade pull requests that bump the pinned Flutter stable release together with the Android and Windows toolchain blocks in `config/version.json`. The capability covers when an upgrade PR opens, what the PR's `version.json` must contain to be coherent and schema-valid, how each producer job validates its own output before handoff, how producer-job failure surfaces in the Actions tab, and how partial-update cycles (Windows-skip, Android-skip) carry the corresponding block forward from the base branch unchanged.
 ## Requirements
 ### Requirement: Scheduled run opens an upgrade PR when a new stable Flutter is released
 
 The `update-version.yml` workflow SHALL open exactly one pull request titled `chore(release): upgrade flutter to <version>` whenever the latest entry in `https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json` matching the stable channel and a `\d+.\d+.\d+` version differs from the version currently pinned in `config/version.json` (`.flutter.version`).
+
+The workflow SHALL run on each weekday, so a new stable release is picked up within one business day of publication rather than waiting for a monthly cycle.
 
 `config/version.json` is the single committed source of truth for the pinned Flutter version; there is no separate `config/flutter_version.json`. The change-detection anchor and the file the PR modifies are the same, so the automation can never delete an anchor a subsequent run depends on.
 

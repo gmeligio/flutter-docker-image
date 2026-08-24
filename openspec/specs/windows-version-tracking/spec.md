@@ -78,7 +78,7 @@ The experience context is the reviewer of an upgrade PR: any drift between the m
 - **WHEN** the Pester suite runs
 - **THEN** the Git version test fails with a message naming both the manifest value and the in-image value
 
-### Requirement: Monthly upgrade PR includes Windows toolchain updates
+### Requirement: The scheduled upgrade PR includes Windows toolchain updates
 
 The `update-version.yml` workflow SHALL include a job (`update-windows-version`) that attempts to update the `windows` block in `config/version.json` whenever it runs. The job SHALL:
 
@@ -91,9 +91,9 @@ The job SHALL upload the raw `channel.json` and `vsman.json` it fetched as a `vs
 
 The composed `version.json` consumed by `update-docs-and-create-pr` SHALL be produced by the dedicated `compose-version-manifest` job, not by `update-docs-and-create-pr` itself. When `update-windows-version` did not produce a fragment, `compose-version-manifest` SHALL carry forward the `windows` block from the base branch unchanged.
 
-The experience context is the maintainer reviewing the monthly upgrade PR. They expect (a) Android and Windows toolchain bumps to appear in the same PR when both upstream sources are healthy, (b) the PR to still open with whichever platforms updated when others' upstreams are transiently inconsistent, (c) the PR body to make any skipped platform visible without having to dig through workflow logs, and (d) composition and validation to happen in dedicated jobs before any PR work begins.
+The experience context is the maintainer reviewing the scheduled upgrade PR. They expect (a) Android and Windows toolchain bumps to appear in the same PR when both upstream sources are healthy, (b) the PR to still open with whichever platforms updated when others' upstreams are transiently inconsistent, (c) the PR body to make any skipped platform visible without having to dig through workflow logs, and (d) composition and validation to happen in dedicated jobs before any PR work begins.
 
-#### Scenario: Monthly run produces a Windows-aware upgrade PR
+#### Scenario: A scheduled run produces a Windows-aware upgrade PR
 
 - **GIVEN** a scheduled run of `update-version.yml` where Flutter has a new stable
 - **AND** Git for Windows has a new release since the last run

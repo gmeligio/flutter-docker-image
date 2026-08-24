@@ -21,14 +21,14 @@
 
 ## 3. Record the guardrails the workflow cannot express
 
-- [ ] 3.1 Update `openspec/specs/ci-repo-governance/spec.md` per the delta: the auto-merge requirement now names the ruleset requirements — including code-owner approval — as the merge gate, instead of asserting no approval is required
-- [ ] 3.2 State `require_code_owner_review: true` as load-bearing: without it, open-time auto-merge degrades into merging unreviewed version bumps on green
-- [ ] 3.3 State that the merge identity must be one whose pushes trigger workflows, and tie it to the visible consequence — no tag, no release, no published image for the new Flutter version
-- [ ] 3.4 Add the stale-branch requirement to `ci-repo-governance`: a branch behind `main` cannot merge under `strict_required_status_checks_policy: true`, auto-merge will not update it, and automating the merge click removes the moment the maintainer would have noticed
-- [ ] 3.5 Update `openspec/specs/ci-workflow-readability/spec.md` per the delta: `prepare-release.yml` has one job (`create-tag`), not the two-job `update-changelog` → `create-tag` graph p10 deleted; re-home the App-token identity clause into that requirement so it is not lost
-- [ ] 3.6 Update `openspec/specs/flutter-version-update/spec.md` per the delta: the run is weekday-scheduled, not monthly (`cron: '0 0 * * MON-FRI'`)
-- [ ] 3.7 Update `openspec/specs/windows-version-tracking/spec.md` per the delta: rename the "Monthly upgrade PR…" requirement and its scenario to match the real cadence
-- [ ] 3.8 On archive, sync the two capability Purpose headers that also say "monthly" (`flutter-version-update:5`, and the context line in `windows-version-tracking`) — prose outside a requirement cannot be carried by a delta
+- [x] 3.1 Update `openspec/specs/ci-repo-governance/spec.md` per the delta: the auto-merge requirement now names the ruleset requirements — including code-owner approval — as the merge gate, instead of asserting no approval is required
+- [x] 3.2 State `require_code_owner_review: true` as load-bearing: without it, open-time auto-merge degrades into merging unreviewed version bumps on green
+- [x] 3.3 State that the merge identity must be one whose pushes trigger workflows, and tie it to the visible consequence — no tag, no release, no published image for the new Flutter version
+- [x] 3.4 Add the stale-branch requirement to `ci-repo-governance`: a branch behind `main` cannot merge under `strict_required_status_checks_policy: true`, auto-merge will not update it, and automating the merge click removes the moment the maintainer would have noticed
+- [x] 3.5 Update `openspec/specs/ci-workflow-readability/spec.md` per the delta: `prepare-release.yml` has one job (`create-tag`), not the two-job `update-changelog` → `create-tag` graph p10 deleted; re-home the App-token identity clause into that requirement so it is not lost
+- [x] 3.6 Update `openspec/specs/flutter-version-update/spec.md` per the delta: the run is weekday-scheduled, not monthly (`cron: '0 0 * * MON-FRI'`)
+- [x] 3.7 Update `openspec/specs/windows-version-tracking/spec.md` per the delta: rename the "Monthly upgrade PR…" requirement and its scenario to match the real cadence
+- [x] 3.8 On archive, sync the two capability Purpose headers that also say "monthly" (`flutter-version-update:5`, and the context line in `windows-version-tracking`) — prose outside a requirement cannot be carried by a delta
 
 ## 4. Verify on the next real bump
 
