@@ -1,0 +1,29 @@
+/opsx:explore openspec/changes/automerge-approved-automation-prs
+
+---
+
+Please step back and reason what's the best UX and right security model. Then explain concisely
+
+---
+
+No app can push to main. Please double check if there is any bypass, and explain concisely.
+
+---
+
+Ok. So step back and find out if there is any current benefit for verified-commit to push to main. Does any workflows requires it or can we remove that?
+
+---
+
+Don't mention anything in here since flutter-docker-image is open source and ~/Code/github-org-manager is private. There should be no mention whatsoever of us removing the bypass in that repo or anything about external repo. Investigate and create issue there.
+
+---
+
+OK. Fixed that bypass issue there. Verify is gone and let's update our proposal.
+
+---
+
+Fix all here in this proposal. No follow-ups. What are the two scope questions?
+
+---
+
+Are all things ready for apply?

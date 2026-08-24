@@ -1,0 +1,126 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "01M0SXRG8CM332PNFYNYZRY19B",
+  "session_id": "dc4addf4-8b44-4717-9008-ec13c7d25584",
+  "strategy": "manual-commit",
+  "created_at": "2026-08-24T13:01:11.682854276Z",
+  "branch": "claude/automerge-approved-prs-design-mfoeu5",
+  "checkpoints_count": 8,
+  "save_step_count": 4,
+  "files_touched": [
+    "openspec/changes/automerge-approved-automation-prs/design.md",
+    "openspec/changes/automerge-approved-automation-prs/proposal.md",
+    "openspec/changes/automerge-approved-automation-prs/research.md",
+    "openspec/changes/automerge-approved-automation-prs/specs/ci-repo-governance/spec.md",
+    "openspec/changes/automerge-approved-automation-prs/specs/ci-workflow-readability/spec.md",
+    "openspec/changes/automerge-approved-automation-prs/specs/flutter-version-update/spec.md",
+    "openspec/changes/automerge-approved-automation-prs/specs/windows-version-tracking/spec.md",
+    "openspec/changes/automerge-approved-automation-prs/tasks.md"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-5[1m]",
+  "turn_id": "c1a5294351ac",
+  "compact_transcript_start": 0,
+  "token_usage": {
+    "input_tokens": 24346,
+    "cache_creation_tokens": 238549,
+    "cache_read_tokens": 11017305,
+    "output_tokens": 63930,
+    "api_call_count": 109
+  },
+  "skill_events_version": 1,
+  "skill_events": [
+    {
+      "id": "prompt-skill-claude-code-opsx:explore-2026-08-14T10:23:48.308192127Z",
+      "event_type": "prompt_invocation",
+      "skill": {
+        "name": "opsx:explore"
+      },
+      "source": {
+        "agent": "claude-code",
+        "signal": "prompt_slash_command",
+        "confidence": "explicit"
+      },
+      "turn_id": "a861128de419",
+      "timestamp": "2026-08-14T10:23:48.308192127Z",
+      "native": {
+        "command": "/opsx:explore"
+      },
+      "collapse": {
+        "target": "user_message",
+        "label": "/opsx:explore",
+        "default_collapsed": true
+      }
+    }
+  ],
+  "session_metrics": {
+    "turn_count": 8
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-08-24T13:01:11.610393794Z",
+    "agent_lines": 84,
+    "agent_removed": 0,
+    "human_added": 0,
+    "human_modified": 209,
+    "human_removed": 23,
+    "total_committed": 233,
+    "total_lines_changed": 316,
+    "agent_percentage": 26.582278481012654,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    },
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 187,
+      "agent_lines_removed": 0
+    },
+    {
+      "checkpoint_number": 3,
+      "user_lines_added": 44,
+      "user_lines_removed": 52,
+      "agent_lines_added": 191,
+      "agent_lines_removed": 5,
+      "user_added_per_file": {
+        "openspec/changes/automerge-approved-automation-prs/research.md": 44
+      },
+      "user_removed_per_file": {
+        "openspec/changes/automerge-approved-automation-prs/research.md": 52
+      }
+    },
+    {
+      "checkpoint_number": 4,
+      "user_lines_added": 55,
+      "user_lines_removed": 60,
+      "agent_lines_added": 387,
+      "agent_lines_removed": 14,
+      "user_added_per_file": {
+        "openspec/changes/automerge-approved-automation-prs/research.md": 55
+      },
+      "user_removed_per_file": {
+        "openspec/changes/automerge-approved-automation-prs/research.md": 60
+      }
+    },
+    {
+      "checkpoint_number": 5,
+      "user_lines_added": 55,
+      "user_lines_removed": 60,
+      "agent_lines_added": 410,
+      "agent_lines_removed": 18,
+      "user_added_per_file": {
+        "openspec/changes/automerge-approved-automation-prs/research.md": 55
+      },
+      "user_removed_per_file": {
+        "openspec/changes/automerge-approved-automation-prs/research.md": 60
+      }
+    }
+  ]
+}
