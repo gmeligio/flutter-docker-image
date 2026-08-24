@@ -1,8 +1,8 @@
 ## 1. Establish the gate before relying on it
 
-- [ ] 1.1 Re-read the `main` ruleset at implementation time and confirm `require_code_owner_review` is still `true`, `allowed_merge_methods` is still `["squash"]`, and `allow_auto_merge` is still `true` on the repository — the whole design rests on these three
-- [ ] 1.2 Confirm the ruleset's `bypass_actors` list is still empty — the design assumes no actor can skip the code-owner gate, and an entry reintroduced here would silently void that assumption
-- [ ] 1.3 Confirm the `verified-commit` App's installation permissions include `pull requests: write` (it opens PRs, so it should) — `enablePullRequestAutoMerge` needs it
+- [x] 1.1 Re-read the `main` ruleset at implementation time and confirm `require_code_owner_review` is still `true`, `allowed_merge_methods` is still `["squash"]`, and `allow_auto_merge` is still `true` on the repository — the whole design rests on these three
+- [x] 1.2 Confirm the ruleset's `bypass_actors` list is still empty — the design assumes no actor can skip the code-owner gate, and an entry reintroduced here would silently void that assumption
+- [x] 1.3 Confirm the `verified-commit` App's installation permissions include `pull requests: write` (it opens PRs, so it should) — `enablePullRequestAutoMerge` needs it. Verified indirectly: the App has authored 14 pull requests, most recently #552; reading `/repos/.../installation` directly requires an App JWT rather than a user token
 
 ## 2. Wire auto-merge into the version-bump PR
 
