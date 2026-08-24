@@ -36,15 +36,16 @@ Verified: `.github/workflows/update-version.yml:449-457` is the repo's **only** 
 
 The design asserts approval is the last unmet merge requirement for bot-authored PRs, so enabling auto-merge at open time yields merge-on-approval. Timeline data confirms it:
 
-| PR | Author | Auto-merge enabled by | Approved | Merged | Δ |
+| PR | Author | Approved | Merged | Δ | Merge path |
 |---|---|---|---|---|---|
-| #541 | `renovate[bot]` | `renovate` @ `02:16:12` | `09:13:37` | `09:13:39` | **2s** |
-| #542 | `renovate[bot]` | `renovate` | `07:12:09` | `07:12:11` | **2s** |
-| #523 | `verified-commit[bot]` | **`gmeligio` @ `10:29:30`** | `10:30:08` | `10:30:10` | **2s** |
-| #530 | `verified-commit[bot]` | **`gmeligio` @ `15:31:50`** | `15:31:41` | `15:44:56` | — |
-| #547 | `verified-commit[bot]` | *(none)* | `07:22:19` | `07:23:05` | manual click |
+| #542 | `renovate[bot]` | `07:12:09` | `07:12:11` | **2s** | auto-merge (Renovate config) |
+| #541 | `renovate[bot]` | `09:13:37` | `09:13:39` | **2s** | auto-merge (Renovate config) |
+| #547 | `verified-commit[bot]` | `07:22:19` | `07:23:05` | 46s | manual click |
+| #552 | `verified-commit[bot]` | `07:11:40` | `07:11:48` | 8s | manual click |
 
-**#523 is the decisive row.** Auto-merge was enabled on a `verified-commit`-authored PR at `10:29:30`; the PR sat green and unmerged for 38 seconds; approval landed `10:30:08`; merge `10:30:10`. That is precisely the behaviour this change wants, already demonstrated on this exact PR class. The design reached the right conclusion from #541/#542 alone; #523/#530 are stronger evidence it did not cite.
+The 2s intervals are a webhook round-trip: GitHub merging the instant the approval satisfied the last requirement. Renovate sets `"automerge": true` with `platformAutomerge` at its default, so its PRs carry auto-merge from the moment the branch opens. `update-version.yml` never enables it, so on #547 and #552 the same approval did nothing and a click was required.
+
+*A caveat on the evidence:* GitHub did not emit an `AutoMergeEnabledEvent` on any of these PRs' timelines, so the enablement itself is inferred from Renovate's configuration and the 2s interval rather than directly observed. An earlier draft of this report cited #523 and #530 as `verified-commit` PRs that had auto-merge enabled manually; that was wrong. #530 took 13 minutes from approval to merge, and #523's first approval (`07:27:27`) was dismissed at `07:47:10` after a commit at `07:31:08` — it needed a second approval three hours later. #523 is real evidence, but for `dismiss_stale_reviews_on_push`, not for auto-merge.
 
 Ruleset re-read live (`rulesets/1959230`), matching `design.md:5-16` exactly: `require_code_owner_review: true`, `required_approving_review_count: 0`, `allowed_merge_methods: ["squash"]`, `strict_required_status_checks_policy: true`, 6 required checks, `dismiss_stale_reviews_on_push: true`. Repo: `allow_auto_merge: true`, squash-only.
 
@@ -102,7 +103,7 @@ With the bypass removed at its source, the spec-correction work that Option B ex
 
 | Approach | Pros | Cons |
 |---|---|---|
-| **A. Ship the workflow step only** | Smallest diff; mechanism proven by #523/#530 | Leaves the silent stale-branch stall, which the change itself makes worse by removing the click that surfaced it; leaves three specs describing a world that no longer exists |
+| **A. Ship the workflow step only** | Smallest diff; mechanism proven by #541/#542 | Leaves the silent stale-branch stall, which the change itself makes worse by removing the click that surfaced it; leaves three specs describing a world that no longer exists |
 | **B. Step + stale-branch handling + all stale specs** *(chosen)* | The approval genuinely becomes the last action; every spec the change touches or contradicts tells the truth; nothing deferred | Wider diff — four capability specs instead of one |
 
 ```
@@ -172,7 +173,7 @@ None. The bypass posture question was resolved by removal (verified `[]` on 2026
 
 **Code (verified live):** `.github/workflows/update-version.yml:9-11,432-439,449-457`, `prepare-release.yml:28`, `update-docs.yml:14-18`, `.github/renovate.json:11`, `.github/gx.toml:5,16,28-31`, `.github/CODEOWNERS:1`, `openspec/specs/ci-repo-governance/spec.md:53,75`, `openspec/specs/ci-workflow-readability/spec.md:57-76`, `openspec/specs/flutter-version-update/spec.md:5`, `openspec/changes/archive/2026-06-02-p10-strengthen-branch-protection/{proposal.md:8,27,tasks.md:21}`
 
-**GitHub API:** `repos/gmeligio/flutter-docker-image/rulesets/1959230`, `/repos/.../rules/branches/main`, `/apps/verified-commit`, `/repos/.../branches/main/protection` (404 — no classic protection), GraphQL PR timelines for #523, #530, #541, #542, #547
+**GitHub API:** `repos/gmeligio/flutter-docker-image/rulesets/1959230`, `/repos/.../rules/branches/main`, `/apps/verified-commit`, `/repos/.../branches/main/protection` (404 — no classic protection), GraphQL PR timelines for #523, #530, #541, #542, #547, #552
 
 **Web:**
 - https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/incorporating-changes-from-a-pull-request/automatically-merging-a-pull-request

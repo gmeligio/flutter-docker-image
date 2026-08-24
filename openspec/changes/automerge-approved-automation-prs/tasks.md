@@ -42,6 +42,6 @@ _Deliberately unchecked: these observe behaviour that does not exist until this 
 
 ## 5. Wrap up
 
-- [x] 5.1 Open as a draft PR quoting the timings as the evidence for the diagnosis: #552 and #547 (approved, then merged by hand) against #541/#542 and #523/#530 (auto-merge, merged ~2s after approval)
+- [x] 5.1 Open as a draft PR quoting the timings as the evidence for the diagnosis: #552 and #547 (approved, then merged by hand) against #541/#542 (auto-merge, merged 2s after approval)
 - [x] 5.2 Note in the PR description that this corrects a factual claim in the archived `p10-strengthen-branch-protection` proposal (approvals *are* required for bot-authored PRs)
 - [x] 5.3 Record the deferred decision — whether maintainer-authored PRs should get auto-merge too — as a follow-up; it is merge-on-green with no human gate, since GitHub does not accept an author's own approval and the review count floor is `0`
