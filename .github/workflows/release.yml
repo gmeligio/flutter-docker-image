@@ -26,8 +26,8 @@ jobs:
       # Allow to write packages to push the container image to the Github Container Registry
       packages: write
     runs-on: ubuntu-24.04
-    # One leg per published Linux image, both from android.Dockerfile.
-    # `target` selects the stage; `name` is the published repository. Legs are
+    # One leg per published Linux-hosted image from android.Dockerfile. `target`
+    # selects its stage and `name` the published repository. Legs are
     # independent (fail-fast: false) so one image can publish if another fails.
     strategy:
       fail-fast: false
@@ -37,6 +37,8 @@ jobs:
             target: android
           - name: flutter-web
             target: web
+          - name: flutter-linux
+            target: linux
     env:
       IMAGE_REPOSITORY_NAME: ${{ matrix.name }}
       ANDROID_BUILD_TOOLS_VERSION: 30.0.3
@@ -105,7 +107,7 @@ jobs:
         with:
           target: ${{ matrix.target }}
           push: true
-          # Scope the gha cache per image so the two matrix legs don't share
+          # Scope the gha cache per image so the matrix legs don't share
           # (and clobber) one cache key.
           cache-from: type=gha,scope=${{ matrix.name }}
           cache-to: type=gha,mode=max,scope=${{ matrix.name }}
@@ -150,6 +152,7 @@ jobs:
         name:
           - flutter-android
           - flutter-web
+          - flutter-linux
           - flutter-windows
     steps:
       - name: Harden runner
@@ -177,7 +180,7 @@ jobs:
     runs-on: ubuntu-24.04
     needs: release-linux
     # !cancelled() (not default success()) so one image's release failure does
-    # not skip the other's description sync. Scoped to push, where release-linux runs.
+    # not skip the others' description sync. Scoped to push, where release-linux runs.
     if: ${{ github.event_name == 'push' && !cancelled() }}
     strategy:
       fail-fast: false
@@ -185,6 +188,7 @@ jobs:
         include:
           - name: flutter-android
           - name: flutter-web
+          - name: flutter-linux
     env:
       IMAGE_REPOSITORY_NAME: ${{ matrix.name }}
       VERSION_MANIFEST: config/version.json
@@ -228,7 +232,7 @@ jobs:
     runs-on: ubuntu-24.04
     needs: release-linux
     # !cancelled() (not default success()) so one image's release failure does
-    # not skip the other's Scout record. Scoped to push, where release-linux runs.
+    # not skip the others' Scout records. Scoped to push, where release-linux runs.
     if: ${{ github.event_name == 'push' && !cancelled() }}
     strategy:
       fail-fast: false
@@ -236,6 +240,7 @@ jobs:
         include:
           - name: flutter-android
           - name: flutter-web
+          - name: flutter-linux
     env:
       IMAGE_REPOSITORY_NAME: ${{ matrix.name }}
     steps:
@@ -267,7 +272,7 @@ jobs:
         uses: github/codeql-action/upload-sarif@cf1bb45a277cb3c205638b2cd5c984db1c46a412 # v4.31.7
         with:
           sarif_file: sarif.json
-          # Distinct category per image so the two matrix legs' SARIF uploads
+          # Distinct category per image so the matrix legs' SARIF uploads
           # coexist on the code-scanning dashboard instead of overwriting.
           category: ${{ matrix.name }}
 

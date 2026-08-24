@@ -86,3 +86,51 @@ jobs:
 
       - name: Test image
         run: container-structure-test test --image "${{ fromJSON(steps.metadata.outputs.json).tags[0] }}" --config test/android.yml
+
+  test-linux-image:
+    name: Test Linux desktop image
+    runs-on: ubuntu-24.04
+    env:
+      IMAGE_REPOSITORY_NAME: flutter-linux
+      VERSION_MANIFEST: config/version.json
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Setup mise tools
+        uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
+
+      - name: Read Flutter version
+        id: version
+        run: |
+          version=$(jq -r '.flutter.version' config/version.json)
+          echo "value=$version" >> "$GITHUB_OUTPUT"
+          echo "FLUTTER_VERSION=$version" >> "$GITHUB_ENV"
+
+      - name: Load image metadata
+        uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5.10.0
+        id: metadata
+        with:
+          images: flutter-linux
+          tags: type=raw,value=${{ steps.version.outputs.value }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
+
+      - name: Build image and push to local Docker daemon
+        uses: ./.github/actions/build-linux-image
+        with:
+          target: linux
+          load: true
+          cache-from: type=gha,scope=flutter-linux
+          cache-to: type=gha,mode=max,scope=flutter-linux
+          tags: ${{ steps.metadata.outputs.tags }}
+          labels: ${{ steps.metadata.outputs.labels }}
+
+      - name: Test image
+        run: container-structure-test test --image "${{ fromJSON(steps.metadata.outputs.json).tags[0] }}" --config test/linux.yml
