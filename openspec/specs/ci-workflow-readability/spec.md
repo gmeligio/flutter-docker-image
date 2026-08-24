@@ -54,23 +54,23 @@ The experience context is the maintainer reading the PR checks list and the Acti
 - **THEN** the pinned check name is updated in repo settings before merge
 - **AND** the post-merge run is not blocked on a stale pin
 
-### Requirement: The changelog→tag release-prep step is one workflow with a visible job graph
+### Requirement: The release-prep step is one workflow that tags the merged version
 
-The path from "version manifest changed" to "tag exists" SHALL be a single workflow `.github/workflows/prepare-release.yml` with two sequential jobs (`update-changelog` → `create-tag` via `needs:`). The intermediate `changelog.md`-push trigger that previously chained `changelog.yml` → `tag.yml` SHALL NOT exist. The App-token identity used to push SHALL be unchanged so the tag push still triggers `release.yml`.
+The path from "version manifest changed" to "tag exists" SHALL be a single workflow `.github/workflows/prepare-release.yml` containing one job, `create-tag`. The intermediate `changelog.md`-push trigger that previously chained `changelog.yml` → `tag.yml` SHALL NOT exist, and neither SHALL a changelog-committing job inside `prepare-release.yml`: the changelog is generated upstream in the version-bump pull request, and `release.yml` regenerates its own notes from history, so nothing in release prep writes a commit to `main`. Tag creation SHALL use the GitHub App installation token rather than `GITHUB_TOKEN`, because GitHub suppresses workflow triggers for `GITHUB_TOKEN` pushes and the tag must trigger `release.yml`.
 
-The experience context is the maintainer debugging release prep: one run, one log, one job graph instead of two separate runs whose connection is visible only by reading both YAML files.
+The experience context is the maintainer debugging release prep: one run, one log, one job instead of two separate runs whose connection is visible only by reading both YAML files — and a CI engineer who sees the image published for a new Flutter version because the tag actually fired the release.
 
 #### Scenario: A version bump merges to `main`
 
-- **GIVEN** a PR that bumps `config/version.json` merges to `main`
+- **GIVEN** a pull request that bumps `config/version.json` merges to `main`
 - **WHEN** `prepare-release.yml` runs
-- **THEN** `update-changelog` runs first and commits `changelog.md`
-- **AND** `create-tag` runs next (via `needs:`) and pushes the new tag
-- **AND** the new tag triggers `release.yml` exactly as before this change
+- **THEN** `create-tag` pushes the new version tag
+- **AND** the new tag triggers `release.yml`
+- **AND** no commit is pushed to `main` by release prep
 
-#### Scenario: `update-changelog` fails
+#### Scenario: The version is already tagged
 
-- **GIVEN** the changelog generation fails (e.g. git-cliff error)
-- **WHEN** the job fails
-- **THEN** `create-tag` does not run (skipped by `needs:` semantics)
-- **AND** no orphan tag is created without a matching changelog commit
+- **GIVEN** a run of `prepare-release.yml` for a version whose tag already exists
+- **WHEN** `create-tag` evaluates the manifest
+- **THEN** it creates no tag and the run succeeds
+- **AND** no duplicate release is produced
