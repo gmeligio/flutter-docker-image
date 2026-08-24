@@ -1,0 +1,13 @@
+<task-notification>
+<task-id>bp46mxz9f</task-id>
+<summary>Monitor event: "PR 548 check results"</summary>
+<event>Read latest release: pass</event>
+</task-notification>
+
+---
+
+OK. Is the apply done? What's next?
+
+---
+
+Please make sure the PR description is up to date and concise.
