@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "01M0SZMD1K0P2Z2BEVE3T1C9SJ",
+  "strategy": "manual-commit",
+  "branch": "claude/automerge-approved-prs-design-mfoeu5",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "openspec/changes/automerge-approved-automation-prs/tasks.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 3495,
+    "cache_creation_tokens": 20223,
+    "cache_read_tokens": 3805133,
+    "output_tokens": 5075,
+    "api_call_count": 18
+  }
+}
