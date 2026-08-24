@@ -17,16 +17,18 @@ This matters because it means enabling auto-merge at PR-open time is *not* the s
 ## What Changes
 
 - **`.github/workflows/update-version.yml`** — after the `create-pull-request` step in `compose-and-open-pr`, add one step that enables GitHub-native auto-merge (`SQUASH`, the only method the ruleset allows) on the PR it just opened or updated, authenticated with the existing `verified-commit` App token. Enabling is best-effort: a failed mutation logs and does not fail the job, because a version-bump PR that exists but lacks auto-merge is a working outcome, while a red job is not.
-- **`openspec/specs/ci-repo-governance/spec.md`** — correct the auto-merge requirement to state the real gate (ruleset requirements including code-owner approval, not "no approval step"), extend it to cover PRs opened by `update-version.yml`, and record two guardrails the behaviour now leans on: `require_code_owner_review` staying `true`, and the merge being performed by an identity whose pushes trigger workflows.
+  The same step also brings the branch up to date when it is behind `main`. `strict_required_status_checks_policy: true` blocks the merge of a stale branch, and GitHub's auto-merge never updates one — so without this, an approved, green pull request can sit unmerged with no signal. The update runs before review, because `dismiss_stale_reviews_on_push: true` would dismiss an approval it followed.
+- **`openspec/specs/ci-repo-governance/spec.md`** — correct the auto-merge requirement to state the real gate (ruleset requirements including code-owner approval, not "no approval step"), extend it to cover PRs opened by `update-version.yml`, and record three guardrails the behaviour now leans on: `require_code_owner_review` staying `true`, the merge being performed by an identity whose pushes trigger workflows, and a stale branch being brought current before it can stall the merge.
+- **`openspec/specs/ci-workflow-readability/spec.md`** — the release-prep requirement still mandates the two-job `update-changelog` → `create-tag` graph that `p10` deleted; `prepare-release.yml` has one job. Corrected here rather than left to a follow-up, because that requirement currently holds the only spec statement of the App-token identity invariant this change depends on.
+- **`openspec/specs/flutter-version-update/spec.md`** and **`openspec/specs/windows-version-tracking/spec.md`** — both describe a "monthly" upgrade PR; the schedule is `cron: '0 0 * * MON-FRI'`. Corrected so the cadence the maintainer actually experiences is what the specs say.
 
-Nothing else changes. No new workflow, no new trigger, no new App, no ruleset edit, no change to Renovate's configuration.
+No new workflow, no new trigger, no new App, no ruleset edit, no change to Renovate's configuration.
 
 ### Deliberately not in scope
 
 - **A `pull_request_review`-triggered workflow** that enables auto-merge on any approved PR. It is the more general mechanism and it is not needed: the approval gate already comes from the ruleset, so enabling at open time produces identical timing with no new workflow and no new write-scoped trigger. Kept as the documented fallback in `design.md` if the code-owner requirement is ever relaxed.
-- **The maintainer's own PRs.** They merge today with zero reviews (#531, #538, #540, #543), so auto-merge on them would mean merge-on-green with no human gate at all. Different decision, different risk, not bundled here.
+- **The maintainer's own PRs.** They merge today with zero reviews (#531, #538, #540, #543) — GitHub does not accept the author as their own code-owner approver, and `required_approving_review_count` is `0`, so nothing blocks the merge. Auto-merge on them would therefore be merge-on-green with no human gate at all. Different decision, different risk, not bundled here.
 - **Auto-approval of automation PRs.** It would delete the only human gate on an unattended weekly commit to `main`. Explicitly rejected, as it was in `p10`.
-- **Automatically updating a stale PR branch.** `strict_required_status_checks_policy: true` means an out-of-date branch stalls auto-merge; the mitigation today is the maintainer's "Update branch" click. See `design.md` "Risks" — this is the one failure mode that leaves a PR silently waiting.
 
 ## Capabilities
 
@@ -36,11 +38,13 @@ _None._
 
 ### Modified Capabilities
 
-- `ci-repo-governance`: the auto-merge requirement is corrected and widened — every trusted-automation PR (Renovate *and* the version-bump PR) has auto-merge enabled at creation, and the merge fires on the ruleset's terms, with code-owner approval as the human gate.
+- `ci-repo-governance`: the auto-merge requirement is corrected and widened — every trusted-automation PR (Renovate *and* the version-bump PR) has auto-merge enabled at creation, and the merge fires on the ruleset's terms, with code-owner approval as the human gate. A new requirement covers bringing a stale PR branch up to date, without which the automated merge can stall silently.
+- `ci-workflow-readability`: the release-prep requirement is corrected to the single-job `prepare-release.yml` that exists, and absorbs the App-token identity clause.
+- `flutter-version-update`, `windows-version-tracking`: the upgrade PR cadence is corrected from monthly to weekday-scheduled.
 
 ## Impact
 
-- **Affected files**: `.github/workflows/update-version.yml` (one step, plus an `id:` on the existing PR step), `openspec/specs/ci-repo-governance/spec.md`.
+- **Affected files**: `.github/workflows/update-version.yml` (one step, plus an `id:` on the existing PR step), `openspec/specs/ci-repo-governance/spec.md`, `openspec/specs/ci-workflow-readability/spec.md`, `openspec/specs/flutter-version-update/spec.md`, `openspec/specs/windows-version-tracking/spec.md`.
 - **Behavioural change**: approving a version-bump PR merges it. The maintainer's action changes from *approve, then merge* to *approve*.
 - **Release chain**: the merge commit is authored by the `verified-commit` App instead of the maintainer. The push to `main` must still trigger `prepare-release.yml` (tag) → `release.yml` (publish). This is why the App token is used rather than `GITHUB_TOKEN`, whose pushes do not trigger workflows — and it is the single property to confirm on the first real run.
 - **Risk**: none of the merge requirements weaken. Auto-merge cannot merge a PR that a human has not approved, cannot merge on a red or missing check, and is disabled by GitHub if the PR becomes conflicted. The exposure is a configuration one — if `require_code_owner_review` is ever set to `false`, version bumps would begin merging unreviewed on green. That coupling is invisible in the workflow file, which is why it is written into the spec.

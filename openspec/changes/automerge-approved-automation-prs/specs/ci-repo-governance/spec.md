@@ -44,6 +44,36 @@ Those requirements include an approving review from a code owner: the ruleset se
 - **AND** the failure is reported as a warning in the run log
 - **AND** the maintainer can review and merge the pull request manually, as before
 
+### Requirement: An automation pull request behind the default branch is brought up to date
+
+Because the `~DEFAULT_BRANCH` ruleset sets `strict_required_status_checks_policy: true`, a pull request whose branch is behind `main` cannot merge even with every check green and the code owner's approval recorded. GitHub's auto-merge does not update the branch; it waits indefinitely and reports nothing. When trusted automation opens or updates a pull request, it SHALL detect that the branch is behind the default branch and request an update, so the branch is current before the maintainer reviews it. The update SHALL be attempted before approval, never after: `dismiss_stale_reviews_on_push: true` means a branch update following an approval dismisses that approval. A failed update SHALL be reported as a warning and SHALL NOT fail the run, leaving today's manual "Update branch" as the fallback.
+
+**Experience context:** the maintainer approves an automated bump and treats the approval as the end of their involvement. Before auto-merge, the merge click surfaced a stale branch — GitHub blocks the button and names the reason. Automating the click removes that moment, so a stale branch becomes a pull request that is approved, green, and silently unmerged, with the release for that Flutter version never published. This is not hypothetical: `update-version.yml` and Renovate both run in the same early-morning window, so any Renovate merge landing between the bump pull request opening and the maintainer's approval leaves the bump behind.
+
+#### Scenario: The bump pull request falls behind main before review
+
+- **GIVEN** a version-bump pull request with auto-merge enabled
+- **AND** another pull request merges to `main` afterwards, leaving the bump branch behind
+- **WHEN** the automation next runs for that pull request
+- **THEN** it requests an update of the pull request branch from `main`
+- **AND** the required checks re-run against the updated branch
+- **AND** the maintainer's approval merges it, because the branch is no longer stale
+
+#### Scenario: The branch is already current
+
+- **GIVEN** a version-bump pull request whose branch already contains the tip of `main`
+- **WHEN** the automation evaluates whether an update is needed
+- **THEN** no update is requested and no commit is pushed
+- **AND** no approval is dismissed
+
+#### Scenario: The branch update cannot be performed
+
+- **GIVEN** a version-bump pull request behind `main`
+- **WHEN** the update request fails, for example because the branch has a conflict
+- **THEN** the workflow run does NOT fail
+- **AND** the failure is reported as a warning in the run log
+- **AND** the maintainer can update and merge the pull request manually, as before
+
 ### Requirement: An automated merge triggers the release chain
 
 The identity that performs an automated merge into `~DEFAULT_BRANCH` SHALL be one whose pushes trigger workflow runs — a GitHub App installation token, not the workflow's own `GITHUB_TOKEN`, whose pushes GitHub suppresses from triggering further workflows. Because GitHub attributes an auto-merge to whichever identity enabled it, this constrains the token used to enable auto-merge, not only the token used to push.

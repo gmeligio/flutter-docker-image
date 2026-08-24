@@ -27,7 +27,7 @@ Three configuration facts and one timing observation decide everything below. Al
 
 Two seconds is a webhook round-trip. Renovate's PRs were merged by GitHub acting on the auto-merge Renovate had enabled, the moment the approval satisfied the last requirement. #547 had no auto-merge enabled, so the same approval did nothing and the merge was a click.
 
-The maintainer's own PRs (#531, #538, #540, #543) merged with zero reviews, so the code-owner requirement does not hold *him* — either because a ruleset bypass still covers the repository-admin role, or because GitHub cannot require an author to approve their own PR. Which one is true does not change this design (it only decides whether a future "auto-merge my own PRs too" change is safe), but it is worth knowing, so confirming it is a task.
+The maintainer's own PRs (#531, #538, #540, #543) merged with zero reviews, so the code-owner requirement does not hold *him*. The reason is self-approval: GitHub does not count the author as a satisfying code-owner reviewer, and `required_approving_review_count` is `0`, so no numeric floor blocks the merge either. The ruleset defines no bypass actors, so nothing is being skipped. This does not change the design — it only means a future "auto-merge my own PRs too" change would be merge-on-green with no human gate, which is why `proposal.md` keeps it out of scope.
 
 ## Goals / Non-Goals
 
@@ -42,7 +42,6 @@ The maintainer's own PRs (#531, #538, #540, #543) merged with zero reviews, so t
 
 - Auto-merging PRs authored by the maintainer.
 - Any form of automated approval.
-- Keeping a stale PR branch up to date (a real gap; see Risks).
 - Adopting a merge queue or a third-party merge bot.
 
 ## Decisions
@@ -82,6 +81,23 @@ The step belongs in the job that already holds the App token and the PR number. 
     script: |
       const number = Number('${{ steps.create_pr.outputs.pull-request-number }}')
       const { data: pr } = await github.rest.pulls.get({ ...context.repo, pull_number: number })
+
+      // A branch behind main cannot merge (strict required checks), and auto-merge
+      // never updates it. Do this before approval: dismiss_stale_reviews_on_push
+      // would dismiss a review that an update followed.
+      const { data: cmp } = await github.rest.repos.compareCommitsWithBasehead({
+        ...context.repo,
+        basehead: `${pr.base.ref}...${pr.head.sha}`,
+      })
+      if (cmp.behind_by > 0) {
+        try {
+          await github.rest.pulls.updateBranch({ ...context.repo, pull_number: number })
+          core.info(`Updated #${number}; it was ${cmp.behind_by} commit(s) behind ${pr.base.ref}.`)
+        } catch (error) {
+          core.warning(`Could not update #${number}: ${error.message}`)
+        }
+      }
+
       try {
         await github.graphql(
           `mutation($id: ID!) {
@@ -97,14 +113,44 @@ The step belongs in the job that already holds the App token and the PR number. 
       }
 ```
 
-Four things in that sketch are load-bearing:
+Five things in that sketch are load-bearing:
 
 1. **`mergeMethod: SQUASH`.** The ruleset's `allowed_merge_methods` is `["squash"]` and the repository disables merge commits and rebase merges. Any other value fails the mutation. Squashing through GitHub also produces the signed, linear commit that `required_signatures` and `required_linear_history` demand.
 2. **The App token, not `GITHUB_TOKEN`.** GitHub attributes the eventual merge to whoever enabled auto-merge. Pushes made with `GITHUB_TOKEN` do not trigger workflow runs, and this merge *must* trigger `prepare-release.yml` — otherwise the tag is never created, `release.yml` never runs, and the new image is never published. The `verified-commit` App is already used in this workflow for exactly this reason (its step is named "Generate authentication token with GitHub App to trigger Actions") and already holds `pull requests: write`, since it opens the PR. The job's own `permissions:` stays read-only, as `ci-workflow-hardening` requires.
-3. **`enablePullRequestAutoMerge` is GraphQL-only**, and it needs the PR's `node_id`, which `create-pull-request` does not output — hence the `pulls.get`. (`gh pr merge --auto --squash <n>` with `GH_TOKEN` set to the App token is a one-line equivalent; `github-script` is preferred because the failure handling below is explicit rather than a shell `|| true`, and the action is already pinned in `gx.toml`.)
-4. **The `try`/`catch`.** Enabling auto-merge is an optimisation on top of a PR that is already correct. If the mutation fails, the desired outcome is "maintainer merges by hand this week", which is today's behaviour — not a red workflow run and an unexplained missing bump.
+3. **The update is asynchronous.** `updateBranch` queues a merge of the base into the head; it returns before the new commit exists. Enabling auto-merge immediately afterwards is still correct — auto-merge waits on whatever state the branch settles into, and the freshly-pushed update re-triggers the required checks. Nothing downstream depends on the update having landed by the time the step exits.
+4. **`enablePullRequestAutoMerge` is GraphQL-only**, and it needs the PR's `node_id`, which `create-pull-request` does not output — hence the `pulls.get`. (`gh pr merge --auto --squash <n>` with `GH_TOKEN` set to the App token is a one-line equivalent; `github-script` is preferred because the failure handling below is explicit rather than a shell `|| true`, and the action is already pinned in `gx.toml`.)
+5. **The `try`/`catch`.** Enabling auto-merge is an optimisation on top of a PR that is already correct. If the mutation fails, the desired outcome is "maintainer merges by hand this week", which is today's behaviour — not a red workflow run and an unexplained missing bump.
 
 The step is gated on `pull-request-number` being non-empty rather than on `pull-request-operation == 'created'`. When the workflow re-runs and *updates* an existing bump PR, that push dismisses the stale approval and re-enabling auto-merge is a harmless no-op if it is already on; skipping the `updated` case would leave a re-pushed PR without it.
+
+### Update the branch in the same step, before the maintainer reviews
+
+`strict_required_status_checks_policy: true` requires the PR branch to be current with `main`, and GitHub's auto-merge does not rebase or update it — it waits, indefinitely and silently. `update-version.yml` and Renovate run in the same early-morning window (#547 opened `02:04`; #541/#542 opened `02:16`), so a Renovate PR merging first leaves the bump PR out of date.
+
+Today the manual merge click is what surfaces this: GitHub disables the button and names the reason. **Automating the click removes the only moment the maintainer would notice.** After this change the mental model is "I approved, it is done", so a stale branch becomes an approved, green, permanently unmerged PR — and a Flutter version that is never released. Handling staleness is therefore not an optional extra; it is what makes the change's promise true.
+
+The same `github-script` step asks GitHub how far the head is behind the base (`compareCommitsWithBasehead`, reading `behind_by`) and calls `pulls.updateBranch` when that is non-zero. Note it is not enough to read `pull.base.sha`: that records the base commit the PR was opened against and does not advance as `main` does.
+
+```
+       branch current?  ──yes──▶  nothing to do
+              │
+              no
+              ▼
+     pulls.updateBranch      ──fails (conflict)──▶  core.warning, continue
+              │
+              ▼
+     checks re-run on the updated branch
+              │
+              ▼
+     enablePullRequestAutoMerge     ──▶  approval merges it
+```
+
+Two constraints shape this:
+
+1. **It must run before approval, never after.** `dismiss_stale_reviews_on_push: true` means a branch update following an approval dismisses that approval — turning a fix into a second stall. Doing it at open/update time, which is the only time this workflow runs, satisfies this by construction.
+2. **`allow_update_branch: true`** is already set on the repository, so no settings change is needed.
+
+A merge queue would solve this more thoroughly by testing each PR against the tip of `main`, and remains the answer if collisions ever become frequent; it is rejected here for the latency it adds to a repository merging a handful of PRs a week.
 
 ### The known-benign failure: "clean status"
 
@@ -112,7 +158,7 @@ The step is gated on `pull-request-number` being non-empty rather than on `pull-
 
 ## Risks
 
-- **A stale branch stalls the merge, silently.** `strict_required_status_checks_policy: true` requires the PR branch to be current with `main`. GitHub's auto-merge does not rebase or update the branch. `update-version.yml` and Renovate both run in the same early-morning window (#547 opened `02:04`; #541/#542 opened `02:16`), so a Renovate PR merging first leaves the bump PR out of date and auto-merge waiting with no notification. Mitigation today: the maintainer clicks "Update branch", which re-runs the checks and — because `dismiss_stale_reviews_on_push: true` — dismisses the approval, so it must be re-approved. Worth watching; if it happens more than occasionally, the fix is either a scheduled `update_pull_request_branch` call or a merge queue.
+- **A stale branch can still be conflicted.** The update step below handles the common case, but `pulls.updateBranch` cannot merge `main` into a branch that conflicts with it. That case warns and leaves the PR for the maintainer, which is today's behaviour.
 - **Any post-approval push un-approves the PR.** Same rule, other direction. `update-docs.yml`'s `generate` job pushes regenerated docs onto the PR branch, and `config/version.json` is a docs generator source — so a bump PR *does* receive an automated push. On #547 it landed at `02:04:44`, five hours before the approval, which is the normal ordering. If it ever lands after an approval, the PR quietly stops being mergeable.
 - **The gate is invisible in the diff.** The workflow step says "enable auto-merge"; nothing in the file says "and a human must approve first". That fact lives in an externally-managed ruleset. The spec delta is the mitigation: `require_code_owner_review: true` becomes a stated, load-bearing guardrail rather than an incidental setting.
 - **Merge attribution changes.** `main`'s history will show the version-bump squash authored by the App rather than the maintainer. Cosmetic, but it is the signal that the merge was automated, and `release.yml`'s notes are generated from history.
@@ -124,4 +170,4 @@ Every claim below is checkable on the next real version bump; none of it can be 
 1. On the run that opens the next bump PR, confirm the step logged "Auto-merge enabled" and the PR shows the auto-merge banner while staying unmerged on green.
 2. Approve it and confirm the merge lands within seconds, as a squash, with `verified-commit[bot]` as the merging actor.
 3. Confirm `prepare-release.yml` runs on the resulting push to `main` and creates the tag — this is the one property that would break the release chain if the merge identity behaved like `GITHUB_TOKEN`.
-4. Read the ruleset's `bypass_actors` with an admin token to settle why maintainer-authored PRs merge unreviewed, and record the answer in the archived change.
+4. If the branch was behind `main`, confirm the update step brought it current, the checks re-ran, and no approval was dismissed by the update.
