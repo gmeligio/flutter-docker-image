@@ -1,0 +1,31 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "01M0SY12VSJRRG8885CQDK0277",
+  "strategy": "manual-commit",
+  "branch": "claude/automerge-approved-prs-design-mfoeu5",
+  "checkpoints_count": 8,
+  "files_touched": [
+    "basecheck",
+    "openspec/changes/automerge-approved-automation-prs/tasks.md",
+    "openspec/specs/ci-repo-governance/spec.md",
+    "openspec/specs/ci-workflow-readability/spec.md",
+    "openspec/specs/flutter-version-update/spec.md",
+    "openspec/specs/windows-version-tracking/spec.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": ""
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 26,
+    "cache_creation_tokens": 7882,
+    "cache_read_tokens": 2179450,
+    "output_tokens": 4729,
+    "api_call_count": 13
+  }
+}
