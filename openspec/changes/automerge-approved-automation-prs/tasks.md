@@ -32,6 +32,8 @@
 
 ## 4. Verify on the next real bump
 
+_Deliberately unchecked: these observe behaviour that does not exist until this merges and the next scheduled run opens a bump PR. Work through them on that run, before archiving._
+
 - [ ] 4.1 Confirm the workflow log shows auto-merge enabled, and that the PR stays open on green until reviewed
 - [ ] 4.2 Approve and confirm the merge lands within seconds, squashed, merged by `verified-commit[bot]`
 - [ ] 4.3 Confirm `prepare-release.yml` fires on the resulting push to `main` and creates the tag, and that `release.yml` follows
