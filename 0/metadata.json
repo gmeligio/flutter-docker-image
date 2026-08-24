@@ -51,6 +51,37 @@
         "label": "/opsx:explore",
         "default_collapsed": true
       }
+    },
+    {
+      "id": "claude-skill-toolu_01PebYZ22NmGyVRrqdvYkYLc",
+      "event_type": "tool_invocation",
+      "skill": {
+        "name": "opsx:apply"
+      },
+      "source": {
+        "agent": "claude-code",
+        "signal": "skill_tool_use",
+        "confidence": "explicit"
+      },
+      "turn_id": "c1a5294351ac",
+      "transcript_anchor": {
+        "unit": "line",
+        "start": 706,
+        "end": 707,
+        "entry_ids": [
+          "2035d960-ad50-472d-8b70-73e147598f97"
+        ],
+        "tool_use_id": "toolu_01PebYZ22NmGyVRrqdvYkYLc"
+      },
+      "native": {
+        "tool_name": "Skill",
+        "tool_use_id": "toolu_01PebYZ22NmGyVRrqdvYkYLc"
+      },
+      "collapse": {
+        "target": "tool_pair",
+        "label": "Skill: opsx:apply",
+        "default_collapsed": true
+      }
     }
   ],
   "session_metrics": {
