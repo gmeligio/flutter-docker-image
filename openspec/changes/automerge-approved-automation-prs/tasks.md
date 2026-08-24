@@ -6,18 +6,18 @@
 
 ## 2. Wire auto-merge into the version-bump PR
 
-- [ ] 2.1 Add `id: create_pr` to the existing `create-pull-request` step in `compose-and-open-pr`; change nothing else about that step
-- [ ] 2.2 Add an "Enable auto-merge on the pull request" step after it, using `actions/github-script` with `github-token: ${{ steps.app-token.outputs.token }}` — not `GITHUB_TOKEN`, whose pushes would not trigger `prepare-release.yml`
-- [ ] 2.3 Fetch the PR's `node_id` via `pulls.get`, then call `enablePullRequestAutoMerge` with `mergeMethod: SQUASH`
-- [ ] 2.4 Gate the step on `steps.create_pr.outputs.pull-request-number != ''` so it covers both the `created` and `updated` cases and no-ops when nothing was opened
-- [ ] 2.5 Wrap the mutation in `try`/`catch` reporting through `core.warning`, so a failed enable never fails the job or loses the bump PR
-- [ ] 2.6 Comment the step with *why* enabling at open time is not merge-on-green: the ruleset's code-owner review is the gate
-- [ ] 2.7 Leave the job's `permissions:` read-only — the App token carries the write scope
-- [ ] 2.8 In the same `github-script` step, before enabling auto-merge, detect that the branch is behind `main` and call `pulls.updateBranch` — `strict_required_status_checks_policy: true` means a stale branch blocks the merge that the approval would otherwise complete, and GitHub's auto-merge never updates the branch itself. Determine staleness by comparing the base branch tip (`repos.getBranch` on `main`, or `compare`) against the PR's merge base rather than reading `pull.base.sha`, which is the recorded base commit and does not move as `main` advances
-- [ ] 2.9 Wrap the update in its own `try`/`catch` reporting through `core.warning` (a conflicted branch cannot be updated), and comment that the update must precede approval because `dismiss_stale_reviews_on_push: true` would dismiss a review it followed
-- [ ] 2.10 Confirm the update is a no-op when the branch is already current, so no run pushes a needless commit
-- [ ] 2.11 Order the two calls update-then-enable, and note that `updateBranch` is asynchronous — the subsequent `enablePullRequestAutoMerge` must not depend on the update having landed, since auto-merge simply waits for whatever state the branch reaches
-- [ ] 2.12 Run `gx lint` and confirm no new finding (no PR-head checkout, no missing permissions, `actions/github-script` already pinned in `gx.toml`)
+- [x] 2.1 Add `id: create_pr` to the existing `create-pull-request` step in `compose-and-open-pr`; change nothing else about that step
+- [x] 2.2 Add an "Enable auto-merge on the pull request" step after it, using `actions/github-script` with `github-token: ${{ steps.app-token.outputs.token }}` — not `GITHUB_TOKEN`, whose pushes would not trigger `prepare-release.yml`
+- [x] 2.3 Fetch the PR's `node_id` via `pulls.get`, then call `enablePullRequestAutoMerge` with `mergeMethod: SQUASH`
+- [x] 2.4 Gate the step on `steps.create_pr.outputs.pull-request-number != ''` so it covers both the `created` and `updated` cases and no-ops when nothing was opened
+- [x] 2.5 Wrap the mutation in `try`/`catch` reporting through `core.warning`, so a failed enable never fails the job or loses the bump PR
+- [x] 2.6 Comment the step with *why* enabling at open time is not merge-on-green: the ruleset's code-owner review is the gate
+- [x] 2.7 Leave the job's `permissions:` read-only — the App token carries the write scope
+- [x] 2.8 In the same `github-script` step, before enabling auto-merge, detect that the branch is behind `main` and call `pulls.updateBranch` — `strict_required_status_checks_policy: true` means a stale branch blocks the merge that the approval would otherwise complete, and GitHub's auto-merge never updates the branch itself. Determine staleness by comparing the base branch tip (`repos.getBranch` on `main`, or `compare`) against the PR's merge base rather than reading `pull.base.sha`, which is the recorded base commit and does not move as `main` advances
+- [x] 2.9 Wrap the update in its own `try`/`catch` reporting through `core.warning` (a conflicted branch cannot be updated), and comment that the update must precede approval because `dismiss_stale_reviews_on_push: true` would dismiss a review it followed
+- [x] 2.10 Confirm the update is a no-op when the branch is already current, so no run pushes a needless commit
+- [x] 2.11 Order the two calls update-then-enable, and note that `updateBranch` is asynchronous — the subsequent `enablePullRequestAutoMerge` must not depend on the update having landed, since auto-merge simply waits for whatever state the branch reaches
+- [x] 2.12 Run `gx lint` and confirm no new finding (no PR-head checkout, no missing permissions, `actions/github-script` already pinned in `gx.toml`)
 
 ## 3. Record the guardrails the workflow cannot express
 
