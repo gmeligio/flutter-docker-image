@@ -56,6 +56,20 @@ docker build --target linux --build-arg flutter_version=3.44.6 -t flutter-linux:
 docker build --target flutter --build-arg flutter_version=3.44.6 -t flutter-windows:local -f windows.Dockerfile .
 ```
 
+## Publishing a new image
+
+Wiring a new image into CI is a matrix entry in `build.yml` (build, test, scan), in `release.yml` (`release-linux`, `verify-published`, `update-description`, `record-image`), and in `cleanup-pr-image.yml`. The registry side is **not** automated: each registry needs a one-time manual setup, and skipping it fails the release run rather than the build.
+
+- **Docker Hub** — nothing to prepare. The first push auto-creates the repository, public by default. Check only that `DOCKER_HUB_TOKEN` is not restricted to a fixed set of repositories, because `update-description` writes the new repository's description with it.
+- **GHCR** — the package is **private** when first pushed. That is independent of the repository being public, and assuming otherwise once shipped an unpullable `flutter-android` ([issue #492](https://github.com/gmeligio/flutter-docker-image/issues/492)). In the package settings, set:
+  1. **Visibility: Public.** `verify-published` resolves every tag with anonymous auth only, so a private package fails the release even though the push succeeded.
+  2. **Manage Actions access: this repository, role Admin.** `cleanup-pr-image.yml` deletes the `pr-<N>` handoff versions through `/user/packages/container/<name>/versions` with `GITHUB_TOKEN`, which requires Admin.
+
+  Both are web-UI-only — no REST endpoint changes either one. The package first appears on the first non-fork `build.yml` run, which pushes the `pr-<N>` (or `branch-<ref>`) handoff tag, so any pull request from this repository creates it in time to fix the settings before the first release tag.
+- **Quay.io** — pre-create the repository as **public** and grant the robot account in `QUAY_USERNAME` write access on it. A repository auto-created by a push is private, and Quay robot permissions are per-repository, so an unprepared namespace fails either the push in `release-linux` or the anonymous check in `verify-published`.
+
+Each of those matrices is `fail-fast: false`, so a missed step reddens only the new image's legs and the other images still publish. Fix the setting and re-push the tag to publish forward.
+
 ## Editing GitHub Actions workflows
 
 GitHub Actions versions are tracked with [gx](https://github.com/gmeligio/gx). The manifest at `.github/gx.toml` is the source of truth for version constraints, and `.github/gx.lock` records the resolved SHAs. Workflows must use SHA pins with a `# vX.Y.Z` comment.
