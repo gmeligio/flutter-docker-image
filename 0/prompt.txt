@@ -1,0 +1,5 @@
+commit and push
+
+---
+
+OK. Make sure the code in script/enableAutoMerge.js is semantic and that we aren't missing anything about the "what". That should be in code. The minimal code comments if any should be something that's not obvious to the reader.
