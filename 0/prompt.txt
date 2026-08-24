@@ -1,0 +1,9 @@
+Run /change-review and fix the findings. Do it twice sequentially.
+
+---
+
+commit and push
+
+---
+
+I still see verbose code comments in the diff in .github/workflows/update-version.yml . Also, I'd prefer to have the js script in some folder instead of inline.
