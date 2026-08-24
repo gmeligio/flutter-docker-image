@@ -33,7 +33,7 @@
 
 ## 4. Verify on the next real bump
 
-_Deliberately unchecked: these observe behaviour that does not exist until this merges and the next scheduled run opens a bump PR. Work through them on that run, before archiving._
+_Deliberately unchecked. These observe behaviour that does not exist until this merges and the next scheduled run opens a bump PR, so they could not be completed before archiving. **Archived 2026-08-24 with these open, by maintainer decision** — the change was archived while PR #548 was still an unmerged draft with CI in flight. Work through them on the first real bump after #548 merges; 4.3 is the one that matters most, since a merge identity that behaves like `GITHUB_TOKEN` would leave the PR looking merged with no tag and no published image._
 
 - [ ] 4.1 Confirm the workflow log shows auto-merge enabled, and that the PR stays open on green until reviewed
 - [ ] 4.2 Approve and confirm the merge lands within seconds, squashed, merged by `verified-commit[bot]`
