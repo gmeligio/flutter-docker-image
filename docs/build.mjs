@@ -4,7 +4,8 @@
 // committed readme.md drifts (git diff --exit-code). The same readme.md is used
 // as the GitHub README and the Docker Hub description.
 //
-// Covers every published image (flutter-android, flutter-web, flutter-windows)
+// Covers every published image (flutter-android, flutter-web, flutter-linux,
+// flutter-windows)
 // as a concise quick-start: what-is / how-to-use above the fold. Reference and
 // contributor material lives in static docs/ pages, linked from the README.
 import { readFileSync, writeFileSync } from 'node:fs'
@@ -40,7 +41,7 @@ const pullsBadge = (name, label) =>
 // One registry table covering every image: rows are registries, columns are
 // the images. Cells are per-registry pull references, so the three images share
 // a single table instead of repeating Docker Hub / GHCR / Quay once each.
-const images = ['flutter-android', 'flutter-web', 'flutter-windows']
+const images = ['flutter-android', 'flutter-web', 'flutter-linux', 'flutter-windows']
 const registryTable = () => {
   const dockerHub = (name) => `[${tag(name)}](https://hub.docker.com/r/${repo(name)})`
   const githubCR = (name) => `[${ghcr(name)}](https://github.com/${owner}/flutter-docker-image/pkgs/container/${name})`
@@ -76,14 +77,21 @@ const badges = [
   `[![channel](https://img.shields.io/static/v1?label=channel&message=${channel}&color=${channelColor})](https://docs.flutter.dev/release/archive?tab=linux)`,
   pullsBadge('flutter-android', 'flutter-android pulls'),
   pullsBadge('flutter-web', 'flutter-web pulls'),
+  pullsBadge('flutter-linux', 'flutter-linux pulls'),
   pullsBadge('flutter-windows', 'flutter-windows pulls'),
 ].join(' ')
 
 // ---- body ------------------------------------------------------------------
-const body = `Minimal Docker images for building Flutter apps in Continuous Integration (CI), for Android, Web, and Windows platforms, with the SDK and toolchain predownloaded so \`flutter\` runs without extra downloads. Images track the Flutter **stable** channel and the current version is **${flutter}**.
+const body = `Minimal Docker images for building Flutter apps in Continuous Integration (CI), for Android, Web, Linux, and Windows platforms, with the SDK and toolchain predownloaded so \`flutter\` runs without extra downloads. Images track the Flutter **stable** channel and the current version is **${flutter}**.
 
 \`\`\`bash
 docker run --rm -it ${ghcr('flutter-android')} flutter build apk
+\`\`\`
+
+For Linux desktop builds:
+
+\`\`\`bash
+docker run --rm -it ${ghcr('flutter-linux')} flutter build linux
 \`\`\`
 
 Each image is tagged with the Flutter version it ships (\`:${flutter}\`), there is no \`latest\` tag ([see more on the why](${blob('docs/faq.md')}#why-there-is-no-dynamic-tag-like-latest)). All tools running in the image have analytics disabled and opt-in with \`ENABLE_ANALYTICS=true\`, and a rootless \`flutter:flutter\` user.
@@ -98,11 +106,15 @@ ${registryTable()}
 
 ## Running on CI
 
-The Linux images (\`flutter-android\`, \`flutter-web\`) run as the job container:
+The Linux-hosted images (\`flutter-android\`, \`flutter-web\`, \`flutter-linux\`) run as the job container:
 
 ${ghWorkflow('flutter-android', 'flutter build apk')}
 
 For \`flutter-web\`, use the same workflow with \`image: ${ghcr('flutter-web')}\` and \`run: flutter build web\`. Windows containers cannot run under the Linux \`container:\` field, so \`flutter-windows\` runs on a \`windows-2025\` runner and invokes \`docker\` directly:
+
+Linux desktop GitHub Actions example:
+
+${ghWorkflow('flutter-linux', 'flutter build linux')}
 
 ${windowsWorkflow('flutter build windows')}
 

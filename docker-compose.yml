@@ -40,6 +40,15 @@ services:
     environment:
       ENABLE_ANALYTICS: $ENABLE_ANALYTICS
 
+  linux:
+    build:
+      dockerfile: ./android.Dockerfile
+      target: linux
+      args:
+        flutter_version: $FLUTTER_VERSION
+    environment:
+      ENABLE_ANALYTICS: $ENABLE_ANALYTICS
+
   windows:
     build:
       dockerfile: ./windows.Dockerfile
