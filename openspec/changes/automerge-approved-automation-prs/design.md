@@ -62,7 +62,7 @@ What the open-time approach avoids is a second workflow triggered by `pull_reque
 
 ### One step in `compose-and-open-pr`, after the existing PR step
 
-The step belongs in the job that already holds the App token and the PR number. Sketch:
+The step belongs in the job that already holds the App token and the PR number. The logic lives in `script/enableAutoMerge.js` and the step invokes it, matching how `prepare-release.yml` calls `script/createGitTag.js` — the workflow file stays readable, and the JavaScript is lintable and reviewable as JavaScript:
 
 ```yaml
 - name: Create pull request if there are changes
@@ -70,50 +70,21 @@ The step belongs in the job that already holds the App token and the PR number. 
   id: create_pr                       # <- added; the step is otherwise unchanged
   with: ...
 
-# Approval is the last unmet merge requirement for an App-authored PR (the main
-# ruleset requires code-owner review), so enabling auto-merge here is what turns
-# the maintainer's approval into the merge. It does not merge on green alone.
 - name: Enable auto-merge on the pull request
   if: steps.create_pr.outputs.pull-request-number != ''
   uses: actions/github-script@<pinned>
+  env:
+    PR_NUMBER: ${{ steps.create_pr.outputs.pull-request-number }}
   with:
     github-token: ${{ steps.app-token.outputs.token }}
     script: |
-      const number = Number('${{ steps.create_pr.outputs.pull-request-number }}')
-      const { data: pr } = await github.rest.pulls.get({ ...context.repo, pull_number: number })
-
-      // A branch behind main cannot merge (strict required checks), and auto-merge
-      // never updates it. Do this before approval: dismiss_stale_reviews_on_push
-      // would dismiss a review that an update followed.
-      const { data: cmp } = await github.rest.repos.compareCommitsWithBasehead({
-        ...context.repo,
-        basehead: `${pr.base.ref}...${pr.head.sha}`,
-      })
-      if (cmp.behind_by > 0) {
-        try {
-          await github.rest.pulls.updateBranch({ ...context.repo, pull_number: number })
-          core.info(`Updated #${number}; it was ${cmp.behind_by} commit(s) behind ${pr.base.ref}.`)
-        } catch (error) {
-          core.warning(`Could not update #${number}: ${error.message}`)
-        }
-      }
-
-      try {
-        await github.graphql(
-          `mutation($id: ID!) {
-             enablePullRequestAutoMerge(input: { pullRequestId: $id, mergeMethod: SQUASH }) {
-               clientMutationId
-             }
-           }`,
-          { id: pr.node_id },
-        )
-        core.info(`Auto-merge enabled on #${number}; it will merge once the code owner approves.`)
-      } catch (error) {
-        core.warning(`Could not enable auto-merge on #${number}: ${error.message}`)
-      }
+      const script = require('./script/enableAutoMerge.js')
+      await script({ core, context, github })
 ```
 
-Five things in that sketch are load-bearing:
+The script reads `PR_NUMBER` from the environment rather than through `${{ }}` interpolation, fetches the PR's `node_id`, updates the branch when `compareCommitsWithBasehead` reports it behind, then calls `enablePullRequestAutoMerge`. Both API calls are individually wrapped in `try`/`catch` reporting through `core.warning`.
+
+Five things in it are load-bearing:
 
 1. **`mergeMethod: SQUASH`.** The ruleset's `allowed_merge_methods` is `["squash"]` and the repository disables merge commits and rebase merges. Any other value fails the mutation. Squashing through GitHub also produces the signed, linear commit that `required_signatures` and `required_linear_history` demand.
 2. **The App token, not `GITHUB_TOKEN`.** GitHub attributes the eventual merge to whoever enabled auto-merge. Pushes made with `GITHUB_TOKEN` do not trigger workflow runs, and this merge *must* trigger `prepare-release.yml` — otherwise the tag is never created, `release.yml` never runs, and the new image is never published. The `verified-commit` App is already used in this workflow for exactly this reason (its step is named "Generate authentication token with GitHub App to trigger Actions") and already holds `pull requests: write`, since it opens the PR. The job's own `permissions:` stays read-only, as `ci-workflow-hardening` requires.

@@ -18,6 +18,7 @@
 - [x] 2.10 Confirm the update is a no-op when the branch is already current, so no run pushes a needless commit
 - [x] 2.11 Order the two calls update-then-enable, and note that `updateBranch` is asynchronous — the subsequent `enablePullRequestAutoMerge` must not depend on the update having landed, since auto-merge simply waits for whatever state the branch reaches
 - [x] 2.12 Run `gx lint` and confirm no new finding (no PR-head checkout, no missing permissions, `actions/github-script` already pinned in `gx.toml`)
+- [x] 2.13 Keep the step body out of the workflow: put the logic in `script/enableAutoMerge.js` exporting `async ({ core, context, github })` and reading `PR_NUMBER` from `process.env`, invoked by a two-line `require` — the convention `prepare-release.yml` already uses for `script/createGitTag.js`
 
 ## 3. Record the guardrails the workflow cannot express
 
