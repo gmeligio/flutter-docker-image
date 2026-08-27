@@ -25,9 +25,9 @@
 
 ## 4. Docs generation
 
-- [ ] 4.1 Change `docs/build.mjs` to read the image list from `config/images.json` instead of the literal at `:44`.
-- [ ] 4.2 Add `config/images.json` to `update-docs.yml`'s `paths:` filter (`:18`) so an image-set-only change still triggers the drift check.
-- [ ] 4.3 Run `mise run docs` and confirm `readme.md` is byte-identical — this change alters the generator's input source, not its output, so any diff is a defect.
+- [x] 4.1 Change `docs/build.mjs` to read the image list from `config/images.json` instead of the literal at `:44`.
+- [x] 4.2 Add `config/images.json` to `update-docs.yml`'s `paths:` filter (`:18`) so an image-set-only change still triggers the drift check.
+- [x] 4.3 Run `mise run docs` and confirm `readme.md` is byte-identical — this change alters the generator's input source, not its output, so any diff is a defect.
 
 ## 5. Specs
 

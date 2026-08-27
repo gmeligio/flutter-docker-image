@@ -16,6 +16,7 @@ on:
       - docs/build.mjs
       - docs/examples.cue
       - config/version.json
+      - config/images.json
   workflow_dispatch:
 
 permissions:
