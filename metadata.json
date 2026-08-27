@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "01M12GPY6FZ359JJY99Z1XTWC4",
+  "strategy": "manual-commit",
+  "branch": "fix/sync-published-image-descriptions",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "openspec/changes/sync-published-image-descriptions/tasks.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": ""
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 20,
+    "cache_creation_tokens": 7003,
+    "cache_read_tokens": 2403937,
+    "output_tokens": 3596,
+    "api_call_count": 10
+  }
+}
