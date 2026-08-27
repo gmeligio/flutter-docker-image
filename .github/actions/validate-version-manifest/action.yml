@@ -1,8 +1,9 @@
 name: 'Validate Version Manifest'
 description: >-
-  Validates config/version.json against config/schema.cue. Run before any step
-  that reads the manifest: otherwise a bad value fails minutes later against a
-  Dockerfile ARG, naming a package instead of the field.
+  Validates config/version.json and config/images.json against config/schema.cue.
+  Run before any step that reads a manifest: otherwise a bad value fails minutes
+  later against a Dockerfile ARG, naming a package instead of the field — or
+  expands into an image matrix that silently omits an image.
 
   Installs mise itself, so it works on Windows and on jobs without mise.
 
@@ -15,3 +16,7 @@ runs:
     - name: Validate version.json with CUE
       shell: bash
       run: cue vet config/schema.cue -d '#Version' config/version.json
+
+    - name: Validate images.json with CUE
+      shell: bash
+      run: cue vet config/schema.cue -d '#Images' config/images.json

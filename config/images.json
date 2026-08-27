@@ -1,0 +1,38 @@
+{
+  "images": [
+    {
+      "name": "flutter-android",
+      "dockerfile": "android",
+      "target": "android",
+      "testConfig": "test/android.yml",
+      "shortDescription": "Docker images for Flutter Continuous Integration (CI)",
+      "scout": true,
+      "prTag": true
+    },
+    {
+      "name": "flutter-web",
+      "dockerfile": "android",
+      "target": "web",
+      "testConfig": "test/web.yml",
+      "shortDescription": "Docker images for Flutter Continuous Integration (CI)",
+      "scout": true,
+      "prTag": true
+    },
+    {
+      "name": "flutter-linux",
+      "dockerfile": "android",
+      "target": "linux",
+      "testConfig": "test/linux.yml",
+      "shortDescription": "Docker images for Flutter Continuous Integration (CI)",
+      "scout": true,
+      "prTag": true
+    },
+    {
+      "name": "flutter-windows",
+      "dockerfile": "windows",
+      "shortDescription": "Docker images for Flutter CI in Windows platform",
+      "scout": false,
+      "prTag": false
+    }
+  ]
+}

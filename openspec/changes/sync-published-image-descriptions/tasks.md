@@ -1,9 +1,9 @@
 ## 1. Declare the image set
 
-- [ ] 1.1 Create `config/images.json` with one entry per published image — `flutter-android`, `flutter-web`, `flutter-linux`, `flutter-windows` — each carrying `name`, `dockerfile`, `shortDescription`, `scout`, `prTag`, plus `target` and `testConfig` on the three `android.Dockerfile` images. Copy `shortDescription` for `flutter-windows` from its live Docker Hub value (`"Docker images for Flutter CI in Windows platform"`); use the GitHub repo description for the other three, preserving today's behavior.
-- [ ] 1.2 Add an `#Images` definition to `config/schema.cue` using the `dockerfile` discriminator from design decision 2, requiring `target` and `testConfig` when `dockerfile == "android"` and pinning `scout: false` / `prTag: false` when `dockerfile == "windows"`.
-- [ ] 1.3 Extend `.github/actions/validate-version-manifest` to also run `cue vet config/schema.cue -d '#Images' config/images.json`.
-- [ ] 1.4 Verify the schema rejects the negative cases: a `dockerfile: "android"` entry missing `target` or `testConfig` fails with "field is required but not present"; a `dockerfile: "windows"` entry setting `scout: true` fails with "conflicting values false and true". Verify a correct manifest passes.
+- [x] 1.1 Create `config/images.json` with one entry per published image — `flutter-android`, `flutter-web`, `flutter-linux`, `flutter-windows` — each carrying `name`, `dockerfile`, `shortDescription`, `scout`, `prTag`, plus `target` and `testConfig` on the three `android.Dockerfile` images. Copy `shortDescription` for `flutter-windows` from its live Docker Hub value (`"Docker images for Flutter CI in Windows platform"`); use the GitHub repo description for the other three, preserving today's behavior.
+- [x] 1.2 Add an `#Images` definition to `config/schema.cue` using the `dockerfile` discriminator from design decision 2, requiring `target` and `testConfig` when `dockerfile == "android"` and pinning `scout: false` / `prTag: false` when `dockerfile == "windows"`.
+- [x] 1.3 Extend `.github/actions/validate-version-manifest` to also run `cue vet config/schema.cue -d '#Images' config/images.json`.
+- [x] 1.4 Verify the schema rejects the negative cases: a `dockerfile: "android"` entry missing `target` or `testConfig` fails with "field is required but not present"; a `dockerfile: "windows"` entry setting `scout: true` fails with "conflicting values false and true". Verify a correct manifest passes.
 
 ## 2. Fix the description sync (issue #521)
 
