@@ -31,9 +31,9 @@
 
 ## 5. Specs
 
-- [ ] 5.1 Add the `published-image-set` and `docker-hub-description-sync` specs under `openspec/specs/`.
-- [ ] 5.2 Apply the deltas to `generated-docs-and-examples` (drop the three-image enumeration and the Docker Hub description clause, which moves to the new sync spec), `ci-image-vulnerability-scan` (per-image Scout declaration), `ci-image-handoff` (generalize off `flutter-android`), and `ci-image-anonymous-availability` (derive the verified set from the manifest).
-- [ ] 5.3 Correct the stale `release-android` / `needs: release-android` references in `windows-image-release/spec.md:65,82`, which the workflow renamed to `release-linux`.
+- [x] 5.1 Add the `published-image-set` and `docker-hub-description-sync` specs under `openspec/specs/`.
+- [x] 5.2 Apply the deltas to `generated-docs-and-examples` (drop the three-image enumeration and the Docker Hub description clause, which moves to the new sync spec), `ci-image-vulnerability-scan` (per-image Scout declaration), `ci-image-handoff` (generalize off `flutter-android`), and `ci-image-anonymous-availability` (derive the verified set from the manifest).
+- [x] 5.3 Correct the stale `release-android` / `needs: release-android` references in `windows-image-release/spec.md:65,82`, which the workflow renamed to `release-linux`.
 
 ## 6. Verification and handoff
 

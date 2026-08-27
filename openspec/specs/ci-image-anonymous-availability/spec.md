@@ -3,36 +3,45 @@
 After a release run publishes images, the `release.yml` workflow SHALL verify
 that each published `<registry>/<repository>:<version>` resolves **without any
 registry credentials**, and SHALL fail the release run if any does not. The set
-of verified pairs SHALL be exactly the set the run published: the three
-`flutter-android` registry pairs when `release-android` succeeds, and the three
-`flutter-windows` registry pairs when `release-windows` succeeds.
+of verified pairs SHALL be exactly the set the run published: for every image in
+the published image set whose release job succeeded, its three registry pairs.
+That set SHALL be derived from `config/images.json` rather than enumerated in
+this requirement, so that adding an image extends verification without a spec or
+workflow edit.
 
 The experience context is the CI engineer who copies a pull command out of the
 readme — `docker pull ghcr.io/<org>/flutter-android:<version>` — and expects it
 to work with no login. Before this requirement, a release whose GHCR package was
 private published "successfully" and only a downstream consumer discovered the
-tag was unreachable (issue #492).
+tag was unreachable (issue #492). Naming images in the requirement text later
+let it drift: it listed two while the workflow verified four.
 
 #### Scenario: A private GHCR package fails the release
 
-- **GIVEN** `release-android` pushed `ghcr.io/<org>/flutter-android:X.Y.Z`
+- **GIVEN** a release job pushed `ghcr.io/<org>/<image>:X.Y.Z`
 - **AND** that GHCR package's visibility is Private
 - **WHEN** the `verify-published` job runs
 - **THEN** the anonymous manifest resolution for
-  `ghcr.io/<org>/flutter-android:X.Y.Z` does not return success
+  `ghcr.io/<org>/<image>:X.Y.Z` does not return success
 - **AND** the `verify-published` job fails
 - **AND** the release run is reported as failed, naming that exact
   `<registry>/<image>:<tag>`
 
 #### Scenario: All published pairs are public
 
-- **GIVEN** a release run published `flutter-android` and `flutter-windows` to
+- **GIVEN** a release run published every image in the set to
   Docker Hub, GHCR, and Quay at tag `X.Y.Z`
 - **AND** every one of those packages is anonymously pullable
 - **WHEN** `verify-published` runs
 - **THEN** each of the published `<registry>/<repository>:X.Y.Z` pairs resolves
   anonymously
 - **AND** the `verify-published` job succeeds
+
+#### Scenario: Verification covers a newly added image without a spec edit
+
+- **GIVEN** a new image is added to `config/images.json` and published by a release run
+- **WHEN** `verify-published` runs
+- **THEN** its three registry pairs are among the verified set
 
 ### Requirement: Verification reflects the unauthenticated consumer
 
@@ -67,7 +76,7 @@ The set of `<registry>/<repository>` pairs verified SHALL equal the set the run
 actually published. `verify-published` SHALL gate each image's checks on the
 result of the release job that produces it, so that a partial or platform-scoped
 release verifies only the images it published. `verify-published` SHALL NOT
-introduce a `needs:` dependency between `release-android` and `release-windows`.
+introduce a `needs:` dependency between `release-linux` and `release-windows`.
 
 The experience context is the maintainer recovering a single platform via
 `workflow_dispatch` (Windows-only rebuild, Android skipped): the verification
@@ -77,17 +86,17 @@ not published in that run.
 #### Scenario: workflow_dispatch verifies Windows only
 
 - **GIVEN** `release.yml` is triggered via `workflow_dispatch`
-- **AND** `release-android` is skipped while `release-windows` succeeds
+- **AND** `release-linux` is skipped while `release-windows` succeeds
 - **WHEN** `verify-published` runs
 - **THEN** it verifies the three `flutter-windows:X.Y.Z` registry pairs
 - **AND** it does not verify any `flutter-android` pair
 
 #### Scenario: A Windows release failure does not cancel Android verification
 
-- **GIVEN** a tag push where `release-android` succeeds and `release-windows`
+- **GIVEN** a tag push where `release-linux` succeeds and `release-windows`
   fails
 - **WHEN** `verify-published` runs (`if: always()`)
 - **THEN** it verifies the three `flutter-android:X.Y.Z` registry pairs
 - **AND** it does not verify `flutter-windows` pairs (that job did not publish)
-- **AND** no `needs:` edge between `release-android` and `release-windows` was
+- **AND** no `needs:` edge between `release-linux` and `release-windows` was
   introduced by adding `verify-published`

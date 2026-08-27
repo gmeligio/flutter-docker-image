@@ -32,7 +32,7 @@ The experience context is the CI engineer who, on the day a new Flutter stable l
 
 ### Requirement: Windows release runs in parallel with Android release
 
-The `release-windows` job SHALL NOT declare a `needs:` dependency on `release-android`, and `release-android` SHALL NOT declare a `needs:` dependency on `release-windows`. A failure in one SHALL NOT cancel the other. This holds whether `release-windows` is an inline job or a `uses:` caller of `windows-image.yml`.
+The `release-windows` job SHALL NOT declare a `needs:` dependency on `release-linux`, and `release-linux` SHALL NOT declare a `needs:` dependency on `release-windows`. A failure in one SHALL NOT cancel the other. This holds whether `release-windows` is an inline job or a `uses:` caller of `windows-image.yml`.
 
 The experience context is the maintainer cutting a release: they accept that one architecture may publish while the other fails, and prefer fixing the failed one in a follow-up tag rather than blocking both.
 
@@ -40,11 +40,11 @@ The experience context is the maintainer cutting a release: they accept that one
 
 - **GIVEN** a tag is pushed
 - **AND** the `release-windows` caller job fails (e.g., transient `windows-2025` runner issue)
-- **AND** the `release-android` job succeeds
+- **AND** the `release-linux` job succeeds
 - **WHEN** the workflow run completes
 - **THEN** Android images are published at all three registries
 - **AND** the workflow run is reported as failed (because at least one job failed)
-- **AND** the failure surface is the `release-windows` job specifically, not `release-android`
+- **AND** the failure surface is the `release-windows` job specifically, not `release-linux`
 
 ### Requirement: Windows release uses the same metadata conventions as Android release
 
@@ -62,7 +62,7 @@ The experience context is the operator inspecting `docker inspect <org>/flutter-
 
 ### Requirement: Manual `workflow_dispatch` rebuild is Windows-only
 
-The `release.yml` workflow SHALL continue to declare `workflow_dispatch:`. On `workflow_dispatch`, only the `release-windows` caller job SHALL execute; `release-android` and its downstream jobs (`update-description`, `record-image`, `create-github-release`) SHALL be skipped via an `if: github.event_name == 'push'` guard on `release-android` (the downstream jobs auto-skip via their existing `needs: release-android`). The `FLUTTER_VERSION` env var SHALL be set from `github.ref_name`, so that a maintainer can rebuild a single tag's Windows image — through the same `windows-image.yml` reusable workflow — without re-cutting the Git tag and without re-publishing the Android image, re-pushing the Docker Hub readme, or re-attempting `gh release create`.
+The `release.yml` workflow SHALL continue to declare `workflow_dispatch:`. On `workflow_dispatch`, only the `release-windows` caller job SHALL execute; `release-linux` and its downstream jobs (`update-description`, `record-image`, `create-github-release`) SHALL be skipped via an `if: github.event_name == 'push'` guard on `setup` and `release-linux` (the downstream jobs auto-skip via their `needs:` on those jobs). The `FLUTTER_VERSION` env var SHALL be set from `github.ref_name`, so that a maintainer can rebuild a single tag's Windows image — through the same `windows-image.yml` reusable workflow — without re-cutting the Git tag and without re-publishing the Android image, re-pushing the Docker Hub readme, or re-attempting `gh release create`.
 
 The experience context is the maintainer recovering from a transient Windows runner failure: they re-run the workflow on the existing tag instead of force-pushing a new one. Android recovery, by contrast, is the established fix-forward + re-tag pattern and does not need a `workflow_dispatch` path.
 
@@ -78,7 +78,7 @@ The experience context is the maintainer recovering from a transient Windows run
 
 - **GIVEN** a tag `X.Y.Z` exists and was previously published with Android digest `D_a`
 - **WHEN** a maintainer triggers `release.yml` via `workflow_dispatch` selecting ref `X.Y.Z`
-- **THEN** `release-android` is reported as `skipped`
+- **THEN** `release-linux` is reported as `skipped`
 - **AND** `update-description`, `record-image`, and `create-github-release` are reported as `skipped`
 - **AND** the digest at `docker.io/<org>/flutter-android:X.Y.Z` remains `D_a`
 - **AND** the run is reported as success (no failed jobs)
