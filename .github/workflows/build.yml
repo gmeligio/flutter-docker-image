@@ -77,6 +77,9 @@ jobs:
 
   build-image:
     name: Build and push image (${{ matrix.name }})
+    # setup supplies the image matrix. This job used to run in parallel with it;
+    # the edge is the cost of not restating the image list here.
+    needs: setup
     permissions:
       packages: write
     runs-on: ubuntu-24.04
