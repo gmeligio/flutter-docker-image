@@ -1,0 +1,13 @@
+/opsx:explore https://github.com/gmeligio/flutter-docker-image/issues/521
+
+---
+
+matrix entry and image set as data must be in the same change and PR. Docker Scout doesn't support Windows. Tailored windows short description.
+
+---
+
+Explain what's "Whether images.json absorbs test-config and prTag now"
+
+---
+
+Yes, the images.json should have the full shape.
