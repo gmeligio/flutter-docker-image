@@ -7,12 +7,12 @@
 
 ## 2. Fix the description sync (issue #521)
 
-- [ ] 2.1 Add a `setup`-style job to `release.yml` that reads `config/images.json` and emits filtered matrices as `fromJSON` outputs, following the existing pattern at `build.yml:22-27`. Keep matrix key names (`name`, `target`, `config`) so downstream `matrix.*` references need no edits.
-- [ ] 2.2 Fail the setup job when any filter yields an empty list, and log each constructed matrix so a run records which images it acted on.
-- [ ] 2.3 Point `update-description`'s matrix at the manifest (all images) and pass `short-description` from each entry's `shortDescription` instead of `github.event.repository.description`.
-- [ ] 2.4 Change `update-description`'s `needs: release-linux` to `needs: [release-linux, release-windows]`, keeping `if: !cancelled()`.
-- [ ] 2.5 Point `record-image`'s matrix at the manifest filtered on `scout`, so it still yields exactly three images — now by declaration rather than by omission.
-- [ ] 2.6 Point `release-linux`'s build matrix and `verify-published`'s matrix at the manifest (`dockerfile == "android"` and all images respectively), confirming the rendered job names are unchanged.
+- [x] 2.1 Add a `setup`-style job to `release.yml` that reads `config/images.json` and emits filtered matrices as `fromJSON` outputs, following the existing pattern at `build.yml:22-27`. Keep matrix key names (`name`, `target`, `config`) so downstream `matrix.*` references need no edits.
+- [x] 2.2 Fail the setup job when any filter yields an empty list, and log each constructed matrix so a run records which images it acted on.
+- [x] 2.3 Point `update-description`'s matrix at the manifest (all images) and pass `short-description` from each entry's `shortDescription` instead of `github.event.repository.description`.
+- [x] 2.4 Change `update-description`'s `needs: release-linux` to `needs: [release-linux, release-windows]`, keeping `if: !cancelled()`.
+- [x] 2.5 Point `record-image`'s matrix at the manifest filtered on `scout`, so it still yields exactly three images — now by declaration rather than by omission.
+- [x] 2.6 Point `release-linux`'s build matrix and `verify-published`'s matrix at the manifest (`dockerfile == "android"` and all images respectively), confirming the rendered job names are unchanged.
 
 ## 3. Retire the remaining enumerations (issue #544)
 

@@ -19,8 +19,64 @@ env:
   FLUTTER_VERSION: ${{ github.ref_name }}
 
 jobs:
+  # The image set is declared once in config/images.json and expanded into each
+  # matrix below. Hand-copied matrices are what let `update-description` omit
+  # flutter-windows for months while reporting success (#521), and left 32
+  # orphaned flutter-web PR tags in GHCR (#544).
+  setup:
+    name: Read the published image set
+    if: github.event_name == 'push'
+    runs-on: ubuntu-24.04
+    outputs:
+      # Every image. Used for describing and verifying: both apply to anything
+      # this repo publishes, whatever it is built from.
+      all: ${{ steps.images.outputs.all }}
+      # Images built from android.Dockerfile, carrying the `target` stage.
+      linux: ${{ steps.images.outputs.linux }}
+      # Images Docker Scout can analyse. Windows declares `scout: false`.
+      scout: ${{ steps.images.outputs.scout }}
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Validate version manifest
+        uses: ./.github/actions/validate-version-manifest
+
+      - name: Build image matrices
+        id: images
+        env:
+          IMAGE_MANIFEST: config/images.json
+        run: |
+          set -euo pipefail
+
+          emit() {
+            local key="$1" filter="$2" json
+            json=$(jq -c "$filter" "$IMAGE_MANIFEST")
+
+            # An empty matrix expands to zero legs and reports green — the exact
+            # shape of #521, where a job "passed" for months without ever
+            # touching flutter-windows. Never let that be silent.
+            if [ "$(jq 'length' <<<"$json")" -eq 0 ]; then
+              echo "::error::No images matched the '$key' filter in $IMAGE_MANIFEST."
+              exit 1
+            fi
+
+            echo "$key=$json" >>"$GITHUB_OUTPUT"
+            echo "::notice::$key: $(jq -rc '[.[].name]' <<<"$json")"
+          }
+
+          emit all '[.images[] | {name, shortDescription}]'
+          emit linux '[.images[] | select(.dockerfile == "android") | {name, target}]'
+          emit scout '[.images[] | select(.scout) | {name}]'
+
   release-linux:
     name: Release ${{ matrix.name }}
+    needs: setup
     if: github.event_name == 'push'
     permissions:
       # Allow to write packages to push the container image to the Github Container Registry
@@ -32,13 +88,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - name: flutter-android
-            target: android
-          - name: flutter-web
-            target: web
-          - name: flutter-linux
-            target: linux
+        include: ${{ fromJSON(needs.setup.outputs.linux) }}
     env:
       IMAGE_REPOSITORY_NAME: ${{ matrix.name }}
       ANDROID_BUILD_TOOLS_VERSION: 30.0.3
@@ -139,21 +189,17 @@ jobs:
     # job drift before. With no per-image gating each image verifies on its own
     # leg, so one platform's failure leaves only its leg red; re-push the tag to
     # fix it forward.
-    needs: [release-linux, release-windows]
+    needs: [setup, release-linux, release-windows]
     # !cancelled() so a failed release job doesn't skip verification of the ones
     # that succeeded. Scoped to push, the path on which all images are built.
     if: ${{ github.event_name == 'push' && !cancelled() }}
     runs-on: ubuntu-24.04
-    # One leg per published image. Adding an image to the release is one matrix
-    # entry here. fail-fast: false so every image is checked even if one fails.
+    # One leg per published image, from config/images.json. fail-fast: false so
+    # every image is checked even if one fails.
     strategy:
       fail-fast: false
       matrix:
-        name:
-          - flutter-android
-          - flutter-web
-          - flutter-linux
-          - flutter-windows
+        include: ${{ fromJSON(needs.setup.outputs.all) }}
     steps:
       - name: Harden runner
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
@@ -178,17 +224,21 @@ jobs:
   update-description:
     name: Update Docker Hub description (${{ matrix.name }})
     runs-on: ubuntu-24.04
-    needs: release-linux
+    # Both release jobs, so a description is never synced for an image whose
+    # build failed. Depending on release-linux alone made the Windows leg's
+    # outcome invisible here.
+    needs: [setup, release-linux, release-windows]
     # !cancelled() (not default success()) so one image's release failure does
-    # not skip the others' description sync. Scoped to push, where release-linux runs.
+    # not skip the others' description sync. Scoped to push, where the release
+    # jobs run.
     if: ${{ github.event_name == 'push' && !cancelled() }}
+    # Every published image, from config/images.json — including flutter-windows,
+    # whose Docker Hub page was blank while this matrix was a copy of the
+    # android.Dockerfile build matrix (#521).
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - name: flutter-android
-          - name: flutter-web
-          - name: flutter-linux
+        include: ${{ fromJSON(needs.setup.outputs.all) }}
     env:
       IMAGE_REPOSITORY_NAME: ${{ matrix.name }}
       VERSION_MANIFEST: config/version.json
@@ -221,7 +271,10 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
           repository: ${{ env.IMAGE_REPOSITORY_PATH }}
-          short-description: ${{ github.event.repository.description }}
+          # Per image, not the repo-wide description: the action PATCHes this on
+          # every call, so a shared value would overwrite flutter-windows's more
+          # specific one.
+          short-description: ${{ matrix.shortDescription }}
           readme-filepath: readme.md
 
   record-image:
@@ -230,17 +283,17 @@ jobs:
       # Allow to write code scanning results to GitHub's code scanning dashboard
       security-events: write
     runs-on: ubuntu-24.04
-    needs: release-linux
+    needs: [setup, release-linux]
     # !cancelled() (not default success()) so one image's release failure does
     # not skip the others' Scout records. Scoped to push, where release-linux runs.
     if: ${{ github.event_name == 'push' && !cancelled() }}
+    # Images declaring `scout: true` in config/images.json. flutter-windows is
+    # absent because Docker Scout does not support Windows images — declared in
+    # the manifest and pinned by the schema, not left as a shorter list here.
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - name: flutter-android
-          - name: flutter-web
-          - name: flutter-linux
+        include: ${{ fromJSON(needs.setup.outputs.scout) }}
     env:
       IMAGE_REPOSITORY_NAME: ${{ matrix.name }}
     steps:
