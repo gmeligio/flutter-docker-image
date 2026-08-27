@@ -24,6 +24,11 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       flutter_version: ${{ steps.read.outputs.version }}
+      # Image matrices from config/images.json — see the setup job in
+      # release.yml for why these are declared once instead of hand-copied.
+      linux: ${{ steps.images.outputs.linux }}
+      test: ${{ steps.images.outputs.test }}
+      scout: ${{ steps.images.outputs.scout }}
     steps:
       - name: Harden runner
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
@@ -38,6 +43,38 @@ jobs:
           version=$(gh api "repos/${{ github.repository }}/releases/latest" --jq '.tag_name')
           echo "version=$version" >> "$GITHUB_OUTPUT"
 
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Validate version manifest
+        uses: ./.github/actions/validate-version-manifest
+
+      - name: Build image matrices
+        id: images
+        env:
+          IMAGE_MANIFEST: config/images.json
+        run: |
+          set -euo pipefail
+
+          emit() {
+            local key="$1" filter="$2" json
+            json=$(jq -c "$filter" "$IMAGE_MANIFEST")
+
+            # An empty matrix expands to zero legs and reports green. Fail
+            # instead, so a filter that stops matching is never silent.
+            if [ "$(jq 'length' <<<"$json")" -eq 0 ]; then
+              echo "::error::No images matched the '$key' filter in $IMAGE_MANIFEST."
+              exit 1
+            fi
+
+            echo "$key=$json" >>"$GITHUB_OUTPUT"
+            echo "::notice::$key: $(jq -rc '[.[].name]' <<<"$json")"
+          }
+
+          emit linux '[.images[] | select(.dockerfile == "android") | {name, target}]'
+          emit test '[.images[] | select(.testConfig) | {name, config: .testConfig}]'
+          emit scout '[.images[] | select(.scout) | {name}]'
+
   build-image:
     name: Build and push image (${{ matrix.name }})
     permissions:
@@ -48,13 +85,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - name: flutter-android
-            target: android
-          - name: flutter-web
-            target: web
-          - name: flutter-linux
-            target: linux
+        include: ${{ fromJSON(needs.setup.outputs.linux) }}
     # These are image-independent, so the last-leg-wins behaviour of matrix job
     # outputs is harmless: every leg computes the same handoff for test/scan. The
     # per-image digest is not image-independent, so scan-image recomputes it.
@@ -202,22 +233,17 @@ jobs:
 
   test-image:
     name: Test image (${{ matrix.name }})
-    needs: build-image
+    needs: [setup, build-image]
     runs-on: ubuntu-24.04
     permissions:
       contents: read
       packages: read
-    # Mirror the build matrix; the structure-test config is the only per-image input.
+    # Images declaring a structure-test config in config/images.json — the same
+    # set the build matrix covers, now derived rather than mirrored by hand.
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - name: flutter-android
-            config: test/android.yml
-          - name: flutter-web
-            config: test/web.yml
-          - name: flutter-linux
-            config: test/linux.yml
+        include: ${{ fromJSON(needs.setup.outputs.test) }}
     env:
       # build-image's handoff: non-fork legs pull GHCR under TAG; forks load the
       # local artifact built under flutter_version.
@@ -282,14 +308,12 @@ jobs:
       packages: read
       pull-requests: write
       security-events: write
-    # Mirror the build matrix: each image is scanned against its own release.
+    # Images declaring `scout: true` in config/images.json; each is scanned
+    # against its own release.
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - name: flutter-android
-          - name: flutter-web
-          - name: flutter-linux
+        include: ${{ fromJSON(needs.setup.outputs.scout) }}
     env:
       TAG: ${{ needs.build-image.outputs.tag }}
     steps:

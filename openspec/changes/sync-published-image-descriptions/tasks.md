@@ -16,12 +16,12 @@
 
 ## 3. Retire the remaining enumerations (issue #544)
 
-- [ ] 3.1 Add a manifest-reading setup step or job output to `build.yml` supplying the same filtered matrices.
-- [ ] 3.2 Convert `build.yml`'s build matrix (`:52-57`) to `dockerfile == "android"`.
-- [ ] 3.3 Convert `build.yml`'s test matrix (`:215-220`) to the images declaring `testConfig`, mapping `config` from that field.
-- [ ] 3.4 Convert `build.yml`'s scan matrix (`:290-292`) to the images declaring `scout`.
-- [ ] 3.5 Convert `cleanup-pr-image.yml`'s matrix (`:33-35`) to the images declaring `prTag`, and update its comment to point at the manifest as the reason Windows is absent.
-- [ ] 3.6 Confirm on this PR's own run that `build.yml`'s build, test, and scan legs each still enumerate exactly three images with unchanged leg names.
+- [x] 3.1 Add a manifest-reading setup step or job output to `build.yml` supplying the same filtered matrices.
+- [x] 3.2 Convert `build.yml`'s build matrix (`:52-57`) to `dockerfile == "android"`.
+- [x] 3.3 Convert `build.yml`'s test matrix (`:215-220`) to the images declaring `testConfig`, mapping `config` from that field.
+- [x] 3.4 Convert `build.yml`'s scan matrix (`:290-292`) to the images declaring `scout`.
+- [x] 3.5 Convert `cleanup-pr-image.yml`'s matrix (`:33-35`) to the images declaring `prTag`, and update its comment to point at the manifest as the reason Windows is absent.
+- [x] 3.6 Confirm on this PR's own run that `build.yml`'s build, test, and scan legs each still enumerate exactly three images with unchanged leg names.
 
 ## 4. Docs generation
 
