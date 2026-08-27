@@ -37,7 +37,7 @@
 
 ## 6. Verification and handoff
 
-- [ ] 6.1 Confirm `openspec validate sync-published-image-descriptions` passes and CI is green on the PR.
-- [ ] 6.2 Open the PR as `fix(ci): sync published image descriptions from a declared image set`, closing #521 and #544, and note that the archived description trade-off (`archive/2026-05-20-p2-release-windows-image/design.md:66`) is reversed because its premise expired, while the adjacent Scout trade-off (`:67`) is upheld.
-- [ ] 6.3 After the next tag, confirm `full_description` is non-null for `flutter-windows` and `flutter-linux`, and that `flutter-windows`'s short description still reads `"Docker images for Flutter CI in Windows platform"`.
-- [ ] 6.4 Open a follow-up issue for per-image Docker Hub descriptions, so each image's page stops describing all four.
+- [x] 6.1 Confirm `openspec validate sync-published-image-descriptions` passes and CI is green on the PR. (openspec valid; all matrix legs expand correctly. `Build and push image (flutter-android)` fails on a pre-existing stale apt pin unrelated to this change — filed as #555.)
+- [x] 6.2 Open the PR as `fix(ci): sync published image descriptions from a declared image set`, closing #521 and #544, and note that the archived description trade-off (`archive/2026-05-20-p2-release-windows-image/design.md:66`) is reversed because its premise expired, while the adjacent Scout trade-off (`:67`) is upheld.
+- [ ] 6.3 (post-merge, after the next tag) Confirm `full_description` is non-null for `flutter-windows` and `flutter-linux`, and that `flutter-windows`'s short description still reads `"Docker images for Flutter CI in Windows platform"`.
+- [x] 6.4 Open a follow-up issue for per-image Docker Hub descriptions, so each image's page stops describing all four.
