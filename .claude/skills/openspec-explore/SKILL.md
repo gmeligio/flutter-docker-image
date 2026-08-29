@@ -2,12 +2,13 @@
 model: opus
 name: openspec-explore
 description: Enter explore mode - a thinking partner for exploring ideas, investigating problems, and clarifying requirements. Use when the user wants to think through something before or during a change.
+allowed-tools: Bash(openspec:*)
 license: MIT
 compatibility: Requires openspec CLI.
 metadata:
   author: openspec
   version: "1.0"
-  generatedBy: "1.3.1"
+  generatedBy: "1.7.0"
 ---
 
 <!-- opsx-explore-research-patch -->
@@ -151,16 +152,9 @@ Each must state what was already tried.
 
 ## Visualization
 
-ASCII diagrams are a first-class element of the report, not an afterthought.
-
-**"A good diagram is worth many paragraphs."**
-
-- **Context** — Diagram the current architecture/flow relevant to the topic
-- **Findings** — Visualize relationships, data flows, or dependency graphs discovered during research
-- **Options** — Side-by-side diagrams comparing approaches when the difference is structural
-- **Recommendation** — Diagram the proposed end-state (before vs after)
-
-Default to drawing when explaining structure, flow, or comparison. Use text when explaining reasoning or tradeoffs.
+Draw an ASCII diagram in each of the four report sections that calls for one, as
+shown in the template above. Default to drawing when explaining structure, flow,
+or comparison. Use text when explaining reasoning or tradeoffs.
 
 ---
 
@@ -178,14 +172,21 @@ This tells you:
 - Their names, schemas, and status
 - What artifacts already exist
 
-If a related change exists, read its artifacts (`proposal.md`, `design.md`, `tasks.md`, specs) and reference them naturally in the report.
+Then read the project's own context from the resolved root — `<root.path>/openspec/config.yaml` (or `config.yml`). Use the `root.path` returned above, and skip this if neither file exists:
+
+- `context`: project background — tech stack, conventions, constraints
+- `rules`: keyed by artifact id — the entries for an artifact apply only when you write that artifact
+
+Ground your research in these. They are constraints for you to follow, not content to reproduce: do NOT copy them into the conversation or into any artifact you create.
+
+If a related change exists, read its artifacts (`proposal.md`, `design.md`, `tasks.md`, specs) and reference them naturally in the report. Resolve their paths with `openspec status --change "<name>" --json` (`changeRoot`, `artifactPaths`) rather than assuming `openspec/changes/<name>/`.
 
 ---
 
 ## Guardrails
 
 - **No implementation** — Never write application code. Creating OpenSpec artifacts is fine if the user approves.
-- **No premature questions** — Whether asking the user or writing an "Open Question" in the report, exhaust the codebase and web first. If you can name a concrete next step (grep, file read, fetch) that would answer it, take that step instead.
-- **Cite sources** — Every finding must reference where it came from (URL for web, `file:line` for code). No unsourced claims.
-- **Stay grounded** — Prefer concrete evidence (code, docs, examples) over speculation. Label uncertain findings as such.
-- **Offer next steps, don't auto-proceed** — End with a recommendation for what to do next, but let the user decide.
+- **No premature questions** — Before asking the user or writing an "Open Question", exhaust the codebase and web. When you can name a concrete next step (grep, file read, fetch) that would answer it, take that step instead.
+- **Cite sources** — Every finding references where it came from: a URL for web, `file:line` for code.
+- **Stay grounded** — Prefer concrete evidence over speculation. Label uncertain findings as uncertain.
+- **Offer next steps** — End with a recommendation and let the user decide.
