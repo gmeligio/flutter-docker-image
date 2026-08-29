@@ -1,0 +1,1 @@
+Why `.github/workflows/build.yml` comment talks about release.yml? It seems crossing references but I'm not sure if it's valuable for a readder.
