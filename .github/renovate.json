@@ -22,7 +22,7 @@
       "schedule": ["* 0-3 1 * *"]
     },
     {
-      "description": "Default apt suites for debian:13-slim: trixie plus trixie-security. trixie-updates is omitted deliberately — no pin resolves from it, and Renovate cannot fetch it anyway (see below). Update these together with the base image in android.Dockerfile — a Debian release bump makes them stale. NOTE: Renovate's deb datasource hardcodes Packages.gz, but Debian publishes only Packages and Packages.xz on -security, so the trixie-security URL 404s on every run and is silently skipped. It is kept because it states correctly where apt resolves these packages from, and will start working with no edit once renovatebot/renovate#44330 (PR #35865) lands. Until then, script/check_deb_pins.sh is what actually verifies a pin is installable.",
+      "description": "Default apt suites for debian:13-slim: trixie plus trixie-security; trixie-updates is omitted, no pin resolves from it. Mirrors the base image's own sources — update these together with the base image in android.Dockerfile, since a Debian release bump makes them stale. The trixie-security URL currently 404s on every run and is silently skipped: Renovate's deb datasource hardcodes Packages.gz, which Debian does not publish on the delta suites (renovatebot/renovate#44330). It is kept because it records where apt really resolves these packages from, and starts working with no edit once that lands.",
       "matchDatasources": ["deb"],
       "registryUrls": [
         "https://deb.debian.org/debian?suite=trixie&components=main&binaryArch=amd64",
@@ -30,7 +30,7 @@
       ]
     },
     {
-      "description": "openjdk-17 is not in trixie; the android stage adds Debian 12 bookworm to install it. Mirrors config/debian_12_bookworm.sources, minus bookworm-updates, from which no pin resolves. bookworm-security is load-bearing, not optional: the only installable openjdk-17-jdk-headless is 17.0.20.1+1-1~deb12u1, published there and nowhere else, because a security upload moved openjdk-17-jre-headless and the JDK declares Depends: openjdk-17-jre-headless (= <same version>). Renovate cannot currently fetch it (hardcoded Packages.gz vs Debian's Packages.xz — renovatebot/renovate#44330), so this URL 404s and is silently skipped; it is kept because removing it would state that the pin comes from somewhere it does not, which is how #555 happened. Must stay after the trixie rule — a later matching rule replaces registryUrls.",
+      "description": "openjdk-17 is not in trixie; the android stage adds Debian 12 bookworm to install it. Mirrors config/debian_12_bookworm.sources, minus bookworm-updates, from which no pin resolves. bookworm-security is load-bearing, not optional: the only installable openjdk-17-jdk-headless is published there and nowhere else, because a security upload moved openjdk-17-jre-headless and the JDK declares Depends: openjdk-17-jre-headless (= <same version>) — see #555. Renovate cannot currently fetch it (hardcoded Packages.gz vs the Packages.xz Debian publishes on the delta suites — renovatebot/renovate#44330), so this URL 404s and is silently skipped; it is kept because removing it would state that the pin comes from somewhere it does not. Must stay after the trixie rule — a later matching rule replaces registryUrls.",
       "matchDatasources": ["deb"],
       "matchPackageNames": ["openjdk-17-jdk-headless"],
       "registryUrls": [
