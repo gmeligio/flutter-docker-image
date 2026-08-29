@@ -1,0 +1,9 @@
+commit and push
+
+---
+
+Still the descriptions are too big. Please propose way conciser ones with what would be relevant for a reader. The description should be natural to read, no jargon.
+
+---
+
+apply
