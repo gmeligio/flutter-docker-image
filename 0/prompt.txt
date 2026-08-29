@@ -1,1 +1,5 @@
 /opsx:archive openspec/changes/renovate-deb-pin-resolution-guard/ and push to 558
+
+---
+
+option 1
