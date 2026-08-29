@@ -13,10 +13,9 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # One leg per image that produces a handoff tag, from config/images.json.
-  # `flutter-windows` declares `prTag: false` — `windows.yml` calls
-  # `windows-image.yml` with `push: false`, so a PR builds it without pushing
-  # anything to delete.
+  # `prTag` marks the images a PR actually pushes a tag for. flutter-windows
+  # sets it false: windows.yml builds with `push: false`, so there is nothing
+  # to clean up.
   setup:
     name: Read the handoff-tag image set
     if: ${{ github.event_name == 'pull_request' || github.event.ref_type == 'branch' }}

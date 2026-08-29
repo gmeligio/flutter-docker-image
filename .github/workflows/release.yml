@@ -6,7 +6,6 @@ on:
       - '*'
   workflow_dispatch:
 
-# Read-only permissions by default
 permissions:
   contents: read
 
@@ -22,15 +21,16 @@ jobs:
   # The image set is declared once in config/images.json and expanded into each
   # matrix below, rather than hand-copied into every job that needs it.
   # See .github/actions/image-matrix for what a hand-copied matrix cost.
+  #
+  # Consumers gate on `needs.setup.result == 'success'`: they pair `needs` with
+  # !cancelled(), which alone would still run them after setup failed, on a
+  # matrix of zero legs that reports green.
   setup:
     name: Read the published image set
     if: github.event_name == 'push'
     runs-on: ubuntu-24.04
     outputs:
-      # Every image. Verifying applies to anything this repo publishes, whatever
-      # it is built from.
       names: ${{ steps.names.outputs.matrix }}
-      # Every image with the description to sync for it.
       descriptions: ${{ steps.descriptions.outputs.matrix }}
       # Images built from android.Dockerfile, carrying the `target` stage.
       linux: ${{ steps.linux.outputs.matrix }}
@@ -81,12 +81,9 @@ jobs:
     needs: setup
     if: github.event_name == 'push'
     permissions:
-      # Allow to write packages to push the container image to the Github Container Registry
       packages: write
     runs-on: ubuntu-24.04
-    # One leg per published Linux-hosted image from android.Dockerfile. `target`
-    # selects its stage and `name` the published repository. Legs are
-    # independent (fail-fast: false) so one image can publish if another fails.
+    # `target` selects the android.Dockerfile stage, `name` the published repo.
     strategy:
       fail-fast: false
       matrix:
@@ -170,7 +167,6 @@ jobs:
     name: Release Windows
     permissions:
       contents: read
-      # Allow to write packages to push the container image to the Github Container Registry
       packages: write
     # Push path: build the `flutter` target. Runs in parallel with
     # release-linux (no `needs`).
@@ -194,12 +190,8 @@ jobs:
     needs: [setup, release-linux, release-windows]
     # !cancelled() so a failed release job doesn't skip verification of the ones
     # that succeeded. Scoped to push, the path on which all images are built.
-    # setup must have succeeded: !cancelled() alone would run this on a failed
-    # setup, where the matrix expands to zero legs and reports green.
     if: ${{ github.event_name == 'push' && needs.setup.result == 'success' && !cancelled() }}
     runs-on: ubuntu-24.04
-    # One leg per published image, from config/images.json. fail-fast: false so
-    # every image is checked even if one fails.
     strategy:
       fail-fast: false
       matrix:
@@ -234,10 +226,8 @@ jobs:
     needs: [setup, release-linux, release-windows]
     # !cancelled() (not default success()) so one image's release failure does
     # not skip the others' description sync. Scoped to push, where the release
-    # jobs run. setup must have succeeded: !cancelled() alone would run this on
-    # a failed setup, where the matrix expands to zero legs and reports green.
+    # jobs run.
     if: ${{ github.event_name == 'push' && needs.setup.result == 'success' && !cancelled() }}
-    # Every published image, each with its own description.
     strategy:
       fail-fast: false
       matrix:
@@ -283,14 +273,11 @@ jobs:
   record-image:
     name: Record image in Scout (${{ matrix.name }})
     permissions:
-      # Allow to write code scanning results to GitHub's code scanning dashboard
       security-events: write
     runs-on: ubuntu-24.04
     needs: [setup, release-linux]
     # !cancelled() (not default success()) so one image's release failure does
     # not skip the others' Scout records. Scoped to push, where release-linux runs.
-    # setup must have succeeded: !cancelled() alone would run this on a failed
-    # setup, where the matrix expands to zero legs and reports green.
     if: ${{ github.event_name == 'push' && needs.setup.result == 'success' && !cancelled() }}
     # Images declaring `scout: true` in config/images.json. flutter-windows is
     # absent because Docker Scout does not support Windows images — declared in
@@ -337,7 +324,6 @@ jobs:
   create-github-release:
     name: Create GitHub release
     permissions:
-      # Allow to create releases and upload assets to them
       contents: write
     runs-on: ubuntu-24.04
     needs: release-linux
@@ -355,9 +341,8 @@ jobs:
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           # TODO: Fetch only a few commits after using --unreleased in git-cliff
-          # Fetch all commits to use as input for the changelog generation
           fetch-depth: 0
-          # Fetch all tags to use as input for the changelog generation
+          # git-cliff reads tags to bound the changelog.
           fetch-tags: true
 
       - name: Setup mise tools
