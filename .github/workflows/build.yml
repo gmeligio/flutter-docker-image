@@ -24,8 +24,6 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       flutter_version: ${{ steps.read.outputs.version }}
-      # Image matrices from config/images.json — see the setup job in
-      # release.yml for why these are declared once instead of hand-copied.
       linux: ${{ steps.linux.outputs.matrix }}
       test: ${{ steps.test.outputs.matrix }}
       scout: ${{ steps.scout.outputs.matrix }}
