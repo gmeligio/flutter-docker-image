@@ -1,0 +1,58 @@
+name: 'Image Matrix'
+description: >-
+  Expands config/images.json into one GitHub Actions matrix via a jq filter, and
+  fails when the filter matches nothing.
+
+  An empty matrix expands to zero legs and reports green. That is the shape of
+  #521, where `update-description` "passed" for months without ever touching
+  flutter-windows, and of #544, which left 32 orphaned flutter-web tags in GHCR.
+  A filter that stops matching must be loud, so this action treats an empty
+  result as an error rather than an empty run.
+
+  Assumes the repository is already checked out and the manifest validated.
+
+inputs:
+  filter:
+    description: >-
+      jq filter producing a JSON array of matrix entries, applied to the
+      manifest. Example: '[.images[] | select(.scout) | {name}]'
+    required: true
+  manifest:
+    description: 'Path to the image manifest.'
+    required: false
+    default: config/images.json
+  label:
+    description: >-
+      Name for this matrix in error and notice annotations. Defaults to the
+      output name a caller would map it to.
+    required: false
+    default: matrix
+
+outputs:
+  matrix:
+    description: 'Compact JSON array for `include:` under `fromJSON`.'
+    value: ${{ steps.build.outputs.matrix }}
+
+runs:
+  using: composite
+  steps:
+    - name: Expand ${{ inputs.label }} from ${{ inputs.manifest }}
+      id: build
+      shell: bash
+      env:
+        FILTER: ${{ inputs.filter }}
+        MANIFEST: ${{ inputs.manifest }}
+        LABEL: ${{ inputs.label }}
+      run: |
+        set -euo pipefail
+
+        json=$(jq -c "$FILTER" "$MANIFEST")
+
+        if [ "$(jq 'length' <<<"$json")" -eq 0 ]; then
+          echo "::error::No images matched the '$LABEL' filter in $MANIFEST."
+          exit 1
+        fi
+
+        echo "matrix=$json" >>"$GITHUB_OUTPUT"
+        # Entries vary by filter, so report whichever identifying field is present.
+        echo "::notice::$LABEL: $(jq -rc '[.[] | .name // .package_name]' <<<"$json")"

@@ -6,7 +6,6 @@ on:
       - '*'
   workflow_dispatch:
 
-# Read-only permissions by default
 permissions:
   contents: read
 
@@ -19,26 +18,73 @@ env:
   FLUTTER_VERSION: ${{ github.ref_name }}
 
 jobs:
+  # The image set is declared once in config/images.json and expanded into each
+  # matrix below, rather than hand-copied into every job that needs it.
+  # See .github/actions/image-matrix for what a hand-copied matrix cost.
+  #
+  # Consumers gate on `needs.setup.result == 'success'`: they pair `needs` with
+  # !cancelled(), which alone would still run them after setup failed, on a
+  # matrix of zero legs that reports green.
+  setup:
+    name: Read the published image set
+    if: github.event_name == 'push'
+    runs-on: ubuntu-24.04
+    outputs:
+      names: ${{ steps.names.outputs.matrix }}
+      descriptions: ${{ steps.descriptions.outputs.matrix }}
+      linux: ${{ steps.linux.outputs.matrix }}
+      scout: ${{ steps.scout.outputs.matrix }}
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Validate version manifest
+        uses: ./.github/actions/validate-version-manifest
+
+      - name: Expand the full image set
+        id: names
+        uses: ./.github/actions/image-matrix
+        with:
+          label: names
+          filter: '[.images[] | {name}]'
+
+      - name: Expand the image set with descriptions
+        id: descriptions
+        uses: ./.github/actions/image-matrix
+        with:
+          label: descriptions
+          filter: '[.images[] | {name, shortDescription}]'
+
+      - name: Expand the android.Dockerfile image set
+        id: linux
+        uses: ./.github/actions/image-matrix
+        with:
+          label: linux
+          filter: '[.images[] | select(.dockerfile == "android") | {name, target}]'
+
+      - name: Expand the Scout-scannable image set
+        id: scout
+        uses: ./.github/actions/image-matrix
+        with:
+          label: scout
+          filter: '[.images[] | select(.scout) | {name}]'
+
   release-linux:
     name: Release ${{ matrix.name }}
+    needs: setup
     if: github.event_name == 'push'
     permissions:
-      # Allow to write packages to push the container image to the Github Container Registry
       packages: write
     runs-on: ubuntu-24.04
-    # One leg per published Linux-hosted image from android.Dockerfile. `target`
-    # selects its stage and `name` the published repository. Legs are
-    # independent (fail-fast: false) so one image can publish if another fails.
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - name: flutter-android
-            target: android
-          - name: flutter-web
-            target: web
-          - name: flutter-linux
-            target: linux
+        include: ${{ fromJSON(needs.setup.outputs.linux) }}
     env:
       IMAGE_REPOSITORY_NAME: ${{ matrix.name }}
       ANDROID_BUILD_TOOLS_VERSION: 30.0.3
@@ -118,10 +164,7 @@ jobs:
     name: Release Windows
     permissions:
       contents: read
-      # Allow to write packages to push the container image to the Github Container Registry
       packages: write
-    # Push path: build the `flutter` target. Runs in parallel with
-    # release-linux (no `needs`).
     uses: ./.github/workflows/windows-image.yml
     with:
       target: flutter
@@ -139,21 +182,15 @@ jobs:
     # job drift before. With no per-image gating each image verifies on its own
     # leg, so one platform's failure leaves only its leg red; re-push the tag to
     # fix it forward.
-    needs: [release-linux, release-windows]
+    needs: [setup, release-linux, release-windows]
     # !cancelled() so a failed release job doesn't skip verification of the ones
     # that succeeded. Scoped to push, the path on which all images are built.
-    if: ${{ github.event_name == 'push' && !cancelled() }}
+    if: ${{ github.event_name == 'push' && needs.setup.result == 'success' && !cancelled() }}
     runs-on: ubuntu-24.04
-    # One leg per published image. Adding an image to the release is one matrix
-    # entry here. fail-fast: false so every image is checked even if one fails.
     strategy:
       fail-fast: false
       matrix:
-        name:
-          - flutter-android
-          - flutter-web
-          - flutter-linux
-          - flutter-windows
+        include: ${{ fromJSON(needs.setup.outputs.names) }}
     steps:
       - name: Harden runner
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
@@ -178,17 +215,18 @@ jobs:
   update-description:
     name: Update Docker Hub description (${{ matrix.name }})
     runs-on: ubuntu-24.04
-    needs: release-linux
+    # Both release jobs, so a description is never synced for an image whose
+    # build failed. Depending on release-linux alone made the Windows leg's
+    # outcome invisible here.
+    needs: [setup, release-linux, release-windows]
     # !cancelled() (not default success()) so one image's release failure does
-    # not skip the others' description sync. Scoped to push, where release-linux runs.
-    if: ${{ github.event_name == 'push' && !cancelled() }}
+    # not skip the others' description sync. Scoped to push, where the release
+    # jobs run.
+    if: ${{ github.event_name == 'push' && needs.setup.result == 'success' && !cancelled() }}
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - name: flutter-android
-          - name: flutter-web
-          - name: flutter-linux
+        include: ${{ fromJSON(needs.setup.outputs.descriptions) }}
     env:
       IMAGE_REPOSITORY_NAME: ${{ matrix.name }}
       VERSION_MANIFEST: config/version.json
@@ -221,26 +259,25 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
           repository: ${{ env.IMAGE_REPOSITORY_PATH }}
-          short-description: ${{ github.event.repository.description }}
+          # Per image, not the repo-wide description: the action PATCHes this on
+          # every call, so a shared value would overwrite flutter-windows's more
+          # specific one.
+          short-description: ${{ matrix.shortDescription }}
           readme-filepath: readme.md
 
   record-image:
     name: Record image in Scout (${{ matrix.name }})
     permissions:
-      # Allow to write code scanning results to GitHub's code scanning dashboard
       security-events: write
     runs-on: ubuntu-24.04
-    needs: release-linux
+    needs: [setup, release-linux]
     # !cancelled() (not default success()) so one image's release failure does
     # not skip the others' Scout records. Scoped to push, where release-linux runs.
-    if: ${{ github.event_name == 'push' && !cancelled() }}
+    if: ${{ github.event_name == 'push' && needs.setup.result == 'success' && !cancelled() }}
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - name: flutter-android
-          - name: flutter-web
-          - name: flutter-linux
+        include: ${{ fromJSON(needs.setup.outputs.scout) }}
     env:
       IMAGE_REPOSITORY_NAME: ${{ matrix.name }}
     steps:
@@ -279,7 +316,6 @@ jobs:
   create-github-release:
     name: Create GitHub release
     permissions:
-      # Allow to create releases and upload assets to them
       contents: write
     runs-on: ubuntu-24.04
     needs: release-linux
@@ -297,9 +333,8 @@ jobs:
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           # TODO: Fetch only a few commits after using --unreleased in git-cliff
-          # Fetch all commits to use as input for the changelog generation
           fetch-depth: 0
-          # Fetch all tags to use as input for the changelog generation
+          # git-cliff reads tags to bound the changelog.
           fetch-tags: true
 
       - name: Setup mise tools
@@ -308,7 +343,6 @@ jobs:
       - name: Get the tag details
         id: get-tag-details
         run: |-
-          # Store the changelog in a temporary directory to not pollute the working directory
           mkdir -p "${{ runner.temp }}/git-cliff"
           changelog_file="${{ runner.temp }}/git-cliff/changelog.md"
           echo "changelog_file=${changelog_file}" >> "$GITHUB_OUTPUT"

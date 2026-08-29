@@ -24,6 +24,9 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       flutter_version: ${{ steps.read.outputs.version }}
+      linux: ${{ steps.linux.outputs.matrix }}
+      test: ${{ steps.test.outputs.matrix }}
+      scout: ${{ steps.scout.outputs.matrix }}
     steps:
       - name: Harden runner
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
@@ -38,8 +41,36 @@ jobs:
           version=$(gh api "repos/${{ github.repository }}/releases/latest" --jq '.tag_name')
           echo "version=$version" >> "$GITHUB_OUTPUT"
 
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Validate version manifest
+        uses: ./.github/actions/validate-version-manifest
+
+      - name: Expand the android.Dockerfile image set
+        id: linux
+        uses: ./.github/actions/image-matrix
+        with:
+          label: linux
+          filter: '[.images[] | select(.dockerfile == "android") | {name, target}]'
+
+      - name: Expand the structure-test image set
+        id: test
+        uses: ./.github/actions/image-matrix
+        with:
+          label: test
+          filter: '[.images[] | select(.testConfig) | {name, config: .testConfig}]'
+
+      - name: Expand the Scout-scannable image set
+        id: scout
+        uses: ./.github/actions/image-matrix
+        with:
+          label: scout
+          filter: '[.images[] | select(.scout) | {name}]'
+
   build-image:
     name: Build and push image (${{ matrix.name }})
+    needs: setup
     permissions:
       packages: write
     runs-on: ubuntu-24.04
@@ -48,13 +79,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - name: flutter-android
-            target: android
-          - name: flutter-web
-            target: web
-          - name: flutter-linux
-            target: linux
+        include: ${{ fromJSON(needs.setup.outputs.linux) }}
     # These are image-independent, so the last-leg-wins behaviour of matrix job
     # outputs is harmless: every leg computes the same handoff for test/scan. The
     # per-image digest is not image-independent, so scan-image recomputes it.
@@ -202,22 +227,17 @@ jobs:
 
   test-image:
     name: Test image (${{ matrix.name }})
-    needs: build-image
+    needs: [setup, build-image]
     runs-on: ubuntu-24.04
     permissions:
       contents: read
       packages: read
-    # Mirror the build matrix; the structure-test config is the only per-image input.
+    # Images declaring a structure-test config in config/images.json — the same
+    # set the build matrix covers, now derived rather than mirrored by hand.
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - name: flutter-android
-            config: test/android.yml
-          - name: flutter-web
-            config: test/web.yml
-          - name: flutter-linux
-            config: test/linux.yml
+        include: ${{ fromJSON(needs.setup.outputs.test) }}
     env:
       # build-image's handoff: non-fork legs pull GHCR under TAG; forks load the
       # local artifact built under flutter_version.
@@ -282,14 +302,12 @@ jobs:
       packages: read
       pull-requests: write
       security-events: write
-    # Mirror the build matrix: each image is scanned against its own release.
+    # Images declaring `scout: true` in config/images.json; each is scanned
+    # against its own release.
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - name: flutter-android
-          - name: flutter-web
-          - name: flutter-linux
+        include: ${{ fromJSON(needs.setup.outputs.scout) }}
     env:
       TAG: ${{ needs.build-image.outputs.tag }}
     steps:

@@ -38,6 +38,31 @@ import "list"
 
 #SemverVersion: #SemverMinor | #SemverPatch
 
+// One published image. Conditional fields rather than a disjunction
+// (#LinuxImage | #WindowsImage): CUE cannot pick a branch and reports every
+// field of both as incomplete.
+#Image: {
+	name!:             string
+	shortDescription!: strings.MaxRunes(100) // Docker Hub truncates beyond this
+	scout!:            bool
+	prTag!:            bool
+	dockerfile!:       "android" | "windows"
+
+	if dockerfile == "android" {
+		target!:     string
+		testConfig!: string
+	}
+
+	if dockerfile == "windows" {
+		scout: false // Docker Scout does not support Windows images
+		prTag: false // windows.yml builds with push: false, so no tag to clean up
+	}
+}
+
+#Images: {
+	images!: [...#Image] & list.MinItems(1) & list.UniqueItems
+}
+
 #Version: {
 	#FlutterVersion
 

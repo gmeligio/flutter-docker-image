@@ -1,19 +1,22 @@
 #!/usr/bin/env node
-// Code-generates readme.md from config/version.json. Node standard library only
+// Code-generates readme.md from config/version.json (tool versions) and
+// config/images.json (the published image set). Node standard library only
 // (no dependencies). Run via `mise run docs`; CI re-runs it and fails if the
 // committed readme.md drifts (git diff --exit-code). The same readme.md is used
 // as the GitHub README and the Docker Hub description.
 //
-// Covers every published image (flutter-android, flutter-web, flutter-linux,
-// flutter-windows)
-// as a concise quick-start: what-is / how-to-use above the fold. Reference and
-// contributor material lives in static docs/ pages, linked from the README.
+// Covers every published image as a concise quick-start: what-is / how-to-use
+// above the fold. Reference and contributor material lives in static docs/
+// pages, linked from the README.
 import { readFileSync, writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const v = JSON.parse(readFileSync(resolve(root, 'config/version.json'), 'utf8'))
+const imageManifest = JSON.parse(
+  readFileSync(resolve(root, 'config/images.json'), 'utf8')
+)
 
 // ---- values mapped from version.json (single source of truth) --------------
 const owner = 'gmeligio'
@@ -41,7 +44,7 @@ const pullsBadge = (name, label) =>
 // One registry table covering every image: rows are registries, columns are
 // the images. Cells are per-registry pull references, so the three images share
 // a single table instead of repeating Docker Hub / GHCR / Quay once each.
-const images = ['flutter-android', 'flutter-web', 'flutter-linux', 'flutter-windows']
+const images = imageManifest.images.map((image) => image.name)
 const registryTable = () => {
   const dockerHub = (name) => `[${tag(name)}](https://hub.docker.com/r/${repo(name)})`
   const githubCR = (name) => `[${ghcr(name)}](https://github.com/${owner}/flutter-docker-image/pkgs/container/${name})`
