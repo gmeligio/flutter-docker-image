@@ -1,0 +1,5 @@
+commit and push
+
+---
+
+`config/schema.cue` has a very verbose comment in the PR. Is it benefitial for a reader?
