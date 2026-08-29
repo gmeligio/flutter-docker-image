@@ -38,14 +38,9 @@ import "list"
 
 #SemverVersion: #SemverMinor | #SemverPatch
 
-// One published image. `dockerfile` discriminates the two build sources, and
-// the conditional fields below are why: `target` and `testConfig` only mean
-// something for a stage of android.Dockerfile, and the two Windows exclusions
-// are platform facts rather than preferences, so the schema pins them instead
-// of trusting each edit to remember.
-//
-// A bare disjunction (#LinuxImage | #WindowsImage) does not work here: CUE
-// cannot pick a branch and reports every field of both as incomplete.
+// One published image. Conditional fields rather than a disjunction
+// (#LinuxImage | #WindowsImage): CUE cannot pick a branch and reports every
+// field of both as incomplete.
 #Image: {
 	name!:             string
 	shortDescription!: strings.MaxRunes(100) // Docker Hub truncates beyond this
