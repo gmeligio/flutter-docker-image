@@ -192,7 +192,9 @@ jobs:
     needs: [setup, release-linux, release-windows]
     # !cancelled() so a failed release job doesn't skip verification of the ones
     # that succeeded. Scoped to push, the path on which all images are built.
-    if: ${{ github.event_name == 'push' && !cancelled() }}
+    # setup must have succeeded: !cancelled() alone would run this on a failed
+    # setup, where the matrix expands to zero legs and reports green.
+    if: ${{ github.event_name == 'push' && needs.setup.result == 'success' && !cancelled() }}
     runs-on: ubuntu-24.04
     # One leg per published image, from config/images.json. fail-fast: false so
     # every image is checked even if one fails.
@@ -230,8 +232,9 @@ jobs:
     needs: [setup, release-linux, release-windows]
     # !cancelled() (not default success()) so one image's release failure does
     # not skip the others' description sync. Scoped to push, where the release
-    # jobs run.
-    if: ${{ github.event_name == 'push' && !cancelled() }}
+    # jobs run. setup must have succeeded: !cancelled() alone would run this on
+    # a failed setup, where the matrix expands to zero legs and reports green.
+    if: ${{ github.event_name == 'push' && needs.setup.result == 'success' && !cancelled() }}
     # Every published image, from config/images.json — including flutter-windows,
     # whose Docker Hub page was blank while this matrix was a copy of the
     # android.Dockerfile build matrix (#521).
@@ -286,7 +289,9 @@ jobs:
     needs: [setup, release-linux]
     # !cancelled() (not default success()) so one image's release failure does
     # not skip the others' Scout records. Scoped to push, where release-linux runs.
-    if: ${{ github.event_name == 'push' && !cancelled() }}
+    # setup must have succeeded: !cancelled() alone would run this on a failed
+    # setup, where the matrix expands to zero legs and reports green.
+    if: ${{ github.event_name == 'push' && needs.setup.result == 'success' && !cancelled() }}
     # Images declaring `scout: true` in config/images.json. flutter-windows is
     # absent because Docker Scout does not support Windows images — declared in
     # the manifest and pinned by the schema, not left as a shorter list here.
