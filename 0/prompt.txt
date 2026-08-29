@@ -1,0 +1,1 @@
+Is the clarification in `.github/workflows/cleanup-pr-image.yml` worth it? Aren't we stating things that we put in config? We should try to leave the what to the code and the config. Code comments must be only about reasoning that's not obvious from the code.
