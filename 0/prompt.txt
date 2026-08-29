@@ -1,0 +1,9 @@
+/change-review
+
+---
+
+1. The stale pin is happening in https://github.com/gmeligio/flutter-docker-image/pull/558
+2. remove the check_deb_pins from the wording, it was dropped.
+3. the spec might been updated in 558.
+4. do it.
+5. do it.
