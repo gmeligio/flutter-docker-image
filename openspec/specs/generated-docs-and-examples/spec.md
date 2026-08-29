@@ -19,12 +19,12 @@ actually ships.
 - **THEN** `readme.md` and every `examples/*.yml` reflect the new version
 - **AND** the regenerated files are part of the same version-bump PR
 
-#### Scenario: Stale committed output fails CI
+#### Scenario: Committed output matches a fresh regeneration
 
-- **GIVEN** a PR whose committed `readme.md` or `examples/*.yml` does not match a
-  fresh `mise run docs`
-- **WHEN** the docs-in-sync check runs (`mise run docs` then `git diff --exit-code`)
-- **THEN** the check fails with instructions to run `mise run docs`
+- **GIVEN** a pull request that modifies either manifest or the generator
+- **WHEN** the drift check regenerates the docs and examples
+- **THEN** the committed outputs are byte-identical to the regenerated ones
+- **AND** CI fails otherwise, naming the drifted file
 
 #### Scenario: An image-set change triggers the drift check
 
