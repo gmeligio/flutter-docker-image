@@ -1,8 +1,22 @@
+## [3.47.2] - 2026-08-28
+
+### 🚀 Features
+
+- Add Flutter Linux image (#551)
+- *(ci)* Merge the version-bump PR on approval (#548)
+
+### 📚 Documentation
+
+- *(openspec)* Archive pr-tag-cleanup-all-images (#549)
 ## [3.47.1] - 2026-08-20
 
 ### 🐛 Bug Fixes
 
 - *(ci)* Clean handoff tags on every image that produces them (#546)
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Upgrade flutter to 3.47.1 (#552)
 ## [3.47.0] - 2026-08-13
 
 ### 🚀 Features
