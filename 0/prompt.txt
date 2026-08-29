@@ -1,0 +1,5 @@
+What's the added benefit of check-deb-pins besides what Docker already checks when building the image?
+
+---
+
+drop it
