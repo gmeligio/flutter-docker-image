@@ -1,0 +1,28 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "01M16HZQW7K718C01ZBZF1FPT8",
+  "strategy": "manual-commit",
+  "branch": "renovate-guard-work",
+  "checkpoints_count": 4,
+  "files_touched": [
+    ".github/workflows/ci.yml",
+    "openspec/changes/renovate-deb-pin-resolution-guard/design.md",
+    "openspec/changes/renovate-deb-pin-resolution-guard/tasks.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 24,
+    "cache_creation_tokens": 6933,
+    "cache_read_tokens": 2597986,
+    "output_tokens": 6869,
+    "api_call_count": 12
+  }
+}

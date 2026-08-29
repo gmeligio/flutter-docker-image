@@ -1,0 +1,13 @@
+Show me what the weekly schedule does.
+
+---
+
+That check is done by Docker. Are we adding a new benefit with that?¿
+
+---
+
+Should we remove the Docker cache?
+
+---
+
+I'm fine with finding the issue in the next PR. That's the whole idea of it.
