@@ -23,7 +23,7 @@ jobs:
     if: ${{ github.event_name == 'pull_request' || github.event.ref_type == 'branch' }}
     runs-on: ubuntu-24.04
     outputs:
-      pr_tag: ${{ steps.images.outputs.pr_tag }}
+      pr_tag: ${{ steps.pr_tag.outputs.matrix }}
     steps:
       - name: Harden runner
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
@@ -36,23 +36,12 @@ jobs:
       - name: Validate version manifest
         uses: ./.github/actions/validate-version-manifest
 
-      - name: Build image matrix
-        id: images
-        env:
-          IMAGE_MANIFEST: config/images.json
-        run: |
-          set -euo pipefail
-          json=$(jq -c '[.images[] | select(.prTag) | {package_name: .name}]' "$IMAGE_MANIFEST")
-
-          # An empty matrix would silently clean up nothing — the failure mode
-          # that let orphaned tags accumulate unnoticed.
-          if [ "$(jq 'length' <<<"$json")" -eq 0 ]; then
-            echo "::error::No images declare prTag in $IMAGE_MANIFEST."
-            exit 1
-          fi
-
-          echo "pr_tag=$json" >>"$GITHUB_OUTPUT"
-          echo "::notice::pr_tag: $(jq -rc '[.[].package_name]' <<<"$json")"
+      - name: Expand the handoff-tag image set
+        id: pr_tag
+        uses: ./.github/actions/image-matrix
+        with:
+          label: pr_tag
+          filter: '[.images[] | select(.prTag) | {package_name: .name}]'
 
   cleanup:
     name: Cleanup PR image (${{ matrix.package_name }})

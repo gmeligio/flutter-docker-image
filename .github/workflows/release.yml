@@ -30,11 +30,11 @@ jobs:
     outputs:
       # Every image. Used for describing and verifying: both apply to anything
       # this repo publishes, whatever it is built from.
-      all: ${{ steps.images.outputs.all }}
+      all: ${{ steps.all.outputs.matrix }}
       # Images built from android.Dockerfile, carrying the `target` stage.
-      linux: ${{ steps.images.outputs.linux }}
+      linux: ${{ steps.linux.outputs.matrix }}
       # Images Docker Scout can analyse. Windows declares `scout: false`.
-      scout: ${{ steps.images.outputs.scout }}
+      scout: ${{ steps.scout.outputs.matrix }}
     steps:
       - name: Harden runner
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
@@ -47,32 +47,26 @@ jobs:
       - name: Validate version manifest
         uses: ./.github/actions/validate-version-manifest
 
-      - name: Build image matrices
-        id: images
-        env:
-          IMAGE_MANIFEST: config/images.json
-        run: |
-          set -euo pipefail
+      - name: Expand the full image set
+        id: all
+        uses: ./.github/actions/image-matrix
+        with:
+          label: all
+          filter: '[.images[] | {name, shortDescription}]'
 
-          emit() {
-            local key="$1" filter="$2" json
-            json=$(jq -c "$filter" "$IMAGE_MANIFEST")
+      - name: Expand the android.Dockerfile image set
+        id: linux
+        uses: ./.github/actions/image-matrix
+        with:
+          label: linux
+          filter: '[.images[] | select(.dockerfile == "android") | {name, target}]'
 
-            # An empty matrix expands to zero legs and reports green — the exact
-            # shape of #521, where a job "passed" for months without ever
-            # touching flutter-windows. Never let that be silent.
-            if [ "$(jq 'length' <<<"$json")" -eq 0 ]; then
-              echo "::error::No images matched the '$key' filter in $IMAGE_MANIFEST."
-              exit 1
-            fi
-
-            echo "$key=$json" >>"$GITHUB_OUTPUT"
-            echo "::notice::$key: $(jq -rc '[.[].name]' <<<"$json")"
-          }
-
-          emit all '[.images[] | {name, shortDescription}]'
-          emit linux '[.images[] | select(.dockerfile == "android") | {name, target}]'
-          emit scout '[.images[] | select(.scout) | {name}]'
+      - name: Expand the Scout-scannable image set
+        id: scout
+        uses: ./.github/actions/image-matrix
+        with:
+          label: scout
+          filter: '[.images[] | select(.scout) | {name}]'
 
   release-linux:
     name: Release ${{ matrix.name }}

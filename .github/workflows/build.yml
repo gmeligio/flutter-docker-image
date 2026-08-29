@@ -26,9 +26,9 @@ jobs:
       flutter_version: ${{ steps.read.outputs.version }}
       # Image matrices from config/images.json — see the setup job in
       # release.yml for why these are declared once instead of hand-copied.
-      linux: ${{ steps.images.outputs.linux }}
-      test: ${{ steps.images.outputs.test }}
-      scout: ${{ steps.images.outputs.scout }}
+      linux: ${{ steps.linux.outputs.matrix }}
+      test: ${{ steps.test.outputs.matrix }}
+      scout: ${{ steps.scout.outputs.matrix }}
     steps:
       - name: Harden runner
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
@@ -49,31 +49,26 @@ jobs:
       - name: Validate version manifest
         uses: ./.github/actions/validate-version-manifest
 
-      - name: Build image matrices
-        id: images
-        env:
-          IMAGE_MANIFEST: config/images.json
-        run: |
-          set -euo pipefail
+      - name: Expand the android.Dockerfile image set
+        id: linux
+        uses: ./.github/actions/image-matrix
+        with:
+          label: linux
+          filter: '[.images[] | select(.dockerfile == "android") | {name, target}]'
 
-          emit() {
-            local key="$1" filter="$2" json
-            json=$(jq -c "$filter" "$IMAGE_MANIFEST")
+      - name: Expand the structure-test image set
+        id: test
+        uses: ./.github/actions/image-matrix
+        with:
+          label: test
+          filter: '[.images[] | select(.testConfig) | {name, config: .testConfig}]'
 
-            # An empty matrix expands to zero legs and reports green. Fail
-            # instead, so a filter that stops matching is never silent.
-            if [ "$(jq 'length' <<<"$json")" -eq 0 ]; then
-              echo "::error::No images matched the '$key' filter in $IMAGE_MANIFEST."
-              exit 1
-            fi
-
-            echo "$key=$json" >>"$GITHUB_OUTPUT"
-            echo "::notice::$key: $(jq -rc '[.[].name]' <<<"$json")"
-          }
-
-          emit linux '[.images[] | select(.dockerfile == "android") | {name, target}]'
-          emit test '[.images[] | select(.testConfig) | {name, config: .testConfig}]'
-          emit scout '[.images[] | select(.scout) | {name}]'
+      - name: Expand the Scout-scannable image set
+        id: scout
+        uses: ./.github/actions/image-matrix
+        with:
+          label: scout
+          filter: '[.images[] | select(.scout) | {name}]'
 
   build-image:
     name: Build and push image (${{ matrix.name }})
