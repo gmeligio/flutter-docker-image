@@ -81,7 +81,6 @@ jobs:
     permissions:
       packages: write
     runs-on: ubuntu-24.04
-    # `target` selects the android.Dockerfile stage, `name` the published repo.
     strategy:
       fail-fast: false
       matrix:
@@ -166,8 +165,6 @@ jobs:
     permissions:
       contents: read
       packages: write
-    # Push path: build the `flutter` target. Runs in parallel with
-    # release-linux (no `needs`).
     uses: ./.github/workflows/windows-image.yml
     with:
       target: flutter
@@ -346,7 +343,6 @@ jobs:
       - name: Get the tag details
         id: get-tag-details
         run: |-
-          # Store the changelog in a temporary directory to not pollute the working directory
           mkdir -p "${{ runner.temp }}/git-cliff"
           changelog_file="${{ runner.temp }}/git-cliff/changelog.md"
           echo "changelog_file=${changelog_file}" >> "$GITHUB_OUTPUT"
