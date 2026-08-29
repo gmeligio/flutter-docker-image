@@ -32,9 +32,7 @@ jobs:
     outputs:
       names: ${{ steps.names.outputs.matrix }}
       descriptions: ${{ steps.descriptions.outputs.matrix }}
-      # Images built from android.Dockerfile, carrying the `target` stage.
       linux: ${{ steps.linux.outputs.matrix }}
-      # Images Docker Scout can analyse. Windows declares `scout: false`.
       scout: ${{ steps.scout.outputs.matrix }}
     steps:
       - name: Harden runner
@@ -279,9 +277,6 @@ jobs:
     # !cancelled() (not default success()) so one image's release failure does
     # not skip the others' Scout records. Scoped to push, where release-linux runs.
     if: ${{ github.event_name == 'push' && needs.setup.result == 'success' && !cancelled() }}
-    # Images declaring `scout: true` in config/images.json. flutter-windows is
-    # absent because Docker Scout does not support Windows images — declared in
-    # the manifest and pinned by the schema, not left as a shorter list here.
     strategy:
       fail-fast: false
       matrix:

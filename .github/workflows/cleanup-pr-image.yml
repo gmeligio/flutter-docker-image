@@ -13,9 +13,6 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # `prTag` marks the images a PR actually pushes a tag for. flutter-windows
-  # sets it false: windows.yml builds with `push: false`, so there is nothing
-  # to clean up.
   setup:
     name: Read the handoff-tag image set
     if: ${{ github.event_name == 'pull_request' || github.event.ref_type == 'branch' }}
