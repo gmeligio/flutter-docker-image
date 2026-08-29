@@ -1,0 +1,47 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "01M175YTZ9Z6GDWBJTY1WYQSZ9",
+  "strategy": "manual-commit",
+  "branch": "fix/sync-published-image-descriptions",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "openspec/changes/archive/2026-08-29-sync-published-image-descriptions/.verify-passed",
+    "openspec/changes/archive/2026-08-29-sync-published-image-descriptions/design.md",
+    "openspec/changes/archive/2026-08-29-sync-published-image-descriptions/proposal.md",
+    "openspec/changes/archive/2026-08-29-sync-published-image-descriptions/research.md",
+    "openspec/changes/archive/2026-08-29-sync-published-image-descriptions/specs/ci-image-anonymous-availability/spec.md",
+    "openspec/changes/archive/2026-08-29-sync-published-image-descriptions/specs/ci-image-handoff/spec.md",
+    "openspec/changes/archive/2026-08-29-sync-published-image-descriptions/specs/ci-image-vulnerability-scan/spec.md",
+    "openspec/changes/archive/2026-08-29-sync-published-image-descriptions/specs/docker-hub-description-sync/spec.md",
+    "openspec/changes/archive/2026-08-29-sync-published-image-descriptions/specs/generated-docs-and-examples/spec.md",
+    "openspec/changes/archive/2026-08-29-sync-published-image-descriptions/specs/published-image-set/spec.md",
+    "openspec/changes/archive/2026-08-29-sync-published-image-descriptions/tasks.md",
+    "openspec/changes/sync-published-image-descriptions/design.md",
+    "openspec/changes/sync-published-image-descriptions/proposal.md",
+    "openspec/changes/sync-published-image-descriptions/research.md",
+    "openspec/changes/sync-published-image-descriptions/specs/ci-image-anonymous-availability/spec.md",
+    "openspec/changes/sync-published-image-descriptions/specs/ci-image-handoff/spec.md",
+    "openspec/changes/sync-published-image-descriptions/specs/ci-image-vulnerability-scan/spec.md",
+    "openspec/changes/sync-published-image-descriptions/specs/docker-hub-description-sync/spec.md",
+    "openspec/changes/sync-published-image-descriptions/specs/generated-docs-and-examples/spec.md",
+    "openspec/changes/sync-published-image-descriptions/specs/published-image-set/spec.md",
+    "openspec/changes/sync-published-image-descriptions/tasks.md",
+    "openspec/specs/generated-docs-and-examples/spec.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 64,
+    "cache_creation_tokens": 90202,
+    "cache_read_tokens": 2416142,
+    "output_tokens": 10983,
+    "api_call_count": 32
+  }
+}
