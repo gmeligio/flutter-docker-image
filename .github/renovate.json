@@ -22,21 +22,19 @@
       "schedule": ["* 0-3 1 * *"]
     },
     {
-      "description": "Default apt suites: one registryUrl per stanza of debian:13-slim's own sources (trixie, trixie-updates, trixie-security; main only). The deb datasource merges releases across them, so Renovate's candidate is the one apt would install. Update these together with the base image in android.Dockerfile — a Debian release bump makes them stale.",
+      "description": "Where the base image installs apt packages from: debian:13-slim's own suites. Keep in sync with the base image in android.Dockerfile.",
       "matchDatasources": ["deb"],
       "registryUrls": [
         "https://deb.debian.org/debian?suite=trixie&components=main&binaryArch=amd64",
-        "https://deb.debian.org/debian?suite=trixie-updates&components=main&binaryArch=amd64",
         "https://deb.debian.org/debian-security?suite=trixie-security&components=main&binaryArch=amd64"
       ]
     },
     {
-      "description": "openjdk-17 is not in trixie; the android stage adds Debian 12 bookworm to install it. Mirrors config/debian_12_bookworm.sources. Must stay after the trixie rule — a later matching rule replaces registryUrls.",
+      "description": "Trixie has no openjdk-17, so the android stage adds bookworm to get it. Mirrors config/debian_12_bookworm.sources. The security suite is required, not a nicety — the only installable openjdk-17 comes from there (#555). Keep this rule last; a later match would replace the URLs above.",
       "matchDatasources": ["deb"],
       "matchPackageNames": ["openjdk-17-jdk-headless"],
       "registryUrls": [
         "https://deb.debian.org/debian?suite=bookworm&components=main,contrib,non-free,non-free-firmware&binaryArch=amd64",
-        "https://deb.debian.org/debian?suite=bookworm-updates&components=main,contrib,non-free,non-free-firmware&binaryArch=amd64",
         "https://deb.debian.org/debian-security?suite=bookworm-security&components=main,contrib,non-free,non-free-firmware&binaryArch=amd64"
       ]
     }
