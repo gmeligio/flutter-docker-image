@@ -1,0 +1,7 @@
+commit and push
+
+---
+
+The code comment we moved in `.github/workflows/cleanup-pr-image.yml` reads strange. Can we make it read more natural and trim it if possible?
+
+The code comments in `.github/workflows/release.yml` explain a lot. Are all of them benefitial to a reader because they aren't obvious from the code?

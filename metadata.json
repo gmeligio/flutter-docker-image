@@ -1,0 +1,27 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "01M17GNGCJH06YB35GR65E41SH",
+  "strategy": "manual-commit",
+  "branch": "fix/sync-published-image-descriptions",
+  "checkpoints_count": 2,
+  "files_touched": [
+    ".github/workflows/cleanup-pr-image.yml",
+    ".github/workflows/release.yml"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 30,
+    "cache_creation_tokens": 11294,
+    "cache_read_tokens": 1615981,
+    "output_tokens": 6083,
+    "api_call_count": 15
+  }
+}
