@@ -1,0 +1,27 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "01M16HFK9FP2AKKQFGK4TJF4YE",
+  "strategy": "manual-commit",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".github/workflows/build.yml",
+    "script/check_deb_pins.sh",
+    "script/check_deb_pins_test.sh"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": ""
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 52,
+    "cache_creation_tokens": 24292,
+    "cache_read_tokens": 4730520,
+    "output_tokens": 14747,
+    "api_call_count": 26
+  }
+}
