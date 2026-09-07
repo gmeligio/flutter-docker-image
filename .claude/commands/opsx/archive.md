@@ -1,25 +1,58 @@
 ---
 model: inherit
 name: "OPSX: Archive"
-description: Archive a completed change in the experimental workflow
-category: Workflow
-tags: [workflow, archive, experimental]
+description: "Archive a completed change in the experimental workflow"
+allowed-tools: Bash(openspec:*)
+category: "Workflow"
+tags: ["workflow", "archive", "experimental"]
 ---
 
 Archive a completed change in the experimental workflow.
+
+**Store selection:** If the user names a store (a store is a standalone OpenSpec repo registered on this machine) or the work lives in one, run `openspec store list --json` to discover registered store ids, then pass `--store <id>` on the commands that read or write specs and changes (`new change`, `status`, `instructions`, `list`, `show`, `validate`, `archive`, `doctor`, `context`, `view`). Other commands do not take the flag. Hints printed by commands already carry the flag; keep it on follow-ups. Without a store, commands act on the nearest local `openspec/` root.
 
 **Input**: Optionally specify a change name after `/opsx:archive` (e.g., `/opsx:archive add-auth`). If omitted, check if it can be inferred from conversation context. If vague or ambiguous you MUST prompt for available changes.
 
 **Steps**
 
-1. **If no change name provided, prompt for selection**
+1. **Select the change**
 
-   Run `openspec list --json` to get available changes. Use the **AskUserQuestion tool** to let the user select.
+   If a name is provided, use it. Otherwise:
+   - Infer from conversation context if the user mentioned a change
+   - Auto-select if only one active change exists
+   - If ambiguous, run `openspec list --json` to get available changes and ask the user to select one
 
-   Show only active changes (not already archived).
+   When prompting, show only active changes (not already archived).
    Include the schema used for each change if available.
 
-   **IMPORTANT**: Do NOT guess or auto-select a change. Always let the user choose.
+   Always announce: "Using change: <name>" and how to override (e.g., `/opsx:archive <other>`).
+
+   **Load current archive inputs before the existing archive checks:**
+
+   After resolving the selected change and planning root, run:
+   ```bash
+   openspec instructions archive --change "<name>" --json
+   ```
+   Keep the same selected-root flags on this command. This lookup is advisory and
+   optional: it only supplies extra prompt inputs, so it must never block archiving.
+   If it exits non-zero or returns invalid JSON — for example on an older CLI that
+   does not support this command yet — continue the archive workflow with no
+   context and no operation guidance. Do not report an error and do not stop.
+
+   A successful response may omit both optional fields. Treat `context` as a
+   required prompt-level input: read and consider it, and apply relevant project
+   facts, conventions, and constraints. Treat `operationGuidance` as optional
+   additive advice: read and consider every entry, and follow entries that are
+   applicable and compatible with the built-in archive workflow.
+
+   Keep both fields separate from built-in steps, explicit user choices, resolved
+   paths, CLI checks, and command contracts. If context conflicts with one of those
+   controlling inputs, report the conflict and preserve the controlling value. If
+   guidance is inapplicable or conflicts with a controlling input, do not follow it
+   and explain why. Do not infer replacement paths, skipped prompts, or flags from
+   either field, and do not copy their text verbatim into specs, change artifacts,
+   or archive summaries unless the user separately asks for it. These are
+   prompt-level behavior contracts, not enforceable checks.
 
 2. **Check artifact completion status**
 
@@ -27,9 +60,10 @@ Archive a completed change in the experimental workflow.
 
    Parse the JSON to understand:
    - `schemaName`: The workflow being used
-   - `artifacts`: List of artifacts with their status (`done` or other)
+   - `planningHome`, `changeRoot`, `artifactPaths`, and `actionContext`: path and scope context
+   - `artifacts`: List of artifacts with their status (`done`, `skipped`, or other)
 
-   **If any artifacts are not `done`:**
+   **If any artifacts are neither `done` nor `skipped`** (skipped artifacts satisfy the requirement - the change declares skip_specs):
    - Display warning listing incomplete artifacts
    - Prompt user for confirmation to continue
    - Proceed if user confirms
@@ -49,48 +83,80 @@ Archive a completed change in the experimental workflow.
 
 4. **Assess delta spec sync state**
 
-   Check for delta specs at `openspec/changes/<name>/specs/`. If none exist, proceed without sync prompt.
+   Use `artifactPaths.specs.existingOutputPaths` from status JSON as the only
+   delta-spec source. If the `specs` entry is missing or
+   `existingOutputPaths` is empty, proceed without a sync prompt and do not infer
+   delta specs from other artifacts.
 
    **If delta specs exist:**
-   - Compare each delta spec with its corresponding main spec at `openspec/specs/<capability>/spec.md`
+   - Compare each delta spec with its corresponding main spec at `<planningHome.root>/openspec/specs/<capability>/spec.md` (use the store-aware `planningHome.root` from step 2, not a hardcoded repo path)
    - Determine what changes would be applied (adds, modifications, removals, renames)
    - Show a combined summary before prompting
-
-   **Always sync specs automatically** — do NOT prompt the user. If there are changes to sync, proceed directly.
-
-   Use Task tool (subagent_type: "general-purpose", prompt: "Use Skill tool to invoke openspec-sync-specs for change '<name>'. Delta spec analysis: <include the analyzed delta spec summary>"). Proceed to archive after sync completes.
 
 <!-- opsx-verify-scoring-patch -->
 
 5. **Verify implementation**
 
-   Check for `.verify-passed` marker at `openspec/changes/<n>/.verify-passed`.
+   Check for a `.verify-passed` marker at `<changeRoot>/.verify-passed`, taking
+   `changeRoot` from the status JSON in step 2. A change living in a store sits
+   outside `openspec/changes/<n>/`.
+
+   Treat artifacts reported as `skipped` as done and continue past them.
 
    **If marker does NOT exist:**
    - Invoke Skill tool: `openspec-verify-change` for change `<n>`
    - Wait for the verdict:
      - **FAIL** → block archive, show score table, list CRITICAL issues
      - **CONDITIONAL** → show score table + warnings, ask user to confirm
-     - **PASS** → write marker: `echo "passed" > "openspec/changes/<n>/.verify-passed"`, continue
+     - **PASS** → write marker: `echo "passed" > "<changeRoot>/.verify-passed"`, continue
    - Max 3 retry cycles: fix → re-verify → check verdict
 
    **If marker EXISTS:** show "✓ Verified" and continue.
 
+   **Always sync specs automatically.** Proceed as though "Sync now" had been
+   selected, whether or not the delta specs already look synced. Skip the prompt.
+
+   Run the sync inline, following the steps below: fetch the specs-rule snapshot,
+   sync, then verify every capability. Run it in this conversation rather than
+   delegating to a background task, which would still be reading `changeRoot`
+   when the archive step moves it.
+
+   A failed or incomplete sync is the only thing that stops the archive.
+
+   Before a selected sync writes any main spec, run
+   `openspec instructions specs --change "<name>" --json` once with the same
+   selected-root flags. Require a zero exit status and valid artifact-instruction
+   JSON. If the lookup fails or returns invalid JSON, report the error and stop
+   before writing any main spec or moving the change. A valid response with omitted
+   `rules` is the no-rules case. Apply returned `rules` only to the content and
+   form of main specs produced by this merge; do not use them as archive guidance,
+   change CLI behavior, or copy the rule text into any output file.
+
+   Then run the `/opsx:sync` workflow inline (agent-driven intelligent merge) for change '<name>', passing the delta spec analysis and the fetched specs-rule snapshot from above, and wait for it to finish. The inline sync must reuse that snapshot without fetching `specs` instructions again. Do not delegate it to a background task — the archive step would move `changeRoot` out from under a sync that is still reading it, leaving the change archived and the main specs never updated. If your agent can only run it by delegation, delegate synchronously and wait for the result.
+
+   Then re-run the comparison from the top of this step against every capability that has a delta spec in `artifactPaths.specs.existingOutputPaths` — not only the ones the sync reports it touched. A successful sync leaves nothing left to apply, so each capability must now read as already synced:
+   - ADDED requirements present
+   - MODIFIED requirements carrying the scenario and description changes named in the delta, with their other scenarios intact
+   - REMOVED requirements gone
+   - RENAMED requirements present under the new name and absent under the old one
+
+   If the sync failed, or any capability does not match, report what differs and stop — do not archive. Nothing has moved and `changeRoot` is intact, so the user can fix the mismatch or re-run the sync and start the archive again.
+
 6. **Perform the archive**
 
-   Create the archive directory if it doesn't exist:
+   Create an `archive` directory under `planningHome.changesDir` if it doesn't exist:
    ```bash
-   mkdir -p openspec/changes/archive
+   mkdir -p "<planningHome.changesDir>/archive"
    ```
 
-   Generate target name using current date: `YYYY-MM-DD-<change-name>`
+   Generate the target name: use the change name as-is when it already starts with a `YYYY-MM-DD-` prefix; otherwise prepend the current date as `YYYY-MM-DD-<change-name>`. Never stack a second date (same rule as `openspec archive`).
 
    **Check if target already exists:**
    - If yes: Fail with error, suggest renaming existing archive or using different date
-   - If no: Move the change directory to archive
+   - If no: Move `changeRoot` to the archive directory
 
    ```bash
-   mv openspec/changes/<name> openspec/changes/archive/YYYY-MM-DD-<name>
+   mv "<changeRoot>" "<planningHome.changesDir>/archive/<target-name>"
    ```
 
 
@@ -98,10 +164,12 @@ Archive a completed change in the experimental workflow.
 
 7. **Git: commit the archive move, then push and open a PR**
 
-   By this point, step 6 has moved `openspec/changes/<name>/` into
-   `openspec/changes/archive/<DATE>-<name>/`. The archived proposal lives at
-   `openspec/changes/archive/<DATE>-<name>/proposal.md` and is used to
-   compose the PR body below.
+   Step 6 moved `changeRoot` into `<planningHome.changesDir>/archive/<TARGET>/`,
+   using the target name it generated. Call that directory `ARCHIVED`; the
+   proposal it holds at `<ARCHIVED>/proposal.md` composes the PR body in 7f.
+
+   Take every path from the status JSON. A change living in a store sits outside
+   `openspec/changes/…`.
 
    **7a. Branch guard — refuse to PR from trunk.**
 
@@ -117,20 +185,19 @@ Archive a completed change in the experimental workflow.
    ```
 
    **7b. Commit the archive move.** Stage `openspec/` and commit only if
-   there is a staged diff. Build a Conventional Commit prefix from the
-   staged change — do not hardcode the type, and do not use the change-id
-   as the scope:
+   there is a staged diff. Derive a Conventional Commit prefix from the
+   staged diff:
 
-   - **type**: infer from the diff's user-facing *outcome*, not the
-     technique used (a refactor that fixes a bug is `fix`, not `refactor`).
-     Choose one of: `feat`, `fix`, `docs`, `chore`, `ci`, `refactor`,
-     `perf`, `test`, `build`, `style`, `revert`. A move that only relocates
-     artifacts under `openspec/changes/` is `docs`.
-   - **scope**: the affected code area, derived from the primary top-level
-     directory or module the diff touches — the existing directory/module
-     name, not an invented synonym, and not the change-id. An archive move
-     touching only `openspec/changes/` yields scope `openspec`. When the
-     diff spans multiple unrelated areas, pick the dominant area.
+   - **type**: infer from the diff's user-facing *outcome* rather than the
+     technique used, so a refactor that fixes a bug is `fix`. Choose one of:
+     `feat`, `fix`, `docs`, `chore`, `ci`, `refactor`, `perf`, `test`,
+     `build`, `style`, `revert`. A move that only relocates artifacts under
+     `openspec/changes/` is `docs`.
+   - **scope**: the primary top-level directory or module the diff touches.
+     Use that directory's existing name, not an invented synonym,
+     and not the change-id. An archive move touching only
+     `openspec/changes/` yields scope `openspec`. For a diff spanning
+     several unrelated areas, pick the dominant one.
    - **subject**: `archive <change-name>`.
 
    Print the chosen `type(scope): subject` before committing, then:
@@ -174,13 +241,12 @@ Archive a completed change in the experimental workflow.
    ```
 
    **7f. Compose the PR body from the archived `proposal.md`.** Slice the
-   `## Why` and `## What Changes` sections out of
-   `openspec/changes/archive/<DATE>-<name>/proposal.md` and append a
-   generated-by footer. If either section is missing, fall back to a
+   `## Why` and `## What Changes` sections out of `<ARCHIVED>/proposal.md` and
+   append a generated-by footer. If either section is missing, fall back to a
    one-line "see commit history" body.
 
    ```bash
-   PROPOSAL="openspec/changes/archive/<DATE>-<name>/proposal.md"
+   PROPOSAL="<ARCHIVED>/proposal.md"
    BODY=$(awk '
      /^## Why$/                 { capture=1; print; next }
      /^## What Changes$/        { capture=1; print; next }
@@ -226,13 +292,8 @@ Archive a completed change in the experimental workflow.
    esac
    ```
 
-   Conventional-Commit titles are enforced by `bash-guard.sh`. Build the
-   `<type>(<scope>)` prefix the same way as the commit in step 7b: infer
-   **type** from the diff's user-facing outcome (one of `feat`, `fix`,
-   `docs`, `chore`, `ci`, `refactor`, `perf`, `test`, `build`, `style`,
-   `revert`), and derive **scope** from the primary code area the change
-   touches — the existing directory/module name, not the change-id. Use
-   the same `type(scope)` you printed in step 7b.
+   Title the PR with the same `type(scope)` you printed in step 7b.
+   `bash-guard.sh` rejects a title that is not a Conventional Commit.
 
 8. **Watch pipeline and fix issues**
 
@@ -265,12 +326,12 @@ Archive a completed change in the experimental workflow.
 
 **Output On Success**
 
-```
+```markdown
 ## Archive Complete
 
 **Change:** <change-name>
 **Schema:** <schema-name>
-**Archived to:** openspec/changes/archive/YYYY-MM-DD-<name>/
+**Archived to:** the archive path derived from `planningHome.changesDir`/<target-name>/
 **Specs:** ✓ Synced to main specs
 
 All artifacts complete. All tasks complete.
@@ -278,12 +339,12 @@ All artifacts complete. All tasks complete.
 
 **Output On Success (No Delta Specs)**
 
-```
+```markdown
 ## Archive Complete
 
 **Change:** <change-name>
 **Schema:** <schema-name>
-**Archived to:** openspec/changes/archive/YYYY-MM-DD-<name>/
+**Archived to:** the archive path derived from `planningHome.changesDir`/<target-name>/
 **Specs:** No delta specs
 
 All artifacts complete. All tasks complete.
@@ -291,12 +352,12 @@ All artifacts complete. All tasks complete.
 
 **Output On Success With Warnings**
 
-```
+```markdown
 ## Archive Complete (with warnings)
 
 **Change:** <change-name>
 **Schema:** <schema-name>
-**Archived to:** openspec/changes/archive/YYYY-MM-DD-<name>/
+**Archived to:** the archive path derived from `planningHome.changesDir`/<target-name>/
 **Specs:** Sync skipped (user chose to skip)
 
 **Warnings:**
@@ -309,11 +370,11 @@ Review the archive if this was not intentional.
 
 **Output On Error (Archive Exists)**
 
-```
+```markdown
 ## Archive Failed
 
 **Change:** <change-name>
-**Target:** openspec/changes/archive/YYYY-MM-DD-<name>/
+**Target:** the archive path derived from `planningHome.changesDir`/<target-name>/
 
 Target archive directory already exists.
 
@@ -324,10 +385,16 @@ Target archive directory already exists.
 ```
 
 **Guardrails**
-- Always prompt for change selection if not provided
+- Announce the selected change; prompt for selection when it is ambiguous
 - Use artifact graph (openspec status --json) for completion checking
 - Don't block archive on warnings - just inform and confirm
 - Preserve .openspec.yaml when moving to archive (it moves with the directory)
 - Show clear summary of what happened
-- If sync is requested, use the Skill tool to invoke `openspec-sync-specs` (agent-driven)
+- If sync is requested, run the `/opsx:sync` workflow inline (agent-driven)
+- Never archive while a spec sync is still in flight — run the sync inline and verify the main specs before moving `changeRoot`
 - If delta specs exist, always run the sync assessment and show the combined summary before prompting
+- Apply relevant runtime context and report conflicts; operation guidance remains advisory
+- Consider every guidance entry and explain any inapplicable or conflicting advice
+- Existing CLI checks, resolved paths, prompts, and command contracts are unchanged
+- Artifact rules constrain only the specs being written and are never operation guidance
+- Never copy runtime context, operation guidance, or artifact-rule text verbatim into output files

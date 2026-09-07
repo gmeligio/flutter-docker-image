@@ -1,26 +1,32 @@
 ---
 model: opus
 name: "OPSX: Verify"
-description: Verify implementation matches change artifacts before archiving
-category: Workflow
-tags: [workflow, verify, experimental]
+description: "Verify implementation matches change artifacts before archiving"
+allowed-tools: Bash(openspec:*)
+category: "Workflow"
+tags: ["workflow", "verify", "experimental"]
 ---
 
 Verify that an implementation matches the change artifacts (specs, tasks, design).
+
+**Store selection:** If the user names a store (a store is a standalone OpenSpec repo registered on this machine) or the work lives in one, run `openspec store list --json` to discover registered store ids, then pass `--store <id>` on the commands that read or write specs and changes (`new change`, `status`, `instructions`, `list`, `show`, `validate`, `archive`, `doctor`, `context`, `view`). Other commands do not take the flag. Hints printed by commands already carry the flag; keep it on follow-ups. Without a store, commands act on the nearest local `openspec/` root.
 
 **Input**: Optionally specify a change name after `/opsx:verify` (e.g., `/opsx:verify add-auth`). If omitted, check if it can be inferred from conversation context. If vague or ambiguous you MUST prompt for available changes.
 
 **Steps**
 
-1. **If no change name provided, prompt for selection**
+1. **Select the change**
 
-   Run `openspec list --json` to get available changes. Use the **AskUserQuestion tool** to let the user select.
+   If a name is provided, use it. Otherwise:
+   - Infer from conversation context if the user mentioned a change
+   - Auto-select if only one active change exists
+   - If ambiguous, run `openspec list --json` to get available changes and ask the user to select one
 
-   Show changes that have implementation tasks (tasks artifact exists).
+   When prompting, show changes that have implementation tasks (tasks artifact exists).
    Include the schema used for each change if available.
    Mark changes with incomplete tasks as "(In Progress)".
 
-   **IMPORTANT**: Do NOT guess or auto-select a change. Always let the user choose.
+   Always announce: "Using change: <name>" and how to override (e.g., `/opsx:verify <other>`).
 
 2. **Check status to understand the schema**
    ```bash
@@ -28,9 +34,10 @@ Verify that an implementation matches the change artifacts (specs, tasks, design
    ```
    Parse the JSON to understand:
    - `schemaName`: The workflow being used (e.g., "spec-driven")
+   - `planningHome`, `changeRoot`, `artifactPaths`, and `actionContext`: path and scope context
    - Which artifacts exist for this change
 
-3. **Get the change directory and load artifacts**
+3. **Get planning context and load artifacts**
 
    ```bash
    openspec instructions apply --change "<name>" --json
@@ -58,7 +65,7 @@ Verify that an implementation matches the change artifacts (specs, tasks, design
      - Recommendation: "Complete task: <description>" or "Mark as done if already implemented"
 
    **Spec Coverage**:
-   - If delta specs exist in `openspec/changes/<name>/specs/`:
+   - If delta specs exist in `contextFiles.specs`:
      - Extract all requirements (marked with "### Requirement:")
      - For each requirement:
        - Search codebase for keywords related to the requirement
@@ -104,10 +111,53 @@ Verify that an implementation matches the change artifacts (specs, tasks, design
      - Add SUGGESTION: "Code pattern deviation: <details>"
      - Recommendation: "Consider following project pattern: <example>"
 
-8. **Generate Verification Report**
+<!-- opsx-verify-readability-patch -->
+
+8. **Verify Readability**
+
+   Judge whether a person can read the change, without comparing it to any
+   artifact.
+
+   **Get the diff**:
+   ```bash
+   git diff main...HEAD
+   ```
+   Readability judges lines this change introduced, not the whole codebase. If
+   the command fails — no `main`, different trunk name, detached history — report
+   Readability as skipped and name the reason. Never score it clean on missing
+   evidence.
+
+   **Comments that should be code**:
+   - A comment explaining *what* the code does is a smell — the fix is a change
+     to the code, not better wording:
+     - Magic value → named constant.
+     - Explained block → extracted, well-named function.
+     - Cryptic variable → rename.
+     - Commented-out code → delete (git remembers).
+   - Add WARNING: "Comment restates the code: <file>:<line>"
+   - Recommendation: the code change that removes the need for the comment
+
+   **References that don't help a future reader**:
+   - An issue or PR reference carrying nothing the reader needs at that line
+   - Add WARNING: "Reference serves no reader: <file>:<line>"
+   - Recommendation: delete it, or state the constraint it stands for
+
+   **Parenthetical historical asides**:
+   - Narration of how something used to work, when the current state is what the
+     reader needs — "(we used to do X)", "(formerly the Y path)"
+   - Add WARNING: "Historical aside: <file>:<line>"
+   - Recommendation: cut to the present-tense fact
+
+   **Keep, don't flag**: *why* comments — rationale, decisions, sharp edges — and
+   references that carry the reason a workaround exists. A link explaining why a
+   line is strange is doing a reader's work, not wasting it.
+
+   Every finding shows the concrete before → after. "Too wordy" is not a finding.
+
+9. **Generate Verification Report**
 
    **Summary Scorecard**:
-   ```
+   ```markdown
    ## Verification Report: <change-name>
 
    ### Summary
@@ -116,6 +166,7 @@ Verify that an implementation matches the change artifacts (specs, tasks, design
    | Completeness | X/Y tasks, N reqs|
    | Correctness  | M/N reqs covered |
    | Coherence    | Followed/Issues  |
+   | Readability  | Clean/Findings   |
    ```
 
    **Issues by Priority**:
@@ -140,11 +191,26 @@ Verify that an implementation matches the change artifacts (specs, tasks, design
    - If only warnings: "No critical issues. Y warning(s) to consider. Ready for archive (with noted improvements)."
    - If all clear: "All checks passed. Ready for archive."
 
+<!-- opsx-verify-verdict-patch -->
+
+   **Verdict**:
+
+   End the report with one literal token, derived from the issues above:
+
+   - Any CRITICAL issue → `FAIL`
+   - No CRITICAL, one or more WARNING → `CONDITIONAL`
+   - No CRITICAL and no WARNING → `PASS`
+
+   The archive step consumes this token. State it, don't imply it.
+
 **Verification Heuristics**
 
 - **Completeness**: Focus on objective checklist items (checkboxes, requirements list)
 - **Correctness**: Use keyword search, file path analysis, reasonable inference - don't require perfect certainty
 - **Coherence**: Look for glaring inconsistencies, don't nitpick style
+- **Readability**: Judge what a reader must reconstruct. Leave formatting, naming
+  style, and line breaks to Coherence. Every finding names a cost to a reader and
+  shows a concrete rewrite; drop findings missing either. Cap at WARNING.
 - **False Positives**: When uncertain, prefer SUGGESTION over WARNING, WARNING over CRITICAL
 - **Actionability**: Every issue must have a specific recommendation with file/line references where applicable
 
