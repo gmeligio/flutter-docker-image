@@ -1,13 +1,30 @@
-## [3.47.2] - 2026-08-28
+## [3.47.3] - 2026-09-10
+
+### 🐛 Bug Fixes
+
+- *(ci)* Sync published image descriptions from a declared image set (#554)
+
+### ⚙️ Miscellaneous Tasks
+
+- *(renovate)* Drop unfetchable -updates registryUrls (#559)
+## [3.47.2] - 2026-08-29
 
 ### 🚀 Features
 
 - Add Flutter Linux image (#551)
 - *(ci)* Merge the version-bump PR on approval (#548)
 
+### 🐛 Bug Fixes
+
+- *(android)* Repin openjdk to the installable bookworm-security version (#558)
+
 ### 📚 Documentation
 
 - *(openspec)* Archive pr-tag-cleanup-all-images (#549)
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Upgrade flutter to 3.47.2 (#557)
 ## [3.47.1] - 2026-08-20
 
 ### 🐛 Bug Fixes
@@ -102,14 +119,14 @@
 
 - *(web)* Add minimal flutter-web image (#489)
 
-### 🚜 Refactor
-
-- *(ci)* Build the Windows image in one reusable workflow (#501)
-
 ### 📚 Documentation
 
 - Archive single-version-source-of-truth (#500)
 - Per-image "Main tools" lists in README with tracked Java version (#503)
+
+### 🚜 Refactor
+
+- *(ci)* Build the Windows image in one reusable workflow (#501)
 
 ### 🧪 Testing
 
@@ -130,14 +147,14 @@
 - *(renovate)* Match android.Dockerfile + correct package pin annotations (#488)
 - *(ci)* Make config/version.json the single version source of truth (#498)
 
-### 🚜 Refactor
-
-- *(ci)* Hoist Setup mise tools into the setup block across all jobs (#497)
-
 ### 📚 Documentation
 
 - Archive p10-strengthen-branch-protection (#481)
 - Archive scout sbom provenance (#485)
+
+### 🚜 Refactor
+
+- *(ci)* Hoist Setup mise tools into the setup block across all jobs (#497)
 
 ### ⚙️ Miscellaneous Tasks
 
@@ -268,13 +285,13 @@
 - *(release)* Upgrade flutter to 3.38.9 (#420)
 ## [3.38.8] - 2026-01-28
 
-### 💼 Other
-
-- Run npm update (#418)
-
 ### ⚙️ Miscellaneous Tasks
 
 - *(release)* Upgrade flutter to 3.38.8 (#419)
+
+### 💼 Other
+
+- Run npm update (#418)
 ## [3.38.7] - 2026-01-15
 
 ### ⚙️ Miscellaneous Tasks
@@ -426,12 +443,6 @@
 
 - *(deps)* Update dependency mdx-to-md to ^0.5.0 (#324)
 
-### 💼 Other
-
-- *(deps)* Bump @babel/runtime (#312)
-- Update windows image to ltsc2025 (#317)
-- *(deps)* Bump estree-util-value-to-estree from 3.3.2 to 3.3.3 in /docs/src in the npm_and_yarn group across 1 directory (#325)
-
 ### 📚 Documentation
 
 - Add table of contents and image table (#323)
@@ -446,6 +457,12 @@
 - Download-artifact can not overwrite existing files (#327)
 - Path is a folder in download-artifact (#328)
 - Update flutter dependencies in version.json for 3.29.3 (#329)
+
+### 💼 Other
+
+- *(deps)* Bump @babel/runtime (#312)
+- Update windows image to ltsc2025 (#317)
+- *(deps)* Bump estree-util-value-to-estree from 3.3.2 to 3.3.3 in /docs/src in the npm_and_yarn group across 1 directory (#325)
 ## [3.29.2] - 2025-03-15
 
 ### ⚙️ Miscellaneous Tasks
@@ -460,10 +477,6 @@
 ### 🐛 Bug Fixes
 
 - Use github context because octokit is not available (#293)
-
-### 💼 Other
-
-- Replace yq with cue to reduce tool dependencies (#296)
 
 ### 📚 Documentation
 
@@ -480,6 +493,10 @@
 - Update flutter version in flutter_version.json to 3.29.1 (#302)
 - Discard changes to flutter source code when switching tags (#303)
 - Update flutter dependencies in version.json for 3.29.1 (#304)
+
+### 💼 Other
+
+- Replace yq with cue to reduce tool dependencies (#296)
 ## [3.29.0] - 2025-02-17
 
 ### 🐛 Bug Fixes
@@ -488,64 +505,6 @@
 - Remove annotation CompileDynamic
 - Remove ecr registry
 - Don't print message on entrypoint to allow initial calls from CI systems (#155)
-
-### 💼 Other
-
-- Move Dockerfile to root
-- Remove locale env and update regex and update git version
-- Create flutter base image and then android
-- Set non-root user as flutter
-- Flutter downloads obsolete Android SDK Tools (revision: 26.1.1)
-- Add entrypoint to change ownership of CI_PROJECT_DIR
-- Leave sudo but remove entrypoint
-- Add logical and before modifying sudoers
-- Add pattern /builds/* to sudoers
-- Add image opencontainers labels
-- Set JAVA_HOME
-- Explicitly set java home
-- Join env statements
-- Add multiple platform versions
-- Use platforms_versions
-- Do not quote array of arguments in build args
-- Upgrade curl to 7.81.0-1ubuntu1.8
-- Upgrade openjdk-11-jdk to 11.0.18+10-0ubuntu1~22.04 and sudo to 1.9.9-1ubuntu2.2
-- Add ENABLE_ANALYTICS to entrypoint
-- Upgrade curl to 7.81.0-1ubuntu1.10
-- Update sudo to 1.9.9-1ubuntu2.4
-- Add repology source ubuntu 22:04
-- Remove os specifc versioning
-- Fix typo between curl and git
-- Fix ubuntu package names
-- Upgrade git to 2.34.1-1ubuntu1.8
-- Add args for openjdk and sudo
-- Make entrypoint executable
-- Copy entrypoint with flutter user permissions
-- Upgrade openjdk-11-jdk to 11.0.19+7~us1-0ubuntu1~22.04.1
-- Chmod entrypoint
-- Migrate to openjdk-11-jdk-headless
-- Migrate to JRE with openjdk-11-jre-headless
-- Restore openjdk-11-jdk-headless
-- Uncomment flutter installation
-- Switch to debian/debian:11-slim
-- Add cross-env
-- Add fastlane stage
-- Install fastlane with bundler
-- Update dependencies versions in manifest with flutter 3.13.0' (#33)
-- Upgrade to openjdk 17 to 17.0.7+7-1~deb11u1 (#37)
-- Upgrade to debian 12 (#78)
-- Change debian registry to docker hub (#90)
-- Upgrade openjdk-17-jdk-headless to 17.0.10+7-1~deb12u1 (#158)
-- Join parsed platform versions with space
-- *(deps)* Bump braces (#196)
-- *(deps)* Bump cross-spawn from 7.0.3 to 7.0.6 in /docs/src in the npm_and_yarn group across 1 directory (#267)
-- *(deps)* Bump esbuild (#285)
-- Remove --depth 1 from git clone in Dockerfile (#287)
-
-### 🚜 Refactor
-
-- Format version.json with prettier
-- Update renovate according to validator (#122)
-- Migrate Android version update script to Kotlin DSL and remove Groovy version (#288)
 
 ### 📚 Documentation
 
@@ -583,6 +542,12 @@
 - Add a security policy (#238)
 - Add openssf scorecard (#241)
 - Reorganize sections in readme.md (#264)
+
+### 🚜 Refactor
+
+- Format version.json with prettier
+- Update renovate according to validator (#122)
+- Migrate Android version update script to Kotlin DSL and remove Groovy version (#288)
 
 ### 🧪 Testing
 
@@ -851,3 +816,55 @@
 - Update flutter dependencies in version.json for 3.27.4 (#283)
 - Update flutter version in flutter_version.json to 3.29.0 (#286)
 - Update flutter dependencies in version.json for 3.29.0 (#289)
+
+### 💼 Other
+
+- Move Dockerfile to root
+- Remove locale env and update regex and update git version
+- Create flutter base image and then android
+- Set non-root user as flutter
+- Flutter downloads obsolete Android SDK Tools (revision: 26.1.1)
+- Add entrypoint to change ownership of CI_PROJECT_DIR
+- Leave sudo but remove entrypoint
+- Add logical and before modifying sudoers
+- Add pattern /builds/* to sudoers
+- Add image opencontainers labels
+- Set JAVA_HOME
+- Explicitly set java home
+- Join env statements
+- Add multiple platform versions
+- Use platforms_versions
+- Do not quote array of arguments in build args
+- Upgrade curl to 7.81.0-1ubuntu1.8
+- Upgrade openjdk-11-jdk to 11.0.18+10-0ubuntu1~22.04 and sudo to 1.9.9-1ubuntu2.2
+- Add ENABLE_ANALYTICS to entrypoint
+- Upgrade curl to 7.81.0-1ubuntu1.10
+- Update sudo to 1.9.9-1ubuntu2.4
+- Add repology source ubuntu 22:04
+- Remove os specifc versioning
+- Fix typo between curl and git
+- Fix ubuntu package names
+- Upgrade git to 2.34.1-1ubuntu1.8
+- Add args for openjdk and sudo
+- Make entrypoint executable
+- Copy entrypoint with flutter user permissions
+- Upgrade openjdk-11-jdk to 11.0.19+7~us1-0ubuntu1~22.04.1
+- Chmod entrypoint
+- Migrate to openjdk-11-jdk-headless
+- Migrate to JRE with openjdk-11-jre-headless
+- Restore openjdk-11-jdk-headless
+- Uncomment flutter installation
+- Switch to debian/debian:11-slim
+- Add cross-env
+- Add fastlane stage
+- Install fastlane with bundler
+- Update dependencies versions in manifest with flutter 3.13.0' (#33)
+- Upgrade to openjdk 17 to 17.0.7+7-1~deb11u1 (#37)
+- Upgrade to debian 12 (#78)
+- Change debian registry to docker hub (#90)
+- Upgrade openjdk-17-jdk-headless to 17.0.10+7-1~deb12u1 (#158)
+- Join parsed platform versions with space
+- *(deps)* Bump braces (#196)
+- *(deps)* Bump cross-spawn from 7.0.3 to 7.0.6 in /docs/src in the npm_and_yarn group across 1 directory (#267)
+- *(deps)* Bump esbuild (#285)
+- Remove --depth 1 from git clone in Dockerfile (#287)
