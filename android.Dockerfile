@@ -5,7 +5,7 @@ SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 ENV LANG=C.UTF-8
 
 # renovate: depName=curl
-ARG CURL_VERSION="8.14.1-2+deb13u4"
+ARG CURL_VERSION="8.14.1-2+deb13u5"
 # renovate: depName=git
 ARG GIT_VERSION="1:2.47.3-0+deb13u1"
 # renovate: depName=lcov
@@ -13,7 +13,7 @@ ARG LCOV_VERSION="2.3.1-1"
 # renovate: depName=ca-certificates
 ARG CA_CERTIFICATES_VERSION="20250419"
 # renovate: depName=unzip
-ARG UNZIP_VERSION="6.0-29"
+ARG UNZIP_VERSION="6.0-29+deb13u1"
 
 USER root
 RUN apt-get update \
