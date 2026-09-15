@@ -7,6 +7,7 @@
 ### ⚙️ Miscellaneous Tasks
 
 - *(renovate)* Drop unfetchable -updates registryUrls (#559)
+- *(release)* Upgrade flutter to 3.47.3 (#564)
 ## [3.47.2] - 2026-08-29
 
 ### 🚀 Features
