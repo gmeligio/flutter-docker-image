@@ -1,3 +1,8 @@
+## [3.47.4] - 2026-09-15
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Upgrade flutter to 3.47.4 (#567)
 ## [3.47.3] - 2026-09-10
 
 ### 🐛 Bug Fixes
