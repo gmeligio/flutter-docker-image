@@ -71,7 +71,6 @@ import "list"
 		java!: #PlatformVersion
 		gradle!: #SemverVersion
 		buildTools!: #SemverPatch
-		cmdlineTools!: #SemverMinor
 		ndk!: #SemverPatch
 		cmake!: #SemverPatch
 	}
