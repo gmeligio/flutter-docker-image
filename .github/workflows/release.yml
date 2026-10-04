@@ -87,7 +87,6 @@ jobs:
         include: ${{ fromJSON(needs.setup.outputs.linux) }}
     env:
       IMAGE_REPOSITORY_NAME: ${{ matrix.name }}
-      ANDROID_BUILD_TOOLS_VERSION: 30.0.3
       VERSION_MANIFEST: config/version.json
     steps:
       - name: Harden runner
