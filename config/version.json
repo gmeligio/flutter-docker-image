@@ -19,9 +19,6 @@
     "buildTools": {
       "version": "36.0.0"
     },
-    "cmdlineTools": {
-      "version": "22.0"
-    },
     "ndk": {
       "version": "28.2.13676358"
     },
