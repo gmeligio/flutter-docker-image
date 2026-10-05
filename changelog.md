@@ -1,3 +1,13 @@
+## [3.47.6] - 2026-10-05
+
+### ⚙️ Miscellaneous Tasks
+
+- *(.claude)* Use personal workflows and project-owned CLI (#570)
+## [3.47.5] - 2026-09-21
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Upgrade flutter to 3.47.5 (#569)
 ## [3.47.4] - 2026-09-15
 
 ### ⚙️ Miscellaneous Tasks
