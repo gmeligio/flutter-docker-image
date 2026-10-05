@@ -91,12 +91,6 @@ const body = `Minimal Docker images for building Flutter apps in Continuous Inte
 docker run --rm -it ${ghcr('flutter-android')} flutter build apk
 \`\`\`
 
-For Linux desktop builds:
-
-\`\`\`bash
-docker run --rm -it ${ghcr('flutter-linux')} flutter build linux
-\`\`\`
-
 Each image is tagged with the Flutter version it ships (\`:${flutter}\`), there is no \`latest\` tag ([see more on the why](${blob('docs/faq.md')}#why-there-is-no-dynamic-tag-like-latest)). All tools running in the image have analytics disabled and opt-in with \`ENABLE_ANALYTICS=true\`, and a rootless \`flutter:flutter\` user.
 
 [\`config/version.json\`](${blob('config/version.json')}) contains the versions of the tools included in the images like Android SDK, Fastlane and Windows toolchain.
@@ -109,15 +103,9 @@ ${registryTable()}
 
 ## Running on CI
 
-The Linux-hosted images (\`flutter-android\`, \`flutter-web\`, \`flutter-linux\`) run as the job container:
-
 ${ghWorkflow('flutter-android', 'flutter build apk')}
 
-For \`flutter-web\`, use the same workflow with \`image: ${ghcr('flutter-web')}\` and \`run: flutter build web\`. Windows containers cannot run under the Linux \`container:\` field, so \`flutter-windows\` runs on a \`windows-2025\` runner and invokes \`docker\` directly:
-
-Linux desktop GitHub Actions example:
-
-${ghWorkflow('flutter-linux', 'flutter build linux')}
+Windows:
 
 ${windowsWorkflow('flutter build windows')}
 

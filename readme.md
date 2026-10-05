@@ -10,12 +10,6 @@ Minimal Docker images for building Flutter apps in Continuous Integration (CI), 
 docker run --rm -it ghcr.io/gmeligio/flutter-android:3.47.6 flutter build apk
 ```
 
-For Linux desktop builds:
-
-```bash
-docker run --rm -it ghcr.io/gmeligio/flutter-linux:3.47.6 flutter build linux
-```
-
 Each image is tagged with the Flutter version it ships (`:3.47.6`), there is no `latest` tag ([see more on the why](https://github.com/gmeligio/flutter-docker-image/blob/main/docs/faq.md#why-there-is-no-dynamic-tag-like-latest)). All tools running in the image have analytics disabled and opt-in with `ENABLE_ANALYTICS=true`, and a rootless `flutter:flutter` user.
 
 [`config/version.json`](https://github.com/gmeligio/flutter-docker-image/blob/main/config/version.json) contains the versions of the tools included in the images like Android SDK, Fastlane and Windows toolchain.
@@ -32,8 +26,6 @@ Every image is published to three registries:
 
 ## Running on CI
 
-The Linux-hosted images (`flutter-android`, `flutter-web`, `flutter-linux`) run as the job container:
-
 ```yaml
 jobs:
   build:
@@ -47,22 +39,7 @@ jobs:
         run: flutter build apk
 ```
 
-For `flutter-web`, use the same workflow with `image: ghcr.io/gmeligio/flutter-web:3.47.6` and `run: flutter build web`. Windows containers cannot run under the Linux `container:` field, so `flutter-windows` runs on a `windows-2025` runner and invokes `docker` directly:
-
-Linux desktop GitHub Actions example:
-
-```yaml
-jobs:
-  build:
-    runs-on: ubuntu-22.04
-    container:
-      image: ghcr.io/gmeligio/flutter-linux:3.47.6
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Build
-        run: flutter build linux
-```
+Windows:
 
 ```yaml
 jobs:
