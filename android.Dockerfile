@@ -1,11 +1,11 @@
-FROM debian:13.6-slim@sha256:d7e12182ce18b85b93007c1dedf31f2d29e01ccf3182cc4017c709b6259bc132 AS flutter
+FROM debian:13.7-slim@sha256:a99cfc517144bc59b1978475ec53b46ecabec7e43635402ee5b77cc54cd1b20a AS flutter
 
 SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
 ENV LANG=C.UTF-8
 
 # renovate: depName=curl
-ARG CURL_VERSION="8.14.1-2+deb13u4"
+ARG CURL_VERSION="8.14.1-2+deb13u5"
 # renovate: depName=git
 ARG GIT_VERSION="1:2.47.3-0+deb13u1"
 # renovate: depName=lcov
@@ -13,7 +13,7 @@ ARG LCOV_VERSION="2.3.1-1"
 # renovate: depName=ca-certificates
 ARG CA_CERTIFICATES_VERSION="20250419"
 # renovate: depName=unzip
-ARG UNZIP_VERSION="6.0-29"
+ARG UNZIP_VERSION="6.0-29+deb13u1"
 
 USER root
 RUN apt-get update \
