@@ -1,8 +1,18 @@
 ## [3.47.6] - 2026-10-05
 
+### 🐛 Bug Fixes
+
+- *(deps)* Update all non-major dependencies to v1.14.0 (#571)
+
+### 📚 Documentation
+
+- Simplify README platform examples (#573)
+
 ### ⚙️ Miscellaneous Tasks
 
 - *(.claude)* Use personal workflows and project-owned CLI (#570)
+- Remove dead version-update machinery (#574)
+- *(release)* Upgrade flutter to 3.47.6 (#572)
 ## [3.47.5] - 2026-09-21
 
 ### ⚙️ Miscellaneous Tasks
