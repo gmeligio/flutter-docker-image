@@ -225,19 +225,6 @@ jobs:
           retention-days: 1
           compression-level: 0
 
-      # TEMPORARY (ubuntu-26-runners): measure the peak disk use of a build to
-      # size the clean-runner-disk free-space minimum. Remove once measured.
-      - name: Report disk usage after build
-        if: always()
-        run: |
-          df -h /
-          sudo du -sh /var/lib/docker /var/lib/containerd 2>/dev/null || true
-          docker system df || true
-          docker buildx du 2>/dev/null | tail -n 3 || true
-          free_kb=$(df --output=avail / | tail -1 | tr -d ' ')
-          used_kb=$(df --output=used / | tail -1 | tr -d ' ')
-          awk -v f="$free_kb" -v u="$used_kb" 'BEGIN{printf "disk after build: %.2f GB free, %.2f GB used on /\n", f/1024/1024, u/1024/1024}' | tee -a "$GITHUB_STEP_SUMMARY"
-
   test-image:
     name: Test image (${{ matrix.name }})
     needs: [setup, build-image]
@@ -303,19 +290,6 @@ jobs:
             IMAGE="ghcr.io/${{ github.repository_owner }}/${{ matrix.name }}:${{ env.TAG }}"
           fi
           container-structure-test test --image "$IMAGE" --config ${{ matrix.config }}
-
-      # TEMPORARY (ubuntu-26-runners): measure the peak disk use of a build to
-      # size the clean-runner-disk free-space minimum. Remove once measured.
-      - name: Report disk usage after build
-        if: always() && env.IS_FORK == 'true'
-        run: |
-          df -h /
-          sudo du -sh /var/lib/docker /var/lib/containerd 2>/dev/null || true
-          docker system df || true
-          docker buildx du 2>/dev/null | tail -n 3 || true
-          free_kb=$(df --output=avail / | tail -1 | tr -d ' ')
-          used_kb=$(df --output=used / | tail -1 | tr -d ' ')
-          awk -v f="$free_kb" -v u="$used_kb" 'BEGIN{printf "disk after build: %.2f GB free, %.2f GB used on /\n", f/1024/1024, u/1024/1024}' | tee -a "$GITHUB_STEP_SUMMARY"
 
   scan-image:
     name: Scan image (${{ matrix.name }})

@@ -3,8 +3,9 @@ description: >-
   Frees disk space on the GitHub-hosted runner by removing unused toolchains
   and SDKs. Dispatches by runner.os to the appropriate native fast-delete path
   (apt-get + rm on Linux, robocopy /MIR /MT:128 with PowerShell fallback on
-  Windows). Asserts a minimum free space threshold after cleanup and emits a
-  one-line job summary.
+  Windows). On Linux, cleanup is skipped when / already has the minimum free
+  space. Asserts the minimum free space afterwards and emits a one-line job
+  summary.
 
 runs:
   using: composite
@@ -20,21 +21,34 @@ runs:
     # =========================================================================
     # Linux path
     # =========================================================================
+    # Cleanup only runs when / has less than the minimum free. The minimum
+    # covers the largest measured build (flutter-android loaded into the
+    # daemon, ~12 GB) plus the estimated fork path (~23 GB) with margin.
     - name: '[Linux] Show disk usage before cleaning'
       if: runner.os == 'Linux'
+      id: linux-before
       shell: bash
       run: |
         df -h
-        echo "__CLEAN_RUNNER_DISK_FREE_BEFORE_KB=$(df --output=avail / | tail -1 | tr -d ' ')" >> $GITHUB_ENV
+        min_free_gb=30
+        free_kb=$(df --output=avail / | tail -1 | tr -d ' ')
+        echo "__CLEAN_RUNNER_DISK_MIN_FREE_GB=${min_free_gb}" >> $GITHUB_ENV
+        echo "__CLEAN_RUNNER_DISK_FREE_BEFORE_KB=${free_kb}" >> $GITHUB_ENV
         echo "__CLEAN_RUNNER_DISK_STARTED_AT=$(date +%s)" >> $GITHUB_ENV
+        if [ "$free_kb" -ge $((min_free_gb*1024*1024)) ]; then
+          echo "clean-runner-disk: $(awk "BEGIN{printf \"%.2f\", $free_kb/1024/1024}") GB already free on / (minimum ${min_free_gb} GB) — skipping cleanup"
+          echo "needed=false" >> $GITHUB_OUTPUT
+        else
+          echo "needed=true" >> $GITHUB_OUTPUT
+        fi
 
     - name: '[Linux] List installed packages before cleaning'
-      if: runner.os == 'Linux'
+      if: runner.os == 'Linux' && steps.linux-before.outputs.needed == 'true'
       shell: bash
       run: dpkg --get-selections | grep -v deinstall
 
     - name: '[Linux] Clean runner disk'
-      if: runner.os == 'Linux'
+      if: runner.os == 'Linux' && steps.linux-before.outputs.needed == 'true'
       shell: bash
       run: |
         # Toolchains (JDK, .NET + aspnetcore, Swift, LLVM, Haskell, Julia, Android, Rust)
@@ -68,7 +82,7 @@ runs:
         sudo apt-get clean || echo "::warning::apt-get clean failed"
 
     - name: '[Linux] Show disk usage after cleaning'
-      if: runner.os == 'Linux'
+      if: runner.os == 'Linux' && steps.linux-before.outputs.needed == 'true'
       shell: bash
       run: |
         df -h
@@ -82,19 +96,19 @@ runs:
         free_kb=$(df --output=avail / | tail -1 | tr -d ' ')
         free_gb=$(awk "BEGIN{printf \"%.2f\", $free_kb/1024/1024}")
         before_kb=${__CLEAN_RUNNER_DISK_FREE_BEFORE_KB:-0}
-        freed_gb=$(awk "BEGIN{printf \"%.2f\", ($free_kb-$before_kb)/1024/1024}")
+        freed_gb=$(awk "BEGIN{d=$free_kb-$before_kb; if (d<0) d=0; printf \"%.2f\", d/1024/1024}")
         started_at=${__CLEAN_RUNNER_DISK_STARTED_AT:-$(date +%s)}
         elapsed=$(( $(date +%s) - started_at ))
         em=$((elapsed/60)); es=$((elapsed%60))
         echo "clean-runner-disk: freed ${freed_gb} GB in ${em}m ${es}s on Linux" >> $GITHUB_STEP_SUMMARY
-        threshold_kb=$((20*1024*1024))
-        if [ "$free_kb" -lt "$threshold_kb" ]; then
+        min_free_gb=${__CLEAN_RUNNER_DISK_MIN_FREE_GB:-30}
+        if [ "$free_kb" -lt $((min_free_gb*1024*1024)) ]; then
           echo "Top 5 directories by size:"
           sudo du -h -d1 / 2>/dev/null | sort -hr | head -n 5 || true
-          echo "::error::clean-runner-disk: only ${free_gb} GB free on /, expected >= 20 GB."
+          echo "::error::clean-runner-disk: only ${free_gb} GB free on /, expected >= ${min_free_gb} GB."
           exit 1
         fi
-        echo "clean-runner-disk: ${free_gb} GB free on / (threshold 20 GB) — OK"
+        echo "clean-runner-disk: ${free_gb} GB free on / (threshold ${min_free_gb} GB) — OK"
 
     # =========================================================================
     # Windows path

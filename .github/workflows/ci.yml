@@ -85,19 +85,6 @@ jobs:
       - name: Test image
         run: container-structure-test test --image "${{ fromJSON(steps.metadata.outputs.json).tags[0] }}" --config test/android.yml
 
-      # TEMPORARY (ubuntu-26-runners): measure the peak disk use of a build to
-      # size the clean-runner-disk free-space minimum. Remove once measured.
-      - name: Report disk usage after build
-        if: always()
-        run: |
-          df -h /
-          sudo du -sh /var/lib/docker /var/lib/containerd 2>/dev/null || true
-          docker system df || true
-          docker buildx du 2>/dev/null | tail -n 3 || true
-          free_kb=$(df --output=avail / | tail -1 | tr -d ' ')
-          used_kb=$(df --output=used / | tail -1 | tr -d ' ')
-          awk -v f="$free_kb" -v u="$used_kb" 'BEGIN{printf "disk after build: %.2f GB free, %.2f GB used on /\n", f/1024/1024, u/1024/1024}' | tee -a "$GITHUB_STEP_SUMMARY"
-
   test-linux-image:
     name: Test Linux desktop image
     runs-on: ubuntu-26.04
@@ -145,16 +132,3 @@ jobs:
 
       - name: Test image
         run: container-structure-test test --image "${{ fromJSON(steps.metadata.outputs.json).tags[0] }}" --config test/linux.yml
-
-      # TEMPORARY (ubuntu-26-runners): measure the peak disk use of a build to
-      # size the clean-runner-disk free-space minimum. Remove once measured.
-      - name: Report disk usage after build
-        if: always()
-        run: |
-          df -h /
-          sudo du -sh /var/lib/docker /var/lib/containerd 2>/dev/null || true
-          docker system df || true
-          docker buildx du 2>/dev/null | tail -n 3 || true
-          free_kb=$(df --output=avail / | tail -1 | tr -d ' ')
-          used_kb=$(df --output=used / | tail -1 | tr -d ' ')
-          awk -v f="$free_kb" -v u="$used_kb" 'BEGIN{printf "disk after build: %.2f GB free, %.2f GB used on /\n", f/1024/1024, u/1024/1024}' | tee -a "$GITHUB_STEP_SUMMARY"
