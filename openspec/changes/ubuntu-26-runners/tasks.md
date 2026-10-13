@@ -25,7 +25,7 @@
 - [x] 5.2 Record the peak disk use per job, and pick the Linux free-space minimum from it. _`build.yml` android (push) ~9 GB, `ci.yml` android (load) ~12 GB, `ci.yml` linux (load) ~3.5 GB; fork path estimated ~23 GB. Minimum set to 30 GB._
 - [x] 5.3 Remove the temporary step.
 - [x] 5.4 Skip the Linux cleanup when `/` already has ≥ 30 GB free, and raise the post-clean assertion's Linux minimum to 30 GB.
-- [ ] 5.5 On the draft PR, confirm the Linux image builds log "skipping cleanup", the assertion passes, and the summary reports `freed 0.00 GB`.
+- [x] 5.5 On the draft PR, confirm the Linux image builds log "skipping cleanup", the assertion passes, and the summary reports `freed 0.00 GB`. _`flutter-android` build on 70a2151: "90.03 GB already free on / (minimum 30 GB) — skipping cleanup", then "90.03 GB free on / (threshold 30 GB) — OK"; the step took under a second._
 
 ## 6. Archive
 
