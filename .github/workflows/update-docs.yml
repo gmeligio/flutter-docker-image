@@ -31,7 +31,7 @@ jobs:
   # docs output does not match a fresh build, with instructions to regenerate.
   check:
     name: Check docs are in sync
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - name: Harden runner
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
@@ -62,7 +62,7 @@ jobs:
   # fork PRs (the secret never reaches fork code); those rely on `check` failing.
   generate:
     name: Generate docs
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
     permissions:
       contents: write
