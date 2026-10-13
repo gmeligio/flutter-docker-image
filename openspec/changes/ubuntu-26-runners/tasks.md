@@ -19,6 +19,12 @@
 - [ ] 4.3 `harden-runner` audit and the buildx-based image builds and digest lookups work on the new image.
 - [ ] 4.4 Workflows the PR doesn't trigger (`update-version`, `update-docs`, `scorecard`, `cleanup-pr-image`, `gx`) pass on their next run or via `workflow_dispatch`.
 
-## 5. Archive
+## 5. Size the free-space minimum
 
-- [ ] 5.1 After merge, archive this change and sync `openspec/specs/ci-runner-disk-cleanup/spec.md`.
+- [x] 5.1 Add a temporary `Report disk usage after build` step to the `build.yml` image build and fork image test jobs, and to both `ci.yml` build jobs.
+- [ ] 5.2 Record the peak disk use per job, and pick the Linux free-space minimum from it.
+- [ ] 5.3 Remove the temporary step.
+
+## 6. Archive
+
+- [ ] 6.1 After merge, archive this change and sync `openspec/specs/ci-runner-disk-cleanup/spec.md`.
