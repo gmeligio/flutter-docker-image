@@ -11,6 +11,7 @@ The `ci-runner-disk-cleanup` spec names `ubuntu-24.04` as the supported Linux ru
   - Replace `/usr/lib/llvm-16 /usr/lib/llvm-17 /usr/lib/llvm-18` with the glob `/usr/lib/llvm-*`, so the step keeps working whatever LLVM versions the image ships.
   - Update the MongoDB comment to say `ubuntu-26.04`.
   - Leave the `rm -rf` lines for Swift, Julia and Mono in place. The 26.04 readme doesn't list those tools, and `rm -rf` on a path that doesn't exist does nothing.
+- In `build.yml`, set `TMPDIR: ${{ runner.temp }}` on the Docker Scout step. On `ubuntu-26.04`, `/tmp` is a tmpfs with a size quota (systemd ≥ 258), and unpacking the ~3 GB `flutter-android` baseline hit `disk quota exceeded`. `runner.temp` is on the runner's disk.
 - Update the `ci-runner-disk-cleanup` spec so the supported Linux runner is `ubuntu-26.04`.
 
 Out of scope:

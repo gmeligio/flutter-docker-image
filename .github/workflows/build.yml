@@ -370,6 +370,10 @@ jobs:
         if: steps.baseline.outputs.exists == 'true'
         id: docker-scout
         uses: docker/scout-action@f8c776824083494ab0d56b8105ba2ca85c86e4de # v1.18.2
+        env:
+          # ubuntu-26.04 mounts /tmp as a quota-limited tmpfs, too small to unpack
+          # the ~3 GB flutter-android baseline. Keep Scout's scratch space on disk.
+          TMPDIR: ${{ runner.temp }}
         with:
           command: compare
           image: registry://ghcr.io/${{ github.repository_owner }}/${{ matrix.name }}@${{ steps.digest.outputs.value }}
