@@ -24,9 +24,9 @@ runs:
     # Cleanup only runs when / has less than the minimum free. The minimum
     # covers the largest measured build (flutter-android loaded into the
     # daemon, ~12 GB) plus the estimated fork path (~23 GB) with margin.
-    - name: '[Linux] Show disk usage before cleaning'
+    - name: '[Linux] Check free space'
       if: runner.os == 'Linux'
-      id: linux-before
+      id: linux-check-space
       shell: bash
       run: |
         df -h
@@ -45,12 +45,12 @@ runs:
         fi
 
     - name: '[Linux] List installed packages before cleaning'
-      if: runner.os == 'Linux' && steps.linux-before.outputs.should-clean == 'true'
+      if: runner.os == 'Linux' && steps.linux-check-space.outputs.should-clean == 'true'
       shell: bash
       run: dpkg --get-selections | grep -v deinstall
 
     - name: '[Linux] Clean runner disk'
-      if: runner.os == 'Linux' && steps.linux-before.outputs.should-clean == 'true'
+      if: runner.os == 'Linux' && steps.linux-check-space.outputs.should-clean == 'true'
       shell: bash
       run: |
         # Toolchains (JDK, .NET + aspnetcore, Swift, LLVM, Haskell, Julia, Android, Rust)
@@ -84,7 +84,7 @@ runs:
         sudo apt-get clean || echo "::warning::apt-get clean failed"
 
     - name: '[Linux] Show disk usage after cleaning'
-      if: runner.os == 'Linux' && steps.linux-before.outputs.should-clean == 'true'
+      if: runner.os == 'Linux' && steps.linux-check-space.outputs.should-clean == 'true'
       shell: bash
       run: |
         df -h
@@ -95,9 +95,9 @@ runs:
       if: runner.os == 'Linux' && always()
       shell: bash
       env:
-        MIN_FREE_GB: ${{ steps.linux-before.outputs.min-free-gb }}
-        FREE_BEFORE_KB: ${{ steps.linux-before.outputs.free-before-kb }}
-        STARTED_AT: ${{ steps.linux-before.outputs.started-at }}
+        MIN_FREE_GB: ${{ steps.linux-check-space.outputs.min-free-gb }}
+        FREE_BEFORE_KB: ${{ steps.linux-check-space.outputs.free-before-kb }}
+        STARTED_AT: ${{ steps.linux-check-space.outputs.started-at }}
       run: |
         free_kb=$(df --output=avail / | tail -1 | tr -d ' ')
         free_gb=$(awk "BEGIN{printf \"%.2f\", $free_kb/1024/1024}")
@@ -119,9 +119,9 @@ runs:
     # =========================================================================
     # Windows path
     # =========================================================================
-    - name: '[Windows] Show disk usage before cleaning'
+    - name: '[Windows] Check free space'
       if: runner.os == 'Windows'
-      id: windows-before
+      id: windows-check-space
       shell: pwsh
       run: |
         Get-PSDrive -PSProvider FileSystem | Format-Table -AutoSize
@@ -204,8 +204,8 @@ runs:
       if: runner.os == 'Windows' && always()
       shell: pwsh
       env:
-        FREE_BEFORE_BYTES: ${{ steps.windows-before.outputs.free-before-bytes }}
-        STARTED_AT: ${{ steps.windows-before.outputs.started-at }}
+        FREE_BEFORE_BYTES: ${{ steps.windows-check-space.outputs.free-before-bytes }}
+        STARTED_AT: ${{ steps.windows-check-space.outputs.started-at }}
       run: |
         $freeBytes = (Get-PSDrive C).Free
         $freeGb = [math]::Round($freeBytes / 1GB, 2)
