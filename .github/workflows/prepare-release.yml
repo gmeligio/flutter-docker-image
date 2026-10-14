@@ -27,7 +27,7 @@ jobs:
   # flutter.version produces a tag (and therefore a release).
   create-tag:
     name: Create tag
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     env:
       IMAGE_REPOSITORY_NAME: flutter-android
       VERSION_MANIFEST: config/version.json

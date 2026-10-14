@@ -28,7 +28,7 @@ jobs:
   setup:
     name: Read the published image set
     if: github.event_name == 'push'
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     outputs:
       names: ${{ steps.names.outputs.matrix }}
       descriptions: ${{ steps.descriptions.outputs.matrix }}
@@ -80,7 +80,7 @@ jobs:
     if: github.event_name == 'push'
     permissions:
       packages: write
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     strategy:
       fail-fast: false
       matrix:
@@ -185,7 +185,7 @@ jobs:
     # !cancelled() so a failed release job doesn't skip verification of the ones
     # that succeeded. Scoped to push, the path on which all images are built.
     if: ${{ github.event_name == 'push' && needs.setup.result == 'success' && !cancelled() }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     strategy:
       fail-fast: false
       matrix:
@@ -213,7 +213,7 @@ jobs:
 
   update-description:
     name: Update Docker Hub description (${{ matrix.name }})
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     # Both release jobs, so a description is never synced for an image whose
     # build failed. Depending on release-linux alone made the Windows leg's
     # outcome invisible here.
@@ -268,7 +268,7 @@ jobs:
     name: Record image in Scout (${{ matrix.name }})
     permissions:
       security-events: write
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs: [setup, release-linux]
     # !cancelled() (not default success()) so one image's release failure does
     # not skip the others' Scout records. Scoped to push, where release-linux runs.
@@ -316,7 +316,7 @@ jobs:
     name: Create GitHub release
     permissions:
       contents: write
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs: release-linux
     # The release/changelog is per-version, not per-image, so !cancelled() keeps
     # it from being skipped when one image's release leg fails. Scoped to push,
