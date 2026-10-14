@@ -32,23 +32,25 @@ runs:
         df -h
         min_free_gb=30
         free_kb=$(df --output=avail / | tail -1 | tr -d ' ')
-        echo "__CLEAN_RUNNER_DISK_MIN_FREE_GB=${min_free_gb}" >> $GITHUB_ENV
-        echo "__CLEAN_RUNNER_DISK_FREE_BEFORE_KB=${free_kb}" >> $GITHUB_ENV
-        echo "__CLEAN_RUNNER_DISK_STARTED_AT=$(date +%s)" >> $GITHUB_ENV
+        {
+          echo "min-free-gb=${min_free_gb}"
+          echo "free-before-kb=${free_kb}"
+          echo "started-at=$(date +%s)"
+        } >> "$GITHUB_OUTPUT"
         if [ "$free_kb" -ge $((min_free_gb*1024*1024)) ]; then
           echo "clean-runner-disk: $(awk "BEGIN{printf \"%.2f\", $free_kb/1024/1024}") GB already free on / (minimum ${min_free_gb} GB) — skipping cleanup"
-          echo "needed=false" >> $GITHUB_OUTPUT
+          echo "should-clean=false" >> "$GITHUB_OUTPUT"
         else
-          echo "needed=true" >> $GITHUB_OUTPUT
+          echo "should-clean=true" >> "$GITHUB_OUTPUT"
         fi
 
     - name: '[Linux] List installed packages before cleaning'
-      if: runner.os == 'Linux' && steps.linux-before.outputs.needed == 'true'
+      if: runner.os == 'Linux' && steps.linux-before.outputs.should-clean == 'true'
       shell: bash
       run: dpkg --get-selections | grep -v deinstall
 
     - name: '[Linux] Clean runner disk'
-      if: runner.os == 'Linux' && steps.linux-before.outputs.needed == 'true'
+      if: runner.os == 'Linux' && steps.linux-before.outputs.should-clean == 'true'
       shell: bash
       run: |
         # Toolchains (JDK, .NET + aspnetcore, Swift, LLVM, Haskell, Julia, Android, Rust)
@@ -82,7 +84,7 @@ runs:
         sudo apt-get clean || echo "::warning::apt-get clean failed"
 
     - name: '[Linux] Show disk usage after cleaning'
-      if: runner.os == 'Linux' && steps.linux-before.outputs.needed == 'true'
+      if: runner.os == 'Linux' && steps.linux-before.outputs.should-clean == 'true'
       shell: bash
       run: |
         df -h
@@ -92,16 +94,20 @@ runs:
     - name: '[Linux] Assert free space and emit summary'
       if: runner.os == 'Linux' && always()
       shell: bash
+      env:
+        MIN_FREE_GB: ${{ steps.linux-before.outputs.min-free-gb }}
+        FREE_BEFORE_KB: ${{ steps.linux-before.outputs.free-before-kb }}
+        STARTED_AT: ${{ steps.linux-before.outputs.started-at }}
       run: |
         free_kb=$(df --output=avail / | tail -1 | tr -d ' ')
         free_gb=$(awk "BEGIN{printf \"%.2f\", $free_kb/1024/1024}")
-        before_kb=${__CLEAN_RUNNER_DISK_FREE_BEFORE_KB:-0}
+        before_kb=${FREE_BEFORE_KB:-0}
         freed_gb=$(awk "BEGIN{d=$free_kb-$before_kb; if (d<0) d=0; printf \"%.2f\", d/1024/1024}")
-        started_at=${__CLEAN_RUNNER_DISK_STARTED_AT:-$(date +%s)}
+        started_at=${STARTED_AT:-$(date +%s)}
         elapsed=$(( $(date +%s) - started_at ))
         em=$((elapsed/60)); es=$((elapsed%60))
         echo "clean-runner-disk: freed ${freed_gb} GB in ${em}m ${es}s on Linux" >> $GITHUB_STEP_SUMMARY
-        min_free_gb=${__CLEAN_RUNNER_DISK_MIN_FREE_GB:-30}
+        min_free_gb=${MIN_FREE_GB:-30}
         if [ "$free_kb" -lt $((min_free_gb*1024*1024)) ]; then
           echo "Top 5 directories by size:"
           sudo du -h -d1 / 2>/dev/null | sort -hr | head -n 5 || true
@@ -115,12 +121,13 @@ runs:
     # =========================================================================
     - name: '[Windows] Show disk usage before cleaning'
       if: runner.os == 'Windows'
+      id: windows-before
       shell: pwsh
       run: |
         Get-PSDrive -PSProvider FileSystem | Format-Table -AutoSize
         $freeBytes = (Get-PSDrive C).Free
-        "__CLEAN_RUNNER_DISK_FREE_BEFORE_BYTES=$freeBytes" | Out-File -FilePath $env:GITHUB_ENV -Append
-        "__CLEAN_RUNNER_DISK_STARTED_AT=$([DateTimeOffset]::UtcNow.ToUnixTimeSeconds())" | Out-File -FilePath $env:GITHUB_ENV -Append
+        "free-before-bytes=$freeBytes" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+        "started-at=$([DateTimeOffset]::UtcNow.ToUnixTimeSeconds())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
         # Flat listing only — recursive size scan before cleanup takes ~5 min on a loaded runner
         Get-ChildItem -Path C:\ -Directory -Force -ErrorAction SilentlyContinue |
           Select-Object Name, LastWriteTime | Format-Table -AutoSize
@@ -196,12 +203,15 @@ runs:
     - name: '[Windows] Assert free space and emit summary'
       if: runner.os == 'Windows' && always()
       shell: pwsh
+      env:
+        FREE_BEFORE_BYTES: ${{ steps.windows-before.outputs.free-before-bytes }}
+        STARTED_AT: ${{ steps.windows-before.outputs.started-at }}
       run: |
         $freeBytes = (Get-PSDrive C).Free
         $freeGb = [math]::Round($freeBytes / 1GB, 2)
-        $beforeBytes = [int64]($env:__CLEAN_RUNNER_DISK_FREE_BEFORE_BYTES ?? '0')
+        $beforeBytes = [int64]($env:FREE_BEFORE_BYTES ? $env:FREE_BEFORE_BYTES : '0')
         $freedGb = [math]::Round(($freeBytes - $beforeBytes) / 1GB, 2)
-        $startedAt = [int64]($env:__CLEAN_RUNNER_DISK_STARTED_AT ?? [DateTimeOffset]::UtcNow.ToUnixTimeSeconds())
+        $startedAt = [int64]($env:STARTED_AT ? $env:STARTED_AT : [DateTimeOffset]::UtcNow.ToUnixTimeSeconds())
         $elapsed = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds() - $startedAt
         $em = [math]::Floor($elapsed / 60); $es = $elapsed % 60
         "clean-runner-disk: freed $freedGb GB in ${em}m ${es}s on Windows" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
