@@ -18,7 +18,7 @@ jobs:
   # Resolves the bootstrap container tag — the latest published release tag.
   setup:
     name: Read latest release
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     outputs:
       flutter_version: ${{ steps.read.outputs.version }}
     steps:
@@ -42,7 +42,7 @@ jobs:
   # config/flutter_version.json.
   update-flutter-version:
     name: Update Flutter version
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     outputs:
       new_version: ${{ steps.update_flutter_version.outputs.result }}
       flutter_version: ${{ steps.update_flutter_version.outputs.version }}
@@ -109,7 +109,7 @@ jobs:
     if: ${{ needs.update-flutter-version.outputs.new_version == 'true' }}
     outputs:
       windows_block: ${{ steps.emit.outputs.windows_block }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - name: Harden runner
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
@@ -236,7 +236,7 @@ jobs:
     if: ${{ needs.update-flutter-version.outputs.new_version == 'true' }}
     outputs:
       android_block: ${{ steps.emit.outputs.android_block }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     container:
       image: ghcr.io/${{ github.repository_owner }}/flutter-android:${{ needs.setup.outputs.flutter_version }}
       credentials:
@@ -318,7 +318,7 @@ jobs:
     # (empty block output) is fine — its base block carries forward. !cancelled()
     # lets this run even if a platform producer failed.
     if: ${{ !cancelled() && needs.update-flutter-version.outputs.new_version == 'true' }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     env:
       IMAGE_REPOSITORY_NAME: flutter-android
       VERSION_MANIFEST: config/version.json

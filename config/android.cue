@@ -26,8 +26,6 @@ import "list"
 
 input: #ContainerStructureTest
 
-android_cmdline_tools_test_expected_content: string @tag(android_cmdline_tools_test_expected_content)
-android_cmdline_tools_version: string @tag(android_cmdline_tools_version)
 android_ndk_version: string @tag(android_ndk_version)
 android_sdk_build_tools_version: string @tag(android_sdk_build_tools_version)
 android_java_version: string @tag(android_java_version)
@@ -64,14 +62,7 @@ output: {
 		list.Drop(input.commandTests, 4),
 	])
 	
-	fileContentTests: list.Concat([
-		if len(input.fileContentTests) >= 1 {
-			[{
-				name: "Android SDK Command-line Tools is version \(android_cmdline_tools_version)"
-				path: input.fileContentTests[0].path
-				expectedContents: [android_cmdline_tools_test_expected_content]
-			}],
-		},
-		list.Drop(input.fileContentTests, 1),
-	])
+	// Preserve the reviewed command-line tools revision as an upstream-drift gate.
+	// It is an explicit test expectation, not a version-manifest build input.
+	fileContentTests: input.fileContentTests
 }
