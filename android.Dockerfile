@@ -5,7 +5,7 @@ SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 ENV LANG=C.UTF-8
 
 # renovate: depName=curl
-ARG CURL_VERSION="8.14.1-2+deb13u5"
+ARG CURL_VERSION="8.14.1-2+deb13u7"
 # renovate: depName=git
 ARG GIT_VERSION="1:2.47.3-0+deb13u1"
 # renovate: depName=lcov
