@@ -1,4 +1,4 @@
 build:
-  image: ghcr.io/gmeligio/flutter-android:3.47.7
+  image: ghcr.io/gmeligio/flutter-android:3.47.8
   script:
     - flutter build apk

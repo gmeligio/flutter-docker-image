@@ -1,3 +1,22 @@
+## [3.47.8] - 2026-10-27
+
+### 🐛 Bug Fixes
+
+- *(deps)* Update all non-major dependencies to v1.14.1 (#577)
+- *(ci)* Drop unsupported exe option from container-structure-test (#583)
+- *(deps)* Update all non-major dependencies (#582)
+- *(android)* Bump pinned curl to 8.14.1-2+deb13u7 (#586)
+
+### ⚙️ Miscellaneous Tasks
+
+- Run Linux workflows on ubuntu-26.04 runners (#578)
+- Remove Entire configuration (#579)
+- Remove remaining Entire Claude hooks (#580)
+## [3.47.7] - 2026-10-11
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Upgrade flutter to 3.47.7 (#575)
 ## [3.47.6] - 2026-10-05
 
 ### 🐛 Bug Fixes
