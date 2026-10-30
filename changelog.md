@@ -1,3 +1,8 @@
+## [3.47.9] - 2026-10-30
+
+### 🐛 Bug Fixes
+
+- *(deps)* Update all non-major dependencies (#585)
 ## [3.47.8] - 2026-10-27
 
 ### 🐛 Bug Fixes
@@ -12,6 +17,7 @@
 - Run Linux workflows on ubuntu-26.04 runners (#578)
 - Remove Entire configuration (#579)
 - Remove remaining Entire Claude hooks (#580)
+- *(release)* Upgrade flutter to 3.47.8 (#587)
 ## [3.47.7] - 2026-10-11
 
 ### ⚙️ Miscellaneous Tasks
