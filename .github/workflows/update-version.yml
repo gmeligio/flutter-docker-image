@@ -58,7 +58,7 @@ jobs:
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
       - name: Setup mise tools
-        uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
+        uses: jdx/mise-action@6612f0ef07ed2a736cd1e00a94a065522dd41195 # v5
 
       - name: Resolve latest Flutter version
         id: update_flutter_version
@@ -120,7 +120,7 @@ jobs:
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
       - name: Setup mise tools
-        uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
+        uses: jdx/mise-action@6612f0ef07ed2a736cd1e00a94a065522dd41195 # v5
 
       - name: Resolve latest Git for Windows version
         id: git_version
@@ -254,7 +254,7 @@ jobs:
       # The flutter-android container does not ship jq/cue; mise provides them
       # independent of the container image for the steps below.
       - name: Setup mise tools
-        uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
+        uses: jdx/mise-action@6612f0ef07ed2a736cd1e00a94a065522dd41195 # v5
 
       # The Flutter version/channel come straight from update-flutter-version's
       # outputs (the job that resolved the bump); the Setup Flutter and Gradle
@@ -339,7 +339,7 @@ jobs:
           fetch-tags: true
 
       - name: Setup mise tools
-        uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
+        uses: jdx/mise-action@6612f0ef07ed2a736cd1e00a94a065522dd41195 # v5
 
       # Overlay each block in turn onto the base manifest. Flutter always overlays
       # (the pipeline is gated on Flutter changing); android (+fastlane) and windows
