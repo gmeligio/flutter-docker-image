@@ -9,6 +9,9 @@
   ],
   "mode": "full",
   "automerge": true,
+  "gitIgnoredAuthors": [
+    "180343340+verified-commit[bot]@users.noreply.github.com"
+  ],
   "packageRules": [
     {
       "description": "Disable Renovate's built-in github-actions manager — gx owns workflow and composite-action files",
@@ -48,7 +51,7 @@
         "\"(?<depName>(?<packageName>[^/\"]+/[^/\"]+)(?:/[^\"]+)?)\"\\s*=\\s*\"(?<currentValue>[^\"]+)\""
       ],
       "datasourceTemplate": "github-tags",
-      "versioningTemplate": "npm",
+      "versioningTemplate": "composer",
       "extractVersionTemplate": "^v?(?<version>.+)$"
     },
     {
