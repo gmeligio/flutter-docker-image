@@ -51,7 +51,7 @@
         "\"(?<depName>(?<packageName>[^/\"]+/[^/\"]+)(?:/[^\"]+)?)\"\\s*=\\s*\"(?<currentValue>[^\"]+)\""
       ],
       "datasourceTemplate": "github-tags",
-      "versioningTemplate": "cargo",
+      "versioningTemplate": "composer",
       "extractVersionTemplate": "^v?(?<version>.+)$"
     },
     {
