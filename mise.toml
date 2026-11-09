@@ -6,7 +6,7 @@ jq = "1.8.2"
 node = "lts"
 "github:gmeligio/gx" = "v0.8.5"
 "github:GoogleContainerTools/container-structure-test" = "1.22.1"
-"npm:@fission-ai/openspec" = "1.15.0"
+"npm:@fission-ai/openspec" = "1.16.1"
 
 # Code-generate the committed docs output from config/version.json (the single
 # source of truth, CUE-validated by config/schema.cue): readme.md via the Node
