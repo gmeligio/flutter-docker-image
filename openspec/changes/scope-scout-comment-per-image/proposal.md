@@ -26,7 +26,7 @@ None.
 
 ## Impact
 
-- `.github/workflows/build.yml` (`scan-image` job): checkout step, `write-comment: false`, new comment step.
+- `.github/workflows/build.yml` (`scan-image` job): checkout step, `write-comment: false`, a `Save Scout report` step that writes the `compare` step output to a file, new comment step.
 - New `script/commentScoutReport.ts`.
 - No new third-party action; `actions/github-script` and `actions/checkout` are already pinned in this repo.
 - `openspec/specs/ci-image-vulnerability-scan/spec.md` pruned in place: Purpose and stale requirements rewritten to the current per-image matrix (`scan-image`, `build-image`, `<image>` instead of `flutter-android`), the one-off 9m31s timing scenario and the redundant `needs: setup` scenario removed, no behavior change. Kept in this change on purpose: the edited requirements describe the same `scan-image` job, and the spec should match the code this PR ships.
