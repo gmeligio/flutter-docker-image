@@ -2,7 +2,7 @@
 
 ## 1. Comment script
 
-- [ ] 1.1 Write `script/commentScoutReport.ts` (CommonJS, erasable TS only): build marker and `### Docker Scout compare: <image>` heading from `IMAGE`; read `REPORT_FILE`, warn and return if missing or empty; truncate with run link; paginate `issues.listComments`, update the oldest `github-actions[bot]` comment whose body starts with the marker and delete other matches, or create one; catch API errors as `core.warning` naming the image; verify it loads with `node -e "require('./script/commentScoutReport.ts')"` on Node 24.22.2
+- [x] 1.1 Write `script/commentScoutReport.ts` (CommonJS, erasable TS only): build marker and `### Docker Scout compare: <image>` heading from `IMAGE`; read `REPORT_FILE`, warn and return if missing or empty; truncate with run link; paginate `issues.listComments`, update the oldest `github-actions[bot]` comment whose body starts with the marker and delete other matches, or create one; catch API errors as `core.warning` naming the image; verify it loads with `node -e "require('./script/commentScoutReport.ts')"` on Node 24.22.2
 - [ ] 1.2 Run the script locally through the pinned github-script `dist/index.js` on Node 24.22.2 with stubbed `github`/`core` and verify: (a) no match → create called, (b) two matches → update called on the oldest id, delete on the other, (f) a bot comment without the marker and a non-bot comment starting with the marker → neither updated nor deleted, create called, (c) a 200 KiB report file → body length ≤ 65,536, starts with marker, ends with the truncation note and run link, (d) missing and empty file → warning, no API call, (e) API throws → warning text contains the image and the error message, exit 0
 
 ## 2. Workflow wiring
