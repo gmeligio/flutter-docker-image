@@ -17,7 +17,7 @@
 ## 4. Spec validation in CI (#598)
 
 - [x] 4.1 Add `[tasks.specs]` to `mise.toml` running `openspec validate --all`; verify `mise run specs` exits 0
-- [ ] 4.2 Add `.github/workflows/openspec.yml` per D6 and run `gx tidy`; verify `gx lint` passes and `.github/gx.lock` covers its actions
+- [x] 4.2 Add `.github/workflows/openspec.yml` per D6 and run `gx tidy`; verify `gx lint` passes and `.github/gx.lock` covers its actions
 - [ ] 4.3 Push the PR branch; verify the `Validate specs` check runs and passes, then open a draft PR from a throwaway branch (closed and deleted afterwards) that drops `## Purpose` from `repository-wiki`; verify its `Validate specs` check fails and its log contains `spec/repository-wiki`
 
 ## 5. Integration check
