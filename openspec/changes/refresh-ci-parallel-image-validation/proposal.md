@@ -11,11 +11,11 @@ Specs drift from the workflows and nothing catches it:
 
 See `research.md`.
 
-Relevance gate: the maintainer reads these specs to know what the PR checks page shows (`Build and push image (<name>)`, `Test image (<name>)`, `Scan image (<name>)`), which checks a fork contributor sees, and whether a spec edit is valid before merge. The maintainer's spec workflow is in scope: `config.yaml` `context:` is widened to say so (design D7).
+Relevance gate: the maintainer reads these specs to know what the PR checks page shows (`Build and push image (<name>)`, `Test image (<name>)`, `Scan image (<name>)`), which checks a fork contributor sees, and whether a spec edit is valid before merge. The maintainer's spec workflow is in scope: `config.yaml` `context:` is widened to say so (design D7), in this same change, so `ci-spec-validation` passes the gate it is reviewed under.
 
 ## What Changes
 
-- **BREAKING (specs only)**: remove capability `ci-parallel-image-validation`. Its unique rule and rebuild ban move to `ci-image-handoff`; its fork gate moves to `ci-image-vulnerability-scan`; its migration requirement is dropped.
+- **BREAKING (specs only)**: remove capability `ci-parallel-image-validation`. Its unique rule and rebuild ban move to `ci-image-handoff` (replacing the web-only copy in `web-image-testing`); its fork gate moves to `ci-image-vulnerability-scan`; its migration requirement is dropped.
 - `ci-image-handoff`: describe the real handoff (`tag`, `is_fork`, `flutter_version` outputs; per-image artifact `image-<run_id>-<name>`); add "consumers never rebuild" and "test and scan validate each image in parallel after build", named by check display name.
 - `ci-image-vulnerability-scan`: add the job-level fork gate as its own requirement.
 - `ci-image-build-cache`: per-image `ghcr.io/<owner>/<image>:buildcache`; build job is `build-image`.
@@ -28,19 +28,19 @@ Relevance gate: the maintainer reads these specs to know what the PR checks page
 
 ### New Capabilities
 
-None.
+- `ci-spec-validation`: `mise run specs` and the `Validate specs` PR check.
 
 ### Modified Capabilities
 
 - `ci-image-handoff`: handoff outputs and artifact name match `build.yml`; adds no-rebuild and parallel per-image validation requirements.
 - `ci-image-vulnerability-scan`: adds the job-level fork-PR gate on `scan-image`.
 - `ci-image-build-cache`: cache tag is per image; scenarios reference `build-image`.
-- `ci-repo-governance`: adds "Spec changes are validated before merge".
+- `web-image-testing`: removes "Web image consumer jobs do not rebuild the image", now covered for every image by `ci-image-handoff` and `ci-image-vulnerability-scan`.
 - `ci-parallel-image-validation`: deleted outright (no delta; see design.md D1).
 
 ## Impact
 
-- `openspec/specs/`: 4 specs modified by delta, 5 get a Purpose edit, `ci-parallel-image-validation/` deleted.
+- `openspec/specs/`: 4 specs modified by delta, 1 new, 5 get a Purpose edit, `ci-parallel-image-validation/` deleted.
 - `openspec/config.yaml`: `context:` widened, `rules.specs` reworded.
 - `mise.toml`: new `specs` task. New `.github/workflows/openspec.yml`.
 - `.github/workflows/build.yml:189` comment only.

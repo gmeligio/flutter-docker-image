@@ -18,12 +18,12 @@
 
 - [ ] 4.1 Add `[tasks.specs]` to `mise.toml` running `openspec validate --all`; verify `mise run specs` exits 0
 - [ ] 4.2 Add `.github/workflows/openspec.yml` per D6 and run `gx tidy`; verify `gx lint` passes and `.github/gx.lock` covers its actions
-- [ ] 4.3 Push the PR branch; verify the `Validate specs` check runs and passes, then push a commit dropping one spec's `## Purpose`, verify the check fails naming that spec, and revert it
+- [ ] 4.3 Push the PR branch; verify the `Validate specs` check runs and passes, then on a throwaway branch (deleted afterwards) drop `## Purpose` from `repository-wiki` and run the workflow via `workflow_dispatch`; verify it fails and its log contains `spec/repository-wiki`
 
 ## 5. Integration check
 
 - [ ] 5.1 Verify `openspec validate refresh-ci-parallel-image-validation --strict` passes
-- [ ] 5.2 On a scratch copy of `openspec/`, run `openspec archive refresh-ci-parallel-image-validation --yes`; verify it succeeds and `openspec validate --all` reports 0 failures, including `change/ubuntu-26-runners` if still active
+- [ ] 5.2 On a scratch copy of `openspec/`, run `openspec archive refresh-ci-parallel-image-validation --yes`; verify it succeeds and `openspec validate --all` reports 0 failures, including `change/ubuntu-26-runners` if still active, and `grep -c "Web image consumer jobs do not rebuild" openspec/specs/web-image-testing/spec.md` prints `0`
 
 ## Workflow follow-up
 

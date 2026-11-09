@@ -25,7 +25,7 @@ A delta removing all four requirements makes `openspec archive` rebuild an empty
 | Old requirement | Destination |
 |---|---|
 | Test and scan run as sibling jobs | `ci-image-handoff`: Test and scan validate each image in parallel after build |
-| Consumer jobs do not rebuild the image | `ci-image-handoff`: Consumer jobs never rebuild the image |
+| Consumer jobs do not rebuild the image | `ci-image-handoff`: Consumer jobs never rebuild the image (also replaces `web-image-testing`'s web-only copy, removed by delta) |
 | Scan job preserves the existing fork-PR gate | `ci-image-vulnerability-scan`: Scan is skipped for fork PRs at the job level |
 | Renamed consumer preserves the existing required-check name | Dropped: one-time migration done in #477 |
 
@@ -50,6 +50,8 @@ Alternative: keep the spec with only the parallel requirement. Rejected — it w
 **D6. Spec validation: `mise run specs` → `openspec validate --all`, in a new `openspec.yml` workflow.**
 - `--all` covers specs and active changes; non-strict because `--strict` fails nearly every spec on >500-char warnings (Non-Goal).
 - New workflow, not a `gx.yml` job: `gx.yml` triggers on workflow paths only and its name says what it lints. Workflow `OpenSpec`, job `validate`, `name: Validate specs`, on `pull_request` paths `openspec/**`, `mise.toml`, `.github/workflows/openspec.yml`, plus `workflow_dispatch`. Follows `ci-workflow-hardening` (harden-runner, `permissions: contents: read`, SHA pins via `gx`) and `ci-runtime-tool-versioning` (`jdx/mise-action`).
+- `concurrency:` per head ref with `cancel-in-progress: true`, as in `gx.yml`.
+- Requirement lives in a new `ci-spec-validation` capability: `ci-repo-governance` is about how changes reach `main` (rulesets, auto-merge) and this check is advisory; `ci-workflow-hardening` is security posture.
 - Not a required check: a path-filtered workflow never reports on unrelated PRs, so requiring it would block them.
 - Alternative: a `pre-commit`-style local hook only. Rejected — solo maintainer, CI is the only reliable gate.
 
@@ -58,6 +60,6 @@ Alternative: keep the spec with only the parallel requirement. Rejected — it w
 ## Risks / Trade-offs
 
 - [Archive history shows no REMOVED delta for the deleted spec] → D1 table records it; PR description links #597.
-- [MODIFIED blocks replace whole requirements] → scenario names kept so archive does not reject dropped scenarios (verified with `openspec validate --strict`).
+- [MODIFIED blocks replace whole requirements] → scenario names kept so archive does not reject dropped scenarios (verified with `openspec validate --strict`). Cost: "Every image declaring a handoff tag produces outputs naming itself" keeps its title while its body now checks that each leg resolves its own image from shared outputs.
 - [`Validate specs` is advisory, so a red check can still be merged] → solo maintainer merges by hand; acceptable. Revisit if the check is ever moved to an always-run workflow.
 - [`openspec validate --all` fails on any other in-flight change, e.g. `ubuntu-26-runners`] → intended; it passes today.

@@ -95,15 +95,15 @@ The experience context is the maintainer auditing CI cost — each image is buil
 
 - **GIVEN** a non-fork PR run
 - **WHEN** a `Test image (<name>)` or `Scan image (<name>)` check runs
-- **THEN** it reads `ghcr.io/<owner>/<name>:pr-<N>`
-- **AND** its log contains no image build
+- **THEN** it reads `ghcr.io/<owner>/<name>:<tag>`, where `<tag>` is the `build-image` handoff tag (`pr-<N>` or `branch-<ref>`)
+- **AND** its log contains no `docker build` or `buildx build` invocation
 
 #### Scenario: Fork consumer loads the artifact without rebuilding
 
 - **GIVEN** a fork PR run
 - **WHEN** a `Test image (<name>)` check runs
 - **THEN** it downloads `image-<run_id>-<name>` and runs `docker load`
-- **AND** its log contains no image build
+- **AND** its log contains no `docker build` or `buildx build` invocation
 
 ### Requirement: Test and scan validate each image in parallel after build
 
@@ -123,8 +123,8 @@ The experience context is the maintainer on the PR checks page — wall-clock af
 - **WHEN** `build-image` succeeds
 - **THEN** `Test image (<name>)` runs and no `Scan image (<name>)` check exists for it
 
-#### Scenario: Build failure skips the test job
+#### Scenario: Build failure skips the consumer jobs
 
 - **GIVEN** any `build-image` leg fails
 - **WHEN** the run evaluates downstream jobs
-- **THEN** `test-image` is skipped and reports no passing `Test image (<name>)` check
+- **THEN** `test-image` and `scan-image` are skipped and report no passing `Test image (<name>)` or `Scan image (<name>)` check

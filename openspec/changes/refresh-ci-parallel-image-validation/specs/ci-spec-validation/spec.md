@@ -1,3 +1,7 @@
+## Purpose
+
+Keep `openspec/` specs and active changes structurally valid by running `openspec validate` locally and on every pull request that touches them.
+
 ## ADDED Requirements
 
 ### Requirement: Spec changes are validated before merge
