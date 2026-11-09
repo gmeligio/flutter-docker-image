@@ -393,6 +393,20 @@ jobs:
           format: markdown
           output: ${{ runner.temp }}/scout-compare.md
 
+      - name: Comment Scout report on PR
+        if: ${{ !cancelled() && github.event_name == 'pull_request' && steps.docker-scout.outcome != 'skipped' }}
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        env:
+          IMAGE: ${{ matrix.name }}
+          REPORT_FILE: ${{ runner.temp }}/scout-compare.md
+        with:
+          script: |
+            try {
+              await require('./script/commentScoutReport.ts')({ github, context, core })
+            } catch (error) {
+              core.warning(`Could not write the Docker Scout PR comment for ${process.env.IMAGE}: ${error.message}`)
+            }
+
   validate-version-files:
     name: Validate version files
     runs-on: ubuntu-26.04
