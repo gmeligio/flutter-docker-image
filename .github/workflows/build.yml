@@ -299,6 +299,7 @@ jobs:
     # write PR comments, so Scout is skipped entirely for them (job-level if).
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     permissions:
+      contents: read
       packages: read
       pull-requests: write
       security-events: write
@@ -315,6 +316,13 @@ jobs:
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
         with:
           egress-policy: audit
+
+      - name: Checkout PR comment script
+        if: github.event_name == 'pull_request'
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          sparse-checkout: script
+          persist-credentials: false
 
       # Scout's API enforces the Docker Hub / DSOS entitlement on every
       # call: without an authenticated Docker Hub identity tied to the
@@ -380,6 +388,34 @@ jobs:
           to: ghcr.io/${{ github.repository_owner }}/${{ matrix.name }}:${{ needs.setup.outputs.flutter_version }}
           github-token: ${{ github.token }}
           only-fixed: true
+          # Scout keys its own PR comment on (command, workflow), so matrix legs
+          # would overwrite each other (#560). The next step comments per image.
+          write-comment: false
+
+      # A run: body is written to a script file, so the report escapes the
+      # 128 KiB per-variable env cap that passing it through env: would hit.
+      # toJSON makes the report one quoted line, so no report line can end the
+      # heredoc and run as shell.
+      - name: Save Scout report
+        if: ${{ !cancelled() && github.event_name == 'pull_request' && steps.docker-scout.outcome != 'skipped' }}
+        run: |
+          jq -r '. // empty' > "$RUNNER_TEMP/scout-compare.md" <<'SCOUT_REPORT_EOF'
+          ${{ toJSON(steps.docker-scout.outputs.compare) }}
+          SCOUT_REPORT_EOF
+
+      - name: Comment Scout report on PR
+        if: ${{ !cancelled() && github.event_name == 'pull_request' && steps.docker-scout.outcome != 'skipped' }}
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        env:
+          IMAGE: ${{ matrix.name }}
+          REPORT_FILE: ${{ runner.temp }}/scout-compare.md
+        with:
+          script: |
+            try {
+              await require('./script/commentScoutReport.js')({ github, context, core })
+            } catch (error) {
+              core.warning(`Could not write the Docker Scout PR comment for ${process.env.IMAGE}: ${error.message}`)
+            }
 
   validate-version-files:
     name: Validate version files
