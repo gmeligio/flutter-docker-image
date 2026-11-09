@@ -27,7 +27,3 @@ run = [
 [tasks.lint]
 description = "Check .github/renovate.json before pushing"
 run = ["./script/renovate_validate.sh"]
-
-[tasks.specs]
-description = "Validate openspec specs and active changes"
-run = "openspec validate --all"
