@@ -45,6 +45,7 @@ Alternative: keep the spec with only the parallel requirement. Rejected — it w
 | `ci-image-anonymous-availability` | Guarantee every image a release publishes is pullable without registry credentials, verified by the release run against exactly the set it published, so a CI engineer's copied pull command works on any runner. |
 | `generated-docs-and-examples` | Generate `readme.md` and the four CI examples from `config/version.json` and `config/images.json`, so the README and examples always show the versions and images actually published. |
 | `repository-wiki` | Give CI engineers a one-click, automatically refreshed DeepWiki for this repository, linked from the README, and tell contributors how it works. |
+| `web-image-testing` | Drop ", and the handoff that lets the test and scan jobs consume the image without rebuilding"; that rule now lives in `ci-image-handoff`. |
 | `windows-version-tracking` | Track the Windows image toolchain versions in `config/version.json`, so the Dockerfile, Pester tests, and scheduled upgrade PR all read one source. |
 
 **D6. Spec validation: `mise run specs` → `openspec validate --all`, in a new `openspec.yml` workflow.**

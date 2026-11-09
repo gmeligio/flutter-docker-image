@@ -8,7 +8,7 @@
 ## 2. Purposes (#561)
 
 - [ ] 2.1 Rewrite `openspec/specs/ci-image-handoff/spec.md` Purpose to the D5 text; verify `grep -n test_image openspec/specs/ci-image-handoff/spec.md` returns nothing
-- [ ] 2.2 Add title, `## Purpose` (D5 text) and `## Requirements` to `ci-image-anonymous-availability` and `generated-docs-and-examples`; add `## Purpose` to `repository-wiki` and `windows-version-tracking`; verify `openspec validate <id> --type spec` passes for each of the four
+- [ ] 2.2 Add title, `## Purpose` (D5 text) and `## Requirements` to `ci-image-anonymous-availability` and `generated-docs-and-examples`; add `## Purpose` to `repository-wiki` and `windows-version-tracking`; trim `web-image-testing` Purpose per D5; verify `openspec validate <id> --type spec` passes for each of the five
 
 ## 3. Spec rules (#599)
 
@@ -18,7 +18,7 @@
 
 - [ ] 4.1 Add `[tasks.specs]` to `mise.toml` running `openspec validate --all`; verify `mise run specs` exits 0
 - [ ] 4.2 Add `.github/workflows/openspec.yml` per D6 and run `gx tidy`; verify `gx lint` passes and `.github/gx.lock` covers its actions
-- [ ] 4.3 Push the PR branch; verify the `Validate specs` check runs and passes, then on a throwaway branch (deleted afterwards) drop `## Purpose` from `repository-wiki` and run the workflow via `workflow_dispatch`; verify it fails and its log contains `spec/repository-wiki`
+- [ ] 4.3 Push the PR branch; verify the `Validate specs` check runs and passes, then open a draft PR from a throwaway branch (closed and deleted afterwards) that drops `## Purpose` from `repository-wiki`; verify its `Validate specs` check fails and its log contains `spec/repository-wiki`
 
 ## 5. Integration check
 
