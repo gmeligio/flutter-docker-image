@@ -1,13 +1,13 @@
 # ci-spec-validation Specification
 
 ## Purpose
-Keep `openspec/` specs and active changes structurally valid by running `openspec validate` locally and on every pull request that touches them.
+Keep `openspec/` specs and active changes structurally valid by running `openspec validate` locally and on every pull request.
 
 ## Requirements
 
 ### Requirement: Spec changes are validated before merge
 
-A pull request that touches `openspec/**` SHALL run a `Validate specs` check that executes `mise run specs` (`openspec validate --all`) and fails when any spec or active change is invalid. The same command SHALL run locally.
+Every pull request SHALL run a `Validate specs` check that executes `mise run specs` (`openspec validate --all`) and fails when any spec or active change is invalid. The check SHALL have no path filter, so it reports on every PR and can be required. The same command SHALL run locally.
 
 The experience context is the maintainer reviewing a spec PR — a missing `## Purpose` or malformed delta turns the check red instead of surfacing at archive time.
 

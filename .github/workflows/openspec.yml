@@ -2,10 +2,6 @@ name: OpenSpec
 
 on:
   pull_request:
-    paths:
-      - openspec/**
-      - mise.toml
-      - .github/workflows/openspec.yml
   workflow_dispatch:
 
 permissions:
