@@ -3,7 +3,7 @@
 ## 1. Remove the drifted spec
 
 - [x] 1.1 Delete `openspec/specs/ci-parallel-image-validation/` (design D1); verify `git grep -n ci-parallel-image-validation -- ':!openspec/changes'` lists only `.github/workflows/build.yml:189`
-- [ ] 1.2 Reword the `.github/workflows/build.yml:189` comment to cite `ci-image-vulnerability-scan`; verify the `git grep` from 1.1 returns nothing and `git diff .github/workflows/build.yml` touches only that comment
+- [x] 1.2 Reword the `.github/workflows/build.yml:189` comment to cite `ci-image-vulnerability-scan`; verify the `git grep` from 1.1 returns nothing and `git diff .github/workflows/build.yml` touches only that comment
 
 ## 2. Purposes (#561)
 
