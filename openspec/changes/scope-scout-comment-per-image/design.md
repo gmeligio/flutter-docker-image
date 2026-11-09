@@ -2,7 +2,7 @@
 
 ## Context
 
-See proposal.md for motivation. `scan-image` (`.github/workflows/build.yml`) is a matrix over images with `scout: true` in `config/images.json`. It has no checkout step today and already holds `pull-requests: write`. `docker/scout-action` v1.18.2 (the pinned version; all claims here are about it) exposes the markdown report two ways: an undeclared step output named after the command ([README, Output](https://github.com/docker/scout-action#output)), and the `format`/`output` inputs, which map to `docker scout compare --format markdown --output <file>` ([CLI docs](https://docs.docker.com/reference/cli/docker/scout/compare/)). The job's `permissions:` block lists no `contents`, so a checkout needs `contents: read` added. Repo convention for github-script logic is a file under `script/` loaded with `require` (`release.yml:104-112`, `script/setEnvironmentVariables.js`).
+See proposal.md for motivation. `scan-image` (`.github/workflows/build.yml`) is a matrix over images with `scout: true` in `config/images.json`. It has no checkout step today and already holds `pull-requests: write`. `docker/scout-action` v1.18.2 (the pinned version; all claims here are about it) exposes `compare`'s markdown only as an undeclared step output named after the command, `steps.docker-scout.outputs.compare` ([README, Output](https://github.com/docker/scout-action/blob/f8c776824083494ab0d56b8105ba2ca85c86e4de/README.md#output)), and in the job summary. Its `format`/`output` inputs apply only to `sbom` (README, "`sbom` Inputs"); PR #595's first run confirmed `compare` ignores them and writes no file. The job's `permissions:` block lists no `contents`, so a checkout needs `contents: read` added. Repo convention for github-script logic is a file under `script/` loaded with `require` (`release.yml:104-112`, `script/setEnvironmentVariables.js`).
 
 ## Goals / Non-Goals
 
@@ -27,10 +27,12 @@ See proposal.md for motivation. `scan-image` (`.github/workflows/build.yml`) is 
 **TypeScript file run through Node's type stripping.** github-script v8 runs on `node24`; Node 24 strips erasable TypeScript syntax by default ([Node docs](https://nodejs.org/api/typescript.html#type-stripping)). github-script's `require` resolves to Node's own `require` ([README](https://github.com/actions/github-script#run-a-separate-file)), so `require('./script/commentScoutReport.ts')` loads without a build step. Verified: github-script v8.0.0's own `dist/index.js` (SHA `ed59741`) on Node 24.22.2, the runner's bundled `NODE24_VERSION` ([actions/runner externals.sh](https://github.com/actions/runner/blob/main/src/Misc/externals.sh)), loaded a `.ts` file using `import type`, `interface`, `type` and `satisfies`, exit 0, no warning. Constraints: erasable syntax only (no `enum`, no parameter properties, no `namespace`), CommonJS `module.exports` (no `package.json` → CJS), type-only imports. Types are hand-written for the few fields used, since nothing type-checks in CI.
 - Alternative: JS with `// @ts-check` and JSDoc. Rejected: the maintainer asked for TypeScript; inline type syntax is shorter and easier to read than JSDoc comments, and editors' TypeScript language service still checks it locally without a `tsconfig`. CI checks neither form, so JSDoc would buy nothing extra.
 
-**Report travels as a file, not a string.** Scout writes `${{ runner.temp }}/scout-compare.md` (`format: markdown`, `output:`); the script reads it with `fs`. Each leg runs on its own runner, so the path needs no image suffix.
-- Alternative: step output passed via `env`. Rejected: Linux caps one env string at 128 KiB (`MAX_ARG_STRLEN`), so a large report fails process spawn before truncation runs; it also depends on an output the action does not declare.
+**Step output saved to a file, then read from the file.** A `run:` step writes `${{ steps.docker-scout.outputs.compare }}` into `$RUNNER_TEMP/scout-compare.md` through a quoted heredoc (`<<'SCOUT_REPORT_EOF'`); the comment script reads that file with `fs`. The runner writes a `run:` body to a script file, not the environment, so the report has no 128 KiB `MAX_ARG_STRLEN` cap. The quoted delimiter disables shell expansion, so `$`, backticks and quotes in the report stay literal. Each leg runs on its own runner, so the path needs no image suffix.
+- Alternative: pass the step output to github-script via `env`. Rejected: one env string is capped at 128 KiB, so a large report fails process spawn before truncation runs.
+- Alternative: `format: markdown` + `output:` on the action. Rejected: the action ignores them for `compare` (see Context).
+- Alternative: run the `docker scout` CLI directly with `--format markdown --output`. Rejected: adds a CLI install and duplicates the action's auth setup.
 
-**Inputs via `env`, never `${{ }}` inside the script.** `IMAGE` and `REPORT_FILE` reach the script through `process.env`, so nothing from the report or matrix is evaluated as code.
+**Inputs via `env`, never `${{ }}` inside the script.** `IMAGE` and `REPORT_FILE` reach the script through `process.env`. The report itself is expanded only inside the quoted heredoc above, never in JavaScript.
 
 **Visible heading.** Body = marker, then `### Docker Scout compare: <image>`, then the report. The marker is invisible; the heading tells the reader which image the comment covers without relying on Scout's report text.
 
@@ -44,8 +46,9 @@ See proposal.md for motivation. `scan-image` (`.github/workflows/build.yml`) is 
 
 ## Risks / Trade-offs
 
-- [Action ignores `format`/`output` for `compare`] → script warns "no report" on every leg, scan stays green, job summary still has the report. Public workflows pass these inputs with `cves`/`sbom` ([nedix/actions](https://github.com/nedix/actions), [thebackendofluck/book](https://github.com/thebackendofluck/book)); task 3.1 confirms for `compare`. If it does not, implementation stops and this design is revised; there is no fallback.
-- [`--output` moves the report out of the step log] → the job summary and the PR comment still carry it.
+- [A report line equals `SCOUT_REPORT_EOF`] → the heredoc ends early and the rest of the report runs as shell. Accepted: the report is Scout-generated text (package names, versions, CVE ids, URLs) from a same-repo PR's image, whose author already has write access; fork PRs never reach this job.
+- [The `compare` step output is empty or unset] → the file is empty, the script warns "no report", the scan stays green, and the job summary still has the report. Task 3.1 confirms the output on a real run.
+- [Step outputs share a 1 MB per-job limit] → a compare report is far below it; above it the output would be cut and the comment truncated anyway.
 - [An image is switched to `scout: false` after it was commented] → its comment stays on open PRs. Accepted: rare, and the comment still describes the last scan.
 - [A later Scout run fails] → the previous comment stays unchanged while the run shows a warning. Accepted: the warning plus the red leg tell the reader the comment is not current.
 - [A step before Scout fails (login, digest)] → Scout is skipped, so no comment and no warning; the failed earlier step already explains the red leg.
