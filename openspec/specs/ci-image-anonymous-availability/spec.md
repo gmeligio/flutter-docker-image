@@ -1,3 +1,11 @@
+# ci-image-anonymous-availability Specification
+
+## Purpose
+
+Guarantee every image a release publishes is pullable without registry credentials, verified by the release run against exactly the set it published, so a CI engineer's copied pull command works on any runner.
+
+## Requirements
+
 ### Requirement: Released images are anonymously pullable from every registry they are published to
 
 After a release run publishes images, the `release.yml` workflow SHALL verify

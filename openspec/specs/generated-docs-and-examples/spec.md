@@ -1,3 +1,11 @@
+# generated-docs-and-examples Specification
+
+## Purpose
+
+Generate `readme.md` and the four CI examples from `config/version.json` and `config/images.json`, so the README and examples always show the versions and images actually published.
+
+## Requirements
+
 ### Requirement: Docs and examples are regenerated from the version manifest and never drift
 
 `mise run docs` SHALL regenerate `readme.md` and `examples/{github-actions,

@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Define how pull-request CI builds and validates the `flutter-web` image: the matrix leg that builds it on every PR, the `test/web.yml` structure tests (including the no-runtime-download `flutter build web` assertion), and the handoff that lets the test and scan jobs consume the image without rebuilding. The experience context is the maintainer who gets a single red/green web check from the same job logic that validates the android image.
+Define how pull-request CI builds and validates the `flutter-web` image: the matrix leg that builds it on every PR, the `test/web.yml` structure tests (including the no-runtime-download `flutter build web` assertion). The experience context is the maintainer who gets a single red/green web check from the same job logic that validates the android image.
 ## Requirements
 ### Requirement: Pull request CI builds and validates the `flutter-web` image on every PR
 
