@@ -48,12 +48,12 @@ Alternative: keep the spec with only the parallel requirement. Rejected — it w
 | `windows-version-tracking` | Track the Windows image toolchain versions in `config/version.json`, so the Dockerfile, Pester tests, and scheduled upgrade PR all read one source. |
 
 **D6. Spec validation: `mise run specs` → `openspec validate --all`, in a new `openspec.yml` workflow.**
-- `--all` covers specs and active changes; non-strict because `--strict` fails all 26 specs on >500-char warnings (Non-Goal).
+- `--all` covers specs and active changes; non-strict because `--strict` fails nearly every spec on >500-char warnings (Non-Goal).
 - New workflow, not a `gx.yml` job: `gx.yml` triggers on workflow paths only and its name says what it lints. Workflow `OpenSpec`, job `validate`, `name: Validate specs`, on `pull_request` paths `openspec/**`, `mise.toml`, `.github/workflows/openspec.yml`, plus `workflow_dispatch`. Follows `ci-workflow-hardening` (harden-runner, `permissions: contents: read`, SHA pins via `gx`) and `ci-runtime-tool-versioning` (`jdx/mise-action`).
 - Not a required check: a path-filtered workflow never reports on unrelated PRs, so requiring it would block them.
 - Alternative: a `pre-commit`-style local hook only. Rejected — solo maintainer, CI is the only reliable gate.
 
-**D7. `openspec/config.yaml` `rules.specs` audience is "the CI engineer or maintainer"** (matching `context:`), replacing every "desktop user". Add `CRITICAL: Reject requirements that describe a one-time migration or rollout step; put those in design.md or tasks.md`. `rules.proposal` unchanged. Existing specs that say "desktop user" (e.g. `ci-runtime-tool-versioning` Purpose) are left alone.
+**D7. `openspec/config.yaml` audience is "the CI engineer or maintainer".** `rules.specs` replaces every "desktop user" with it. `context:` today limits specs to what "a CI engineer or developer would notice when pulling, running, or building with these images", which excludes maintainer-facing CI specs that already exist (`ci-repo-governance`, `ci-workflow-hardening`); it is widened to also cover what the maintainer notices when building, releasing, or reviewing changes to the images. Add `CRITICAL: Reject requirements that describe a one-time migration or rollout step; put those in design.md or tasks.md`. `rules.proposal` unchanged. Existing specs that say "desktop user" (e.g. `ci-runtime-tool-versioning` Purpose) are left alone.
 
 ## Risks / Trade-offs
 

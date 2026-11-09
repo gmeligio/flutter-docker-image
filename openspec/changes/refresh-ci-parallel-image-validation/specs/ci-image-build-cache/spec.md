@@ -4,7 +4,7 @@
 
 Each `build-image` leg in `.github/workflows/build.yml` SHALL persist its layer cache to the GitHub Container Registry under a deterministic, branch-shared tag (`ghcr.io/<owner>/<image>:buildcache`) using `type=registry,mode=max`. The build SHALL NOT use `type=gha` for either `cache-from` or `cache-to`.
 
-The experience context is the maintainer watching the `Build image` step on the PR check page — with `type=gha` and `mode=max`, eviction caused 20-30% of builds to fall back to cold (~6 min); with the registry backend, the cache is shared across branches and not subject to GHA's 10 GB quota.
+The experience context is the maintainer watching the `Build image …` step on the PR check page — with `type=gha` and `mode=max`, eviction caused 20-30% of builds to fall back to cold (~6 min); with the registry backend, the cache is shared across branches and not subject to GHA's 10 GB quota.
 
 #### Scenario: Non-fork PR populates the registry cache
 
@@ -17,8 +17,8 @@ The experience context is the maintainer watching the `Build image` step on the 
 
 - **GIVEN** the `buildcache` tag already exists from a prior successful run
 - **WHEN** a new `build-image` leg runs
-- **THEN** the `Build image` step log contains `importing cache manifest from ghcr.io/<owner>/<image>:buildcache`
-- **AND** the `Build image` step completes in ≤ 90 seconds at the median across 10 consecutive cache-hit runs
+- **THEN** the `Build image …` step log contains `importing cache manifest from ghcr.io/<owner>/<image>:buildcache`
+- **AND** the `Build image …` step completes in ≤ 90 seconds at the median across 10 consecutive cache-hit runs
 
 ### Requirement: Fork PRs read the registry cache but do not write to it
 
@@ -30,7 +30,7 @@ The experience context is a community contributor opening a PR from their fork �
 
 - **GIVEN** a PR opened from a fork (`github.event.pull_request.head.repo.full_name != github.repository`)
 - **WHEN** a `build-image` leg runs
-- **THEN** the `Build image` step uses `cache-from: type=registry,ref=ghcr.io/<owner>/<image>:buildcache` only
+- **THEN** the `Build image …` step uses `cache-from: type=registry,ref=ghcr.io/<owner>/<image>:buildcache` only
 - **AND** no `cache-to` value is passed to the build
 - **AND** the build succeeds even if the cache manifest is unavailable (cold-build fallback)
 

@@ -107,19 +107,24 @@ The experience context is the maintainer auditing CI cost — each image is buil
 
 ### Requirement: Test and scan validate each image in parallel after build
 
-For each image, `Test image (<name>)` and `Scan image (<name>)` SHALL depend only on `build-image` and `setup`, never on each other, so both start once the build finishes. The test set and the scan set SHALL each come from `config/images.json`.
+`test-image` runs one `Test image (<name>)` leg per image in the structure-test set and `scan-image` one `Scan image (<name>)` leg per image in the Scout set, both sets derived from `config/images.json`. Both jobs SHALL depend only on `setup` and `build-image`, never on each other, so both start once the build finishes.
 
 The experience context is the maintainer on the PR checks page — wall-clock after the build is the slower check, not the sum.
 
 #### Scenario: Test and scan start together
 
-- **GIVEN** a non-fork PR run where `build-image` has succeeded
+- **GIVEN** a non-fork PR run where `build-image` has succeeded and an image is in both sets
 - **WHEN** the downstream checks start
 - **THEN** `Test image (<name>)` and `Scan image (<name>)` both start without waiting for each other
 
-#### Scenario: Build failure blocks the test check
+#### Scenario: An image in only one set gets only that check
 
-- **GIVEN** `build-image` fails
+- **GIVEN** an image in the structure-test set but not the Scout set
+- **WHEN** `build-image` succeeds
+- **THEN** `Test image (<name>)` runs and no `Scan image (<name>)` check exists for it
+
+#### Scenario: Build failure skips the test job
+
+- **GIVEN** any `build-image` leg fails
 - **WHEN** the run evaluates downstream jobs
-- **THEN** `Test image (<name>)` is skipped
-- **AND** a required `Test image (<name>)` check is not satisfied, so the PR cannot merge
+- **THEN** `test-image` is skipped and reports no passing `Test image (<name>)` check

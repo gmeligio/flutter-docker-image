@@ -11,7 +11,7 @@ Specs drift from the workflows and nothing catches it:
 
 See `research.md`.
 
-Relevance gate: the maintainer reads these specs to know what the PR checks page shows (`Build and push image (<name>)`, `Test image (<name>)`, `Scan image (<name>)`), which checks a fork contributor sees, and whether a spec edit is valid before merge.
+Relevance gate: the maintainer reads these specs to know what the PR checks page shows (`Build and push image (<name>)`, `Test image (<name>)`, `Scan image (<name>)`), which checks a fork contributor sees, and whether a spec edit is valid before merge. The maintainer's spec workflow is in scope: `config.yaml` `context:` is widened to say so (design D7).
 
 ## What Changes
 
@@ -40,8 +40,8 @@ None.
 
 ## Impact
 
-- `openspec/specs/`: 3 specs modified by delta, 5 get a Purpose edit, `ci-parallel-image-validation/` deleted.
-- `openspec/config.yaml`: `rules.specs` reworded.
+- `openspec/specs/`: 4 specs modified by delta, 5 get a Purpose edit, `ci-parallel-image-validation/` deleted.
+- `openspec/config.yaml`: `context:` widened, `rules.specs` reworded.
 - `mise.toml`: new `specs` task. New `.github/workflows/openspec.yml`.
 - `.github/workflows/build.yml:189` comment only.
 - Closes #597, #561, #598, #599.

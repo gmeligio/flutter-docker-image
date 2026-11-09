@@ -12,18 +12,18 @@
 
 ## 3. Spec rules (#599)
 
-- [ ] 3.1 Reword `openspec/config.yaml` `rules.specs` per D7; verify `grep -c "desktop user" openspec/config.yaml` prints `0` and `openspec instructions specs --change refresh-ci-parallel-image-validation --json` lists the new migration rule
+- [ ] 3.1 Reword `openspec/config.yaml` `context:` and `rules.specs` per D7; verify `grep -c "desktop user" openspec/config.yaml` prints `0` and `openspec instructions specs --change refresh-ci-parallel-image-validation --json` lists the new migration rule
 
 ## 4. Spec validation in CI (#598)
 
 - [ ] 4.1 Add `[tasks.specs]` to `mise.toml` running `openspec validate --all`; verify `mise run specs` exits 0
 - [ ] 4.2 Add `.github/workflows/openspec.yml` per D6 and run `gx tidy`; verify `gx lint` passes and `.github/gx.lock` covers its actions
-- [ ] 4.3 Push the PR branch; verify the `Validate specs` check runs and passes
+- [ ] 4.3 Push the PR branch; verify the `Validate specs` check runs and passes, then push a commit dropping one spec's `## Purpose`, verify the check fails naming that spec, and revert it
 
 ## 5. Integration check
 
 - [ ] 5.1 Verify `openspec validate refresh-ci-parallel-image-validation --strict` passes
-- [ ] 5.2 On a scratch copy of `openspec/`, run `openspec archive refresh-ci-parallel-image-validation --yes`; verify it succeeds and `openspec validate --all` reports 0 failures
+- [ ] 5.2 On a scratch copy of `openspec/`, run `openspec archive refresh-ci-parallel-image-validation --yes`; verify it succeeds and `openspec validate --all` reports 0 failures, including `change/ubuntu-26-runners` if still active
 
 ## Workflow follow-up
 
