@@ -9,25 +9,27 @@ interface Comment {
   user: { login: string } | null
 }
 
-interface IssueParams {
+interface Repo {
   owner: string
   repo: string
 }
 
+type Issue = Repo & { issue_number: number }
+
 interface Args {
   github: {
-    paginate(route: unknown, params: IssueParams & { issue_number: number; per_page: number }): Promise<Comment[]>
+    paginate(route: unknown, params: Issue & { per_page: number }): Promise<Comment[]>
     rest: {
       issues: {
         listComments: unknown
-        createComment(params: IssueParams & { issue_number: number; body: string }): Promise<unknown>
-        updateComment(params: IssueParams & { comment_id: number; body: string }): Promise<unknown>
-        deleteComment(params: IssueParams & { comment_id: number }): Promise<unknown>
+        createComment(params: Issue & { body: string }): Promise<unknown>
+        updateComment(params: Repo & { comment_id: number; body: string }): Promise<unknown>
+        deleteComment(params: Repo & { comment_id: number }): Promise<unknown>
       }
     }
   }
   context: {
-    repo: IssueParams
+    repo: Repo
     issue: { number: number }
     serverUrl: string
     runId: number
@@ -56,27 +58,23 @@ module.exports = async ({ github, context, core }: Args): Promise<void> => {
   }
 
   const marker = `<!-- scout-compare:${image} -->`
-  const { owner, repo } = context.repo
-  const runUrl = `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`
+  const { repo } = context
+  const issue = { ...repo, issue_number: context.issue.number }
+  const runUrl = `${context.serverUrl}/${repo.owner}/${repo.repo}/actions/runs/${context.runId}`
   const body = buildBody(marker, image, report, runUrl)
 
-  const comments = await github.paginate(github.rest.issues.listComments, {
-    owner,
-    repo,
-    issue_number: context.issue.number,
-    per_page: 100,
-  })
+  const comments = await github.paginate(github.rest.issues.listComments, { ...issue, per_page: 100 })
   const [oldest, ...duplicates] = comments.filter(
     (comment) => comment.user?.login === BOT_LOGIN && comment.body?.startsWith(marker),
   )
 
   if (oldest) {
-    await github.rest.issues.updateComment({ owner, repo, comment_id: oldest.id, body })
+    await github.rest.issues.updateComment({ ...repo, comment_id: oldest.id, body })
   } else {
-    await github.rest.issues.createComment({ owner, repo, issue_number: context.issue.number, body })
+    await github.rest.issues.createComment({ ...issue, body })
   }
 
   for (const duplicate of duplicates) {
-    await github.rest.issues.deleteComment({ owner, repo, comment_id: duplicate.id })
+    await github.rest.issues.deleteComment({ ...repo, comment_id: duplicate.id })
   }
 }

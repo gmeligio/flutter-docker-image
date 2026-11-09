@@ -318,6 +318,7 @@ jobs:
           egress-policy: audit
 
       - name: Checkout PR comment script
+        if: github.event_name == 'pull_request'
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           sparse-checkout: script
@@ -395,7 +396,7 @@ jobs:
       # 128 KiB per-variable env cap that passing it through env: would hit.
       # The quoted heredoc keeps $, backticks and quotes in the report literal.
       - name: Save Scout report
-        if: ${{ !cancelled() && steps.docker-scout.outcome != 'skipped' }}
+        if: ${{ !cancelled() && github.event_name == 'pull_request' && steps.docker-scout.outcome != 'skipped' }}
         run: |
           cat > "$RUNNER_TEMP/scout-compare.md" <<'SCOUT_REPORT_EOF'
           ${{ steps.docker-scout.outputs.compare }}
