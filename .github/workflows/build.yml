@@ -387,6 +387,11 @@ jobs:
           to: ghcr.io/${{ github.repository_owner }}/${{ matrix.name }}:${{ needs.setup.outputs.flutter_version }}
           github-token: ${{ github.token }}
           only-fixed: true
+          # Scout keys its own PR comment on (command, workflow), so matrix legs
+          # would overwrite each other (#560). The next step comments per image.
+          write-comment: false
+          format: markdown
+          output: ${{ runner.temp }}/scout-compare.md
 
   validate-version-files:
     name: Validate version files
