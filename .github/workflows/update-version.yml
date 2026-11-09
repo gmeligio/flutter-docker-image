@@ -139,7 +139,6 @@ jobs:
       # sha256: Microsoft generates channel.json against a pretty-printed vsman
       # and serves a minified vsman, so byte equality is not preserved upstream.
       # Integrity is enforced semantically by the release-identity check below.
-      # See openspec/changes/p11-resilient-windows-update/design.md.
       - name: Download VS catalog manifest
         run: |
           url=$(jq -r '.channelItems[] | select(.id=="Microsoft.VisualStudio.Manifests.VisualStudio") | .payloads[0].url' channel.json)

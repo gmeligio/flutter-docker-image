@@ -185,8 +185,8 @@ jobs:
 
       # Fork path: forks can't push to GHCR or Docker Hub, so build into
       # the local Docker daemon and hand off via artifact (steps below).
-      # No attestations — `scan-image` is skipped for forks per
-      # `ci-parallel-image-validation`, so no SBOM is needed.
+      # No attestations — `scan-image` is skipped for forks, so no SBOM
+      # is needed.
       - name: Build image (local artifact only)
         if: steps.handoff.outputs.is_fork == 'true'
         uses: ./.github/actions/build-linux-image

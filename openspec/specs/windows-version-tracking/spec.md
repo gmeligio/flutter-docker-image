@@ -1,5 +1,9 @@
 # windows-version-tracking Specification
 
+## Purpose
+
+Track the Windows image toolchain versions in `config/version.json`, so the Dockerfile, Pester tests, and scheduled upgrade PR all read one source.
+
 ## Requirements
 
 ### Requirement: `config/version.json` declares the Windows toolchain versions
