@@ -24,8 +24,8 @@ See proposal.md for motivation. `scan-image` (`.github/workflows/build.yml`) is 
 
 **`actions/github-script` over `gh` CLI.** GitHub-owned, already pinned in this repo (v8.0.0), gives an authenticated Octokit with `paginate`. JS reads more clearly than a `gh api --jq` pipeline.
 
-**TypeScript file run through Node's type stripping.** github-script v8 runs on `node24`; Node 24 strips erasable TypeScript syntax by default ([Node docs](https://nodejs.org/api/typescript.html#type-stripping)). github-script's `require` resolves to Node's own `require` ([README](https://github.com/actions/github-script#run-a-separate-file)), so `require('./script/commentScoutReport.ts')` should load without a build step. Constraints: erasable syntax only (no `enum`, no parameter properties, no `namespace`), CommonJS `module.exports` (no `package.json` → CJS), type-only imports. Types are hand-written for the few fields used, since nothing type-checks in CI.
-- Alternative: JS with `// @ts-check` and JSDoc. Kept as fallback if type stripping fails on the runner.
+**TypeScript file run through Node's type stripping.** github-script v8 runs on `node24`; Node 24 strips erasable TypeScript syntax by default ([Node docs](https://nodejs.org/api/typescript.html#type-stripping)). github-script's `require` resolves to Node's own `require` ([README](https://github.com/actions/github-script#run-a-separate-file)), so `require('./script/commentScoutReport.ts')` loads without a build step. Verified: github-script v8.0.0's own `dist/index.js` (SHA `ed59741`) on Node 24.22.2, the runner's bundled `NODE24_VERSION` ([actions/runner externals.sh](https://github.com/actions/runner/blob/main/src/Misc/externals.sh)), loaded a `.ts` file using `import type`, `interface`, `type` and `satisfies`, exit 0, no warning. Constraints: erasable syntax only (no `enum`, no parameter properties, no `namespace`), CommonJS `module.exports` (no `package.json` → CJS), type-only imports. Types are hand-written for the few fields used, since nothing type-checks in CI.
+- Alternative: JS with `// @ts-check` and JSDoc. Rejected: TypeScript loads natively.
 
 **Inputs via `env`, never `${{ }}` inside the script.** `IMAGE` and `REPORT` reach the script through `process.env`, so report content cannot inject code.
 
@@ -38,8 +38,7 @@ See proposal.md for motivation. `scan-image` (`.github/workflows/build.yml`) is 
 ## Risks / Trade-offs
 
 - [`outputs.compare` not actually set by v1.18.2] → step is skipped, no comment; the job summary still has the report. Verify on the first PR run; third-party usage of `outputs.cves` / `outputs.recommendations` ([rennf93/parse-docker-scout-output](https://github.com/rennf93/parse-docker-scout-output/blob/main/README.md)) supports it.
-- [Runner's Node 24 refuses `.ts` via `require`] → switch the file to `.js` with `@ts-check`; one-line YAML change.
-- [Type stripping prints an ExperimentalWarning] → cosmetic log line, no effect.
+- [A runner Node bump changes type-stripping behavior] → Node 24 type stripping is stable; non-erasable syntax is the only way to break it, and the constraint is documented above.
 - [Types are unchecked] → script is ~30 lines; types document intent. Add `tsc` later only if scripts grow.
 - [Up to three comments per PR] → accepted; each updates in place.
 - [Cancelled run leaves previous comments] → they show last completed results until the next run.

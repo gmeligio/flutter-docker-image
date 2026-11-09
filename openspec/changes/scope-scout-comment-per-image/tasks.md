@@ -2,7 +2,7 @@
 
 ## 1. Comment script
 
-- [ ] 1.1 Write `script/commentScoutReport.ts` (CommonJS, erasable TS only): build marker from `IMAGE`, truncate `REPORT` with run link, paginate `issues.listComments`, update the `github-actions[bot]` comment whose body starts with the marker or create one; verify `node --experimental-strip-types -e "require('./script/commentScoutReport.ts')"` loads it under local Node 24 without errors
+- [ ] 1.1 Write `script/commentScoutReport.ts` (CommonJS, erasable TS only): build marker from `IMAGE`, truncate `REPORT` with run link, paginate `issues.listComments`, update the `github-actions[bot]` comment whose body starts with the marker or create one; verify `node -e "require('./script/commentScoutReport.ts')"` loads it under Node 24.22.2 without errors
 
 ## 2. Workflow wiring
 
@@ -12,7 +12,7 @@
 
 ## 3. Integration check
 
-- [ ] 3.1 Open the PR and verify the run posts one comment per image with marker `<!-- scout-compare:<image> -->`; if `.ts` fails to load, switch to `.js` + `@ts-check` and re-run
+- [ ] 3.1 Open the PR and verify the run posts one comment per image with marker `<!-- scout-compare:<image> -->`
 - [ ] 3.2 Push a second commit and verify the same three comments are updated in place, not duplicated
 - [ ] 3.3 Verify each leg's job summary still shows the full Scout report
 

@@ -28,4 +28,5 @@ None.
 - `.github/workflows/build.yml` (`scan-image` job): checkout step, `write-comment: false`, new comment step.
 - New `script/commentScoutReport.ts`.
 - No new third-party action; `actions/github-script` and `actions/checkout` are already pinned in this repo.
+- `openspec/specs/ci-image-vulnerability-scan/spec.md` pruned in place: Purpose and stale requirements rewritten to the current per-image matrix (`scan-image`, `build-image`, `<image>` instead of `flutter-android`), the one-off 9m31s timing scenario and the redundant `needs: setup` scenario removed, no behavior change.
 - Open PRs keep their old Scout comment (old marker) as stale history.
