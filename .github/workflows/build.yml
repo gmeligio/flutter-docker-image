@@ -394,12 +394,13 @@ jobs:
 
       # A run: body is written to a script file, so the report escapes the
       # 128 KiB per-variable env cap that passing it through env: would hit.
-      # The quoted heredoc keeps $, backticks and quotes in the report literal.
+      # toJSON makes the report one quoted line, so no report line can end the
+      # heredoc and run as shell.
       - name: Save Scout report
         if: ${{ !cancelled() && github.event_name == 'pull_request' && steps.docker-scout.outcome != 'skipped' }}
         run: |
-          cat > "$RUNNER_TEMP/scout-compare.md" <<'SCOUT_REPORT_EOF'
-          ${{ steps.docker-scout.outputs.compare }}
+          jq -r '. // empty' > "$RUNNER_TEMP/scout-compare.md" <<'SCOUT_REPORT_EOF'
+          ${{ toJSON(steps.docker-scout.outputs.compare) }}
           SCOUT_REPORT_EOF
 
       - name: Comment Scout report on PR
@@ -411,7 +412,7 @@ jobs:
         with:
           script: |
             try {
-              await require('./script/commentScoutReport.ts')({ github, context, core })
+              await require('./script/commentScoutReport.js')({ github, context, core })
             } catch (error) {
               core.warning(`Could not write the Docker Scout PR comment for ${process.env.IMAGE}: ${error.message}`)
             }
