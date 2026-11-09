@@ -7,7 +7,7 @@
 
 ## 2. Purposes (#561)
 
-- [ ] 2.1 Rewrite `openspec/specs/ci-image-handoff/spec.md` Purpose to the D5 text; verify `grep -n test_image openspec/specs/ci-image-handoff/spec.md` returns nothing
+- [x] 2.1 Rewrite `openspec/specs/ci-image-handoff/spec.md` Purpose to the D5 text; verify `grep -n test_image openspec/specs/ci-image-handoff/spec.md` returns nothing
 - [ ] 2.2 Add title, `## Purpose` (D5 text) and `## Requirements` to `ci-image-anonymous-availability` and `generated-docs-and-examples`; add `## Purpose` to `repository-wiki` and `windows-version-tracking`; trim `web-image-testing` Purpose per D5; verify `openspec validate <id> --type spec` passes for each of the five
 
 ## 3. Spec rules (#599)

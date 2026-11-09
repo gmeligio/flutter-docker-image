@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Hand off the Flutter Docker image built by the CI `test_image` job to downstream jobs in the same workflow run without rebuilding it, using a registry tag for non-fork events and an artifact tarball for fork PRs.
+Hand each image built by `build-image` to the `test-image` and `scan-image` legs of the same run without rebuilding it: a GHCR handoff tag for same-repo events, a per-image artifact for fork PRs.
 
 ## Requirements
 
