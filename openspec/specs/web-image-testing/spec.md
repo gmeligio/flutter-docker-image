@@ -3,7 +3,9 @@
 ## Purpose
 
 Define how pull-request CI builds and validates the `flutter-web` image: the matrix leg that builds it on every PR, the `test/web.yml` structure tests (including the no-runtime-download `flutter build web` assertion). The experience context is the maintainer who gets a single red/green web check from the same job logic that validates the android image.
+
 ## Requirements
+
 ### Requirement: Pull request CI builds and validates the `flutter-web` image on every PR
 
 The `.github/workflows/build.yml` workflow SHALL build the `flutter-web` image (`android.Dockerfile` with `--target web`) on every `pull_request` event, and SHALL run `container-structure-test` against it using `test/web.yml`. The web image SHALL be added as a matrix dimension over `{IMAGE_REPOSITORY_NAME, target}` alongside the android image, not as a copied set of jobs, so that the build, handoff, cache, test, and scan steps remain single definitions shared by both images.
@@ -38,23 +40,3 @@ The experience context is the maintainer who needs the "everything is predownloa
 - **WHEN** the `flutter build web` command test in `test/web.yml` runs
 - **THEN** the build emits `Downloading` lines for the web engine
 - **AND** the `excludedOutput` assertion fails the test
-
-### Requirement: Web image consumer jobs do not rebuild the image
-
-The web image's `container-structure-test` and Docker Scout jobs SHALL consume the image via the same handoff produced by the build job (per the `ci-image-handoff` capability) — `pull` on the registry path, `download-artifact` + `docker load` on the fork-PR path. They SHALL NOT invoke `docker build` or `docker/build-push-action`.
-
-The experience context is the maintainer auditing CI cost — each Dockerfile-touch PR SHALL materialize the web image bits exactly once, consistent with how the android image is validated.
-
-#### Scenario: Web consumer pulls the registry image without rebuilding
-
-- **GIVEN** a non-fork PR run
-- **WHEN** the web test or scan job runs
-- **THEN** the job log shows a pull of `ghcr.io/<owner>/flutter-web:pr-<N>`
-- **AND** the job log does not contain `docker build` or `FROM debian:`
-
-#### Scenario: Fork PR web scan is skipped, web test still runs
-
-- **GIVEN** a `pull_request` event from a fork (`head.repo.full_name != github.repository`)
-- **WHEN** the workflow runs
-- **THEN** the web build and web test legs run against the locally-loaded artifact
-- **AND** the web Scout scan leg does not appear (job-level `if:` evaluates to false), preserving the existing fork-PR scan gate

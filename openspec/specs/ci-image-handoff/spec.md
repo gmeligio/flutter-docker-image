@@ -8,32 +8,30 @@ Hand each image built by `build-image` to the `test-image` and `scan-image` legs
 
 ### Requirement: Build job exposes a handoff for downstream jobs
 
-The CI job that builds the Flutter Docker image SHALL expose three job outputs that downstream jobs in the same workflow run can consume to access the image without rebuilding it. The build job runs one leg per image declaring a pull-request handoff tag in `config/images.json`, and each leg's outputs SHALL name **that leg's image**, not a fixed one:
+The `build-image` job SHALL expose outputs from which every consumer leg locates its own image without rebuilding it:
 
-- `image_ref`: the full registry reference (`ghcr.io/<owner>/<image>:<tag>`) when the build pushed to GHCR; empty string otherwise.
-- `image_artifact`: the artifact name (`image-<run_id>`) when the build uploaded a `docker save` tarball instead; empty string otherwise.
-- `image_local_tag`: the tag the image carries in the local docker daemon (and inside the artifact tarball) — `<image>:<flutter-version>`. Always set, regardless of handoff channel.
+- `is_fork`: `true` for a `pull_request` from a fork, otherwise `false`.
+- `tag`: the GHCR handoff tag (`pr-<N>` or `branch-<ref>`).
+- `flutter_version`: the Flutter version the images were built for.
 
-Exactly one of `image_ref` and `image_artifact` SHALL be non-empty per run; `image_local_tag` SHALL always be non-empty. A consumer SHALL be able to decide its pull strategy from the outputs alone, without inspecting `github.event` itself.
+A consumer SHALL derive its image reference from these outputs plus its own matrix `name`, without inspecting `github.event` itself.
 
-The experience context is a maintainer adding a new validation step in a later change — they look at the build job's outputs, see exactly one handoff channel populated, and write a single consumer that branches on which channel. The `image_local_tag` output lets fork-path consumers reference the image by its loaded tag without recomputing it from the version manifest.
-
-Naming a single image in this requirement is what made it contradict `web-image-testing`, which already asserts that `flutter-web` handoff tags exist. Every image declaring a handoff tag produces these outputs (issue #544).
+The experience context is a maintainer adding a validation job — they read three outputs and branch once on `is_fork`.
 
 #### Scenario: Outputs encode the handoff kind unambiguously
 
-- **GIVEN** any successful build run
+- **GIVEN** any successful `build-image` run
 - **WHEN** the run completes
-- **THEN** exactly one of `image_ref` and `image_artifact` is non-empty
-- **AND** the non-empty one matches the documented format (`ghcr.io/<owner>/<image>:pr-<N>` / `ghcr.io/<owner>/<image>:branch-<branch>` or `image-<run_id>`)
-- **AND** `image_local_tag` is non-empty and matches `<image>:<flutter-version>`
+- **THEN** `is_fork` is `true` or `false`
+- **AND** `tag` matches `pr-<N>` or `branch-<ref>`
+- **AND** `flutter_version` is non-empty
 
 #### Scenario: Every image declaring a handoff tag produces outputs naming itself
 
 - **GIVEN** `config/images.json` declares more than one image with a pull-request handoff tag
-- **WHEN** the build job runs its legs
-- **THEN** each leg's `image_ref` and `image_local_tag` name that leg's own image
-- **AND** no leg reports outputs naming a different image
+- **WHEN** a consumer leg for image `<name>` runs
+- **THEN** it resolves `ghcr.io/<owner>/<name>:<tag>` (non-fork) or `<name>:<flutter_version>` from artifact `image-<run_id>-<name>` (fork)
+- **AND** it never resolves a different image's reference
 
 #### Scenario: An image that pushes nothing on a pull request declares no handoff tag
 
@@ -44,23 +42,23 @@ Naming a single image in this requirement is what made it contradict `web-image-
 
 ### Requirement: Non-fork PRs and workflow_dispatch use the registry handoff
 
-For events that have `packages: write` available on `GITHUB_TOKEN` (`pull_request` from a same-repo head or `workflow_dispatch`), the build SHALL push the image to a deterministic GHCR tag and set `image_ref` to the full registry ref.
+For events that have `packages: write` available on `GITHUB_TOKEN` (`pull_request` from a same-repo head or `workflow_dispatch`), each `build-image` leg SHALL push its image to a deterministic GHCR tag and set `is_fork` to `false`.
 
 The tag format SHALL be:
 
 - `pr-${{ github.event.pull_request.number }}` for `pull_request` events.
 - `branch-${{ github.ref_name }}` (with `/` replaced by `-`) for `workflow_dispatch`.
 
-The experience context is the p4 cleanup workflow operator — they need a tag pattern they can match-and-delete on PR close without scanning the registry.
+The experience context is the cleanup workflow operator — they need a tag pattern they can match-and-delete on PR close without scanning the registry.
 
 #### Scenario: Non-fork PR pushes the handoff tag
 
 - **GIVEN** a `pull_request` event with `github.event.pull_request.head.repo.full_name == github.repository`
-- **WHEN** the build job runs and completes successfully
+- **WHEN** `build-image` runs and completes successfully
 - **THEN** `ghcr.io/<owner>/<image>:pr-<N>` exists in GHCR for each image leg, with the just-built image
-- **AND** the job output `image_ref` equals that ref
-- **AND** the job output `image_artifact` is empty
-- **AND** the job output `image_local_tag` equals `<image>:<flutter-version>`
+- **AND** the job output `tag` equals `pr-<N>`
+- **AND** the job output `is_fork` equals `false`
+- **AND** no image artifact is uploaded
 
 #### Scenario: Re-running a PR overwrites the same handoff tag
 
@@ -71,19 +69,18 @@ The experience context is the p4 cleanup workflow operator — they need a tag p
 
 ### Requirement: Fork PRs use an artifact handoff
 
-For `pull_request` events from a fork (where `packages: write` is not available), the build SHALL skip the registry push, save the image with `docker save | gzip`, upload it via `actions/upload-artifact` with retention ≤ 1 day, and set `image_artifact` to the artifact name.
+For `pull_request` events from a fork (where `packages: write` is not available), each `build-image` leg SHALL skip the registry push, save its image tagged `<image>:<flutter-version>` with `docker save | gzip`, upload it via `actions/upload-artifact` as `image-<run_id>-<image>` with retention ≤ 1 day, and set `is_fork` to `true`.
 
-The experience context is a community contributor opening a fork PR — their PR still gets the parallel-validation benefit from later changes (p3), even though the runner cannot push to GHCR.
+The experience context is a community contributor opening a fork PR — their image is still tested even though the runner cannot push to GHCR.
 
 #### Scenario: Fork PR uploads the image artifact
 
 - **GIVEN** a `pull_request` event with `github.event.pull_request.head.repo.full_name != github.repository`
-- **WHEN** the build job runs and completes successfully
-- **THEN** an artifact named `image-<run_id>` exists for the run, containing `image.tar.gz`
+- **WHEN** `build-image` runs and completes successfully
+- **THEN** an artifact named `image-<run_id>-<image>` exists for each image leg, containing `image.tar.gz`
 - **AND** the artifact retention is ≤ 1 day
-- **AND** the job output `image_artifact` equals `image-<run_id>`
-- **AND** the job output `image_ref` is empty
-- **AND** the job output `image_local_tag` equals `<image>:<flutter-version>` (the tag carried inside the tarball)
+- **AND** the tarball carries the tag `<image>:<flutter-version>`
+- **AND** the job output `is_fork` equals `true`
 
 #### Scenario: Fork PR fallback succeeds even when GHCR is unreachable
 
@@ -91,3 +88,47 @@ The experience context is a community contributor opening a fork PR — their PR
 - **WHEN** the build completes
 - **THEN** no GHCR push is attempted
 - **AND** the build does not fail due to missing `packages: write` permission
+
+### Requirement: Consumer jobs never rebuild the image
+
+`test-image` and `scan-image` SHALL obtain the image only through the handoff: pull from GHCR (non-fork) or download the artifact and `docker load` it (fork). Neither SHALL build a Dockerfile.
+
+The experience context is the maintainer auditing CI cost — each image is built once per run, by `build-image`.
+
+#### Scenario: Non-fork consumer pulls without rebuilding
+
+- **GIVEN** a non-fork PR run
+- **WHEN** a `Test image (<name>)` or `Scan image (<name>)` check runs
+- **THEN** it reads `ghcr.io/<owner>/<name>:<tag>`, where `<tag>` is the `build-image` handoff tag (`pr-<N>` or `branch-<ref>`)
+- **AND** its log contains no `docker build` or `buildx build` invocation
+
+#### Scenario: Fork consumer loads the artifact without rebuilding
+
+- **GIVEN** a fork PR run
+- **WHEN** a `Test image (<name>)` check runs
+- **THEN** it downloads `image-<run_id>-<name>` and runs `docker load`
+- **AND** its log contains no `docker build` or `buildx build` invocation
+
+### Requirement: Test and scan validate each image in parallel after build
+
+`test-image` runs one `Test image (<name>)` leg per image in the structure-test set and `scan-image` one `Scan image (<name>)` leg per image in the Scout set, both sets derived from `config/images.json`. Both jobs SHALL depend only on `setup` and `build-image`, never on each other, so both start once the build finishes.
+
+The experience context is the maintainer on the PR checks page — wall-clock after the build is the slower check, not the sum.
+
+#### Scenario: Test and scan start together
+
+- **GIVEN** a non-fork PR run where `build-image` has succeeded and an image is in both sets
+- **WHEN** the downstream checks start
+- **THEN** `Test image (<name>)` and `Scan image (<name>)` both start without waiting for each other
+
+#### Scenario: An image in only one set gets only that check
+
+- **GIVEN** an image in the structure-test set but not the Scout set
+- **WHEN** `build-image` succeeds
+- **THEN** `Test image (<name>)` runs and no `Scan image (<name>)` check exists for it
+
+#### Scenario: Build failure skips the consumer jobs
+
+- **GIVEN** any `build-image` leg fails
+- **WHEN** the run evaluates downstream jobs
+- **THEN** `test-image` and `scan-image` are skipped and report no passing `Test image (<name>)` or `Scan image (<name>)` check
