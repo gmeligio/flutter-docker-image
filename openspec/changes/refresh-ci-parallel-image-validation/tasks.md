@@ -22,7 +22,7 @@
 
 ## 5. Integration check
 
-- [ ] 5.1 Verify `openspec validate refresh-ci-parallel-image-validation --strict` passes
+- [x] 5.1 Verify `openspec validate refresh-ci-parallel-image-validation --strict` passes
 - [ ] 5.2 On a scratch copy of `openspec/`, run `openspec archive refresh-ci-parallel-image-validation --yes`; verify it succeeds and `openspec validate --all` reports 0 failures, including `change/ubuntu-26-runners` if still active, and `grep -c "Web image consumer jobs do not rebuild" openspec/specs/web-image-testing/spec.md` prints `0`
 
 ## Workflow follow-up
