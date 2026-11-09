@@ -7,7 +7,7 @@
 
 ## 2. Workflow wiring
 
-- [ ] 2.1 In `build.yml` `scan-image`, add `contents: read` to the job `permissions:` and a sparse checkout of `script/` placed before the logins and the Scout step, using the repo's pinned `actions/checkout` SHA; verify the workflow lints via gx
+- [x] 2.1 In `build.yml` `scan-image`, add `contents: read` to the job `permissions:` and a sparse checkout of `script/` placed before the logins and the Scout step, using the repo's pinned `actions/checkout` SHA; verify the workflow lints via gx
 - [ ] 2.2 On the `Scan with Docker Scout` step (keeps `id: docker-scout`, which the comment step's gate reads) set `write-comment: false`, `format: markdown`, `output: ${{ runner.temp }}/scout-compare.md`, leaving other inputs unchanged; verify by diff
 - [ ] 2.3 Add `Comment Scout report on PR` step: pinned `actions/github-script` v8.0.0 SHA, `if: ${{ !cancelled() && github.event_name == 'pull_request' && steps.docker-scout.outcome != 'skipped' }}`, `env` `IMAGE` and `REPORT_FILE: ${{ runner.temp }}/scout-compare.md`, script wrapping `require('./script/commentScoutReport.ts')` and its call in `try/catch` → `core.warning` naming the image; verify the workflow lints via gx
 

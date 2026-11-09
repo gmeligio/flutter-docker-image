@@ -299,6 +299,7 @@ jobs:
     # write PR comments, so Scout is skipped entirely for them (job-level if).
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     permissions:
+      contents: read
       packages: read
       pull-requests: write
       security-events: write
@@ -315,6 +316,12 @@ jobs:
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
         with:
           egress-policy: audit
+
+      - name: Checkout PR comment script
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          sparse-checkout: script
+          persist-credentials: false
 
       # Scout's API enforces the Docker Hub / DSOS entitlement on every
       # call: without an authenticated Docker Hub identity tied to the
