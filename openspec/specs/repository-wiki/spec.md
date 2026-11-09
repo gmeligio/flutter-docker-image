@@ -1,9 +1,5 @@
 # repository-wiki Specification
 
-## Purpose
-
-Give CI engineers a one-click, automatically refreshed DeepWiki for this repository, linked from the README, and tell contributors how it works.
-
 ## Requirements
 
 ### Requirement: README exposes a DeepWiki entry point
