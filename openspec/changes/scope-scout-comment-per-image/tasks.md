@@ -13,11 +13,11 @@
 
 ## 3. Integration check
 
-- [ ] 3.1 Open the PR and verify the run posts one comment per `scout: true` image with marker `<!-- scout-compare:<image> -->` and a visible image heading; if the `compare` step output is empty, stop and revise the design before continuing
+- [x] 3.1 Open the PR and verify the run posts one comment per `scout: true` image with marker `<!-- scout-compare:<image> -->` and a visible image heading; if the `compare` step output is empty, stop and revise the design before continuing
 - [ ] 3.2 Push a second commit and verify the same comments are updated in place, one per image, none duplicated
 - [ ] 3.3 Re-run only the flutter-web leg and verify only the flutter-web comment's `updated_at` changes
 - [ ] 3.4 Verify each leg's job summary still shows the full Scout report, and the Scout step log still shows `compare` executing and the SBOM attestation being used
-- [ ] 3.5 Verify the gate by inspection: the comment step's `if:` is false for `workflow_dispatch` and when the Scout step was skipped (no baseline)
+- [x] 3.5 Verify the gate by inspection: the comment step's `if:` is false for `workflow_dispatch` and when the Scout step was skipped (no baseline)
 
 ## Workflow follow-up
 
