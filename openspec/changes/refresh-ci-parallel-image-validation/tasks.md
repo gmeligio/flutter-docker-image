@@ -12,7 +12,7 @@
 
 ## 3. Spec rules (#599)
 
-- [ ] 3.1 Reword `openspec/config.yaml` `context:` and `rules.specs` per D7; verify `grep -c "desktop user" openspec/config.yaml` prints `0` and `openspec instructions specs --change refresh-ci-parallel-image-validation --json` lists the new migration rule
+- [x] 3.1 Reword `openspec/config.yaml` `context:` and `rules.specs` per D7; verify `grep -c "desktop user" openspec/config.yaml` prints `0` and `openspec instructions specs --change refresh-ci-parallel-image-validation --json` lists the new migration rule
 
 ## 4. Spec validation in CI (#598)
 
