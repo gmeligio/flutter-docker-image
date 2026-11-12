@@ -1,8 +1,26 @@
+## [3.50.0] - 2026-11-12
+
+### 🐛 Bug Fixes
+
+- *(deps)* Update all non-major dependencies (#594)
+- *(ci)* Post one Docker Scout PR comment per image (#595)
+
+### 📚 Documentation
+
+- *(openspec)* Refresh image-pipeline specs and validate specs in CI (#600)
+
+### ⚙️ Miscellaneous Tasks
+
+- *(renovate)* Keep gx.toml range precision and trust the tidy bot (#590)
 ## [3.47.9] - 2026-10-30
 
 ### 🐛 Bug Fixes
 
 - *(deps)* Update all non-major dependencies (#585)
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Upgrade flutter to 3.47.9 (#588)
 ## [3.47.8] - 2026-10-27
 
 ### 🐛 Bug Fixes
