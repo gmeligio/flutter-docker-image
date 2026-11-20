@@ -1,3 +1,8 @@
+## [3.50.1] - 2026-11-20
+
+### 🐛 Bug Fixes
+
+- *(deps)* Update all non-major dependencies (#606)
 ## [3.50.0] - 2026-11-12
 
 ### 🐛 Bug Fixes
@@ -12,6 +17,7 @@
 ### ⚙️ Miscellaneous Tasks
 
 - *(renovate)* Keep gx.toml range precision and trust the tidy bot (#590)
+- *(release)* Upgrade flutter to 3.50.0 (#604)
 ## [3.47.9] - 2026-10-30
 
 ### 🐛 Bug Fixes
