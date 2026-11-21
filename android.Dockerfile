@@ -142,7 +142,7 @@ ENV PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-to
 # renovate: depName=openjdk-17-jdk-headless
 ARG OPENJDK_17_JDK_HEADLESS_VERSION="17.0.21.1+2-1~deb12u1"
 # renovate: depName=sudo
-ARG SUDO_VERSION="1.9.16p2-3+deb13u2"
+ARG SUDO_VERSION="1.9.16p2-3+deb13u5"
 
 USER root
 # Trixie has no openjdk-17; bookworm does.
