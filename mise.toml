@@ -1,5 +1,5 @@
 [tools]
-cue = "0.17.1"
+cue = "0.18.0"
 git-cliff = "2.14.2"
 # For update-android-version: the flutter-android container lacks jq.
 jq = "1.8.2"
