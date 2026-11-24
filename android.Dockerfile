@@ -1,4 +1,4 @@
-FROM debian:13.7-slim@sha256:a72b4433de1cf7d6bae0c4cee74d0547f58601a643b3375f070c51600d63b6b2 AS flutter
+FROM debian:13.8-slim@sha256:8aa5a7bf5a1955bddbe7d74fcdd0b91ab30e74362a8b73af672b0481b35b44a0 AS flutter
 
 SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
@@ -11,7 +11,7 @@ ARG GIT_VERSION="1:2.47.3-0+deb13u1"
 # renovate: depName=lcov
 ARG LCOV_VERSION="2.3.1-1"
 # renovate: depName=ca-certificates
-ARG CA_CERTIFICATES_VERSION="20250419"
+ARG CA_CERTIFICATES_VERSION="20250419+deb13u1"
 # renovate: depName=unzip
 ARG UNZIP_VERSION="6.0-29+deb13u1"
 
