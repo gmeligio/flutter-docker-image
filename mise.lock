@@ -232,7 +232,7 @@ checksum = "sha256:e612af99f626ab415ea225af6bce5c971feb448cb5cae250bb1c3fa50c5f7
 url = "https://nodejs.org/dist/v24.22.3/node-v24.22.3-win-x64.zip"
 
 [[tools."npm:@fission-ai/openspec"]]
-version = "1.17.0"
-aube = { path = ".mise/locks/npm-fission-ai-openspec/1.17.0", digest = "sha256:1f358950ad292c7e0299396e675adf4f17908f58c3341300e6e1d4879d8c2685" }
+version = "2.2.0"
+aube = { path = ".mise/locks/npm-fission-ai-openspec/2.2.0", digest = "sha256:0f2f952402b23c334110274180c491e3b654207faf8b05e78a0ab46c0cea4136" }
 backend = "npm:@fission-ai/openspec"
-specifiers = ["1.17.0"]
+specifiers = ["2.2.0"]
